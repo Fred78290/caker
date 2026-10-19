@@ -74,6 +74,7 @@
 		9B11BFF03084B4E1005BBCBD /* WindowsInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFEC3084B4E1005BBCBD /* WindowsInstaller.swift */; };
 		9B11BFF13084B4E1005BBCBD /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */; };
 		9B11BFF23084B4E1005BBCBD /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */; };
+		9B11BFF23084B4E1005B7A02 /* WindowsArchitecture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */; };
 		9B11BFFD3084C577005BBCBD /* windows.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B11BFFC3084C577005BBCBD /* windows.png */; };
 		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
 		9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D02F97A98A000329B1 /* ServiceListView.swift */; };
@@ -1035,6 +1036,7 @@
 		9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallationMedia.swift; sourceTree = "<group>"; };
 		9B11BFEC3084B4E1005BBCBD /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstaller.swift; sourceTree = "<group>"; };
 		9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallResources.swift; sourceTree = "<group>"; };
+		9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsArchitecture.swift; sourceTree = "<group>"; };
 		9B11BFFC3084C577005BBCBD /* windows.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = windows.png; sourceTree = "<group>"; };
 		9B11BFFE3084F7E8005BBCBD /* windows.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = windows.png; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
@@ -1948,6 +1950,7 @@
 				9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */,
 				9B11BFEC3084B4E1005BBCBD /* WindowsInstaller.swift */,
 				9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */,
+				9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */,
 				9B1D8FD0308523EE009515C6 /* WIM */,
 			);
 			path = Windows;
@@ -4486,6 +4489,7 @@
 				9B11BFF03084B4E1005BBCBD /* WindowsInstaller.swift in Sources */,
 				9B11BFF13084B4E1005BBCBD /* WindowsInstallationMedia.swift in Sources */,
 				9B11BFF23084B4E1005BBCBD /* WindowsInstallResources.swift in Sources */,
+				9B11BFF23084B4E1005B7A02 /* WindowsArchitecture.swift in Sources */,
 				9BF1A0103001000000AA0010 /* AppleMobileDeviceRestoreBackend.swift in Sources */,
 				9BF1A0113001000000AA0011 /* DeviceRestoreBackend.swift in Sources */,
 				9BF1A0123001000000AA0012 /* DeviceRestoreDriver.swift in Sources */,

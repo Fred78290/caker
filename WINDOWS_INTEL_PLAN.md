@@ -4,7 +4,7 @@ Goal: `caked build my-win11 iso:///path/to/Win11_x64.iso --autoinstall` produces
 **Intel Mac**, with the same result as the Apple-silicon path (Windows 11 ARM): display, network, shared folders
 (WinFsp + virtio-fs), virtio-vsock, and the cakeagent service reachable over vsock with mutual TLS.
 
-Status: **plan only, nothing here is implemented or tested on Intel.** Everything marked *unknown* below has to be
+Status: **phase 1 is implemented and unit-tested (`WindowsArchitecture`); nothing has been booted on Intel yet.** Everything marked *unknown* below has to be
 found out on a real Intel Mac before the code that depends on it is written. The Apple-silicon implementation
 is documented in `CLAUDE.md` ("Windows 11 for ARM is installed by `WindowsInstaller`…") and `wiki/provisioning.md`;
 this plan assumes you have read the first one.
@@ -64,6 +64,11 @@ Each one decides whether later phases exist. Record the answers in this file whe
    Virtualization.framework exposes (`coreinfo`/`wmic cpu` once it boots).
 8. **Does `viosock` work on x64 under VZ's vsock device?** Likely (same virtio device), but verify with the
    `vsock=running` marker, then the agent probe in section 5.
+
+Answer to 1 (Intel Mac, macOS 26, Xcode 26.3, Swift 6.4.0 from swiftly): the repo builds only after bumping `swift-async-algorithms`.
+The pinned `main` revision `6c050d5e` fails with a region-isolation error in `MultiProducerSingleConsumerAsyncChannel+Internal.swift`
+(`takeSending`); `cbde9aed` (current `main`) builds, and `swift test --filter WindowsGuestTests` passes (37 tests, including one against
+the real `Windows11_Client_x64_en-us_26300_9457.iso`, which has only `efi/boot/bootx64.efi`). `Package.resolved` in the repo was not changed.
 
 Gate: if 1 can't be resolved or 2 fails, the rest of this plan is dropped.
 

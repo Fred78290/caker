@@ -49,7 +49,21 @@ enum WindowsInstallResources {
 		"""#)
 
 	/// Partitions the empty system disk, applies the Windows image, adds the virtio drivers and the boot files.
-	static let installScript = crlf(
+	static func installScript(for architecture: WindowsArchitecture) -> String {
+		// The framebuffer helpers and the loader that starts them (see WindowsArchitecture.usesFramebufferShim)
+		let shim =
+			architecture.usesFramebufferShim
+			? #"""
+			mkdir S:\EFI\caker 2>nul
+			copy /y %T%\framebuffer.efi S:\EFI\caker\framebuffer.efi >> %LOG% || goto fail
+			rem Windows Boot Manager moves to windows.efi and the loader takes its place at the removable media path,
+			rem so the framebuffer driver is up before Windows starts (see EFI\loader.c).
+			mkdir S:\EFI\BOOT 2>nul
+			copy /y S:\EFI\Microsoft\Boot\bootmgfw.efi S:\EFI\BOOT\windows.efi >> %LOG% || goto fail
+			copy /y %T%\loader.efi \#(architecture.removableBootPath) >> %LOG% || goto fail
+			"""# : "rem Windows Boot Manager stays at the removable media path, no EFI helper is needed"
+
+		return crlf(
 		#"""
 		@echo off
 		rem Installs Windows from WinPE: install.cmd <installation media drive>, e.g. install.cmd C:
@@ -120,13 +134,7 @@ enum WindowsInstallResources {
 
 		call :say Writing the boot files
 		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
-		mkdir S:\EFI\caker 2>nul
-		copy /y %T%\framebuffer.efi S:\EFI\caker\framebuffer.efi >> %LOG% || goto fail
-		rem Windows Boot Manager moves to windows.efi and the loader takes its place at the removable media path,
-		rem so the framebuffer driver is up before Windows starts (see EFI\loader.c).
-		mkdir S:\EFI\BOOT 2>nul
-		copy /y S:\EFI\Microsoft\Boot\bootmgfw.efi S:\EFI\BOOT\windows.efi >> %LOG% || goto fail
-		copy /y %T%\loader.efi S:\EFI\BOOT\BOOTAA64.EFI >> %LOG% || goto fail
+		\#(shim)
 
 		call :say Done, powering off
 		echo OK> %T%\result
@@ -145,6 +153,7 @@ enum WindowsInstallResources {
 		echo [%time%] %* >> %LOG%
 		exit /b 0
 		"""#)
+	}
 
 	/// Runs once as SYSTEM when the installed Windows finishes setting itself up. It installs the sharing support,
 	/// leaves a marker on the EFI system partition (a FAT32 volume the host can read, holding the exit codes of
@@ -206,7 +215,7 @@ enum WindowsInstallResources {
 
 	/// The answer file for the installed system: a local administrator account that logs on automatically,
 	/// and no out-of-box experience. `language` is the image's default (e.g. `en-US`).
-	static func unattend(username: String, password: String, computerName: String, language: String) -> String {
+	static func unattend(username: String, password: String, computerName: String, language: String, architecture: WindowsArchitecture) -> String {
 		func escaped(_ value: String) -> String {
 			value.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;")
 		}
@@ -216,19 +225,19 @@ enum WindowsInstallResources {
 			<?xml version="1.0" encoding="utf-8"?>
 			<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
 			  <settings pass="specialize">
-			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <ComputerName>\(escaped(computerName))</ComputerName>
 			      <TimeZone>UTC</TimeZone>
 			    </component>
 			  </settings>
 			  <settings pass="oobeSystem">
-			    <component name="Microsoft-Windows-International-Core" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			    <component name="Microsoft-Windows-International-Core" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <InputLocale>\(escaped(language))</InputLocale>
 			      <SystemLocale>\(escaped(language))</SystemLocale>
 			      <UILanguage>\(escaped(language))</UILanguage>
 			      <UserLocale>\(escaped(language))</UserLocale>
 			    </component>
-			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <OOBE>
 			        <HideEULAPage>true</HideEULAPage>
 			        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>

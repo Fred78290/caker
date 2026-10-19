@@ -89,15 +89,15 @@ struct WindowsPlatform: GuestPlateForm {
 		return config
 	}
 
-	/// Windows Boot Manager never gets past its first instructions unless the virtual CPU emulates the
-	/// performance monitoring unit (and the fine-grained traps that go with it). The framework only
-	/// offers these as private setters, so they are looked up by selector at run time: a macOS that
-	/// dropped them fails the Windows VM up front with a clear error instead of hanging at boot.
+	/// On Apple silicon, Windows Boot Manager never gets past its first instructions unless the virtual CPU
+	/// emulates the performance monitoring unit (and the fine-grained traps that go with it). The framework only
+	/// offers these as private setters, so they are called by selector at run time. They are ARM features: an
+	/// Intel host calls nothing (WINDOWS_INTEL_PLAN.md step 4 settles whether x64 needs an equivalent).
 	/// Not available in the App Store build, which can't ship private API.
 	private func enableWindowsCPUFeatures(_ config: VZGenericPlatformConfiguration) throws {
 		#if APPSTORE
 			throw ServiceError(String(localized: "Windows VMs are not supported in the App Store build"))
-		#else
+		#elseif arch(arm64)
 			Dynamic(config)._setPerformanceMonitoringUnitEmulationEnabled(true)
 			Dynamic(config)._setFineGrainedTrapsEmulationEnabled(true)
 		#endif

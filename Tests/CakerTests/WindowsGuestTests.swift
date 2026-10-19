@@ -208,7 +208,7 @@ final class WindowsGuestTests: XCTestCase {
 	}
 
 	func testUnattendEscapesCredentialsAndUsesTheImageLanguage() {
-		let xml = WindowsInstallResources.unattend(username: "admin", password: "p<a>&ss", computerName: "CAKER", language: "fr-FR")
+		let xml = WindowsInstallResources.unattend(username: "admin", password: "p<a>&ss", computerName: "CAKER", language: "fr-FR", architecture: .arm64)
 
 		XCTAssertTrue(xml.contains("<Value>p&lt;a&gt;&amp;ss</Value>"))
 		XCTAssertTrue(xml.contains("<UILanguage>fr-FR</UILanguage>"))
@@ -217,7 +217,7 @@ final class WindowsGuestTests: XCTestCase {
 	}
 
 	func testInstallScriptsUseCRLFOnly() {
-		for script in [WindowsInstallResources.installScript, WindowsInstallResources.peScript, WindowsInstallResources.setupComplete, WindowsInstallResources.winpeshl] {
+		for script in [WindowsInstallResources.installScript(for: .arm64), WindowsInstallResources.installScript(for: .amd64), WindowsInstallResources.peScript, WindowsInstallResources.setupComplete, WindowsInstallResources.winpeshl] {
 			XCTAssertFalse(script.replacingOccurrences(of: "\r\n", with: "").contains("\n"), "a bare LF would break cmd.exe's line handling")
 		}
 	}
@@ -255,7 +255,7 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(setup.contains("winfsp=%MSI%") && setup.contains("service=%SVC%") && setup.contains("share=%SHARE%"), "the outcome goes in the marker the host reads")
 		XCTAssertFalse(setup.contains("from-windows"), "setup must not write into the user's shared folders")
 
-		let install = WindowsInstallResources.installScript
+		let install = WindowsInstallResources.installScript(for: .arm64)
 
 		XCTAssertTrue(install.contains("copy /y %T%\\winfsp.msi W:\\ProgramData\\caker\\winfsp.msi"))
 		XCTAssertTrue(install.contains("copy /y %T%\\virtiofs.exe W:\\ProgramData\\caker\\virtiofs.exe"))
@@ -271,7 +271,7 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertFalse(setup.contains("netsh"), "vsock is not IP traffic: no firewall rule")
 		XCTAssertTrue(setup.contains("agent=%AGENT%"))
 
-		let install = WindowsInstallResources.installScript
+		let install = WindowsInstallResources.installScript(for: .arm64)
 
 		XCTAssertTrue(install.contains("copy /y %T%\\cakeagent.exe W:\\ProgramData\\caker\\cakeagent.exe"))
 		XCTAssertTrue(install.contains("xcopy /y /i /q %T%\\certs W:\\ProgramData\\caker\\certs"))
@@ -299,5 +299,138 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertEqual(WindowsInstallationMedia.winFspSHA256.count, 64)
 		XCTAssertEqual(WindowsInstallationMedia.winFspURL.scheme, "https")
 		XCTAssertTrue(WindowsInstallationMedia.winFspURL.lastPathComponent.hasSuffix(".msi"))
+	}
+
+	// MARK: - Guest architecture
+
+	func testArchitectureValuesDifferWhereWindowsDiffers() {
+		XCTAssertEqual(WindowsArchitecture.arm64.bootFile, "bootaa64.efi")
+		XCTAssertEqual(WindowsArchitecture.amd64.bootFile, "bootx64.efi")
+		XCTAssertEqual(WindowsArchitecture.arm64.removableBootPath, "S:\\EFI\\BOOT\\BOOTAA64.EFI")
+		XCTAssertEqual(WindowsArchitecture.amd64.removableBootPath, "S:\\EFI\\BOOT\\BOOTX64.EFI")
+		XCTAssertEqual(WindowsArchitecture.arm64.virtioFolder, "ARM64")
+		XCTAssertEqual(WindowsArchitecture.amd64.virtioFolder, "amd64")
+		XCTAssertEqual(WindowsArchitecture.arm64.unattendArchitecture, "arm64")
+		XCTAssertEqual(WindowsArchitecture.amd64.unattendArchitecture, "amd64")
+	}
+
+	func testHostArchitectureMatchesTheAgentBuildTheInstallerDownloads() {
+		// Utilities.cakeagentWindowsBinary picks the agent by Architecture.current(): it must be the guest's
+		XCTAssertEqual(WindowsArchitecture.host.agentSuffix, Architecture.current().rawValue)
+	}
+
+	func testOnlyTheARMGuestUsesTheFramebufferShim() {
+		XCTAssertTrue(WindowsArchitecture.arm64.usesFramebufferShim)
+		XCTAssertFalse(WindowsArchitecture.amd64.usesFramebufferShim, "the helpers are built for AArch64 only")
+	}
+
+	func testDetectFindsTheArchitectureFromTheBootLoader() throws {
+		XCTAssertEqual(try WindowsArchitecture.detect(name: "w.iso", host: .amd64) { $0 == "efi/boot/bootx64.efi" }, .amd64)
+		XCTAssertEqual(try WindowsArchitecture.detect(name: "w.iso", host: .arm64) { $0 == "efi/boot/bootaa64.efi" }, .arm64)
+	}
+
+	func testDetectRefusesAnISOTheHostCannotRun() {
+		XCTAssertThrowsError(try WindowsArchitecture.detect(name: "arm.iso", host: .amd64) { $0 == "efi/boot/bootaa64.efi" }) {
+			XCTAssertTrue("\($0)".contains("ARM64") || "\($0)".contains("x64"))
+		}
+
+		XCTAssertThrowsError(try WindowsArchitecture.detect(name: "x64.iso", host: .arm64) { $0 == "efi/boot/bootx64.efi" })
+	}
+
+	func testDetectRefusesAnISOWithoutABootLoader() {
+		XCTAssertThrowsError(try WindowsArchitecture.detect(name: "empty.iso", host: .amd64) { _ in false })
+	}
+
+	func testDetectPrefersTheHostWhenAnISOCarriesBothLoaders() throws {
+		XCTAssertEqual(try WindowsArchitecture.detect(name: "both.iso", host: .amd64) { $0.hasPrefix("efi/boot/") }, .amd64)
+		XCTAssertEqual(try WindowsArchitecture.detect(name: "both.iso", host: .arm64) { $0.hasPrefix("efi/boot/") }, .arm64)
+	}
+
+	/// An ISO's file tree reduced to what `validate` looks at.
+	private func makeISORoot(files: [String]) throws -> URL {
+		let root = self.directory.appendingPathComponent("iso-\(UUID().uuidString)", isDirectory: true)
+
+		for file in files {
+			let url = root.appendingPathComponent(file)
+
+			try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+			try Data().write(to: url)
+		}
+
+		return root
+	}
+
+	func testValidateReturnsTheGuestArchitectureOfAnX64ISO() throws {
+		let root = try self.makeISORoot(files: ["sources/install.wim", "efi/boot/bootx64.efi"])
+
+		XCTAssertEqual(try WindowsInstallationMedia.validate(isoRoot: root, name: "x64.iso", host: .amd64), .amd64)
+		XCTAssertThrowsError(try WindowsInstallationMedia.validate(isoRoot: root, name: "x64.iso", host: .arm64), "an Apple silicon Mac can't run an x64 guest")
+	}
+
+	func testValidateReturnsTheGuestArchitectureOfAnARMISO() throws {
+		let root = try self.makeISORoot(files: ["sources/install.esd", "efi/boot/bootaa64.efi"])
+
+		XCTAssertEqual(try WindowsInstallationMedia.validate(isoRoot: root, name: "arm.iso", host: .arm64), .arm64)
+		XCTAssertThrowsError(try WindowsInstallationMedia.validate(isoRoot: root, name: "arm.iso", host: .amd64), "an Intel Mac can't run an ARM guest")
+	}
+
+	func testValidateRejectsAnISOWithoutAnInstallImage() throws {
+		let root = try self.makeISORoot(files: ["efi/boot/bootx64.efi"])
+
+		XCTAssertThrowsError(try WindowsInstallationMedia.validate(isoRoot: root, name: "other.iso", host: .amd64))
+	}
+
+	func testUnattendUsesTheGuestArchitectureInEveryComponent() {
+		let amd64 = WindowsInstallResources.unattend(username: "admin", password: "admin", computerName: "CAKER", language: "en-US", architecture: .amd64)
+		let arm64 = WindowsInstallResources.unattend(username: "admin", password: "admin", computerName: "CAKER", language: "en-US", architecture: .arm64)
+
+		XCTAssertEqual(amd64.components(separatedBy: "processorArchitecture=\"amd64\"").count - 1, 3)
+		XCTAssertFalse(amd64.contains("arm64"))
+		XCTAssertEqual(arm64.components(separatedBy: "processorArchitecture=\"arm64\"").count - 1, 3)
+		XCTAssertFalse(arm64.contains("amd64"))
+	}
+
+	func testARMInstallScriptPutsTheLoaderAtTheRemovableMediaPath() {
+		let script = WindowsInstallResources.installScript(for: .arm64)
+
+		XCTAssertTrue(script.contains("copy /y %T%\\loader.efi S:\\EFI\\BOOT\\BOOTAA64.EFI"))
+		XCTAssertTrue(script.contains("copy /y S:\\EFI\\Microsoft\\Boot\\bootmgfw.efi S:\\EFI\\BOOT\\windows.efi"))
+		XCTAssertTrue(script.contains("framebuffer.efi"))
+		XCTAssertFalse(script.contains("\\#"), "the interpolation of a raw string must be resolved")
+	}
+
+	func testAMD64InstallScriptLeavesWindowsBootManagerInPlace() {
+		let script = WindowsInstallResources.installScript(for: .amd64)
+
+		XCTAssertFalse(script.contains("loader.efi"))
+		XCTAssertFalse(script.contains("framebuffer.efi"))
+		XCTAssertFalse(script.contains("BOOTAA64"))
+		XCTAssertTrue(script.contains("bcdboot W:\\Windows /s S: /f UEFI"), "bcdboot still writes the boot files")
+		XCTAssertTrue(script.contains("echo OK> %T%\\result"))
+	}
+
+	func testInstallScriptsDifferOnlyByTheShim() {
+		let arm64 = WindowsInstallResources.installScript(for: .arm64).components(separatedBy: "\r\n")
+		let amd64 = WindowsInstallResources.installScript(for: .amd64).components(separatedBy: "\r\n")
+
+		XCTAssertEqual(arm64.first, amd64.first)
+		XCTAssertEqual(arm64.last, amd64.last)
+		XCTAssertGreaterThan(arm64.count, amd64.count)
+	}
+
+	/// Opt-in check against a real Windows ISO: `CAKER_WINDOWS_ISO=/path/to/Win11.iso swift test --filter testRealISO`.
+	func testRealISOIsRecognisedAsTheHostArchitecture() throws {
+		guard let path = ProcessInfo.processInfo.environment["CAKER_WINDOWS_ISO"] else {
+			throw XCTSkip("set CAKER_WINDOWS_ISO to a Windows 11 ISO of the host's architecture")
+		}
+
+		let mount = self.directory.appendingPathComponent("real-iso", isDirectory: true)
+
+		try FileManager.default.createDirectory(at: mount, withIntermediateDirectories: true)
+		try Process.capture("/usr/bin/hdiutil", ["attach", "-nobrowse", "-readonly", "-mountpoint", mount.path, path])
+
+		defer { _ = try? Process.capture("/usr/bin/hdiutil", ["detach", mount.path]) }
+
+		XCTAssertEqual(try WindowsInstallationMedia.validate(isoRoot: mount, name: URL(fileURLWithPath: path).lastPathComponent), WindowsArchitecture.host)
 	}
 }

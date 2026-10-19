@@ -463,18 +463,6 @@
       },
       "shouldTranslate" : false
     },
-    "%@ is not a Windows on ARM installation ISO" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ n’est pas un ISO d’installation de Windows sur ARM"
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
     "%@ is not sudoable" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17445,30 +17433,6 @@
         }
       }
     },
-    "The virtio-win ISO has no ARM64 %@ driver" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’ISO virtio-win n’a pas de pilote %@ pour ARM64"
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
-    "The virtio-win ISO has no virtio-fs service for ARM64" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’ISO virtio-win n’a pas de service virtio-fs pour ARM64"
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
     "The virtual machine is running. Do you want terminate it them and quit?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21199,6 +21163,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "erreur zlib"
+          }
+        }
+      }
+    },
+    "%@ has no ARM64 or x64 Windows boot loader" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ne contient pas de chargeur de démarrage Windows ARM64 ou x64"
+          }
+        }
+      }
+    },
+    "%@ is a Windows %@ installation ISO, but this Mac can only run Windows %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est un ISO d’installation de Windows %@, mais ce Mac ne peut exécuter que Windows %@"
+          }
+        }
+      }
+    },
+    "The virtio-win ISO has no %@ driver for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO virtio-win n’a pas de pilote %@ pour %@"
+          }
+        }
+      }
+    },
+    "The virtio-win ISO has no virtio-fs service for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO virtio-win n’a pas de service virtio-fs pour %@"
           }
         }
       }
