@@ -36,6 +36,9 @@ typedef UINTN EFI_TPL;
 #define EFI_BUFFER_TOO_SMALL EFI_ERR(5)
 #define EFI_OUT_OF_RESOURCES EFI_ERR(9)
 #define EFI_NOT_FOUND EFI_ERR(14)
+#define EFI_ALREADY_STARTED EFI_ERR(20)
+
+#define EFI_SIZE_TO_PAGES(size) (((size) + 4095) / 4096)
 
 typedef struct {
   UINT32 Data1;
@@ -65,6 +68,7 @@ typedef enum {
 } EFI_MEMORY_TYPE;
 typedef enum { ByAllHandles, ByRegisterNotify, ByProtocol } EFI_LOCATE_SEARCH_TYPE;
 typedef enum { TimerCancel, TimerPeriodic, TimerRelative } EFI_TIMER_DELAY;
+typedef enum { EFI_NATIVE_INTERFACE } EFI_INTERFACE_TYPE;
 
 #define EVT_TIMER 0x80000000
 #define EVT_NOTIFY_SIGNAL 0x00000200
@@ -98,7 +102,7 @@ typedef struct {
   VOID *SignalEvent;
   EFI_STATUS (*CloseEvent)(EFI_EVENT Event);
   VOID *CheckEvent;
-  VOID *InstallProtocolInterface;
+  EFI_STATUS (*InstallProtocolInterface)(EFI_HANDLE *Handle, EFI_GUID *Protocol, EFI_INTERFACE_TYPE InterfaceType, VOID *Interface);
   EFI_STATUS (*ReinstallProtocolInterface)(EFI_HANDLE Handle, EFI_GUID *Protocol, VOID *OldInterface, VOID *NewInterface);
   VOID *UninstallProtocolInterface;
   EFI_STATUS (*HandleProtocol)(EFI_HANDLE Handle, EFI_GUID *Protocol, VOID **Interface);
@@ -123,6 +127,12 @@ typedef struct {
   VOID *ProtocolsPerHandle;
   EFI_STATUS (*LocateHandleBuffer)(EFI_LOCATE_SEARCH_TYPE SearchType, EFI_GUID *Protocol, VOID *SearchKey, UINTN *NoHandles, EFI_HANDLE **Buffer);
   EFI_STATUS (*LocateProtocol)(EFI_GUID *Protocol, VOID *Registration, VOID **Interface);
+  VOID *InstallMultipleProtocolInterfaces;
+  VOID *UninstallMultipleProtocolInterfaces;
+  VOID *CalculateCrc32;
+  VOID *CopyMem;
+  VOID *SetMem;
+  EFI_STATUS (*CreateEventEx)(UINT32 Type, EFI_TPL NotifyTpl, EFI_EVENT_NOTIFY NotifyFunction, const VOID *NotifyContext, const EFI_GUID *EventGroup, EFI_EVENT *Event);
 } EFI_BOOT_SERVICES;
 
 typedef struct {
@@ -210,11 +220,15 @@ typedef struct {
   UINTN FrameBufferSize;
 } EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE;
 
+typedef EFI_STATUS (*EFI_GOP_QUERY_MODE)(EFI_GRAPHICS_OUTPUT_PROTOCOL *This, UINT32 ModeNumber, UINTN *SizeOfInfo, EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **Info);
+typedef EFI_STATUS (*EFI_GOP_SET_MODE)(EFI_GRAPHICS_OUTPUT_PROTOCOL *This, UINT32 ModeNumber);
+typedef EFI_STATUS (*EFI_GOP_BLT)(EFI_GRAPHICS_OUTPUT_PROTOCOL *This, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BltBuffer, EFI_GRAPHICS_OUTPUT_BLT_OPERATION BltOperation,
+                                  UINTN SourceX, UINTN SourceY, UINTN DestinationX, UINTN DestinationY, UINTN Width, UINTN Height, UINTN Delta);
+
 struct EFI_GRAPHICS_OUTPUT_PROTOCOL {
-  EFI_STATUS (*QueryMode)(EFI_GRAPHICS_OUTPUT_PROTOCOL *This, UINT32 ModeNumber, UINTN *SizeOfInfo, EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **Info);
-  EFI_STATUS (*SetMode)(EFI_GRAPHICS_OUTPUT_PROTOCOL *This, UINT32 ModeNumber);
-  EFI_STATUS (*Blt)(EFI_GRAPHICS_OUTPUT_PROTOCOL *This, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BltBuffer, EFI_GRAPHICS_OUTPUT_BLT_OPERATION BltOperation,
-                    UINTN SourceX, UINTN SourceY, UINTN DestinationX, UINTN DestinationY, UINTN Width, UINTN Height, UINTN Delta);
+  EFI_GOP_QUERY_MODE QueryMode;
+  EFI_GOP_SET_MODE SetMode;
+  EFI_GOP_BLT Blt;
   EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode;
 };
 

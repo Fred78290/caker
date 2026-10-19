@@ -3,9 +3,23 @@
 // Apple's firmware exposes the virtual GPU only as a Blt-capable graphics output (PixelBltOnly, no
 // FrameBufferBase). Windows Boot Manager and the Windows kernel's boot display draw straight into the
 // framebuffer the firmware reports, so on such firmware the first pixel they write faults and the VM
-// dies. This driver reserves a framebuffer in RAM, replaces the graphics output protocol with one that
-// reports it, and copies whatever changed to the real GPU from a timer, much like QEMU's ramfb does in
-// hardware. Windows' own display driver takes over once it loads.
+// dies. This driver reserves a framebuffer in RAM, makes the graphics output protocols report it, and
+// copies whatever changed to the real GPU from a timer, much like QEMU's ramfb does in hardware. Copying
+// stops at ExitBootServices; Windows' own display driver takes over once it loads.
+//
+// The protocols are patched in place rather than replaced: the console splitter (the graphics output
+// Windows Boot Manager actually opens) keeps its own copy of the mode and calls into the GPU's protocol
+// through its function pointers, so both have to say the same thing. Every graphics output gets the
+// framebuffer in its mode, and only the GPU's Blt is redirected.
+//
+// The framebuffer is sized for the mode the GPU is in when the driver finds it, up to 1920x1200. The
+// firmware picks 8192x4320 for display sizes it doesn't list, which would cost 280 MB of RAM and a
+// scan of it every tick, so above the cap the driver first switches to the largest mode within it.
+// Larger modes then stay Blt-only and can't be set.
+//
+// On load, the driver registers itself as a Driver#### option with a short-form device path (no volume),
+// so the firmware loads it on every boot from whichever volume holds it: the installation media at
+// first, then the Windows EFI system partition.
 //
 // Written from the UEFI 2.x specification; no code is shared with other projects.
 
@@ -15,23 +29,40 @@
 #define FLUSH_INTERVAL_100NS 400000 // 40 ms
 #endif
 
+#define MAX_GOPS 8
+#define MAX_WIDTH 1920
+#define MAX_HEIGHT 1200
+
+#define DRIVER_OPTION_NUMBER 0xCAFE
+
 static EFI_GUID GraphicsOutputGuid = {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}};
+static EFI_GUID DevicePathGuid = {0x09576e91, 0x6d3f, 0x11d2, {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
+static EFI_GUID ExitBootServicesGroup = {0x27abf055, 0xb1b8, 0x4c26, {0x80, 0x48, 0x74, 0x8f, 0x37, 0xba, 0xa2, 0xdf}};
+static EFI_GUID GlobalVariableGuid = {0x8be4df61, 0x93ca, 0x11d2, {0xaa, 0x0d, 0x00, 0xe0, 0x98, 0x03, 0x2b, 0x8c}};
+// Installed once the driver is resident, so that a second load (the loader's, then the Driver#### option's) is a no-op
+static EFI_GUID ResidentGuid = {0x3c5d0c3e, 0x7a41, 0x4d6b, {0x9e, 0x52, 0x1f, 0x80, 0xb7, 0x6a, 0x24, 0xd1}};
+
+static CHAR16 DriverPath[] = L"\\EFI\\caker\\framebuffer.efi";
+static CHAR16 DriverDescription[] = L"Caker framebuffer";
 
 static EFI_BOOT_SERVICES *BS;
-static EFI_HANDLE GopHandle;
-static EFI_GRAPHICS_OUTPUT_PROTOCOL *RealGop;
-
-static EFI_GRAPHICS_OUTPUT_PROTOCOL OurGop;
-static EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE OurMode;
-static EFI_GRAPHICS_OUTPUT_MODE_INFORMATION OurInfo;
 
 static UINT8 *Framebuffer; // what Windows draws into
 static UINT8 *Shadow;      // what was last sent to the real GPU
-static UINTN Width, Height, Stride; // in pixels / bytes per row
-static BOOLEAN Flushing;
-static BOOLEAN Installed;
+static UINTN FramebufferSize;
+static BOOLEAN Active;   // the GPU is there to be drawn to, until ExitBootServices
+static BOOLEAN Flushing; // keeps the timer and a Blt from flushing at the same time
 static EFI_EVENT FlushTimer;
-static EFI_EVENT GopNotify;
+
+// The virtual GPU's graphics output, the only one with a device path
+static EFI_GRAPHICS_OUTPUT_PROTOCOL *Device;
+static EFI_GOP_BLT DeviceBlt;
+
+// Every graphics output advertises the framebuffer, including the console splitter's
+static EFI_GRAPHICS_OUTPUT_PROTOCOL *Gops[MAX_GOPS];
+static EFI_GOP_SET_MODE GopSetMode[MAX_GOPS];
+static EFI_GOP_QUERY_MODE GopQueryMode[MAX_GOPS];
+static UINTN GopCount;
 static VOID *GopRegistration;
 
 void *memcpy(void *dst, const void *src, UINTN n) {
@@ -60,6 +91,13 @@ void *memset(void *dst, int c, UINTN n) {
   return dst;
 }
 
+static BOOLEAN MemEqual(const void *a, const void *b, UINTN n) {
+  const UINT8 *x = a, *y = b;
+  while (n--) {
+    if (*x++ != *y++) return FALSE;
+  }
+  return TRUE;
+}
 
 #ifdef DEBUG_MARKS
 // Bring-up aid: paints squares straight on the real GPU (never through our own framebuffer) so a
@@ -67,18 +105,66 @@ void *memset(void *dst, int c, UINTN n) {
 static UINTN Ticks, LastBltStatus;
 
 static VOID MarkAt(UINTN x, UINTN y, UINT32 color) {
-  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop = RealGop;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop = Device;
+  EFI_GOP_BLT blt = DeviceBlt;
   if (!gop) {
-    EFI_GUID guid = {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}};
-    if (EFI_ERROR(BS->LocateProtocol(&guid, NULL, (VOID **)&gop))) return;
+    if (EFI_ERROR(BS->LocateProtocol(&GraphicsOutputGuid, NULL, (VOID **)&gop))) return;
+    blt = gop->Blt;
   }
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL pixel = *(EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)&color;
-  gop->Blt(gop, &pixel, EfiBltVideoFill, 0, 0, x, y, 12, 12, 0);
+  blt(gop, &pixel, EfiBltVideoFill, 0, 0, x, y, 12, 12, 0);
 }
 #define MARK(slot, color) MarkAt((slot) * 16, 0, color)
 #else
 #define MARK(slot, color)
 #endif
+
+// The size of the GPU's current mode, which follows the VM's display
+static UINTN Width(VOID) { return Device->Mode->Info->HorizontalResolution; }
+static UINTN Height(VOID) { return Device->Mode->Info->VerticalResolution; }
+static UINTN Stride(VOID) { return Width() * 4; }
+
+static UINTN ModeSize(const EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info) {
+  return (UINTN)info->HorizontalResolution * info->VerticalResolution * 4;
+}
+
+static BOOLEAN WithinCap(const EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info) {
+  return info->HorizontalResolution <= MAX_WIDTH && info->VerticalResolution <= MAX_HEIGHT;
+}
+
+// Whether the framebuffer can back a mode
+static BOOLEAN Fits(const EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info) {
+  return Framebuffer && info && WithinCap(info) && ModeSize(info) <= FramebufferSize;
+}
+
+static BOOLEAN InBounds(UINTN x, UINTN y, UINTN width, UINTN height) {
+  return x <= Width() && width <= Width() - x && y <= Height() && height <= Height() - y;
+}
+
+static VOID AdvertiseFramebuffer(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info) {
+  info->PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
+  info->PixelInformation = (EFI_PIXEL_BITMASK){0};
+  info->PixelsPerScanLine = info->HorizontalResolution;
+}
+
+// Points every adopted graphics output's current mode at the framebuffer, where the mode fits it
+static VOID PatchModes(VOID) {
+  for (UINTN i = 0; i < GopCount; i++) {
+    EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *mode = Gops[i]->Mode;
+    if (!mode || !Fits(mode->Info)) continue;
+
+    AdvertiseFramebuffer(mode->Info);
+    mode->FrameBufferBase = (EFI_PHYSICAL_ADDRESS)(UINTN)Framebuffer;
+    mode->FrameBufferSize = ModeSize(mode->Info);
+  }
+}
+
+static int GopIndex(EFI_GRAPHICS_OUTPUT_PROTOCOL *gop) {
+  for (UINTN i = 0; i < GopCount; i++) {
+    if (Gops[i] == gop) return (int)i;
+  }
+  return -1;
+}
 
 static BOOLEAN RowsDiffer(const UINT8 *a, const UINT8 *b, UINTN bytes) {
   const UINT64 *x = (const UINT64 *)a;
@@ -93,37 +179,42 @@ static BOOLEAN RowsDiffer(const UINT8 *a, const UINT8 *b, UINTN bytes) {
 // Sends the rows in [firstRow, firstRow + count) that differ from the shadow copy to the real GPU,
 // one run of consecutive changed rows per call.
 static VOID FlushRows(UINTN firstRow, UINTN count) {
-  if (Flushing || !RealGop) return;
+  if (Flushing || !Active || !Fits(Device->Mode->Info)) return;
   Flushing = TRUE;
 
+  UINTN stride = Stride();
   UINTN end = firstRow + count;
-  if (end > Height) end = Height;
+  if (end > Height()) end = Height();
 
   UINTN y = firstRow;
   while (y < end) {
-    if (!RowsDiffer(Framebuffer + y * Stride, Shadow + y * Stride, Stride)) {
+    if (!RowsDiffer(Framebuffer + y * stride, Shadow + y * stride, stride)) {
       y++;
       continue;
     }
 
     UINTN start = y;
-    while (y < end && RowsDiffer(Framebuffer + y * Stride, Shadow + y * Stride, Stride)) y++;
+    while (y < end && RowsDiffer(Framebuffer + y * stride, Shadow + y * stride, stride)) y++;
 
+    // The buffer is the whole framebuffer, so the source and destination positions are the same
     UINTN rows = y - start;
-    EFI_STATUS status = RealGop->Blt(RealGop, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)(Framebuffer + start * Stride), EfiBltBufferToVideo, 0, start, 0, start, Width, rows, Stride);
+    EFI_STATUS status = DeviceBlt(Device, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)Framebuffer, EfiBltBufferToVideo, 0, start, 0, start, Width(), rows, stride);
 #ifdef DEBUG_MARKS
     LastBltStatus = status;
 #endif
     if (!EFI_ERROR(status)) {
-      memcpy(Shadow + start * Stride, Framebuffer + start * Stride, rows * Stride);
+      memcpy(Shadow + start * stride, Framebuffer + start * stride, rows * stride);
     }
   }
 
   Flushing = FALSE;
 }
 
+// Windows writes to the framebuffer directly, so the timer pushes whichever rows changed since the last tick
 static VOID FlushTick(EFI_EVENT event, VOID *context) {
-  FlushRows(0, Height);
+  if (!Device) return;
+
+  FlushRows(0, Height());
 #ifdef DEBUG_MARKS
   Ticks++;
   for (UINTN bit = 0; bit < 12; bit++) MarkAt(bit * 16, 40, ((Ticks >> bit) & 1) ? 0x00ffffff : 0x00404040);
@@ -131,41 +222,65 @@ static VOID FlushTick(EFI_EVENT event, VOID *context) {
 #endif
 }
 
+static VOID StopFlushing(EFI_EVENT event, VOID *context) {
+  // The GPU driver resets the device at ExitBootServices
+  Active = FALSE;
+}
+
 static EFI_STATUS OurQueryMode(EFI_GRAPHICS_OUTPUT_PROTOCOL *this, UINT32 modeNumber, UINTN *sizeOfInfo, EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **info) {
-  if (modeNumber != 0 || !sizeOfInfo || !info) return EFI_INVALID_PARAMETER;
+  int i = GopIndex(this);
+  if (i < 0) return EFI_INVALID_PARAMETER;
 
-  EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *copy;
-  if (EFI_ERROR(BS->AllocatePool(EfiBootServicesData, sizeof(*copy), (VOID **)&copy))) return EFI_OUT_OF_RESOURCES;
-
-  memcpy(copy, &OurInfo, sizeof(*copy));
-  *info = copy;
-  *sizeOfInfo = sizeof(*copy);
-  return EFI_SUCCESS;
+  EFI_STATUS status = GopQueryMode[i](this, modeNumber, sizeOfInfo, info);
+  if (!EFI_ERROR(status) && info && Fits(*info)) AdvertiseFramebuffer(*info);
+  return status;
 }
 
 static EFI_STATUS OurSetMode(EFI_GRAPHICS_OUTPUT_PROTOCOL *this, UINT32 modeNumber) {
-  if (modeNumber != 0) return EFI_UNSUPPORTED;
+  int i = GopIndex(this);
+  if (i < 0) return EFI_INVALID_PARAMETER;
 
-  memset(Framebuffer, 0, Stride * Height);
-  FlushRows(0, Height);
-  return EFI_SUCCESS;
+  // A mode the framebuffer can't back would leave Windows drawing outside of it
+  if (Framebuffer) {
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+    UINTN size;
+    if (EFI_ERROR(GopQueryMode[i](this, modeNumber, &size, &info))) return EFI_UNSUPPORTED;
+
+    BOOLEAN fits = Fits(info);
+    BS->FreePool(info);
+    if (!fits) return EFI_UNSUPPORTED;
+  }
+
+  EFI_STATUS status = GopSetMode[i](this, modeNumber);
+  if (!EFI_ERROR(status) && Framebuffer) {
+    PatchModes();
+
+    // The mode starts out black; the shadow differs so the next tick paints it all
+    memset(Framebuffer, 0, FramebufferSize);
+    memset(Shadow, 0xff, FramebufferSize);
+  }
+  return status;
 }
 
+// Firmware drawing goes to the framebuffer too, so that it stays the single source of truth.
 static EFI_STATUS OurBlt(EFI_GRAPHICS_OUTPUT_PROTOCOL *this, EFI_GRAPHICS_OUTPUT_BLT_PIXEL *buffer, EFI_GRAPHICS_OUTPUT_BLT_OPERATION operation,
                          UINTN sourceX, UINTN sourceY, UINTN destX, UINTN destY, UINTN width, UINTN height, UINTN delta) {
+  if (!Fits(Device->Mode->Info)) return DeviceBlt(this, buffer, operation, sourceX, sourceY, destX, destY, width, height, delta);
+
   if (operation >= EfiGraphicsOutputBltOperationMax) return EFI_INVALID_PARAMETER;
   if (width == 0 || height == 0) return EFI_SUCCESS;
 
+  UINTN stride = Stride();
   UINTN bufferStride = delta ? delta : width * 4;
   UINTN firstRow = 0, rowCount = 0;
 
   switch (operation) {
     case EfiBltVideoFill: {
-      if (!buffer || destX + width > Width || destY + height > Height) return EFI_INVALID_PARAMETER;
+      if (!buffer || !InBounds(destX, destY, width, height)) return EFI_INVALID_PARAMETER;
 
       UINT32 pixel = *(UINT32 *)buffer;
       for (UINTN row = 0; row < height; row++) {
-        UINT32 *line = (UINT32 *)(Framebuffer + (destY + row) * Stride) + destX;
+        UINT32 *line = (UINT32 *)(Framebuffer + (destY + row) * stride) + destX;
         for (UINTN column = 0; column < width; column++) line[column] = pixel;
       }
       firstRow = destY;
@@ -173,28 +288,28 @@ static EFI_STATUS OurBlt(EFI_GRAPHICS_OUTPUT_PROTOCOL *this, EFI_GRAPHICS_OUTPUT
       break;
     }
     case EfiBltVideoToBltBuffer:
-      if (!buffer || sourceX + width > Width || sourceY + height > Height) return EFI_INVALID_PARAMETER;
+      if (!buffer || !InBounds(sourceX, sourceY, width, height)) return EFI_INVALID_PARAMETER;
 
       for (UINTN row = 0; row < height; row++) {
-        memcpy((UINT8 *)buffer + (destY + row) * bufferStride + destX * 4, Framebuffer + (sourceY + row) * Stride + sourceX * 4, width * 4);
+        memcpy((UINT8 *)buffer + (destY + row) * bufferStride + destX * 4, Framebuffer + (sourceY + row) * stride + sourceX * 4, width * 4);
       }
       return EFI_SUCCESS;
     case EfiBltBufferToVideo:
-      if (!buffer || destX + width > Width || destY + height > Height) return EFI_INVALID_PARAMETER;
+      if (!buffer || !InBounds(destX, destY, width, height)) return EFI_INVALID_PARAMETER;
 
       for (UINTN row = 0; row < height; row++) {
-        memcpy(Framebuffer + (destY + row) * Stride + destX * 4, (UINT8 *)buffer + (sourceY + row) * bufferStride + sourceX * 4, width * 4);
+        memcpy(Framebuffer + (destY + row) * stride + destX * 4, (UINT8 *)buffer + (sourceY + row) * bufferStride + sourceX * 4, width * 4);
       }
       firstRow = destY;
       rowCount = height;
       break;
     case EfiBltVideoToVideo:
-      if (sourceX + width > Width || sourceY + height > Height || destX + width > Width || destY + height > Height) return EFI_INVALID_PARAMETER;
+      if (!InBounds(sourceX, sourceY, width, height) || !InBounds(destX, destY, width, height)) return EFI_INVALID_PARAMETER;
 
       if (destY > sourceY || (destY == sourceY && destX > sourceX)) {
-        for (UINTN row = height; row-- > 0;) memmove(Framebuffer + (destY + row) * Stride + destX * 4, Framebuffer + (sourceY + row) * Stride + sourceX * 4, width * 4);
+        for (UINTN row = height; row-- > 0;) memmove(Framebuffer + (destY + row) * stride + destX * 4, Framebuffer + (sourceY + row) * stride + sourceX * 4, width * 4);
       } else {
-        for (UINTN row = 0; row < height; row++) memmove(Framebuffer + (destY + row) * Stride + destX * 4, Framebuffer + (sourceY + row) * Stride + sourceX * 4, width * 4);
+        for (UINTN row = 0; row < height; row++) memmove(Framebuffer + (destY + row) * stride + destX * 4, Framebuffer + (sourceY + row) * stride + sourceX * 4, width * 4);
       }
       firstRow = destY;
       rowCount = height;
@@ -207,150 +322,122 @@ static EFI_STATUS OurBlt(EFI_GRAPHICS_OUTPUT_PROTOCOL *this, EFI_GRAPHICS_OUTPUT
   return EFI_SUCCESS;
 }
 
-// Replaces the real graphics output protocol on its handle with ours.
-static EFI_STATUS Install(EFI_HANDLE handle, EFI_GRAPHICS_OUTPUT_PROTOCOL *real) {
-  if (!real->Mode || !real->Mode->Info) return EFI_NOT_FOUND;
+static EFI_STATUS AllocateFramebuffer(const EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info) {
+  UINTN size = ModeSize(info);
+  UINTN pages = EFI_SIZE_TO_PAGES(size);
 
-  // Already linear (a different firmware, or another copy of this driver): nothing to add
-  if (real->Mode->FrameBufferBase != 0 && real->Mode->Info->PixelFormat != PixelBltOnly) return EFI_SUCCESS;
-
-  Width = real->Mode->Info->HorizontalResolution;
-  Height = real->Mode->Info->VerticalResolution;
-  Stride = Width * 4;
-  if (Width == 0 || Height == 0) return EFI_NOT_FOUND;
-
-  UINTN size = Stride * Height;
-  UINTN pages = (size + 4095) / 4096;
-
-  // The framebuffer must survive into the running OS, so it is runtime memory the firmware reserves
+  // Reserved memory, so that the firmware keeps it out of the OS's hands while the OS still has it mapped
   EFI_PHYSICAL_ADDRESS address;
-  if (EFI_ERROR(BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, pages, &address))) return EFI_OUT_OF_RESOURCES;
-  Framebuffer = (UINT8 *)(UINTN)address;
-  memset(Framebuffer, 0, pages * 4096);
+  if (EFI_ERROR(BS->AllocatePages(AllocateAnyPages, EfiReservedMemoryType, pages, &address))) return EFI_OUT_OF_RESOURCES;
 
-  if (EFI_ERROR(BS->AllocatePool(EfiBootServicesData, size, (VOID **)&Shadow))) return EFI_OUT_OF_RESOURCES;
+  if (EFI_ERROR(BS->AllocatePool(EfiBootServicesData, size, (VOID **)&Shadow))) {
+    BS->FreePages(address, pages);
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  Framebuffer = (UINT8 *)(UINTN)address;
+  FramebufferSize = size;
+  memset(Framebuffer, 0, pages * 4096);
   // The shadow starts different from the framebuffer so the first tick paints everything
   memset(Shadow, 0xff, size);
-
-  OurInfo.Version = 0;
-  OurInfo.HorizontalResolution = (UINT32)Width;
-  OurInfo.VerticalResolution = (UINT32)Height;
-  OurInfo.PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
-  OurInfo.PixelsPerScanLine = (UINT32)Width;
-
-  OurMode.MaxMode = 1;
-  OurMode.Mode = 0;
-  OurMode.Info = &OurInfo;
-  OurMode.SizeOfInfo = sizeof(OurInfo);
-  OurMode.FrameBufferBase = address;
-  OurMode.FrameBufferSize = pages * 4096;
-
-  OurGop.QueryMode = OurQueryMode;
-  OurGop.SetMode = OurSetMode;
-  OurGop.Blt = OurBlt;
-  OurGop.Mode = &OurMode;
-
-  RealGop = real;
-  GopHandle = handle;
-
-  EFI_STATUS status = BS->ReinstallProtocolInterface(handle, &GraphicsOutputGuid, real, &OurGop);
-  if (EFI_ERROR(status)) {
-    RealGop = NULL;
-    return status;
-  }
-
-  Installed = TRUE;
-  MARK(3, 0x0000ff00);
-
-  if (!EFI_ERROR(BS->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, FlushTick, NULL, &FlushTimer))) {
-    BS->SetTimer(FlushTimer, TimerPeriodic, FLUSH_INTERVAL_100NS);
-  }
-
   return EFI_SUCCESS;
 }
 
-static EFI_STATUS TryInstall(VOID) {
-  if (Installed) return EFI_SUCCESS;
+// Switches the graphics output to its largest mode within the cap if the current one is above it, and
+// returns whether the current mode is within the cap
+static BOOLEAN LimitMode(UINTN i) {
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop = Gops[i];
+  if (WithinCap(gop->Mode->Info)) return TRUE;
 
-  UINTN count = 0;
-  EFI_HANDLE *handles = NULL;
-  EFI_STATUS status = BS->LocateHandleBuffer(ByProtocol, &GraphicsOutputGuid, NULL, &count, &handles);
-  if (EFI_ERROR(status) || count == 0) return EFI_NOT_FOUND;
+  UINT32 best = gop->Mode->MaxMode;
+  UINTN bestSize = 0;
+  for (UINT32 mode = 0; mode < gop->Mode->MaxMode; mode++) {
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+    UINTN size;
+    if (EFI_ERROR(GopQueryMode[i](gop, mode, &size, &info))) continue;
 
-  status = EFI_NOT_FOUND;
-  for (UINTN i = 0; i < count && EFI_ERROR(status); i++) {
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
-    if (EFI_ERROR(BS->HandleProtocol(handles[i], &GraphicsOutputGuid, (VOID **)&gop))) continue;
-
-    status = Install(handles[i], gop);
+    if (WithinCap(info) && ModeSize(info) > bestSize) {
+      best = mode;
+      bestSize = ModeSize(info);
+    }
+    BS->FreePool(info);
   }
 
-  BS->FreePool(handles);
-  return status;
+  return best < gop->Mode->MaxMode && !EFI_ERROR(GopSetMode[i](gop, best)) && WithinCap(gop->Mode->Info);
 }
 
-// The firmware may start this driver before it has brought the GPU up
+// Hooks a graphics output's mode functions and, if it's the virtual GPU's, takes over its drawing
+static VOID Adopt(EFI_HANDLE handle) {
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop = NULL;
+  VOID *devicePath = NULL;
+
+  if (EFI_ERROR(BS->HandleProtocol(handle, &GraphicsOutputGuid, (VOID **)&gop)) || !gop) return;
+  if (GopIndex(gop) >= 0 || GopCount == MAX_GOPS) return;
+
+  UINTN i = GopCount++;
+  Gops[i] = gop;
+  GopSetMode[i] = gop->SetMode;
+  GopQueryMode[i] = gop->QueryMode;
+  gop->SetMode = OurSetMode;
+  gop->QueryMode = OurQueryMode;
+
+  // Already linear (a different firmware): nothing to add
+  BOOLEAN bltOnly = gop->Mode && gop->Mode->Info && (gop->Mode->FrameBufferBase == 0 || gop->Mode->Info->PixelFormat == PixelBltOnly);
+
+  if (!Device && bltOnly && !EFI_ERROR(BS->HandleProtocol(handle, &DevicePathGuid, &devicePath)) && devicePath && LimitMode(i) &&
+      !EFI_ERROR(AllocateFramebuffer(gop->Mode->Info))) {
+    Device = gop;
+    DeviceBlt = gop->Blt;
+    gop->Blt = OurBlt;
+    Active = TRUE;
+    MARK(3, 0x0000ff00);
+
+    BS->SetTimer(FlushTimer, TimerPeriodic, FLUSH_INTERVAL_100NS);
+  }
+
+  PatchModes();
+}
+
+// The console splitter's graphics output appears after the GPU's, and may appear after this driver starts
 static VOID GopAppeared(EFI_EVENT event, VOID *context) {
-  if (!EFI_ERROR(TryInstall()) && GopNotify) {
-    BS->CloseEvent(GopNotify);
-    GopNotify = NULL;
+  EFI_HANDLE *handles;
+  UINTN count;
+
+  while (!EFI_ERROR(BS->LocateHandleBuffer(ByRegisterNotify, NULL, GopRegistration, &count, &handles))) {
+    for (UINTN i = 0; i < count; i++) Adopt(handles[i]);
+    BS->FreePool(handles);
   }
 }
 
-static EFI_GUID LoadedImageGuid = {0x5b1b31a1, 0x9562, 0x11d2, {0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
-static EFI_GUID DevicePathGuid = {0x09576e91, 0x6d3f, 0x11d2, {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}};
-static EFI_GUID GlobalVariableGuid = {0x8be4df61, 0x93ca, 0x11d2, {0xaa, 0x0d, 0x00, 0xe0, 0x98, 0x03, 0x2b, 0x8c}};
-
-#define DRIVER_OPTION_NUMBER 0xCAFE
-#define DRIVER_PATH L"\\EFI\\caker\\framebuffer.efi"
-
-static UINTN NodeLength(const EFI_DEVICE_PATH_PROTOCOL *node) {
-  return node->Length[0] | (node->Length[1] << 8);
+static UINT16 PathLength(UINT16 payload) {
+  return (UINT16)(sizeof(EFI_DEVICE_PATH_PROTOCOL) + payload);
 }
 
 // Makes the firmware load this driver on every boot, whichever boot manager it starts: Windows creates
 // its own firmware boot entry on its first start, after which the loader is no longer in the way. The
-// option is a Driver#### variable naming this file on the volume the driver was loaded from.
-static VOID RegisterDriverOption(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
-  EFI_RUNTIME_SERVICES *rt = systemTable->RuntimeServices;
-  EFI_LOADED_IMAGE_PROTOCOL *loaded;
-  EFI_DEVICE_PATH_PROTOCOL *volumePath;
-
-  if (EFI_ERROR(BS->HandleProtocol(image, &LoadedImageGuid, (VOID **)&loaded)) || !loaded->DeviceHandle) return;
-  if (EFI_ERROR(BS->HandleProtocol(loaded->DeviceHandle, &DevicePathGuid, (VOID **)&volumePath))) return;
-
-  UINTN volumeSize = 0;
-  for (EFI_DEVICE_PATH_PROTOCOL *node = volumePath; node->Type != END_DEVICE_PATH_TYPE; node = (EFI_DEVICE_PATH_PROTOCOL *)((UINT8 *)node + NodeLength(node))) {
-    volumeSize += NodeLength(node);
-  }
-
-  const CHAR16 description[] = L"Caker framebuffer";
-  const CHAR16 path[] = DRIVER_PATH;
-  UINTN fileNodeLength = sizeof(EFI_DEVICE_PATH_PROTOCOL) + sizeof(path);
-  UINTN pathListLength = volumeSize + fileNodeLength + sizeof(EFI_DEVICE_PATH_PROTOCOL);
-  UINTN optionSize = sizeof(UINT32) + sizeof(UINT16) + sizeof(description) + pathListLength;
-
-  UINT8 *option;
-  if (EFI_ERROR(BS->AllocatePool(EfiBootServicesData, optionSize, (VOID **)&option))) return;
-
-  UINT8 *cursor = option;
+// option is a Driver#### variable naming DriverPath with no volume (a short-form device path), which the
+// firmware expands by searching every file system, so it keeps working when the installation media goes away.
+static VOID RegisterDriverOption(EFI_RUNTIME_SERVICES *rt) {
+  // EFI_LOAD_OPTION: attributes, file path list length, description, then the file path list
+  UINT8 option[sizeof(UINT32) + sizeof(UINT16) + sizeof(DriverDescription) + sizeof(EFI_DEVICE_PATH_PROTOCOL) + sizeof(DriverPath) + sizeof(EFI_DEVICE_PATH_PROTOCOL)];
+  UINT16 fileNodeLength = PathLength(sizeof(DriverPath));
   UINT32 attributes = LOAD_OPTION_ACTIVE;
-  UINT16 listLength = (UINT16)pathListLength;
+  UINT16 listLength = (UINT16)(fileNodeLength + sizeof(EFI_DEVICE_PATH_PROTOCOL));
+  UINT8 *cursor = option;
+
   memcpy(cursor, &attributes, sizeof(attributes));
   cursor += sizeof(attributes);
   memcpy(cursor, &listLength, sizeof(listLength));
   cursor += sizeof(listLength);
-  memcpy(cursor, description, sizeof(description));
-  cursor += sizeof(description);
-  memcpy(cursor, volumePath, volumeSize);
-  cursor += volumeSize;
+  memcpy(cursor, DriverDescription, sizeof(DriverDescription));
+  cursor += sizeof(DriverDescription);
 
   EFI_DEVICE_PATH_PROTOCOL *file = (EFI_DEVICE_PATH_PROTOCOL *)cursor;
   file->Type = MEDIA_DEVICE_PATH;
   file->SubType = MEDIA_FILEPATH_DP;
   file->Length[0] = (UINT8)(fileNodeLength & 0xff);
   file->Length[1] = (UINT8)(fileNodeLength >> 8);
-  memcpy(cursor + sizeof(EFI_DEVICE_PATH_PROTOCOL), path, sizeof(path));
+  memcpy(cursor + sizeof(EFI_DEVICE_PATH_PROTOCOL), DriverPath, sizeof(DriverPath));
   cursor += fileNodeLength;
 
   EFI_DEVICE_PATH_PROTOCOL *end = (EFI_DEVICE_PATH_PROTOCOL *)cursor;
@@ -364,36 +451,67 @@ static VOID RegisterDriverOption(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable
   const CHAR16 hex[] = L"0123456789ABCDEF";
   for (UINTN i = 0; i < 4; i++) name[6 + i] = hex[(DRIVER_OPTION_NUMBER >> (12 - 4 * i)) & 0xf];
 
-  rt->SetVariable(name, &GlobalVariableGuid, attrs, optionSize, option);
+  // Variables live in flash, so leave an option that's already right alone
+  UINT8 stored[sizeof(option)];
+  UINTN storedSize = sizeof(stored);
+  EFI_STATUS status = rt->GetVariable(name, &GlobalVariableGuid, NULL, &storedSize, stored);
+  if (EFI_ERROR(status) || storedSize != sizeof(option) || !MemEqual(stored, option, sizeof(option))) {
+    if (EFI_ERROR(rt->SetVariable(name, &GlobalVariableGuid, attrs, sizeof(option), option))) return;
+  }
 
-  // DriverOrder lists the options the firmware loads, in order
+  // DriverOrder lists the options the firmware loads, in order. Leave it be when it can't be read whole
+  // (more entries than expected): writing it back would drop the rest.
   UINT16 order[64];
   UINTN orderSize = sizeof(order);
-  UINT32 orderAttrs;
-  if (EFI_ERROR(rt->GetVariable(L"DriverOrder", &GlobalVariableGuid, &orderAttrs, &orderSize, order))) orderSize = 0;
+  status = rt->GetVariable(L"DriverOrder", &GlobalVariableGuid, NULL, &orderSize, order);
+  if (status == EFI_NOT_FOUND) {
+    orderSize = 0;
+  } else if (EFI_ERROR(status)) {
+    return;
+  }
 
   UINTN count = orderSize / sizeof(UINT16);
-  BOOLEAN present = FALSE;
   for (UINTN i = 0; i < count; i++) {
-    if (order[i] == DRIVER_OPTION_NUMBER) present = TRUE;
+    if (order[i] == DRIVER_OPTION_NUMBER) return;
   }
-  if (!present && count < 64) {
-    order[count++] = DRIVER_OPTION_NUMBER;
-    rt->SetVariable(L"DriverOrder", &GlobalVariableGuid, attrs, count * sizeof(UINT16), order);
-  }
+  if (count == 64) return;
 
-  BS->FreePool(option);
+  order[count++] = DRIVER_OPTION_NUMBER;
+  rt->SetVariable(L"DriverOrder", &GlobalVariableGuid, attrs, count * sizeof(UINT16), order);
 }
 
 EFI_STATUS EFIAPI efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systemTable) {
   BS = systemTable->BootServices;
-  RegisterDriverOption(image, systemTable);
   MARK(2, 0x00ff0000);
 
-  if (!EFI_ERROR(TryInstall())) return EFI_SUCCESS;
+  VOID *resident;
+  if (!EFI_ERROR(BS->LocateProtocol(&ResidentGuid, NULL, &resident))) {
+    RegisterDriverOption(systemTable->RuntimeServices);
+    return EFI_ALREADY_STARTED;
+  }
 
-  if (EFI_ERROR(BS->CreateEvent(EVT_NOTIFY_SIGNAL, TPL_CALLBACK, GopAppeared, NULL, &GopNotify))) return EFI_LOAD_ERROR;
-  if (EFI_ERROR(BS->RegisterProtocolNotify(&GraphicsOutputGuid, GopNotify, &GopRegistration))) return EFI_LOAD_ERROR;
+  if (EFI_ERROR(BS->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, FlushTick, NULL, &FlushTimer))) return EFI_LOAD_ERROR;
 
+  EFI_EVENT exitBootServices;
+  BS->CreateEventEx(EVT_NOTIFY_SIGNAL, TPL_CALLBACK, StopFlushing, NULL, &ExitBootServicesGroup, &exitBootServices);
+
+  // Ask to hear about graphics outputs first, so none can slip in between looking and listening;
+  // adopting one twice does no harm. When loaded as a Driver#### option, they don't exist yet.
+  EFI_EVENT gopInstalled;
+  if (!EFI_ERROR(BS->CreateEvent(EVT_NOTIFY_SIGNAL, TPL_CALLBACK, GopAppeared, NULL, &gopInstalled))) {
+    BS->RegisterProtocolNotify(&GraphicsOutputGuid, gopInstalled, &GopRegistration);
+  }
+
+  EFI_HANDLE *handles;
+  UINTN count;
+  if (!EFI_ERROR(BS->LocateHandleBuffer(ByProtocol, &GraphicsOutputGuid, NULL, &count, &handles))) {
+    for (UINTN i = 0; i < count; i++) Adopt(handles[i]);
+    BS->FreePool(handles);
+  }
+
+  EFI_HANDLE residentHandle = NULL;
+  BS->InstallProtocolInterface(&residentHandle, &ResidentGuid, EFI_NATIVE_INTERFACE, NULL);
+
+  RegisterDriverOption(systemTable->RuntimeServices);
   return EFI_SUCCESS;
 }
