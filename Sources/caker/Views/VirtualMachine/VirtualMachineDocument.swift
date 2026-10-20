@@ -776,13 +776,18 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	/// A Windows guest keeps the size it boots with: its window has a fixed size and nothing resizes its display.
+	var isWindowsGuest: Bool {
+		(try? self.location.config().isWindowsGuest) == true
+	}
+
 	func setScreenSize(_ size: ViewSize) {
 		if size.width == 0 && size.height == 0 {
 			return
 		}
 
 		// A Windows guest keeps the size it boots with, so the window doesn't drive its display
-		if (try? self.location.config().isWindowsGuest) == true {
+		if self.isWindowsGuest {
 			return
 		}
 
