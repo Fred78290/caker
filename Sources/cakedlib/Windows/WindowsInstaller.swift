@@ -152,7 +152,9 @@ public class WindowsInstaller: @unchecked Sendable {
 			throw ServiceError(String(format: String(localized: "Windows installation failed:\n%@"), tail))
 		}
 
-		progressHandler(.step(String(localized: "Starting Windows for the first time")))
+		progressHandler(.substep(String(localized: "Windows installation finished")))
+
+		progressHandler(.step(String(localized: "Finish windows setup")))
 
 		for attempt in 1...maxFirstBootRuns {
 			if canceled.withLock({ $0 }) {
@@ -197,7 +199,7 @@ public class WindowsInstaller: @unchecked Sendable {
 				return
 			}
 
-			progressHandler(.substep(String(localized: "Windows first boot, run \(attempt) of \(maxFirstBootRuns)")))
+			progressHandler(.substep(String(localized: "Windows try new setup \(attempt) of \(maxFirstBootRuns)")))
 		}
 
 		throw ServiceError(String(localized: "Windows did not finish setting itself up"))
