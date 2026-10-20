@@ -781,6 +781,11 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		// A Windows guest keeps the size it boots with, so the window doesn't drive its display
+		if (try? self.location.config().isWindowsGuest) == true {
+			return
+		}
+
 		self.setDocumentSize(size)
 		self.setVncScreenSize(size)
 	}

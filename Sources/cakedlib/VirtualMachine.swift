@@ -1435,6 +1435,12 @@ extension VirtualMachine {
 			return
 		}
 
+		// A Windows guest keeps the size it boots with: its GPU driver can't be followed (see CLAUDE.md, Windows guests)
+		guard self.config.isWindowsGuest == false else {
+			self.logger.debug("Windows guest, ignoring the screen size \(width)x\(height)")
+			return
+		}
+
 		self.vmQueue.async {
 			let newSize = CGSize(width: width, height: height)
 			let logger = Logger(self)
