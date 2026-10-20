@@ -29,7 +29,7 @@ class CakerVZVirtualMachineView: VNCVirtualMachineView {
 			self.showsHostCursor = showsHostCursor
 
 			if #available(macOS 14.0, *) {
-				self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
+				self.automaticallyReconfiguresDisplay = virtualMachine.config.isWindowsGuest == false && (document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin))
 			}
 		}
 	}

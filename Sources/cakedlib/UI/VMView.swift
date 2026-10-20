@@ -22,7 +22,8 @@ public struct VMView: NSViewRepresentable {
 
 		vzMachineView.virtualMachine = vm.virtualMachine
 		vzMachineView.autoresizingMask = [.width, .height]
-		vzMachineView.automaticallyReconfiguresDisplay = vm.config.displayRefit && vm.env.mode == .normal
+		// A Windows guest can't follow: its GPU driver breaks Virtualization.framework's display after a mode change
+		vzMachineView.automaticallyReconfiguresDisplay = vm.config.displayRefit && vm.env.mode == .normal && vm.config.isWindowsGuest == false
 		vzMachineView.capturesSystemKeys = true
 		//vzMachineView.showsHostCursor = false
 

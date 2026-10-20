@@ -166,18 +166,13 @@ public class WindowsInstaller: @unchecked Sendable {
 			try await run(timeout: firstBootTimeout, progressHandler)
 
 			if let marker = try firstBootMarker(location: location) {
-				let agentInstalled = marker.contains("agent=0") == false
+				let agentInstalled = Self.agentIsRunning(marker: marker)
 
 				self.logger.info("Windows first boot completed: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 
 				if agentInstalled == false {
 					progressHandler(.substep(String(localized: "Windows setup finished, but the cakeagent service may not be running")))
 					logger.warn("Windows setup finished, but the cakeagent service may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
-				}
-
-				if marker.contains("gpu=0") == false {
-					progressHandler(.substep(String(localized: "Windows setup finished, but resizing the display may not work")))
-					logger.warn("Windows setup finished, but resizing the display may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
 				if marker.contains("ssh=0-running") == false {
@@ -203,6 +198,11 @@ public class WindowsInstaller: @unchecked Sendable {
 		}
 
 		throw ServiceError(String(localized: "Windows did not finish setting itself up"))
+	}
+
+	/// "agent=<install exit code>-running": the service was installed and is up, so the host can talk to it.
+	static func agentIsRunning(marker: String) -> Bool {
+		marker.contains("agent=0-running")
 	}
 
 	/// Windows computer names are at most 15 characters from `A-Z a-z 0-9 -`, and may not be all digits.

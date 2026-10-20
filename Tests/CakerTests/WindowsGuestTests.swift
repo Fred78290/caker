@@ -551,27 +551,26 @@ final class WindowsGuestTests: XCTestCase {
 
 	// MARK: - Display resizing
 
-	func testSetupStartsTheDisplayScriptAtLogon() {
+	/// Virtualization.framework's virtio GPU corrupts the picture once viogpudo re-creates its framebuffer for another
+	/// width (only 1024 works), so the guest keeps the size it boots with and nothing follows the host's resizes.
+	func testNothingFollowsTheHostsDisplayResizes() {
 		let setup = WindowsInstallResources.setupComplete
 
-		XCTAssertTrue(setup.contains("CurrentVersion\\Run /v CakerDisplay"), "it runs in the session of whoever logs on")
-		XCTAssertFalse(setup.contains("schtasks"), "a task created by SYSTEM would run as SYSTEM, with no access to the user's display")
-		XCTAssertTrue(setup.contains("-File C:\\ProgramData\\caker\\display.ps1"))
-		XCTAssertTrue(setup.contains("gpu=%GPU%"), "the outcome goes in the marker the host reads")
+		XCTAssertFalse(setup.contains("display.ps1"))
+		XCTAssertFalse(setup.contains("CakerDisplay"))
+		XCTAssertFalse(setup.contains("gpu="))
 
 		for architecture in WindowsArchitecture.allCases {
-			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("copy /y %T%\\display.ps1 W:\\ProgramData\\caker\\display.ps1"))
+			XCTAssertFalse(WindowsInstallResources.installScript(for: architecture).contains("display.ps1"))
 		}
 	}
 
-	func testDisplayScriptAsksTheDriverForTheHostsSize() {
-		let script = WindowsInstallResources.displayScript
+	// MARK: - First-boot marker
 
-		XCTAssertTrue(script.contains("PCI\\VEN_1AF4&DEV_1050"), "it finds the virtio GPU among the display devices, not at index 0")
-		XCTAssertTrue(script.contains("D3DKMTEscape"), "the driver's private escape reports the size the host wants")
-		XCTAssertTrue(script.contains("ChangeDisplaySettingsEx"))
-		XCTAssertTrue(script.contains("$wanted -ne $last"), "only a change of the host's request is applied")
-		XCTAssertTrue(script.contains("\r\n"), "Windows tools want CRLF")
-		XCTAssertFalse(script.contains("\n\n\r"))
+	func testAgentIsRunningOnlyWhenTheMarkerSaysSo() {
+		XCTAssertTrue(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=0-running\r\nssh=0-running\r\n"))
+		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=0\r\n"), "installed, but not running")
+		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=1\r\n"))
+		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=none\r\n"))
 	}
 }
