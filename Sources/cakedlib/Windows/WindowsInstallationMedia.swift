@@ -246,6 +246,19 @@ struct WindowsInstallationMedia {
 			}
 		}
 
+		// The GPU driver: caker's build (Tools/WindowsGPUDriver) replaces virtio-win's, and the certificate it is signed with
+		// goes along for SetupComplete.cmd to trust
+		if architecture.usesCakerGPUDriver {
+			let gpu = drivers.appendingPathComponent("viogpudo", isDirectory: true)
+
+			try? FileManager.default.removeItem(at: gpu)
+			try FileManager.default.createDirectory(at: gpu, withIntermediateDirectories: true)
+			try WindowsGPUDriverBinaries.sys.write(to: gpu.appendingPathComponent("viogpudo.sys"))
+			try WindowsGPUDriverBinaries.inf.write(to: gpu.appendingPathComponent("viogpudo.inf"))
+			try WindowsGPUDriverBinaries.cat.write(to: gpu.appendingPathComponent("viogpudo.cat"))
+			try WindowsGPUDriverBinaries.certificate.write(to: caker.appendingPathComponent("caker-test-signing.cer"))
+		}
+
 		// The virtio-fs service (it's an .exe next to the driver, not part of the driver package) and WinFsp
 		let viofs = virtioMount.appendingPathComponent("viofs/w11/\(architecture.virtioFolder)/virtiofs.exe")
 

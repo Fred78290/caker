@@ -116,7 +116,7 @@ enum WindowsInstallResources {
 		if not "%RESULT%"=="0" goto fail
 
 		call :say Adding the virtio drivers
-		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse
+		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse\#(architecture.usesCakerGPUDriver ? " /ForceUnsigned" : "")
 		set RESULT=%errorlevel%
 		copy /y X:\Windows\Logs\DISM\dism.log %T%\dism.log >nul 2>&1
 		if not "%RESULT%"=="0" goto fail
@@ -141,6 +141,9 @@ enum WindowsInstallResources {
 		  copy /y %T%\cakeagent.exe W:\ProgramData\caker\cakeagent.exe >> %LOG% || goto fail
 		  xcopy /y /i /q %T%\certs W:\ProgramData\caker\certs >> %LOG% || goto fail
 		)
+
+		rem The certificate of the GPU driver build (see Tools/WindowsGPUDriver): SetupComplete.cmd trusts it
+		if exist %T%\caker-test-signing.cer copy /y %T%\caker-test-signing.cer W:\ProgramData\caker\caker-test-signing.cer >> %LOG% || goto fail
 
 		call :say Writing the boot files
 		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
@@ -192,6 +195,17 @@ enum WindowsInstallResources {
 		ping -n 11 127.0.0.1 >nul
 		if exist Z:\ (set SHARE=mounted) else (set SHARE=none)
 
+		rem GPU driver: Windows only loads the test-signed build of viogpudo (Tools/WindowsGPUDriver) once its certificate
+		rem is trusted and test-signing is on, which takes effect at the next start (the one after this script)
+		set GPUDRV=none
+		if exist C:\ProgramData\caker\caker-test-signing.cer (
+		  set GPUDRV=0
+		  certutil -f -addstore Root C:\ProgramData\caker\caker-test-signing.cer >nul 2>&1 || set GPUDRV=!errorlevel!
+		  certutil -f -addstore TrustedPublisher C:\ProgramData\caker\caker-test-signing.cer >nul 2>&1 || set GPUDRV=!errorlevel!
+		  bcdedit /set testsigning on >nul 2>&1 || set GPUDRV=!errorlevel!
+		  pnputil /scan-devices >nul 2>&1
+		)
+
 		rem OpenSSH server (a Feature on Demand that isn't in the image): the Win32-OpenSSH build from the media, as a
 		rem service that starts with Windows. Administrators log in with the keys in administrators_authorized_keys,
 		rem which sshd only trusts when only SYSTEM and Administrators can write it; the password works too.
@@ -239,7 +253,7 @@ enum WindowsInstallResources {
 		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
 		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%)> S:\EFI\caker\installed
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)

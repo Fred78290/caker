@@ -573,4 +573,41 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=1\r\n"))
 		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=none\r\n"))
 	}
+
+	// MARK: - GPU driver
+
+	func testOnlyARM64UsesCakersGPUDriver() {
+		XCTAssertTrue(WindowsArchitecture.arm64.usesCakerGPUDriver)
+		XCTAssertFalse(WindowsArchitecture.amd64.usesCakerGPUDriver)
+	}
+
+	func testGPUDriverIsAnARM64KernelDriverWithItsCertificate() throws {
+		let sys = WindowsGPUDriverBinaries.sys
+
+		XCTAssertEqual(sys.prefix(2), Data("MZ".utf8))
+		XCTAssertEqual(sys.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: Int($0.loadUnaligned(fromByteOffset: 0x3C, as: UInt32.self)) + 4, as: UInt16.self) }, 0xAA64, "an ARM64 image")
+
+		XCTAssertTrue(String(decoding: WindowsGPUDriverBinaries.inf, as: UTF8.self).lowercased().contains("viogpudo.sys"))
+		XCTAssertFalse(WindowsGPUDriverBinaries.cat.isEmpty)
+		XCTAssertEqual(WindowsGPUDriverBinaries.certificate.first, 0x30, "a DER certificate")
+		XCTAssertNotNil(SecCertificateCreateWithData(nil, WindowsGPUDriverBinaries.certificate as CFData), "the certificate parses")
+	}
+
+	func testInstallAddsTheTestSignedDriverOnARM64Only() {
+		XCTAssertTrue(WindowsInstallResources.installScript(for: .arm64).contains("/Add-Driver /Driver:%T%\\drivers /Recurse /ForceUnsigned"))
+		XCTAssertFalse(WindowsInstallResources.installScript(for: .amd64).contains("/ForceUnsigned"))
+
+		for architecture in WindowsArchitecture.allCases {
+			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("copy /y %T%\\caker-test-signing.cer W:\\ProgramData\\caker\\caker-test-signing.cer"), "it is copied when the media has it")
+		}
+	}
+
+	func testSetupTrustsTheCertificateAndTurnsTestSigningOn() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("certutil -f -addstore Root C:\\ProgramData\\caker\\caker-test-signing.cer"))
+		XCTAssertTrue(setup.contains("certutil -f -addstore TrustedPublisher C:\\ProgramData\\caker\\caker-test-signing.cer"))
+		XCTAssertTrue(setup.contains("bcdedit /set testsigning on"))
+		XCTAssertTrue(setup.contains("gpudriver=%GPUDRV%"), "the outcome goes in the marker the host reads")
+	}
 }

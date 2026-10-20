@@ -62,6 +62,14 @@ enum WindowsArchitecture: String, CaseIterable, Sendable {
 		self.rawValue
 	}
 
+	/// Whether the installation media carries caker's build of the virtio GPU driver instead of virtio-win's
+	/// (`Tools/WindowsGPUDriver`, which gives Virtualization.framework a framebuffer it displays right after a
+	/// resolution change). It is test-signed, so the installed system trusts its certificate and runs in test-signing
+	/// mode. Only built for ARM64.
+	var usesCakerGPUDriver: Bool {
+		self == .arm64
+	}
+
 	/// Whether the guest boots through the EFI framebuffer helpers (`Tools/WindowsEFI`, built for both architectures).
 	/// Apple silicon's firmware exposes a GPU that can only blit, so Windows would draw into nothing. Nobody has
 	/// checked what the Intel firmware does (WINDOWS_INTEL_PLAN.md step 3): the driver leaves a GPU that already has a

@@ -57,6 +57,7 @@
 		9B0A37442FF575C6004609F2 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A37432FF575C6004609F2 /* DirWatcher.swift */; };
 		9B0BEC19300E8F48003EE9E9 /* SandboxLimitationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0BEC18300E8F48003EE9E9 /* SandboxLimitationsView.swift */; };
 		9B11BFF83084B510005BBCBD /* WindowsEFIBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF33084B510005BBCBD /* WindowsEFIBinaries.swift */; };
+		9B11C0043084B510005BBCBD /* WindowsGPUDriverBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11C0033084B510005BBCBD /* WindowsGPUDriverBinaries.swift */; };
 		9B11BFF93084B510005BBCBD /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF43084B510005BBCBD /* WindowsInstallationMedia.swift */; };
 		9B11BFFA3084B510005BBCBD /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF63084B510005BBCBD /* WindowsInstallResources.swift */; };
 		9B11BFFA3084B510005B7A02 /* WindowsArchitecture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF63084B510005B7A01 /* WindowsArchitecture.swift */; };
@@ -1040,6 +1041,7 @@
 		9B0BEC18300E8F48003EE9E9 /* SandboxLimitationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxLimitationsView.swift; sourceTree = "<group>"; };
 		9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.applescript; path = PrivilegedBootstrap.applescript; sourceTree = "<group>"; };
 		9B11BFF33084B510005BBCBD /* WindowsEFIBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsEFIBinaries.swift; sourceTree = "<group>"; };
+		9B11C0033084B510005BBCBD /* WindowsGPUDriverBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsGPUDriverBinaries.swift; sourceTree = "<group>"; };
 		9B11BFF43084B510005BBCBD /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallationMedia.swift; sourceTree = "<group>"; };
 		9B11BFF53084B510005BBCBD /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstaller.swift; sourceTree = "<group>"; };
 		9B11BFF63084B510005BBCBD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallResources.swift; sourceTree = "<group>"; };
@@ -1960,6 +1962,7 @@
 			isa = PBXGroup;
 			children = (
 				9B11BFF33084B510005BBCBD /* WindowsEFIBinaries.swift */,
+				9B11C0033084B510005BBCBD /* WindowsGPUDriverBinaries.swift */,
 				9B11BFF43084B510005BBCBD /* WindowsInstallationMedia.swift */,
 				9B11BFF53084B510005BBCBD /* WindowsInstaller.swift */,
 				9B11BFF63084B510005BBCBD /* WindowsInstallResources.swift */,
@@ -4388,6 +4391,7 @@
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */,
 				9B11BFF83084B510005BBCBD /* WindowsEFIBinaries.swift in Sources */,
+				9B11C0043084B510005BBCBD /* WindowsGPUDriverBinaries.swift in Sources */,
 				9B11BFF93084B510005BBCBD /* WindowsInstallationMedia.swift in Sources */,
 				9B11BFFA3084B510005BBCBD /* WindowsInstallResources.swift in Sources */,
 				9B11BFFA3084B510005B7A02 /* WindowsArchitecture.swift in Sources */,

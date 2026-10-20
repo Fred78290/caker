@@ -21032,6 +21032,17 @@
         }
       }
     },
+    "Windows setup finished, but the GPU driver may not load" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows est terminée, mais le pilote GPU ne se chargera peut-être pas"
+          }
+        }
+      }
+    },
     "Windows setup finished, but the OpenSSH server may not be running" : {
       "extractionState" : "stale",
       "localizations" : {
