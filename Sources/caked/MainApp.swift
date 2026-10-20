@@ -83,9 +83,8 @@ struct MainWindow: Scene {
 		let idealWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let idealHeight = CGFloat(display.height)
-		let fixedSize = self.vm.mode == .recording || self.vm.mode == .provisioning || self.vm.config.isWindowsGuest
-		let maxWidth: CGFloat = fixedSize ? CGFloat(display.width) : .infinity
-		let maxHeight: CGFloat = fixedSize ? CGFloat(display.height) : .infinity
+		let maxWidth: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.width) : .infinity
+		let maxHeight: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.height) : .infinity
 
 		WindowGroup(self.params.name, id: "VM") {
 			VMView(self.vm, params: self.params)

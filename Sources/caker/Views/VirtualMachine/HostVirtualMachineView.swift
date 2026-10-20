@@ -125,16 +125,7 @@ struct HostVirtualMachineView: View {
 					#endif
 
 					if let window = $0 {
-						if self.document.isWindowsGuest {
-							// The guest keeps the size it boots with, so the window has a fixed size
-							window.styleMask.remove(.resizable)
-							window.collectionBehavior.remove(.fullScreenPrimary)
-							window.collectionBehavior.insert(.fullScreenNone)
-
-							DispatchQueue.main.async {
-								self.setContentSize(self.document.documentSize.cgSize, animated: false)
-							}
-						} else if self.needsResize {
+						if self.needsResize {
 							let size = self.document.documentSize.cgSize
 
 							DispatchQueue.main.async {
