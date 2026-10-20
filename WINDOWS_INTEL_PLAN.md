@@ -144,10 +144,12 @@ host's size. Whether VZ on **Intel** has the same problem is unknown, so measure
    - Build on any Windows 11 machine with Visual Studio Build Tools (MSVC x64 and ARM64 + Spectre libraries), the Windows
      SDK/WDK 10.0.26100 and the WDK's MSBuild toolset (`WDK.vsix` rejects Build Tools: unzip it and copy
      `$MSBuild\Microsoft\VC\v170` over the Build Tools'). The ARM64 build VM (`caked build`, then install the tools over
-     `caked exec`/SSH) can cross-build x64; the Intel Mac can run the same VM.
+     `caked exec`/SSH) has the x64 compiler too and should be able to cross-build x64 (not tried); on the Intel Mac a
+     Windows x64 VM does it natively.
    - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-fresh-framebuffer-resource-id` (or upstream
      `master` once #1687 is merged). Build `VirtIO\VirtioLib.vcxproj` then `viogpu\viogpudo\viogpudo.vcxproj` with
-     `/p:Configuration="Win11 Release" /p:Platform=x64`; the output is `viogpudo\objfre_win11_amd64\amd64\viogpudo\`
+     `/p:Configuration="Win11 Release" /p:Platform=x64`; the output should be `viogpudo\objfre_win11_amd64\amd64\viogpudo\`
+     (by analogy with the ARM64 folder)
      (the packaging errors about `viogpuap`/`viogpusc`/`viogpures` are harmless).
    - Sign `viogpudo.sys` and `viogpudo.cat` with a **new** self-signed code-signing certificate
      (`New-SelfSignedCertificate -Type CodeSigningCert`, `signtool sign /fd SHA256 /sha1 <thumbprint> /sm`); the ARM64
