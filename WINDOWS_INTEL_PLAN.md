@@ -32,6 +32,7 @@ ARM-specific today (found by grep, every one needs a per-guest-architecture valu
 | virtio-win driver folders | `<driver>/w11/ARM64`, `viofs/w11/ARM64/virtiofs.exe` | `<driver>/w11/amd64` (confirm on the ISO) |
 | `Tools/WindowsEFI` | `-target aarch64-unknown-windows`, embedded as `WindowsEFIBinaries` | a second set built with `x86_64-unknown-windows` (only if step 0 says the shim is needed) |
 | `GuestPlateform.enableWindowsCPUFeatures` | private PMU / fine-grained-traps selectors, unconditional | arm64 only; probably absent or meaningless on Intel |
+| GPU driver | ARM64 guests get caker's patched `viogpudo` (`Tools/WindowsGPUDriver/arm64`, test-signed, `WindowsArchitecture.usesCakerGPUDriver`) and the display script | nothing built yet: stock amd64 driver from the ISO until Phase 4b says otherwise |
 | error strings | "…Windows on ARM installation ISO", "no ARM64 %@ driver" | architecture-neutral, with French translations |
 
 ## 2. Unknowns to settle first (step 0, no product code)
@@ -120,6 +121,63 @@ Original notes:
    comes back.
 6. Record install time, first-boot time and the answers to the section 2 unknowns here.
 
+### Phase 4b — GPU driver and display resizing on Intel (after Phase 4 passes)
+
+State on Apple silicon (see `Tools/WindowsGPUDriver/README.md` and the CLAUDE.md Windows section): the stock `viogpudo`
+re-creates its framebuffer resource with the id it just released, and Virtualization.framework shows a corrupted picture
+after a resolution change (only the width the guest booted with is right). caker's build uses a fresh id per framebuffer
+(proposed upstream: virtio-win/kvm-guest-drivers-windows#1687) and ships the script that makes the guest follow the
+host's size. Whether VZ on **Intel** has the same problem is unknown, so measure before building anything:
+
+1. **Measure with the stock x64 driver.** On the Phase 4 install, temporarily let x64 carry the display script (relax
+   the `usesCakerGPUDriver` check where `display.ps1` is written, or copy `display.ps1` into the guest by hand and add the
+   `HKLM\...\Run` entry), create the VM with `--display-refit`, and ask for sizes through the VM's service socket:
+   `grpcurl -cacert ~/.cake/agent/ca.pem -cert ~/.cake/agent/client.pem -key ~/.cake/agent/client.key -import-path Sources/cakedlib/VMRunService/GRPC -proto mount.proto -d '{"width":1280,"height":720}' -unix ~/.cake/vms/<vm>.cakedvm/svc vmrun.Service/SetScreenSize`
+   (try 1280x720, 800x600, 1920x1080, 1100x700, then 1024x768). Look at `~/.cake/vms/<vm>.cakedvm/screenshot.png` after ~9 s:
+   a clean desktop at each size means Intel doesn't need the patched driver; black with garbled fragments above a width
+   of 1024, or horizontal streaks below it, means it does. Don't judge by the guest's own mode (it is always right) or by
+   `System.Windows.Forms.Screen` in a long-lived process (it keeps the old mode).
+2. **If clean**: keep the stock driver on x64, but still ship the display script there. Split the two decisions in
+   `WindowsArchitecture` (`usesCakerGPUDriver` stays false for `.amd64`; add a `followsDisplaySize` that is true for both)
+   and gate `display.ps1` on the new value. Record the result here and in the upstream PR (it is a data point for #1687).
+3. **If corrupted**: build the x64 driver and ship it like the ARM64 one.
+   - Build on any Windows 11 machine with Visual Studio Build Tools (MSVC x64 and ARM64 + Spectre libraries), the Windows
+     SDK/WDK 10.0.26100 and the WDK's MSBuild toolset (`WDK.vsix` rejects Build Tools: unzip it and copy
+     `$MSBuild\Microsoft\VC\v170` over the Build Tools'). The ARM64 build VM (`caked build`, then install the tools over
+     `caked exec`/SSH) can cross-build x64; the Intel Mac can run the same VM.
+   - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-fresh-framebuffer-resource-id` (or upstream
+     `master` once #1687 is merged). Build `VirtIO\VirtioLib.vcxproj` then `viogpu\viogpudo\viogpudo.vcxproj` with
+     `/p:Configuration="Win11 Release" /p:Platform=x64`; the output is `viogpudo\objfre_win11_amd64\amd64\viogpudo\`
+     (the packaging errors about `viogpuap`/`viogpusc`/`viogpures` are harmless).
+   - Sign `viogpudo.sys` and `viogpudo.cat` with a **new** self-signed code-signing certificate
+     (`New-SelfSignedCertificate -Type CodeSigningCert`, `signtool sign /fd SHA256 /sha1 <thumbprint> /sm`); the ARM64
+     certificate's private key was deleted on purpose, so either ship a second `.cer` or re-sign both architectures with
+     one new certificate (rebuild the ARM64 files too). Export only the `.cer` and delete the private key afterwards.
+   - Put `viogpudo.sys/.inf/.cat` and the `.cer` in `Tools/WindowsGPUDriver/amd64/`, extend `embed.sh` to emit both
+     architectures, make `WindowsGPUDriverBinaries` per architecture (`sys(for:)` … or nested enums), return true from
+     `usesCakerGPUDriver` for `.amd64`, and update `WindowsInstallationMedia.populate` (it writes the ARM64 files today) and
+     the README hashes. Tests: PE `Machine` is `0x8664` for the x64 `.sys` (the ARM64 test checks `0xAA64`).
+   - Nothing else changes: `install.cmd` already adds drivers with `dism /ForceUnsigned` when `usesCakerGPUDriver` is
+     true, and `SetupComplete.cmd` trusts the certificate, runs `bcdedit /set testsigning on` and reports `gpudriver=<code>`.
+4. **Verify on Intel** (fresh install, nothing overridden): marker `… gpudriver=0 display=0` and no warnings; after the second
+   start `Win32_PnPSignedDriver` shows the caker build (version `100.6.…`), the device status is OK, `bcdedit` says
+   `testsigning Yes`, and the host-side resize check from step 1 is clean at every size.
+5. Update `wiki/provisioning.md` (EN/FR, "Display resizing"), the CLAUDE.md Windows section, the PR description and, if the
+   result is useful upstream, a comment on virtio-win/kvm-guest-drivers-windows#1687.
+
+Things learned on the ARM run that save time:
+- Never swap the GPU driver in a running guest (`pnputil /restart-device`, deleting the package, `UpdateDriverForPlugAndPlayDevices`
+  all hard-stop the VM or roll back; the WHQL-signed stock package also outranks a test-signed one). Replace it on the
+  media, as the installer does.
+- A guest that sits idle goes to sleep and its agent stops answering (`caked exec` hangs): `powercfg /change standby-timeout-ac 0`
+  and `monitor-timeout-ac 0`. Autologon only covers first boot; for a test VM set `AutoAdminLogon`/`DefaultUserName`/`DefaultPassword`
+  under `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon`, and a script in a Run entry that polls for a command
+  file is an easy way to run things in the logged-on session (scheduled tasks created from `caked exec` never fired).
+- A debug `caked` built with plain `swift build` loses its signature: re-sign it ad hoc with only
+  `com.apple.security.virtualization` (adding `com.apple.vm.networking` makes the system kill it).
+- Two `vmrun` processes for one VM (a leftover from a killed run) make the second fail with "EFI variable store is already in use": `pkill -9 -f "vmrun.*<vm>"`
+  and remove `run.pid`/`svc` from the VM folder before starting.
+
 ### Phase 5 — docs and release hygiene
 - `wiki/provisioning.md` (EN/FR): Intel support, ISO architecture rules, limits; regenerate `docs/` with
   `GITHUB_REPOSITORY=Fred78290/caker ./Scripts/sync-docs-from-wiki.sh`.
@@ -169,4 +227,5 @@ Practical notes for the session (all learned on the ARM run):
 ## 6. Acceptance criteria
 - Phase 1 merged with ARM behaviour unchanged (existing Windows tests green, a real ARM install still reports `agent=0-running`).
 - On an Intel Mac: the section 4.1–4.5 checks pass with a Windows 11 x64 ISO, or this file records which unknown made it impossible.
+- Phase 4b: the resize check is clean at every size on Intel, with the stock driver or with an x64 build of caker's, and the choice is recorded here.
 - `swift build --arch x86_64` and the full `swift test` pass; docs and French strings updated.
