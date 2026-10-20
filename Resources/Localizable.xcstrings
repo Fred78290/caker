@@ -21021,6 +21021,17 @@
         }
       }
     },
+    "Windows setup finished, but resizing the display may not work" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows est terminée, mais le redimensionnement de l’affichage ne fonctionne peut-être pas"
+          }
+        }
+      }
+    },
     "Windows setup finished, but the cakeagent service may not be running" : {
       "extractionState" : "manual",
       "localizations" : {

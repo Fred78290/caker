@@ -257,6 +257,10 @@ struct WindowsInstallationMedia {
 			try WindowsGPUDriverBinaries.inf.write(to: gpu.appendingPathComponent("viogpudo.inf"))
 			try WindowsGPUDriverBinaries.cat.write(to: gpu.appendingPathComponent("viogpudo.cat"))
 			try WindowsGPUDriverBinaries.certificate.write(to: caker.appendingPathComponent("caker-test-signing.cer"))
+
+			// Display resizing: the GPU driver learns the size the host wants but the helper virtio-win ships to apply it
+			// (viogpuap) never finds the adapter here, so this script does it (see WindowsInstallResources.displayScript)
+			try WindowsInstallResources.displayScript.write(to: caker.appendingPathComponent("display.ps1"), atomically: true, encoding: .utf8)
 		}
 
 		// The virtio-fs service (it's an .exe next to the driver, not part of the driver package) and WinFsp

@@ -142,6 +142,9 @@ enum WindowsInstallResources {
 		  xcopy /y /i /q %T%\certs W:\ProgramData\caker\certs >> %LOG% || goto fail
 		)
 
+		rem Display resizing (only with caker's GPU driver, see displayScript): a script started at logon
+		if exist %T%\display.ps1 copy /y %T%\display.ps1 W:\ProgramData\caker\display.ps1 >> %LOG% || goto fail
+
 		rem The certificate of the GPU driver build (see Tools/WindowsGPUDriver): SetupComplete.cmd trusts it
 		if exist %T%\caker-test-signing.cer copy /y %T%\caker-test-signing.cer W:\ProgramData\caker\caker-test-signing.cer >> %LOG% || goto fail
 
@@ -206,6 +209,14 @@ enum WindowsInstallResources {
 		  pnputil /scan-devices >nul 2>&1
 		)
 
+		rem Display resizing: a script that follows the size the host asks the GPU driver for, started in the session of
+		rem whoever logs on (SetupComplete runs as SYSTEM, whose own scheduled tasks would have no access to the display)
+		set DISPLAYRS=none
+		if exist C:\ProgramData\caker\display.ps1 (
+		  reg add HKLM\Software\Microsoft\Windows\CurrentVersion\Run /v CakerDisplay /t REG_SZ /d "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\ProgramData\caker\display.ps1" /f >nul 2>&1
+		  set DISPLAYRS=!errorlevel!
+		)
+
 		rem OpenSSH server (a Feature on Demand that isn't in the image): the Win32-OpenSSH build from the media, as a
 		rem service that starts with Windows. Administrators log in with the keys in administrators_authorized_keys,
 		rem which sshd only trusts when only SYSTEM and Administrators can write it; the password works too.
@@ -253,9 +264,107 @@ enum WindowsInstallResources {
 		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
 		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%)> S:\EFI\caker\installed
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%& echo display=%DISPLAYRS%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
+		"""#)
+
+	/// Applies the display size the host asks for. When `VZVirtualMachineView` resizes, Virtualization.framework
+	/// changes the virtio GPU's size and the virtio-win driver (viogpudo) learns it, but nothing applies it: the helper
+	/// virtio-win ships for that (viogpuap) only looks at the first display device, which here is the Microsoft Basic
+	/// Display Driver Windows keeps for the firmware's framebuffer (see Tools/WindowsEFI), never the GPU. This finds the
+	/// GPU, asks the driver (`D3DKMTEscape`, `VIOGPU_GET_CUSTOM_RESOLUTION`) and applies what it says whenever it changes.
+	/// It runs in the session of whoever logs on (an `HKLM` Run entry). Only installed with caker's GPU driver
+	/// (Tools/WindowsGPUDriver): with the stock one, Virtualization.framework shows a corrupted picture after a mode change.
+	static let displayScript = crlf(
+		#"""
+		$ErrorActionPreference = 'SilentlyContinue'
+		Add-Type @"
+		using System; using System.Runtime.InteropServices;
+		public class VG {
+		 [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] public struct DISPLAY_DEVICE { public int cb; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)] public string DeviceName; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string DeviceString; public int StateFlags; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string DeviceID; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string DeviceKey; }
+		 [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] public struct DEVMODE { [MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)] public string dmDeviceName; public ushort dmSpecVersion, dmDriverVersion, dmSize, dmDriverExtra; public uint dmFields; public int dmPositionX, dmPositionY; public uint dmDisplayOrientation, dmDisplayFixedOutput; public short dmColor, dmDuplex, dmYResolution, dmTTOption, dmCollate; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)] public string dmFormName; public ushort dmLogPixels; public uint dmBitsPerPel, dmPelsWidth, dmPelsHeight, dmDisplayFlags, dmDisplayFrequency, dmICMMethod, dmICMIntent, dmMediaType, dmDitherType, dmReserved1, dmReserved2, dmPanningWidth, dmPanningHeight; }
+		 [StructLayout(LayoutKind.Sequential)] public struct OPENADAPTER { public IntPtr hDc; public uint hAdapter; public uint luidLow; public int luidHigh; public uint VidPnSourceId; }
+		 [StructLayout(LayoutKind.Sequential)] public struct CLOSEADAPTER { public uint hAdapter; }
+		 [StructLayout(LayoutKind.Sequential)] public struct ESC { public uint hAdapter; public uint hDevice; public int Type; public uint Flags; public IntPtr pData; public uint Size; public uint hContext; }
+		 [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool EnumDisplayDevices(string dev, uint i, ref DISPLAY_DEVICE d, uint flags);
+		 [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool EnumDisplaySettings(string dev, int mode, ref DEVMODE dm);
+		 [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int ChangeDisplaySettingsEx(string dev, ref DEVMODE dm, IntPtr hwnd, uint flags, IntPtr p);
+		 [DllImport("gdi32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr CreateDC(string drv, string dev, string port, IntPtr init);
+		 [DllImport("gdi32.dll")] public static extern bool DeleteDC(IntPtr hdc);
+		 [DllImport("gdi32.dll")] public static extern int D3DKMTOpenAdapterFromHdc(ref OPENADAPTER a);
+		 [DllImport("gdi32.dll")] public static extern int D3DKMTCloseAdapter(ref CLOSEADAPTER a);
+		 [DllImport("gdi32.dll")] public static extern int D3DKMTEscape(ref ESC e);
+		}
+		"@
+
+		# The virtio GPU is not necessarily the first display device
+		function Find-Gpu {
+		  for ($i = 0; $i -lt 16; $i++) {
+		    $d = New-Object VG+DISPLAY_DEVICE
+		    $d.cb = [Runtime.InteropServices.Marshal]::SizeOf($d)
+		    if ([VG]::EnumDisplayDevices([NullString]::Value, [uint32]$i, [ref]$d, 0) -and $d.DeviceID -like 'PCI\VEN_1AF4&DEV_1050*') { return $d.DeviceName }
+		  }
+		}
+
+		$buffer = [Runtime.InteropServices.Marshal]::AllocHGlobal(8)
+		$adapter = 0
+		$name = $null
+		$last = ''
+
+		while ($true) {
+		  if (-not $adapter) {
+		    $name = Find-Gpu
+		    if ($name) {
+		      $hdc = [VG]::CreateDC($null, $name, $null, [IntPtr]::Zero)
+		      $open = New-Object VG+OPENADAPTER
+		      $open.hDc = $hdc
+		      if ([VG]::D3DKMTOpenAdapterFromHdc([ref]$open) -eq 0) { $adapter = $open.hAdapter }
+		      [void][VG]::DeleteDC($hdc)
+		    }
+		  }
+
+		  if ($adapter) {
+		    # VIOGPU_ESCAPE { USHORT Type = VIOGPU_GET_CUSTOM_RESOLUTION; USHORT DataLength; USHORT X; USHORT Y }
+		    [Runtime.InteropServices.Marshal]::WriteInt16($buffer, 0, 1)
+		    [Runtime.InteropServices.Marshal]::WriteInt16($buffer, 2, 4)
+		    [Runtime.InteropServices.Marshal]::WriteInt32($buffer, 4, 0)
+		    $escape = New-Object VG+ESC
+		    $escape.hAdapter = $adapter
+		    $escape.pData = $buffer
+		    $escape.Size = 8
+
+		    if ([VG]::D3DKMTEscape([ref]$escape) -eq 0) {
+		      $width = [Runtime.InteropServices.Marshal]::ReadInt16($buffer, 4) -band 0xFFFF
+		      $height = [Runtime.InteropServices.Marshal]::ReadInt16($buffer, 6) -band 0xFFFF
+		      $wanted = "$width x $height"
+
+		      # Only a change of what the host asks for is applied (and the first value), so a resolution the user picks in
+		      # Windows' settings isn't undone every second
+		      if ($width -ge 640 -and $height -ge 480 -and $wanted -ne $last) {
+		        $mode = New-Object VG+DEVMODE
+		        $mode.dmSize = [Runtime.InteropServices.Marshal]::SizeOf($mode)
+
+		        if ([VG]::EnumDisplaySettings($name, -1, [ref]$mode) -and ($mode.dmPelsWidth -ne $width -or $mode.dmPelsHeight -ne $height)) {
+		          $mode.dmPelsWidth = $width
+		          $mode.dmPelsHeight = $height
+		          $mode.dmFields = 0x80000 -bor 0x100000
+		          [void][VG]::ChangeDisplaySettingsEx($name, [ref]$mode, [IntPtr]::Zero, 0, [IntPtr]::Zero)
+		        }
+
+		        $last = $wanted
+		      }
+		    } else {
+		      # The adapter went away (driver reset): look for it again
+		      $close = New-Object VG+CLOSEADAPTER
+		      $close.hAdapter = $adapter
+		      [void][VG]::D3DKMTCloseAdapter([ref]$close)
+		      $adapter = 0
+		    }
+		  }
+
+		  Start-Sleep -Milliseconds 1000
+		}
 		"""#)
 
 	/// The answer file for the installed system: a local administrator account that logs on automatically,
