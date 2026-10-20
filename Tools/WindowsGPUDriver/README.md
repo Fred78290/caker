@@ -10,7 +10,7 @@ driver destroys its framebuffer resource and creates the next one with the same 
 that. This build gives every framebuffer a new id. Only that changes:
 
 - Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-fresh-framebuffer-resource-id> (one commit,
-  `34014f0`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; proposed upstream).
+  `ae8829c`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; proposed upstream as #1687).
 - Remove this directory, `WindowsGPUDriverBinaries.swift` and the `WindowsGPUDriver` use in `WindowsInstallationMedia` once a
   virtio-win release carries the fix.
 
@@ -41,9 +41,9 @@ run `./embed.sh`. Throw the private key away.
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `19794c39dfbebe0ef7b8a4e999c9951d574b606e48dbf571169f160e20ea8344` |
+| `viogpudo.sys` | `3eb49afd2a8f0d684f5335bf1dd1857c61212e69c820e347c0200ad5749835f3` |
 | `viogpudo.inf` | `0c585f778627ca4c063bd2c9411541f56c9cb9d893532378d9ba65eb32cb6ec6` |
-| `viogpudo.cat` | `7eeeb4d5aaec48ef45a7046d1c7a24f44f736d9fbba71ab9a8d72fd288fe013f` |
-| `caker-test-signing.cer` | `28bc7d826b6d086ecff28410da48527f01c1e47e033407ba84ff4e77b2fe836a` |
+| `viogpudo.cat` | `2e1372254a24edb424d9d297b44fb38b52d69cfe7fdb8344e52734af71ec5b2d` |
+| `caker-test-signing.cer` | `bbd9f1baaa19437460b67c50140e56b34494ddce21aa37ea151caaa0245b7724` |
 
 The driver is BSD 3-clause, like virtio-win.
