@@ -375,22 +375,22 @@ extension VZVirtualMachineView {
 
 	public var showsHostCursor: Bool {
 		get {
-			guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
+			/*guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
 				return false
 			}
 
 			guard let value = object_getIvar(self, field) as? Bool else {
 				return false
-			}
+			}*/
 
-			return value
+			return Dynamic(self.framebufferView).showsCursor as Bool? ?? false
 		}
 		set {
-			guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
+			/*guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
 				return
 			}
 
-			object_setIvar(self, field, newValue)
+			object_setIvar(self, field, newValue)*/
 
 			Dynamic(self.framebufferView).showsCursor = newValue
 		}

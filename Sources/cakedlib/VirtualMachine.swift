@@ -934,7 +934,10 @@ extension VirtualMachine {
 
 		try? self.saveScreenshot()
 
-		if self.env.config.os != .darwin && self.virtualMachine.canRequestStop {
+		if self.env.config.isWindowsGuest && self.virtualMachine.canStop {
+			self.shutdownWindowsGuest(completionHandler: completionHandler)
+			self.didChangedState(false)
+		} else if self.env.config.os != .darwin && self.virtualMachine.canRequestStop {
 			self.logger.info("Requesting stop VM \(self.location.name)...")
 
 			try self.virtualMachine.requestStop(completionHandler: completionHandler)
@@ -961,6 +964,44 @@ extension VirtualMachine {
 
 			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
+			}
+		}
+	}
+
+	/// Stops a Windows guest the way a Linux one stops on `requestStop()`.
+	///
+	/// `requestStop()` only presses the virtual power button, and Windows never sees it: Virtualization.framework gives
+	/// a generic-platform guest no ACPI tables, so there is no power button for Windows to bind. The request is
+	/// accepted and nothing happens, which leaves the VM (and its `vmrun` process) running forever. The guest is shut
+	/// down through the agent instead; without an agent, or if it doesn't power off in time, the VM is stopped.
+	private func shutdownWindowsGuest(timeout: TimeInterval = 60, completionHandler: StopCompletionHandler? = nil) {
+		// The agent call and the wait block, and `vmQueue` is the queue `stopVM` needs
+		DispatchQueue.global().async {
+			if self.config.agent, (try? self.location.agentURL.exists()) == true {
+				do {
+					self.logger.info("Shutting down Windows guest \(self.location.name) through its agent...")
+
+					let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.location.agentURL, timeout: 5, runMode: self.env.runMode)
+
+					try client.shutdown().log()
+
+					let deadline = Date().addingTimeInterval(timeout)
+
+					while self.virtualMachine.state == .running && Date() < deadline {
+						Thread.sleep(forTimeInterval: 0.1)
+					}
+				} catch {
+					self.logger.warn("Can't shut down Windows guest \(self.location.name) through its agent: \(error)")
+				}
+			} else {
+				self.logger.warn("Windows guest \(self.location.name) has no agent to shut it down, stopping it")
+			}
+
+			switch self.virtualMachine.state {
+			case .stopped, .stopping:
+				completionHandler?(nil)
+			default:
+				self.stopVM(completionHandler: completionHandler)
 			}
 		}
 	}
@@ -1230,6 +1271,10 @@ extension VirtualMachine {
 							self.suspendFromUI { _ in
 								continuation.resume()
 							}
+						}
+					} else if self.config.isWindowsGuest {
+						self.shutdownWindowsGuest { _ in
+							continuation.resume()
 						}
 					} else {
 						do {
