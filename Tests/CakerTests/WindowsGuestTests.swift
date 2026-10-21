@@ -601,6 +601,9 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertEqual(sys.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: Int($0.loadUnaligned(fromByteOffset: 0x3C, as: UInt32.self)) + 4, as: UInt16.self) }, 0xAA64, "an ARM64 image")
 
 		XCTAssertTrue(String(decoding: WindowsGPUDriverBinaries.inf, as: UTF8.self).lowercased().contains("viogpudo.sys"))
+		let inf = String(decoding: WindowsGPUDriverBinaries.inf, as: UTF8.self)
+		XCTAssertTrue(inf.contains("PCI\\VEN_1AF4&DEV_1050&SUBSYS_00501AF4"), "the INF has a line for Virtualization.framework's GPU")
+		XCTAssertTrue(inf.contains("UseFreshResourceId"), "which turns the fresh resource ids on; other hypervisors keep the original behavior")
 		XCTAssertFalse(WindowsGPUDriverBinaries.cat.isEmpty)
 		XCTAssertEqual(WindowsGPUDriverBinaries.certificate.first, 0x30, "a DER certificate")
 		XCTAssertNotNil(SecCertificateCreateWithData(nil, WindowsGPUDriverBinaries.certificate as CFData), "the certificate parses")
