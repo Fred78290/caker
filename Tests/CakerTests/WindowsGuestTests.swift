@@ -564,31 +564,20 @@ final class WindowsGuestTests: XCTestCase {
 
 	// MARK: - Display resizing
 
-	/// With the stock GPU driver Virtualization.framework shows a corrupted picture after a mode change, so the script
-	/// that makes the guest follow the host's size only goes on media that carry caker's driver (ARM64).
-	func testSetupStartsTheDisplayScriptAtLogon() {
+	/// With the stock GPU driver Virtualization.framework shows a corrupted picture after a mode change, so the agent
+	/// only makes the guest follow the host's size when setup turns it on, on media that carry caker's driver.
+	func testSetupTurnsOnDisplayFollowingOnlyWithCakersGPUDriver() {
 		let setup = WindowsInstallResources.setupComplete
 
-		XCTAssertTrue(setup.contains("CurrentVersion\\Run /v CakerDisplay"), "it runs in the session of whoever logs on")
-		XCTAssertFalse(setup.components(separatedBy: .newlines).contains { $0.contains("schtasks") && $0.contains("display.ps1") }, "a task created by SYSTEM would run as SYSTEM, with no access to the user's display")
-		XCTAssertTrue(setup.contains("-File C:\\ProgramData\\caker\\display.ps1"))
-		XCTAssertTrue(setup.contains("if exist C:\\ProgramData\\caker\\display.ps1"), "only when the media had it")
+		XCTAssertTrue(setup.contains("reg add HKLM\\Software\\Caker /v FollowDisplaySize /t REG_DWORD /d 1"), "cakeagent reads this value")
+		XCTAssertTrue(setup.contains("if exist C:\\ProgramData\\caker\\caker-test-signing.cer"), "only when the media had the driver")
 		XCTAssertTrue(setup.contains("display=%DISPLAYRS%"), "the outcome goes in the marker the host reads")
+		XCTAssertFalse(setup.contains("display.ps1"), "the agent does it now, not a script")
+		XCTAssertFalse(setup.contains("CakerDisplay"), "no Run entry")
 
 		for architecture in WindowsArchitecture.allCases {
-			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("if exist %T%\\display.ps1 copy /y %T%\\display.ps1 W:\\ProgramData\\caker\\display.ps1"))
+			XCTAssertFalse(WindowsInstallResources.installScript(for: architecture).contains("display.ps1"), "\(architecture)")
 		}
-	}
-
-	func testDisplayScriptAsksTheDriverForTheHostsSize() {
-		let script = WindowsInstallResources.displayScript
-
-		XCTAssertTrue(script.contains("PCI\\VEN_1AF4&DEV_1050"), "it finds the virtio GPU among the display devices, not at index 0")
-		XCTAssertTrue(script.contains("D3DKMTEscape"), "the driver's private escape reports the size the host wants")
-		XCTAssertTrue(script.contains("ChangeDisplaySettingsEx"))
-		XCTAssertTrue(script.contains("$wanted -ne $last"), "only a change of the host's request is applied")
-		XCTAssertTrue(script.contains("\r\n"), "Windows tools want CRLF")
-		XCTAssertFalse(script.contains("\n\n\r"))
 	}
 
 	// MARK: - First-boot marker
