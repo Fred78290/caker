@@ -32,7 +32,7 @@ ARM-specific today (found by grep, every one needs a per-guest-architecture valu
 | virtio-win driver folders | `<driver>/w11/ARM64`, `viofs/w11/ARM64/virtiofs.exe` | `<driver>/w11/amd64` (confirm on the ISO) |
 | `Tools/WindowsEFI` | `-target aarch64-unknown-windows`, embedded as `WindowsEFIBinaries` | a second set built with `x86_64-unknown-windows` (only if step 0 says the shim is needed) |
 | `GuestPlateform.enableWindowsCPUFeatures` | private PMU / fine-grained-traps selectors, unconditional | arm64 only; probably absent or meaningless on Intel |
-| GPU driver | ARM64 guests get caker's patched `viogpudo` (`Tools/WindowsGPUDriver/arm64`, test-signed, opt-in through the INF for Apple's PCI subsystem id, `WindowsArchitecture.usesCakerGPUDriver`) and the display script | nothing built yet: stock amd64 driver from the ISO until Phase 4b says otherwise |
+| GPU driver | ARM64 guests get caker's patched `viogpudo` (`Tools/WindowsGPUDriver/arm64`, test-signed, opt-in through the INF for Apple's PCI subsystem id, `WindowsArchitecture.usesCakerGPUDriver`) and the display script | the same driver built for amd64 (`Tools/WindowsGPUDriver/amd64`, own test-signing certificate), `usesCakerGPUDriver` true for both — done, see Phase 4b results |
 | error strings | "…Windows on ARM installation ISO", "no ARM64 %@ driver" | architecture-neutral, with French translations |
 
 ## 2. Unknowns to settle first (step 0, no product code)
@@ -165,9 +165,10 @@ subsystem id its GPU reports, is unknown, so look before building anything:
    and gate `display.ps1` on the new value. Record the result here and as a comment on #1687 (the option is already off for
    anything that isn't Apple silicon, so nothing there changes).
 3. **If corrupted**: build the x64 driver and ship it like the ARM64 one.
-   - Build on any Windows 11 machine with Visual Studio Build Tools (MSVC x64 and ARM64 + Spectre libraries), the Windows
-     SDK/WDK 10.0.26100 and the WDK's MSBuild toolset (`WDK.vsix` rejects Build Tools: unzip it and copy
-     `$MSBuild\Microsoft\VC\v170` over the Build Tools'). The ARM64 build VM (`caked build`, then install the tools over
+   - Build on any Windows 11 machine with Visual Studio Build Tools (MSVC + Spectre libraries), the Windows
+     SDK/WDK 10.0.26100 and the WDK's MSBuild toolset. **The toolset is the Build Tools component
+     `Component.Microsoft.Windows.DriverKit.BuildTools`** (`setup.exe modify --installPath … --add Component.Microsoft.Windows.DriverKit.BuildTools
+     --quiet --norestart`): the WDK installer puts no VSIX on disk when only Build Tools are present, and the layout from `wdksetup /layout` has none either. The ARM64 build VM (`caked build`, then install the tools over
      `caked exec`/SSH) has the x64 compiler too and should be able to cross-build x64 (not tried); on the Intel Mac a
      Windows x64 VM does it natively.
    - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-fresh-framebuffer-resource-id` (or upstream
@@ -217,6 +218,21 @@ Things learned on the ARM run that save time:
   `hdiutil: attach failed - Resource busy`: `hdiutil info -plist`, then `hdiutil detach -force /dev/diskN` for those two images only.
 - If the working tree doesn't build for an unrelated reason, `git worktree add --detach ../caker-test HEAD`, copy the changed
   files in and build there (about a minute and a half with warm caches); remove it with `git worktree remove --force` afterwards.
+
+### Phase 4b results (Intel Mac, 2026-10-21)
+Step 3 was needed and is done. The x64 driver was built **on the Intel Windows x64 VM from Phase 4** (so the "ARM64 VM cross-builds x64" idea above was
+not needed): winget `Git.Git`, `Microsoft.VisualStudio.2022.BuildTools` (VCTools + x64 Spectre libraries), `Microsoft.WindowsSDK.10.0.26100`,
+`Microsoft.WindowsWDK.10.0.26100` (about 13 minutes), then the Build Tools component above for the `WindowsKernelModeDriver10.0` toolset. The source
+is the fork branch at `46ffb9a` (`100.6.101.58000`); `viogpudo.inx` already had the Apple line, so nothing was added upstream. It was signed with a new
+certificate (`CN=Caker Windows GPU driver (test signing, x64)`, private key deleted) and ships as `amd64/`, with `embed.sh`/`WindowsGPUDriverBinaries`
+per architecture and `usesCakerGPUDriver` true for both. The ARM64 files are unchanged (same bytes).
+Step 4 on a fresh install (`caked build … --autoinstall --display-refit`): marker `… agent=0-running ssh=0-running gpudriver=0 display=0`, no warnings; after the
+second start the device is OK with `DriverVersion 100.6.101.58000`, `MatchingDeviceId PCI\VEN_1AF4&DEV_1050&SUBSYS_00501AF4`, `testsigning Yes` (desktop shows
+"Test Mode"), `UseFreshResourceId=1` in the driver key `…\{4d36e968-…}\0000`; with autologon on, `SetScreenSize` 1280x720, 800x600, 1920x1080 and 1100x700
+each rendered a clean desktop at that size on the host, and 1024x768 too. Not done: the delete-the-value A/B restart (the stock-driver VM of step 1
+is the control: same hardware, corrupted at 800x600 and 1280x720). Observed, not explained: one restart of that VM ended with `Unable to get IP for VM` from
+`caked start` although the guest was up on its desktop at the old address (the next start worked); and a `caked` built with plain `swift build`
+needs the ad hoc re-signing described above.
 
 ### Phase 5 — docs and release hygiene
 - `wiki/provisioning.md` (EN/FR): Intel support, ISO architecture rules, limits; regenerate `docs/` with
