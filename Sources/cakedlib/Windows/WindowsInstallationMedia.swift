@@ -253,10 +253,13 @@ struct WindowsInstallationMedia {
 
 			try? FileManager.default.removeItem(at: gpu)
 			try FileManager.default.createDirectory(at: gpu, withIntermediateDirectories: true)
-			try WindowsGPUDriverBinaries.sys.write(to: gpu.appendingPathComponent("viogpudo.sys"))
-			try WindowsGPUDriverBinaries.inf.write(to: gpu.appendingPathComponent("viogpudo.inf"))
-			try WindowsGPUDriverBinaries.cat.write(to: gpu.appendingPathComponent("viogpudo.cat"))
-			try WindowsGPUDriverBinaries.certificate.write(to: caker.appendingPathComponent("caker-test-signing.cer"))
+
+			let driver = WindowsGPUDriverBinaries.package(for: architecture)
+
+			try driver.sys.write(to: gpu.appendingPathComponent("viogpudo.sys"))
+			try driver.inf.write(to: gpu.appendingPathComponent("viogpudo.inf"))
+			try driver.cat.write(to: gpu.appendingPathComponent("viogpudo.cat"))
+			try driver.certificate.write(to: caker.appendingPathComponent("caker-test-signing.cer"))
 
 			// Display resizing: the GPU driver learns the size the host wants but the helper virtio-win ships to apply it
 			// (viogpuap) never finds the adapter here, so this script does it (see WindowsInstallResources.displayScript)

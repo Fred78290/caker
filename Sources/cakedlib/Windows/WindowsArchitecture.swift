@@ -65,9 +65,10 @@ enum WindowsArchitecture: String, CaseIterable, Sendable {
 	/// Whether the installation media carries caker's build of the virtio GPU driver instead of virtio-win's
 	/// (`Tools/WindowsGPUDriver`, which gives Virtualization.framework a framebuffer it displays right after a
 	/// resolution change). It is test-signed, so the installed system trusts its certificate and runs in test-signing
-	/// mode. Only built for ARM64.
+	/// mode. Built for both architectures: Intel guests show the same corruption with the stock driver and report the same
+	/// PCI subsystem id (WINDOWS_INTEL_PLAN.md, Phase 4b).
 	var usesCakerGPUDriver: Bool {
-		self == .arm64
+		true
 	}
 
 	/// Whether the guest boots through the EFI framebuffer helpers (`Tools/WindowsEFI`, built for both architectures).

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Regenerates Sources/cakedlib/Windows/WindowsGPUDriverBinaries.swift from the files in arm64/ (see README.md).
+# Regenerates Sources/cakedlib/Windows/WindowsGPUDriverBinaries.swift from the files in arm64/ and amd64/ (see README.md).
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -7,7 +7,18 @@ cd "$(dirname "$0")"
 OUT=../../Sources/cakedlib/Windows/WindowsGPUDriverBinaries.swift
 
 b64() {
-	base64 < "arm64/$1" | tr -d '\r\n'
+	base64 < "$1/$2" | tr -d '\r\n'
+}
+
+package() {
+	local dir=$1 name=$2 doc=$3
+
+	echo "	/// $doc"
+	echo "	static let $name = Package("
+	echo '		sys: Data(base64Encoded: "'"$(b64 "$dir" viogpudo.sys)"'")!,'
+	echo '		inf: Data(base64Encoded: "'"$(b64 "$dir" viogpudo.inf)"'")!,'
+	echo '		cat: Data(base64Encoded: "'"$(b64 "$dir" viogpudo.cat)"'")!,'
+	echo '		certificate: Data(base64Encoded: "'"$(b64 "$dir" caker-test-signing.cer)"'")!)'
 }
 
 {
@@ -15,15 +26,29 @@ b64() {
 	echo
 	echo 'import Foundation'
 	echo
-	echo '/// The virtio GPU driver (viogpudo) the Windows ARM64 installation media carries instead of virtio-win'"'"'s: the same driver'
-	echo '/// with a fresh resource id for each framebuffer, so Virtualization.framework shows the picture right after a'
-	echo '/// resolution change. Test-signed (see Tools/WindowsGPUDriver/README.md).'
+	echo '/// The virtio GPU driver (viogpudo) the Windows installation media carries instead of virtio-win'"'"'s: the same driver'
+	echo '/// with a fresh resource id for each framebuffer (only on Virtualization.framework'"'"'s GPU), so the picture is right'
+	echo '/// after a resolution change. One build per guest architecture, each test-signed with its own certificate'
+	echo '/// (see Tools/WindowsGPUDriver/README.md).'
 	echo 'enum WindowsGPUDriverBinaries {'
-	echo '	static let sys = Data(base64Encoded: "'"$(b64 viogpudo.sys)"'")!'
-	echo '	static let inf = Data(base64Encoded: "'"$(b64 viogpudo.inf)"'")!'
-	echo '	static let cat = Data(base64Encoded: "'"$(b64 viogpudo.cat)"'")!'
-	echo '	/// The public half of the certificate that signed the driver, trusted by the installed system (the private key was not kept).'
-	echo '	static let certificate = Data(base64Encoded: "'"$(b64 caker-test-signing.cer)"'")!'
+	echo '	struct Package {'
+	echo '		let sys: Data'
+	echo '		let inf: Data'
+	echo '		let cat: Data'
+	echo '		/// The public half of the certificate that signed the driver, trusted by the installed system (the private key was not kept).'
+	echo '		let certificate: Data'
+	echo '	}'
+	echo
+	package arm64 arm64 'The ARM64 build (Apple silicon guests).'
+	echo
+	package amd64 amd64 'The x64 build (Intel guests).'
+	echo
+	echo '	static func package(for architecture: WindowsArchitecture) -> Package {'
+	echo '		switch architecture {'
+	echo '		case .arm64: return self.arm64'
+	echo '		case .amd64: return self.amd64'
+	echo '		}'
+	echo '	}'
 	echo '}'
 } > "$OUT"
 

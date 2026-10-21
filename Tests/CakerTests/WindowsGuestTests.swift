@@ -589,32 +589,41 @@ final class WindowsGuestTests: XCTestCase {
 
 	// MARK: - GPU driver
 
-	func testOnlyARM64UsesCakersGPUDriver() {
-		XCTAssertTrue(WindowsArchitecture.arm64.usesCakerGPUDriver)
-		XCTAssertFalse(WindowsArchitecture.amd64.usesCakerGPUDriver)
+	func testBothArchitecturesUseCakersGPUDriver() {
+		for architecture in WindowsArchitecture.allCases {
+			XCTAssertTrue(architecture.usesCakerGPUDriver, "\(architecture)")
+		}
 	}
 
-	func testGPUDriverIsAnARM64KernelDriverWithItsCertificate() throws {
-		let sys = WindowsGPUDriverBinaries.sys
-
-		XCTAssertEqual(sys.prefix(2), Data("MZ".utf8))
-		XCTAssertEqual(sys.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: Int($0.loadUnaligned(fromByteOffset: 0x3C, as: UInt32.self)) + 4, as: UInt16.self) }, 0xAA64, "an ARM64 image")
-
-		XCTAssertTrue(String(decoding: WindowsGPUDriverBinaries.inf, as: UTF8.self).lowercased().contains("viogpudo.sys"))
-		let inf = String(decoding: WindowsGPUDriverBinaries.inf, as: UTF8.self)
-		XCTAssertTrue(inf.contains("PCI\\VEN_1AF4&DEV_1050&SUBSYS_00501AF4"), "the INF has a line for Virtualization.framework's GPU")
-		XCTAssertTrue(inf.contains("UseFreshResourceId"), "which turns the fresh resource ids on; other hypervisors keep the original behavior")
-		XCTAssertFalse(WindowsGPUDriverBinaries.cat.isEmpty)
-		XCTAssertEqual(WindowsGPUDriverBinaries.certificate.first, 0x30, "a DER certificate")
-		XCTAssertNotNil(SecCertificateCreateWithData(nil, WindowsGPUDriverBinaries.certificate as CFData), "the certificate parses")
-	}
-
-	func testInstallAddsTheTestSignedDriverOnARM64Only() {
-		XCTAssertTrue(WindowsInstallResources.installScript(for: .arm64).contains("/Add-Driver /Driver:%T%\\drivers /Recurse /ForceUnsigned"))
-		XCTAssertFalse(WindowsInstallResources.installScript(for: .amd64).contains("/ForceUnsigned"))
+	func testGPUDriverIsAKernelDriverOfItsArchitectureWithItsCertificate() throws {
+		let machines: [WindowsArchitecture: UInt16] = [.arm64: 0xAA64, .amd64: 0x8664]
 
 		for architecture in WindowsArchitecture.allCases {
-			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("copy /y %T%\\caker-test-signing.cer W:\\ProgramData\\caker\\caker-test-signing.cer"), "it is copied when the media has it")
+			let driver = WindowsGPUDriverBinaries.package(for: architecture)
+
+			XCTAssertEqual(self.machineType(of: driver.sys), machines[architecture], "\(architecture): firmware-style machine check of the .sys")
+
+			let inf = String(decoding: driver.inf, as: UTF8.self)
+
+			XCTAssertTrue(inf.lowercased().contains("viogpudo.sys"), "\(architecture)")
+			XCTAssertTrue(inf.contains("PCI\\VEN_1AF4&DEV_1050&SUBSYS_00501AF4"), "\(architecture): the INF has a line for Virtualization.framework's GPU")
+			XCTAssertTrue(inf.contains("UseFreshResourceId"), "\(architecture): which turns the fresh resource ids on; other hypervisors keep the original behavior")
+			XCTAssertFalse(driver.cat.isEmpty, "\(architecture)")
+			XCTAssertEqual(driver.certificate.first, 0x30, "\(architecture): a DER certificate")
+			XCTAssertNotNil(SecCertificateCreateWithData(nil, driver.certificate as CFData), "\(architecture): the certificate parses")
+		}
+	}
+
+	func testEachArchitectureHasItsOwnSigningCertificate() {
+		XCTAssertNotEqual(WindowsGPUDriverBinaries.arm64.certificate, WindowsGPUDriverBinaries.amd64.certificate, "the private keys were thrown away, so each build has its own")
+	}
+
+	func testInstallAddsTheTestSignedDriver() {
+		for architecture in WindowsArchitecture.allCases {
+			let script = WindowsInstallResources.installScript(for: architecture)
+
+			XCTAssertTrue(script.contains("/Add-Driver /Driver:%T%\\drivers /Recurse /ForceUnsigned"), "\(architecture)")
+			XCTAssertTrue(script.contains("copy /y %T%\\caker-test-signing.cer W:\\ProgramData\\caker\\caker-test-signing.cer"), "it is copied when the media has it")
 		}
 	}
 
