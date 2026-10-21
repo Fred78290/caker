@@ -248,6 +248,20 @@ enum WindowsInstallResources {
 		  icacls C:\ProgramData\CakeAgent /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" "Administrators:(OI)(CI)F"
 		  "C:\Program Files\CakeAgent\cakeagent.exe" service install --listen=vsock://any:5000 --ca-cert=C:\ProgramData\CakeAgent\certs\ca.pem --tls-cert=C:\ProgramData\CakeAgent\certs\server.pem --tls-key=C:\ProgramData\CakeAgent\certs\server.key
 		  set AGENT=!errorlevel!
+		  sc failure cakeagent reset= 86400 actions= restart/5000/restart/10000/restart/30000 >nul 2>&1
+		  sc failureflag cakeagent 1 >nul 2>&1
+		  rem Windows Server: started in the first seconds of boot, the Go runtime of the agent dies with "mcall called on m->g0
+		  rem stack" before it reaches the service manager (event 7009, "timeout while waiting for the service to connect", seen
+		  rem on Windows Server 2025 x64, mostly in the first seconds of boot). So the service is not started by the service manager
+		  rem but by a task 15 s after boot, which starts it again every 10 s (up to 8 times) until it runs: a start that failed with
+		  rem 7009 isn't a service failure, the recovery actions above don't cover it, and the task scheduler doesn't retry a task
+		  rem whose command returned an error. Windows clients start it at boot like any service.
+		  set INSTALLTYPE=
+		  for /f "tokens=3" %%t in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v InstallationType 2^>nul ^| find "InstallationType"') do set INSTALLTYPE=%%t
+		  if /i "!INSTALLTYPE!"=="Server" (
+		    sc config cakeagent start= demand >nul 2>&1
+		    schtasks /create /tn "CakeAgent delayed start" /sc onstart /delay 0000:15 /ru SYSTEM /rl highest /f /tr "cmd /c for /l %%i in (1,1,8) do sc query cakeagent | findstr RUNNING >nul || (sc start cakeagent & ping -n 11 127.0.0.1 >nul)" >nul 2>&1
+		  )
 		  ping -n 6 127.0.0.1 >nul
 		  sc query cakeagent | find "RUNNING" >nul 2>&1 && set AGENT=!AGENT!-running
 		  rem a service that isn't running can't say why: run the agent in front for a few seconds and keep what it prints
