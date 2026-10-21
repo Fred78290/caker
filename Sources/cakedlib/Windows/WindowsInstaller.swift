@@ -211,8 +211,9 @@ public class WindowsInstaller: @unchecked Sendable {
 	}
 
 	/// "agent=<install exit code>-running": the service was installed and is up, so the host can talk to it.
+	/// "agent=0-delayed": installed on Windows Server, where a task starts it after every boot (see `WindowsInstallResources`).
 	static func agentIsRunning(marker: String) -> Bool {
-		marker.contains("agent=0-running")
+		marker.contains("agent=0-running") || marker.contains("agent=0-delayed")
 	}
 
 	/// Windows computer names are at most 15 characters from `A-Z a-z 0-9 -`, and may not be all digits.

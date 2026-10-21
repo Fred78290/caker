@@ -309,8 +309,11 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(setup.contains("if /i \"!INSTALLTYPE!\"==\"Server\" ("))
 		XCTAssertTrue(setup.contains("sc config cakeagent start= demand"), "the service manager doesn't start it in the first seconds of boot, the Go runtime crashes then")
 		XCTAssertTrue(setup.contains("/sc onstart /delay 0000:15"), "a task starts it 15 s after boot")
-		XCTAssertTrue(setup.contains("/tr \"cmd /c for /l %%i in (1,1,8) do sc query cakeagent | findstr RUNNING >nul || (sc start cakeagent & ping -n 11 127.0.0.1 >nul)\""), "it starts the service again until it runs: a start that timed out isn't retried by anything else")
-		XCTAssertFalse(setup.contains("asyncpreemptoff"), "preemptive threads are kept")
+		XCTAssertTrue(setup.contains("/tr \"cmd /c for /l %%i in (1,1,30) do sc query cakeagent | findstr RUNNING >nul || (sc start cakeagent & ping -n 11 127.0.0.1 >nul)\""), "it starts the service again until it runs: a start that timed out isn't retried by anything else")
+		XCTAssertTrue(setup.contains("if \"!BUILD!\"==\"20348\" reg add HKLM\\SYSTEM\\CurrentControlSet\\Services\\CakeAgent /v Environment /t REG_MULTI_SZ /d \"GODEBUG=asyncpreemptoff=1\""), "Windows Server 2022 only: the agent crashes there otherwise")
+		XCTAssertEqual(setup.components(separatedBy: "asyncpreemptoff").count - 1, 1, "only the Server 2022 line: Windows 11 and Server 2025 keep async preemption")
+		XCTAssertTrue(setup.contains("set AGENT=0-delayed"), "the host is told the agent will be there although it isn't running yet")
+		XCTAssertTrue(setup.contains("if not \"!AGENT!\"==\"0-delayed\" ("), "no need to run it in front then")
 		XCTAssertTrue(setup.contains("sc failure cakeagent reset= 86400 actions= restart/"))
 		XCTAssertTrue(setup.contains("sc failureflag cakeagent 1"))
 	}
@@ -584,6 +587,8 @@ final class WindowsGuestTests: XCTestCase {
 
 	func testAgentIsRunningOnlyWhenTheMarkerSaysSo() {
 		XCTAssertTrue(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=0-running\r\nssh=0-running\r\n"))
+		XCTAssertTrue(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=0-delayed\r\nssh=0-running\r\n"), "Windows Server: installed, and a task starts it at every boot")
+		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=1-delayed\r\n"), "the install failed")
 		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=0\r\n"), "installed, but not running")
 		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=1\r\n"))
 		XCTAssertFalse(WindowsInstaller.agentIsRunning(marker: "done\r\nagent=none\r\n"))
