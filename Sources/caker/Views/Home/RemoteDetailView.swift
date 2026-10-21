@@ -146,7 +146,7 @@ struct RemoteDetailView: View {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetRemoteImage: (remote: self.remote.name, image: selectedImage))
 					.colorSchemeForColor()
 					.restorationState(.disabled)
-					.frame(width: 700, height: 750)
+					.frame(width: 730, height: 750)
 			}
 		}
 	}
