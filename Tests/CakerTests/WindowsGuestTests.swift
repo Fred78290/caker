@@ -302,6 +302,19 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(install.contains("xcopy /y /i /q %T%\\certs W:\\ProgramData\\caker\\certs"))
 	}
 
+	func testSetupStartsTheAgentFifteenSecondsAfterBootOnWindowsServerAndRestartsItOnFailure() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("/v InstallationType"), "Windows Server is told apart from Windows 11 by the registry")
+		XCTAssertTrue(setup.contains("if /i \"!INSTALLTYPE!\"==\"Server\" ("))
+		XCTAssertTrue(setup.contains("sc config cakeagent start= demand"), "the service manager doesn't start it in the first seconds of boot, the Go runtime crashes then")
+		XCTAssertTrue(setup.contains("/sc onstart /delay 0000:15"), "a task starts it 15 s after boot")
+		XCTAssertTrue(setup.contains("/tr \"cmd /c for /l %%i in (1,1,8) do sc query cakeagent | findstr RUNNING >nul || (sc start cakeagent & ping -n 11 127.0.0.1 >nul)\""), "it starts the service again until it runs: a start that timed out isn't retried by anything else")
+		XCTAssertFalse(setup.contains("asyncpreemptoff"), "preemptive threads are kept")
+		XCTAssertTrue(setup.contains("sc failure cakeagent reset= 86400 actions= restart/"))
+		XCTAssertTrue(setup.contains("sc failureflag cakeagent 1"))
+	}
+
 	func testSetupRunsTheAgentInFrontWhenTheServiceIsNotRunning() {
 		let setup = WindowsInstallResources.setupComplete
 
@@ -557,7 +570,7 @@ final class WindowsGuestTests: XCTestCase {
 		let setup = WindowsInstallResources.setupComplete
 
 		XCTAssertTrue(setup.contains("CurrentVersion\\Run /v CakerDisplay"), "it runs in the session of whoever logs on")
-		XCTAssertFalse(setup.contains("schtasks"), "a task created by SYSTEM would run as SYSTEM, with no access to the user's display")
+		XCTAssertFalse(setup.components(separatedBy: .newlines).contains { $0.contains("schtasks") && $0.contains("display.ps1") }, "a task created by SYSTEM would run as SYSTEM, with no access to the user's display")
 		XCTAssertTrue(setup.contains("-File C:\\ProgramData\\caker\\display.ps1"))
 		XCTAssertTrue(setup.contains("if exist C:\\ProgramData\\caker\\display.ps1"), "only when the media had it")
 		XCTAssertTrue(setup.contains("display=%DISPLAYRS%"), "the outcome goes in the marker the host reads")
