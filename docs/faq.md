@@ -25,7 +25,7 @@ Voyez cela comme Docker : `caked` est comme le démon Docker, et `cakectl` est c
 
 ### Quelles plateformes sont supportées ?
 
-Actuellement, Caker ne supporte que macOS en raison de sa dépendance au framework Virtualization d'Apple. Le support de Linux et Windows n'est pas prévu pour le moment.
+Caker s'exécute uniquement sur macOS (hôte), en raison de sa dépendance au framework Virtualization d'Apple. Les invités peuvent être macOS, Linux et Windows 11 (installation sans surveillance avec `--autoinstall`, voir [Provisioning](provisioning) ; le nom de l'ISO doit contenir `windows`). Un hôte Linux ou Windows n'est pas prévu.
 
 ## Questions de développement
 
@@ -226,7 +226,7 @@ Think of it like Docker: `caked` is like the Docker daemon, and `cakectl` is lik
 
 ### What platforms are supported?
 
-Currently, Caker only supports macOS due to its reliance on the Apple Virtualization framework. Linux and Windows support is not planned at this time.
+Caker only runs on macOS (as the host), due to its reliance on the Apple Virtualization framework. Guests can be macOS, Linux and Windows 11 (unattended install with `--autoinstall`, see [Provisioning](provisioning); the ISO's file name must contain `windows`). A Linux or Windows host is not planned.
 
 ## Development Questions
 

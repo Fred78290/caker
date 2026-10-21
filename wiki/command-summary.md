@@ -140,7 +140,11 @@ Quand `build`/`create` est lancé avec `--autoinstall`, une fois l'installation 
 ```bash
 cakectl build my-vm https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw --autoinstall
 cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
+# Windows 11 : installation sans surveillance (hors PackerLite) ; le nom du fichier ISO doit contenir « windows »
+cakectl build my-win11 iso:///chemin/Windows11_Client_arm64_en-us_26300_9457.iso --cpus 4 --memory 8192 --disk-size 64 --autoinstall
 ```
+
+> Windows 11 est installé par un installateur dédié, pas par PackerLite. **Le nom du fichier ISO doit contenir `windows`** (ou `win11`/`win10`), sinon `--autoinstall` ne fait rien. Détails dans [Provisioning & Recording](provisioning#autoinstall-fr).
 
 | Option | Description |
 | --- | --- |
@@ -554,7 +558,11 @@ When `build`/`create` runs with `--autoinstall`, once installation finishes, `ca
 ```bash
 cakectl build my-vm https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw --autoinstall
 cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
+# Windows 11: unattended install (outside PackerLite); the ISO file name must contain "windows"
+cakectl build my-win11 iso:///path/Windows11_Client_arm64_en-us_26300_9457.iso --cpus 4 --memory 8192 --disk-size 64 --autoinstall
 ```
+
+> Windows 11 is installed by a dedicated installer, not by PackerLite. **The ISO file name must contain `windows`** (or `win11`/`win10`), otherwise `--autoinstall` does nothing. Details in [Provisioning & Recording](provisioning#autoinstall).
 
 | Option | Description |
 | --- | --- |
