@@ -32,7 +32,7 @@ ARM-specific today (found by grep, every one needs a per-guest-architecture valu
 | virtio-win driver folders | `<driver>/w11/ARM64`, `viofs/w11/ARM64/virtiofs.exe` | `<driver>/w11/amd64` (confirm on the ISO) |
 | `Tools/WindowsEFI` | `-target aarch64-unknown-windows`, embedded as `WindowsEFIBinaries` | a second set built with `x86_64-unknown-windows` (only if step 0 says the shim is needed) |
 | `GuestPlateform.enableWindowsCPUFeatures` | private PMU / fine-grained-traps selectors, unconditional | arm64 only; probably absent or meaningless on Intel |
-| GPU driver | ARM64 guests get caker's patched `viogpudo` (`Tools/WindowsGPUDriver/arm64`, test-signed, `WindowsArchitecture.usesCakerGPUDriver`) and the display script | nothing built yet: stock amd64 driver from the ISO until Phase 4b says otherwise |
+| GPU driver | ARM64 guests get caker's patched `viogpudo` (`Tools/WindowsGPUDriver/arm64`, test-signed, opt-in through the INF for Apple's PCI subsystem id, `WindowsArchitecture.usesCakerGPUDriver`) and the display script | nothing built yet: stock amd64 driver from the ISO until Phase 4b says otherwise |
 | error strings | "…Windows on ARM installation ISO", "no ARM64 %@ driver" | architecture-neutral, with French translations |
 
 ## 2. Unknowns to settle first (step 0, no product code)
@@ -125,10 +125,18 @@ Original notes:
 
 State on Apple silicon (see `Tools/WindowsGPUDriver/README.md` and the CLAUDE.md Windows section): the stock `viogpudo`
 re-creates its framebuffer resource with the id it just released, and Virtualization.framework shows a corrupted picture
-after a resolution change (only the width the guest booted with is right). caker's build uses a fresh id per framebuffer
-(proposed upstream: virtio-win/kvm-guest-drivers-windows#1687) and ships the script that makes the guest follow the
-host's size. Whether VZ on **Intel** has the same problem is unknown, so measure before building anything:
+after a resolution change (only the width the guest booted with is right). caker's build can give each framebuffer a new id,
+but only when the driver value `UseFreshResourceId` is set, and the INF sets it only for the PCI subsystem id
+Virtualization.framework gives its virtio GPU on Apple silicon (`PCI\VEN_1AF4&DEV_1050&SUBSYS_00501AF4`); every other device
+keeps the original code (upstream: virtio-win/kvm-guest-drivers-windows#1687, two commits). The script that makes the guest follow
+the host's size is only installed together with that driver. Whether VZ on **Intel** has the same problem, and which PCI
+subsystem id its GPU reports, is unknown, so look before building anything:
 
+0. **Read the Intel guest's GPU identity** (any Phase 4 guest, stock driver):
+   `Get-PnpDevice -FriendlyName "*GPU*" | % { (Get-PnpDeviceProperty -InstanceId $_.InstanceId -KeyName DEVPKEY_Device_HardwareIds).Data }`,
+   and `Get-CimInstance Win32_ComputerSystem | Select Manufacturer,Model` (Apple silicon says `Apple Inc.` / `Apple Virtualization
+   Generic Platform`). If the GPU is `…&SUBSYS_00501AF4` the existing INF line already applies on x64 (the `.inx` is shared by
+   all architectures); if it differs, the INF needs a line for that id (step 3) and the upstream PR needs the same.
 1. **Measure with the stock x64 driver.** On the Phase 4 install, temporarily let x64 carry the display script (relax
    the `usesCakerGPUDriver` check where `display.ps1` is written, or copy `display.ps1` into the guest by hand and add the
    `HKLM\...\Run` entry), create the VM with `--display-refit`, and ask for sizes through the VM's service socket:
@@ -139,7 +147,8 @@ host's size. Whether VZ on **Intel** has the same problem is unknown, so measure
    `System.Windows.Forms.Screen` in a long-lived process (it keeps the old mode).
 2. **If clean**: keep the stock driver on x64, but still ship the display script there. Split the two decisions in
    `WindowsArchitecture` (`usesCakerGPUDriver` stays false for `.amd64`; add a `followsDisplaySize` that is true for both)
-   and gate `display.ps1` on the new value. Record the result here and in the upstream PR (it is a data point for #1687).
+   and gate `display.ps1` on the new value. Record the result here and as a comment on #1687 (the option is already off for
+   anything that isn't Apple silicon, so nothing there changes).
 3. **If corrupted**: build the x64 driver and ship it like the ARM64 one.
    - Build on any Windows 11 machine with Visual Studio Build Tools (MSVC x64 and ARM64 + Spectre libraries), the Windows
      SDK/WDK 10.0.26100 and the WDK's MSBuild toolset (`WDK.vsix` rejects Build Tools: unzip it and copy
@@ -147,30 +156,40 @@ host's size. Whether VZ on **Intel** has the same problem is unknown, so measure
      `caked exec`/SSH) has the x64 compiler too and should be able to cross-build x64 (not tried); on the Intel Mac a
      Windows x64 VM does it natively.
    - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-fresh-framebuffer-resource-id` (or upstream
-     `master` once #1687 is merged). Build `VirtIO\VirtioLib.vcxproj` then `viogpu\viogpudo\viogpudo.vcxproj` with
-     `/p:Configuration="Win11 Release" /p:Platform=x64`; the output should be `viogpudo\objfre_win11_amd64\amd64\viogpudo\`
-     (by analogy with the ARM64 folder)
-     (the packaging errors about `viogpuap`/`viogpusc`/`viogpures` are harmless).
+     `master` once #1687 is merged). If step 0 found another subsystem id, first add a model line for it to
+     `viogpu/viogpudo/viogpudo.inx` next to the `SUBSYS_00501AF4` one (same install section: `VioGpuDod_Apple_Inst`, which adds
+     `UseFreshResourceId=1`), push it to the PR and say so there. Build `VirtIO\VirtioLib.vcxproj` then
+     `viogpu\viogpudo\viogpudo.vcxproj` with `/p:Configuration="Win11 Release" /p:Platform=x64`; the output should be
+     `viogpudo\objfre_win11_amd64\amd64\viogpudo\` by analogy with the ARM64 folder (the packaging errors about
+     `viogpuap`/`viogpusc`/`viogpures` are harmless).
    - Sign `viogpudo.sys` and `viogpudo.cat` with a **new** self-signed code-signing certificate
      (`New-SelfSignedCertificate -Type CodeSigningCert`, `signtool sign /fd SHA256 /sha1 <thumbprint> /sm`); the ARM64
      certificate's private key was deleted on purpose, so either ship a second `.cer` or re-sign both architectures with
-     one new certificate (rebuild the ARM64 files too). Export only the `.cer` and delete the private key afterwards.
+     one new certificate (rebuild the ARM64 files too). Export only the `.cer` and delete the private key afterwards
+     (`RSACng.Key.Delete()` on the certificate's private key, then remove it from the store).
    - Put `viogpudo.sys/.inf/.cat` and the `.cer` in `Tools/WindowsGPUDriver/amd64/`, extend `embed.sh` to emit both
      architectures, make `WindowsGPUDriverBinaries` per architecture (`sys(for:)` … or nested enums), return true from
      `usesCakerGPUDriver` for `.amd64`, and update `WindowsInstallationMedia.populate` (it writes the ARM64 files today) and
-     the README hashes. Tests: PE `Machine` is `0x8664` for the x64 `.sys` (the ARM64 test checks `0xAA64`).
+     the README hashes. Tests: PE `Machine` is `0x8664` for the x64 `.sys` (the ARM64 test checks `0xAA64`), and the x64 INF
+     has the Apple/Intel line and `UseFreshResourceId` (the ARM64 test already checks both).
    - Nothing else changes: `install.cmd` already adds drivers with `dism /ForceUnsigned` when `usesCakerGPUDriver` is
      true, and `SetupComplete.cmd` trusts the certificate, runs `bcdedit /set testsigning on` and reports `gpudriver=<code>`.
 4. **Verify on Intel** (fresh install, nothing overridden): marker `… gpudriver=0 display=0` and no warnings; after the second
    start `Win32_PnPSignedDriver` shows the caker build (version `100.6.…`), the device status is OK, `bcdedit` says
-   `testsigning Yes`, and the host-side resize check from step 1 is clean at every size.
+   `testsigning Yes`, `DEVPKEY_Device_MatchingDeviceId` is the INF line you expect, and the driver key
+   (`HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000`, where the INF's `HKR` entries
+   land; **not** the device's `Device Parameters`) has `UseFreshResourceId=1`. Then the host-side resize check from step 1 is
+   clean at every size. For a quick A/B on the same VM, delete that value (or set it to 0), shut the guest down and start it
+   again: the picture must be corrupted like the stock driver's, which proves the option and not something else made the
+   difference.
 5. Update `wiki/provisioning.md` (EN/FR, "Display resizing"), the CLAUDE.md Windows section, the PR description and, if the
    result is useful upstream, a comment on virtio-win/kvm-guest-drivers-windows#1687.
 
 Things learned on the ARM run that save time:
 - Never swap the GPU driver in a running guest (`pnputil /restart-device`, deleting the package, `UpdateDriverForPlugAndPlayDevices`
   all hard-stop the VM or roll back; the WHQL-signed stock package also outranks a test-signed one). Replace it on the
-  media, as the installer does.
+  media, as the installer does. To try a different build in an existing test VM without a new install, copy the signed `.sys`
+  to `System32\drivers\<new name>.sys`, point the `VioGpuDod` service's `ImagePath` at it and shut the guest down cleanly.
 - A guest that sits idle goes to sleep and its agent stops answering (`caked exec` hangs): `powercfg /change standby-timeout-ac 0`
   and `monitor-timeout-ac 0`. Autologon only covers first boot; for a test VM set `AutoAdminLogon`/`DefaultUserName`/`DefaultPassword`
   under `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon`, and a script in a Run entry that polls for a command
@@ -179,6 +198,10 @@ Things learned on the ARM run that save time:
   `com.apple.security.virtualization` (adding `com.apple.vm.networking` makes the system kill it).
 - Two `vmrun` processes for one VM (a leftover from a killed run) make the second fail with "EFI variable store is already in use": `pkill -9 -f "vmrun.*<vm>"`
   and remove `run.pid`/`svc` from the VM folder before starting.
+- Killing a `caked build` of a Windows VM leaves the ISO and `install.winmedia` attached, and the next build fails with
+  `hdiutil: attach failed - Resource busy`: `hdiutil info -plist`, then `hdiutil detach -force /dev/diskN` for those two images only.
+- If the working tree doesn't build for an unrelated reason, `git worktree add --detach ../caker-test HEAD`, copy the changed
+  files in and build there (about a minute and a half with warm caches); remove it with `git worktree remove --force` afterwards.
 
 ### Phase 5 — docs and release hygiene
 - `wiki/provisioning.md` (EN/FR): Intel support, ISO architecture rules, limits; regenerate `docs/` with
@@ -229,5 +252,5 @@ Practical notes for the session (all learned on the ARM run):
 ## 6. Acceptance criteria
 - Phase 1 merged with ARM behaviour unchanged (existing Windows tests green, a real ARM install still reports `agent=0-running`).
 - On an Intel Mac: the section 4.1–4.5 checks pass with a Windows 11 x64 ISO, or this file records which unknown made it impossible.
-- Phase 4b: the resize check is clean at every size on Intel, with the stock driver or with an x64 build of caker's, and the choice is recorded here.
+- Phase 4b: the GPU's PCI subsystem id on Intel is recorded here, and the resize check is clean at every size with the stock driver or with an x64 build of caker's (whose INF turns `UseFreshResourceId` on for that id only); the choice is recorded here.
 - `swift build --arch x86_64` and the full `swift test` pass; docs and French strings updated.
