@@ -76,7 +76,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		defer {
 			if let virtualMachine = self.virtualMachine {
 				DispatchQueue.main.async {
-					NotificationCenter.default.post(name: VMBuilder.IPSWTerminatedNotification, object: virtualMachine, userInfo: ["wizardID": self.wizardID])
+					NotificationCenter.default.post(name: VMBuilder.WinPETerminatedNotification, object: virtualMachine, userInfo: ["wizardID": self.wizardID])
 				}
 			}
 		}
