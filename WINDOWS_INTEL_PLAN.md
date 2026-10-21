@@ -121,6 +121,21 @@ Original notes:
    comes back.
 6. Record install time, first-boot time and the answers to the section 2 unknowns here.
 
+### Results on an Intel Mac (macOS 26.7.1, Core i9-10850K, 2026-10-21)
+Phase 4 install of `Windows11_Client_x64_en-us_26300_9457.iso` with the framebuffer shim on (`usesFramebufferShim` true), no private
+API (the PMU/trap setters are `#if arch(arm64)`): `caked build win11x64 iso:///… --cpus 4 --memory 8192 --disk-size 64 --user admin
+--password admin --autoinstall --display-refit` finished in about 9 minutes (WinPE install ~4 min, first boot ~4 min) with the
+marker `done winfsp=0 service=0 share=none vsock=running agent=0-running ssh=0-running gpu=0`, then `caked start` gave the
+VM a DHCP address and an SSH login with the host key. So Windows 11 x64 does boot under Virtualization.framework on Intel
+(unknown 2), needs no PMU/trap workaround (4), and virtio-vsock, the agent and OpenSSH come up (8); the amd64 driver folders and
+`viofs` exist on the virtio-win ISO (6). Not settled: whether the shim is needed (3, never booted without it) and whether a guest
+reboot stops the VM (5). The "cakeagent may not be running" warning of that build was a false positive of its marker check.
+Phase 4b step 0: the guest's GPU is `PCI\VEN_1AF4&DEV_1050&SUBSYS_00501AF4` (same as Apple silicon, `Manufacturer: Apple Inc.`,
+`Model: Apple Virtualization Generic Platform`), stock driver 100.103.104.30200, so the INF line for Apple's subsystem id applies to x64.
+Step 1 (stock x64 driver, `display.ps1` copied by hand, autologon on, resized through `vmrun.Service/SetScreenSize`; with `grpcurl`
+the target must be `unix:///path/to/svc`, `-unix` dials TCP here): 1280x720 shows black with garbled fragments and 800x600 horizontal
+streaks, 1024x768 (the boot size) is clean. **Intel has the same corruption, so the x64 build of the patched driver is needed (step 3).**
+
 ### Phase 4b — GPU driver and display resizing on Intel (after Phase 4 passes)
 
 State on Apple silicon (see `Tools/WindowsGPUDriver/README.md` and the CLAUDE.md Windows section): the stock `viogpudo`
