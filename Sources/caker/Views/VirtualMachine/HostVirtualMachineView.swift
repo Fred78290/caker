@@ -204,7 +204,8 @@ struct HostVirtualMachineView: View {
 							Button("Show cursor", systemImage: showsHostCursor ? "pointer.arrow.slash" : "pointer.arrow") {
 								showsHostCursor.toggle()
 							}
-							.help("Show/Hide host cursor in VM view")
+							.keyboardShortcut("c", modifiers: [.control, .option])
+							.help("Show/Hide host cursor in VM view (⌃⌥C)")
 							.disabled(document.status.isRunning == false)
 						}
 					}

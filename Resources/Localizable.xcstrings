@@ -15258,12 +15258,12 @@
         }
       }
     },
-    "Show/Hide host cursor in VM view" : {
+    "Show/Hide host cursor in VM view (⌃⌥C)" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher/Masquer le curseur de l'hôte dans la vue VM"
+            "value" : "Afficher/Masquer le curseur de l'hôte dans la vue VM (⌃⌥C)"
           }
         }
       }
