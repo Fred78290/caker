@@ -1,6 +1,7 @@
 import AppKit
 import ArgumentParser
 import CakeAgentLib
+import Dynamic
 import Foundation
 import GRPCLib
 import NIO
@@ -144,6 +145,19 @@ extension SSHError.Kind {
 	}
 }
 
+extension VZVirtualMachineConfiguration {
+	#if UNSIGNED_CAKER
+		public var testIgnoreEntitlementChecks: Bool {
+			get {
+				return Dynamic(self)._testIgnoreEntitlementChecks as Bool? ?? false
+			}
+			set {
+				Dynamic(self)._testIgnoreEntitlementChecks = newValue
+			}
+		}
+	#endif
+}
+
 extension VZVirtualMachine {
 	public func requestStop(completionHandler: ((Error?) -> Void)? = nil) throws {
 		if let completionHandler {
@@ -283,6 +297,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		devices.append(contentsOf: additionalDiskAttachments)
 
 		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
+
+		#if UNSIGNED_CAKER
+			configuration.testIgnoreEntitlementChecks = true
+		#endif
 
 		configuration.bootLoader = try plateform.bootLoader()
 		configuration.cpuCount = Int(config.cpuCount)

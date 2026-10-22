@@ -15,7 +15,7 @@ ASSETS="${BUILDDIR}/assets"
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 RELEASE=0
 APPSTORE=0
-USE_SMAPPSERVICE=0
+USE_SMAPPSERVICE=1
 ARGUMENT_PARSER_ORIGINAL="https://github.com/apple/swift-argument-parser"
 ARGUMENT_PARSER_MIRROR="https://github.com/Fred78290/swift-argument-parser"
 SWIFTCMD="xcrun swift"
@@ -44,6 +44,7 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
 ${SWIFTCMD} build \
 	--sdk "${MACOSSDK}" \
 	-Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker 27.0 \
+	-Xswiftc -D -Xswiftc UNSIGNED_CAKER \
 	-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
 	-Xswiftc -D -Xswiftc SPARKLE \
 	-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \
