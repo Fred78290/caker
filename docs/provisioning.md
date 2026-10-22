@@ -96,6 +96,7 @@ cakectl build my-win11 iso:///chemin/Windows11_Client_arm64_en-us_26300_9457.iso
 Particularités :
 
 - **L'ISO se passe en `iso:///chemin/absolu.iso`** : un chemin nu est traité comme une image disque brute.
+- **Clé de produit.** Si la variable de provisioning `WINDOWS_KEY` est définie (`--var WINDOWS_KEY=XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`, ou l'éditeur « Provisioning variables » de Caker.app), elle est placée dans le fichier de réponses (`<ProductKey>`, passe `specialize`) et Windows s'active avec. Sans elle, Windows s'installe sans clé (non activé). Une clé qui n'a pas la forme de cinq groupes de cinq caractères fait échouer le `build` avant l'installation plutôt que de bloquer Windows sur une boîte de dialogue invisible ; la clé n'est jamais journalisée.
 - **Architecture.** L'ISO doit être celle de l'architecture de votre Mac : Windows 11 pour **ARM** sur Apple Silicon, pour **x64** sur un Mac Intel. L'ISO de l'autre architecture est refusé (l'architecture est lue dans le chargeur d'amorçage de l'ISO).
 - **Pas de TPM.** Virtualization.framework n'en expose aucun (Windows ne lie qu'un TPM décrit par une table ACPI, et un périphérique virtio n'a pas de pilote Windows). L'installation ne passe pas par Windows Setup, donc ses contrôles TPM/Secure Boot ne s'appliquent pas, mais BitLocker et le chiffrement d'appareil sont indisponibles.
 - **Matériel adapté à Windows.** Disque système en NVMe, support d'installation en périphérique de stockage de masse USB, deux fonctions CPU activées par des API privées (voir ci-dessous) et un petit pilote UEFI (`Tools/WindowsEFI`) qui fournit le framebuffer que Windows exige.
@@ -367,6 +368,7 @@ cakectl build my-win11 iso:///path/to/Windows11_Client_arm64_en-us_26300_9457.is
 Specifics:
 
 - **Pass the ISO as `iso:///absolute/path.iso`**: a bare path is treated as a raw disk image.
+- **Product key.** When the `WINDOWS_KEY` provisioning variable is set (`--var WINDOWS_KEY=XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`, or Caker.app's "Provisioning variables" editor), it goes into the answer file (`<ProductKey>`, `specialize` pass) and Windows activates with it. Without it, Windows installs with no key (unactivated). A key that isn't five groups of five characters fails the `build` before the install rather than leaving Windows on a dialog nobody can see; the key is never logged.
 - **Architecture.** The ISO must match your Mac's architecture: Windows 11 for **ARM** on Apple silicon, for **x64** on an Intel Mac. An ISO of the other architecture is refused (the architecture is read from the ISO's boot loader).
 - **No TPM.** Virtualization.framework exposes none (Windows only binds a TPM described by an ACPI table, and a virtio device has no Windows driver). The install doesn't go through Windows Setup, so its TPM/Secure Boot checks don't apply, but BitLocker and device encryption are unavailable.
 - **Windows-friendly hardware.** NVMe system disk, USB mass storage installation media, two CPU features enabled through private API (see below), and a small UEFI driver (`Tools/WindowsEFI`) that supplies the framebuffer Windows requires.

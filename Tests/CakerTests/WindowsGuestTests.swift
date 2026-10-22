@@ -216,6 +216,28 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(xml.contains("\r\n"), "Windows tools expect CRLF")
 	}
 
+	// MARK: - Product key (WINDOWS_KEY)
+
+	func testUnattendCarriesTheProductKeyInTheSpecializePassOnly() {
+		let with = WindowsInstallResources.unattend(username: "admin", password: "admin", computerName: "CAKER", language: "en-US", architecture: .arm64, productKey: "AAAAA-BBBBB-CCCCC-DDDDD-EEEEE")
+		let without = WindowsInstallResources.unattend(username: "admin", password: "admin", computerName: "CAKER", language: "en-US", architecture: .arm64)
+
+		XCTAssertTrue(with.contains("<TimeZone>UTC</TimeZone>\r\n      <ProductKey>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE</ProductKey>\r\n"))
+		XCTAssertLessThan(with.range(of: "<ProductKey>")!.lowerBound, with.range(of: "oobeSystem")!.lowerBound, "it is applied while the system specializes")
+		XCTAssertFalse(without.contains("ProductKey"), "no key, no element: Windows stays unactivated instead of failing on an empty key")
+		XCTAssertFalse(without.contains("\r\n\r\n"), "no blank line is left behind")
+	}
+
+	func testProductKeyIsValidatedBeforeItReachesTheAnswerFile() throws {
+		XCTAssertNil(try WindowsInstallationMedia.validatedProductKey(nil))
+		XCTAssertNil(try WindowsInstallationMedia.validatedProductKey("  \n"), "a blank value means no key")
+		XCTAssertEqual(try WindowsInstallationMedia.validatedProductKey(" abcde-12345-fghij-67890-klmno\n"), "ABCDE-12345-FGHIJ-67890-KLMNO", "trimmed and upper-cased")
+
+		for bad in ["ABCDE", "ABCDE-12345-FGHIJ-67890", "ABCDE-12345-FGHIJ-67890-KLMNO-PQRST", "ABCDE-12345-FGHIJ-67890-KLMN", "ABCDE-12345-FGHIJ-67890-KLM<O", "ABCDE12345FGHIJ67890KLMNO"] {
+			XCTAssertThrowsError(try WindowsInstallationMedia.validatedProductKey(bad), bad)
+		}
+	}
+
 	func testInstallScriptsUseCRLFOnly() {
 		for script in [WindowsInstallResources.installScript(for: .arm64), WindowsInstallResources.installScript(for: .amd64), WindowsInstallResources.peScript, WindowsInstallResources.setupComplete, WindowsInstallResources.winpeshl] {
 			XCTAssertFalse(script.replacingOccurrences(of: "\r\n", with: "").contains("\n"), "a bare LF would break cmd.exe's line handling")

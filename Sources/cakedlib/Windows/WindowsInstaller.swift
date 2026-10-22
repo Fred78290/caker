@@ -39,6 +39,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let windowsISO: URL
 	private let username: String
 	private let password: String
+	private let productKey: String?
 	private let runMode: Utils.RunMode
 	private let wizardID: UUID
 	private let queue: DispatchQueue
@@ -46,12 +47,13 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let canceled: Mutex<Bool> = .init(false)
 	public var virtualMachine: VirtualMachine?
 
-	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
+	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
 		self.location = location
 		self.config = config
 		self.windowsISO = windowsISO
 		self.username = username
 		self.password = password
+		self.productKey = productKey
 		self.runMode = runMode
 		self.wizardID = wizardID
 		self.queue = queue ?? DispatchQueue.main
@@ -91,6 +93,8 @@ public class WindowsInstaller: @unchecked Sendable {
 	}
 
 	public func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+		// Checked first: a bad key must fail the build now, not after the downloads
+		let productKey = try WindowsInstallationMedia.validatedProductKey(self.productKey)
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let winFspMSI = try await downloadWinFsp(progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
@@ -99,7 +103,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		let openSSH = try await downloadOpenSSH(progressHandler: progressHandler)
 		let authorizedKeys = (try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode)) ?? []
 		let options = WindowsInstallationMedia.Options(
-			username: username, password: password, computerName: Self.computerName(for: location.name),
+			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey,
 			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL),
 			openSSH: .init(archive: openSSH, authorizedKeys: authorizedKeys))
 		let windowsISO = self.windowsISO

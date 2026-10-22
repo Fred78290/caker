@@ -20999,6 +20999,16 @@
       },
       "shouldTranslate" : false
     },
+    "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé de produit Windows de WINDOWS_KEY n'est pas valide : attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+          }
+        }
+      }
+    },
     "Windows setup finished successfully" : {
       "extractionState" : "manual",
       "localizations" : {

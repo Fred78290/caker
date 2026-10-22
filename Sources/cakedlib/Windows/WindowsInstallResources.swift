@@ -282,11 +282,14 @@ enum WindowsInstallResources {
 		"""#)
 
 	/// The answer file for the installed system: a local administrator account that logs on automatically,
-	/// and no out-of-box experience. `language` is the image's default (e.g. `en-US`).
-	static func unattend(username: String, password: String, computerName: String, language: String, architecture: WindowsArchitecture) -> String {
+	/// and no out-of-box experience. `language` is the image's default (e.g. `en-US`). `productKey`, when given, is
+	/// applied in the specialize pass (the `WINDOWS_KEY` provisioning variable).
+	static func unattend(username: String, password: String, computerName: String, language: String, architecture: WindowsArchitecture, productKey: String? = nil) -> String {
 		func escaped(_ value: String) -> String {
 			value.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;")
 		}
+
+		let productKeyElement = productKey.map { "\n      <ProductKey>\(escaped($0))</ProductKey>" } ?? ""
 
 		return crlf(
 			"""
@@ -295,7 +298,7 @@ enum WindowsInstallResources {
 			  <settings pass="specialize">
 			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <ComputerName>\(escaped(computerName))</ComputerName>
-			      <TimeZone>UTC</TimeZone>
+			      <TimeZone>UTC</TimeZone>\(productKeyElement)
 			    </component>
 			  </settings>
 			  <settings pass="oobeSystem">

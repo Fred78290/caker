@@ -41,10 +41,32 @@ struct WindowsInstallationMedia {
 		var username: String
 		var password: String
 		var computerName: String
+		/// Applied by the answer file (the `WINDOWS_KEY` provisioning variable), validated by `validatedProductKey(_:)`.
+		var productKey: String?
 		/// Installed as a service on first boot when set.
 		var cakeAgent: CakeAgent?
 		/// Installed and started on first boot when set.
 		var openSSH: OpenSSH?
+	}
+
+	/// The name of the provisioning variable (`--var WINDOWS_KEY=...`) that carries the product key.
+	static let productKeyVariable = "WINDOWS_KEY"
+
+	/// Returns the product key to put in the answer file, nil when there is none (unset or blank). A key that isn't
+	/// five groups of five letters/digits is refused: Windows would stop on an error dialog nobody can see, in the middle
+	/// of an unattended setup. The key itself is never logged.
+	static func validatedProductKey(_ value: String?) throws -> String? {
+		guard let key = value?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(), key.isEmpty == false else {
+			return nil
+		}
+
+		let groups = key.split(separator: "-", omittingEmptySubsequences: false)
+
+		guard groups.count == 5, groups.allSatisfy({ $0.count == 5 && $0.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber) } }) else {
+			throw ServiceError(String(localized: "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"))
+		}
+
+		return key
 	}
 
 	struct InstallResult {
@@ -219,7 +241,7 @@ struct WindowsInstallationMedia {
 		try WindowsInstallResources.installScript(for: architecture).write(to: caker.appendingPathComponent("install.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.setupComplete.write(to: caker.appendingPathComponent("SetupComplete.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.config(imageIndex: image.index).write(to: caker.appendingPathComponent("config.cmd"), atomically: true, encoding: .utf8)
-		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
+		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture, productKey: options.productKey).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
 
 		if architecture.usesFramebufferShim {
 			try WindowsEFIBinaries.framebuffer(for: architecture).write(to: caker.appendingPathComponent("framebuffer.efi"))

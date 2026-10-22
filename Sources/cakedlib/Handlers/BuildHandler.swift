@@ -151,7 +151,7 @@ public struct BuildHandler {
 								// templates can't drive it, since nothing is shown while Windows' installer runs.
 								let config = try location.config()
 								let installer = WindowsInstaller(
-									location: location, config: config, windowsISO: URL(spaced: result.image)!, username: config.configuredUser, password: config.configuredPassword ?? "admin", wizardID: result.identifier, queue: queue, runMode: runMode)
+									location: location, config: config, windowsISO: URL(spaced: result.image)!, username: config.configuredUser, password: config.configuredPassword ?? "admin", productKey: result.provisionVarsDict[WindowsInstallationMedia.productKeyVariable], wizardID: result.identifier, queue: queue, runMode: runMode)
 
 								try await installer.install(progressHandler: progressHandler)
 							} else {
