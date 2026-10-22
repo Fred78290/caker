@@ -264,6 +264,8 @@ public protocol VirtualMachineConfiguration {
 	var osRelease: String? { set get }
 	var dynamicPortForwarding: Bool { set get }
 	var displayRefit: Bool { set get }
+	/// Windows guests: the frame segment (MiB) of the display driver, which bounds the display size. nil is the stock driver's 16.
+	var windowsFrameSegmentMiB: Int? { set get }
 	var instanceID: String { set get }
 	var dhcpClientID: String? { set get }
 	var sshAuthorizedKey: String? { set get }
@@ -511,6 +513,9 @@ extension VirtualMachineConfiguration {
 				$0.height = Int32(display.height)
 			}
 			$0.displayRefit = self.displayRefit
+			if let windowsFrameSegmentMiB {
+				$0.windowsFrameSegmentMiB = UInt32(windowsFrameSegmentMiB)
+			}
 			$0.mounts = self.mounts.map({ .init($0) })
 			$0.attachedDisks = self.attachedDisks.map({ .init($0) })
 			$0.sockets = self.sockets.map({ .init($0) })

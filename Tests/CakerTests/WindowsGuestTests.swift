@@ -243,6 +243,27 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertEqual(Int(clamped.height) % 2, 0)
 	}
 
+	func testFrameSegmentCrossesGrpcAndIsAbsentWhenUnset() {
+		// The enums the conversion unwraps need a real value
+		var message = Caked.Configuration.with {
+			$0.os = .linux
+			$0.arch = .arm64
+			$0.source = .raw
+		}
+
+		XCTAssertFalse(message.hasWindowsFrameSegmentMiB, "a guest installed before it: the stock driver's 16 MiB")
+		XCTAssertNil(CakedConfiguration(message).windowsFrameSegmentMiB)
+
+		message.windowsFrameSegmentMiB = 32
+
+		XCTAssertEqual(CakedConfiguration(message).windowsFrameSegmentMiB, 32)
+
+		let copy = CakedConfiguration(CakedConfiguration(message))
+
+		XCTAssertEqual(copy.windowsFrameSegmentMiB, 32, "and survives a copy of the configuration")
+		XCTAssertEqual(copy.caked.windowsFrameSegmentMiB, 32, "and goes back on the wire")
+	}
+
 	// MARK: - Product key (WINDOWS_KEY)
 
 	func testUnattendCarriesTheProductKeyInTheSpecializePassOnly() {

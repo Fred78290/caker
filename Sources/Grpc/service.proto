@@ -439,6 +439,8 @@ message Caked {
     optional string     rootDisk    = 44;
     optional DiskFormat diskFormat  = 45;
     bool                provisioned = 46;
+  // Windows guests: the frame segment (MiB) of the display driver, which bounds the display size; absent when it is the stock driver's 16
+    optional uint32     windowsFrameSegmentMiB = 48;
   }
 
   message ScreenSize {
