@@ -296,7 +296,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		devices.append(contentsOf: additionalDiskAttachments)
 
-		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
+		// Without a sink the guest's playback is accepted by the device and then discarded.
+		let soundOutput = VZVirtioSoundDeviceOutputStreamConfiguration()
+
+		soundOutput.sink = VZHostAudioOutputStreamSink()
+		soundDeviceConfiguration.streams = [soundOutput]
 
 		#if UNSIGNED_CAKER
 			configuration.testIgnoreEntitlementChecks = true
