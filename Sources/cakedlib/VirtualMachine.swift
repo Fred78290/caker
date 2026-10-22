@@ -1499,8 +1499,22 @@ extension VirtualMachine {
 		}
 
 		self.vmQueue.async {
-			let newSize = CGSize(width: width, height: height)
+			var newSize = CGSize(width: width, height: height)
 			let logger = Logger(self)
+
+			// Windows' display driver refuses a display bigger than what it allocated at start (see WindowsDisplayLimit)
+			if self.config.isWindowsGuest {
+				let limited = WindowsDisplayLimit.clamp(newSize, maxPixels: WindowsDisplayLimit.maxPixels(booted: CGSize(width: self.config.display.width, height: self.config.display.height)))
+
+				if limited != newSize {
+					logger.info("Screen size \(width)x\(height) is too big for a Windows guest's display, using \(Int(limited.width))x\(Int(limited.height))")
+
+					newSize = limited
+				}
+			}
+
+			let width = Int(newSize.width)
+			let height = Int(newSize.height)
 
 			logger.info("Will resize screen to \(width)x\(height)")
 

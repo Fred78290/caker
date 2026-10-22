@@ -23,6 +23,11 @@ public struct VMView: NSViewRepresentable {
 		vzMachineView.virtualMachine = vm.virtualMachine
 		vzMachineView.autoresizingMask = [.width, .height]
 		vzMachineView.automaticallyReconfiguresDisplay = vm.config.displayRefit && vm.env.mode == .normal
+
+		// Windows' display driver refuses a display past what it allocated at start: keep the display inside it
+		if vzMachineView.automaticallyReconfiguresDisplay && vm.config.isWindowsGuest {
+			vzMachineView.displayPixelLimit = WindowsDisplayLimit.maxPixels(booted: CGSize(width: vm.config.display.width, height: vm.config.display.height))
+		}
 		vzMachineView.capturesSystemKeys = true
 		//vzMachineView.showsHostCursor = false
 

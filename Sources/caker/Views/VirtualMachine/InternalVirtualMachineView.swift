@@ -30,6 +30,11 @@ class CakerVZVirtualMachineView: VNCVirtualMachineView {
 
 			if #available(macOS 14.0, *) {
 				self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
+
+				// Windows' display driver refuses a display past what it allocated at start: keep the display inside it
+				if self.automaticallyReconfiguresDisplay && virtualMachine.config.isWindowsGuest {
+					self.displayPixelLimit = WindowsDisplayLimit.maxPixels(booted: CGSize(width: virtualMachine.config.display.width, height: virtualMachine.config.display.height))
+				}
 			}
 		}
 	}

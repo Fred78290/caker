@@ -216,6 +216,31 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(xml.contains("\r\n"), "Windows tools expect CRLF")
 	}
 
+	// MARK: - Display size limit
+
+	func testWindowsDisplayLimitIsTheDriversFrameSegment() {
+		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768)), 4 * 1024 * 1024, "16 MiB at 4 bytes a pixel")
+		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 3440, height: 1440)), 3440 * 1440, "a guest that started bigger keeps what it started with")
+	}
+
+	func testWindowsDisplayLimitShrinksOnlyWhatDoesNotFitAndKeepsTheAspectRatio() {
+		let limit = WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768))
+
+		// Sizes the driver took in practice
+		for size in [CGSize(width: 1280, height: 720), CGSize(width: 1920, height: 1080), CGSize(width: 2500, height: 1200), CGSize(width: 2338, height: 1144)] {
+			XCTAssertEqual(WindowsDisplayLimit.clamp(size, maxPixels: limit), size, "\(size) fits")
+		}
+
+		// 3440x1440 (19.8 MB) was refused, and left the guest refusing the next ones
+		let clamped = WindowsDisplayLimit.clamp(CGSize(width: 3440, height: 1440), maxPixels: limit)
+
+		XCTAssertLessThanOrEqual(Int(clamped.width * clamped.height), limit)
+		XCTAssertGreaterThan(Int(clamped.width * clamped.height), limit * 98 / 100, "as big as it can be")
+		XCTAssertEqual(clamped.width / clamped.height, 3440.0 / 1440.0, accuracy: 0.01)
+		XCTAssertEqual(Int(clamped.width) % 2, 0)
+		XCTAssertEqual(Int(clamped.height) % 2, 0)
+	}
+
 	// MARK: - Product key (WINDOWS_KEY)
 
 	func testUnattendCarriesTheProductKeyInTheSpecializePassOnly() {
