@@ -45,6 +45,9 @@ public struct WindowsInstallationMedia {
 		var productKey: String?
 		/// The display driver's frame segment (MiB) asked for, validated by `validatedFrameSegmentMiB(_:)`; nil keeps the INF's.
 		var frameSegmentMiB: Int?
+		/// Whether the media carries the sound driver (`WindowsAudioDriverBinaries`); the `WINDOWS_AUDIO` provisioning variable,
+		/// validated by `validatedAudio(_:)`.
+		var audioDriver: Bool = true
 		/// Installed as a service on first boot when set.
 		var cakeAgent: CakeAgent?
 		/// Installed and started on first boot when set.
@@ -101,6 +104,26 @@ public struct WindowsInstallationMedia {
 		}
 
 		return mib
+	}
+
+	/// The name of the provisioning variable (`--var WINDOWS_AUDIO=0`) that leaves the sound driver (`Tools/WindowsAudioDriver`)
+	/// out. It is on by default: it only binds to Virtualization.framework's sound device, and what it needs (a trusted
+	/// test certificate, test-signing mode) is already there for the GPU driver.
+	public static let audioVariable = "WINDOWS_AUDIO"
+
+	/// Returns whether the sound driver goes on the media: unset or blank is yes, `0`/`false`/`no`/`off` is no. Anything
+	/// else is refused rather than guessed.
+	public static func validatedAudio(_ value: String?) throws -> Bool {
+		guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), text.isEmpty == false else {
+			return true
+		}
+
+		switch text {
+		case "1", "true", "yes", "on": return true
+		case "0", "false", "no", "off": return false
+		default:
+			throw ServiceError(String(localized: "The value of WINDOWS_AUDIO is not valid: expected 1 or 0"))
+		}
 	}
 
 	struct InstallResult {
@@ -316,6 +339,21 @@ public struct WindowsInstallationMedia {
 			try driver.inf.write(to: gpu.appendingPathComponent("viogpudo.inf"))
 			try driver.cat.write(to: gpu.appendingPathComponent("viogpudo.cat"))
 			try driver.certificate.write(to: caker.appendingPathComponent("caker-test-signing.cer"))
+		}
+
+		// The sound driver (Tools/WindowsAudioDriver): Windows has none for Virtualization.framework's virtio-snd device
+		if options.audioDriver {
+			let audio = drivers.appendingPathComponent("viosnd", isDirectory: true)
+
+			try? FileManager.default.removeItem(at: audio)
+			try FileManager.default.createDirectory(at: audio, withIntermediateDirectories: true)
+
+			let driver = WindowsAudioDriverBinaries.package(for: architecture)
+
+			try driver.sys.write(to: audio.appendingPathComponent("viosnd.sys"))
+			try driver.inf.write(to: audio.appendingPathComponent("viosnd.inf"))
+			try driver.cat.write(to: audio.appendingPathComponent("viosnd.cat"))
+			try driver.certificate.write(to: caker.appendingPathComponent("caker-audio-test-signing.cer"))
 		}
 
 		// The virtio-fs service (it's an .exe next to the driver, not part of the driver package) and WinFsp

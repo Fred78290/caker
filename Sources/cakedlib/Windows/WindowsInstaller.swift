@@ -41,6 +41,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let password: String
 	private let productKey: String?
 	private let frameSegmentMiB: String?
+	private let audio: String?
 	private let runMode: Utils.RunMode
 	private let wizardID: UUID
 	private let queue: DispatchQueue
@@ -48,7 +49,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let canceled: Mutex<Bool> = .init(false)
 	public var virtualMachine: VirtualMachine?
 
-	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, frameSegmentMiB: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
+	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, frameSegmentMiB: String? = nil, audio: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
 		self.location = location
 		self.config = config
 		self.windowsISO = windowsISO
@@ -56,6 +57,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		self.password = password
 		self.productKey = productKey
 		self.frameSegmentMiB = frameSegmentMiB
+		self.audio = audio
 		self.runMode = runMode
 		self.wizardID = wizardID
 		self.queue = queue ?? DispatchQueue.main
@@ -98,6 +100,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		// Checked first: a bad key must fail the build now, not after the downloads
 		let productKey = try WindowsInstallationMedia.validatedProductKey(self.productKey)
 		let frameSegmentMiB = try WindowsInstallationMedia.validatedFrameSegmentMiB(self.frameSegmentMiB)
+		let audioDriver = try WindowsInstallationMedia.validatedAudio(self.audio)
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let winFspMSI = try await downloadWinFsp(progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
@@ -106,7 +109,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		let openSSH = try await downloadOpenSSH(progressHandler: progressHandler)
 		let authorizedKeys = (try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode)) ?? []
 		let options = WindowsInstallationMedia.Options(
-			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey, frameSegmentMiB: frameSegmentMiB,
+			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey, frameSegmentMiB: frameSegmentMiB, audioDriver: audioDriver,
 			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL),
 			openSSH: .init(archive: openSSH, authorizedKeys: authorizedKeys))
 		let windowsISO = self.windowsISO
@@ -195,6 +198,11 @@ public class WindowsInstaller: @unchecked Sendable {
 				if marker.contains("framesegment=none") == false && marker.contains("framesegment=0") == false {
 					progressHandler(.substep(String(localized: "Windows setup finished, but the display buffer size may not be applied")))
 					logger.warn("Windows setup finished, but the display buffer size may not be applied: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				}
+
+				if marker.contains("audio=none") == false && marker.contains("audio=0") == false {
+					progressHandler(.substep(String(localized: "Windows setup finished, but the sound driver may not load")))
+					logger.warn("Windows setup finished, but the sound driver may not load: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
 				if marker.contains("ssh=0-running") == false {

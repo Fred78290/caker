@@ -647,6 +647,16 @@
         }
       }
     },
+    "%lld MB" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Mo"
+          }
+        }
+      }
+    },
     "%lld unexpected arguments: '%@'" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4682,6 +4692,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disques additionnels"
+          }
+        }
+      }
+    },
+    "Display buffer size" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille du tampon d'affichage"
           }
         }
       }
@@ -17151,6 +17171,17 @@
         }
       }
     },
+    "The frame segment size in WINDOWS_FRAME_SEGMENT_MIB is not valid: expected %d to %d MiB" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La taille du segment de trame de WINDOWS_FRAME_SEGMENT_MIB n'est pas valide : attendu de %d à %d Mio"
+          }
+        }
+      }
+    },
     "The hardware model of %@ is not supported on this Mac" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17537,6 +17568,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'utilisateur à utiliser pour la VM"
+          }
+        }
+      }
+    },
+    "The value of WINDOWS_AUDIO is not valid: expected 1 or 0" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La valeur de WINDOWS_AUDIO n'est pas valide : 1 ou 0 attendu"
           }
         }
       }
@@ -21030,46 +21071,6 @@
       },
       "shouldTranslate" : false
     },
-    "The frame segment size in WINDOWS_FRAME_SEGMENT_MIB is not valid: expected %d to %d MiB" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La taille du segment de trame de WINDOWS_FRAME_SEGMENT_MIB n'est pas valide : attendu de %d à %d Mio"
-          }
-        }
-      }
-    },
-    "Windows setup finished, but the display buffer size may not be applied" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'installation de Windows est terminée, mais la taille du tampon d'affichage n'a peut-être pas été appliquée"
-          }
-        }
-      }
-    },
-    "Display buffer size" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Taille du tampon d'affichage"
-          }
-        }
-      }
-    },
-    "%lld MB" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld Mo"
-          }
-        }
-      }
-    },
     "Windows setup finished successfully" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21114,6 +21115,17 @@
         }
       }
     },
+    "Windows setup finished, but the display buffer size may not be applied" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'installation de Windows est terminée, mais la taille du tampon d'affichage n'a peut-être pas été appliquée"
+          }
+        }
+      }
+    },
     "Windows setup finished, but the GPU driver may not load" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21132,6 +21144,16 @@
           "stringUnit" : {
             "state" : "machine_translated",
             "value" : "Installation de Windows terminée, mais le serveur OpenSSH risque de ne pas être en cours d’exécution"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the sound driver may not load" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'installation de Windows est terminée, mais le pilote audio risque de ne pas se charger"
           }
         }
       }

@@ -746,4 +746,52 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(setup.contains("bcdedit /set testsigning on"))
 		XCTAssertTrue(setup.contains("gpudriver=%GPUDRV%"), "the outcome goes in the marker the host reads")
 	}
+
+	// MARK: - Sound driver
+
+	func testAudioDriverIsAKernelDriverOfItsArchitectureWithItsCertificate() {
+		let machines: [WindowsArchitecture: UInt16] = [.arm64: 0xAA64, .amd64: 0x8664]
+
+		for architecture in WindowsArchitecture.allCases {
+			let driver = WindowsAudioDriverBinaries.package(for: architecture)
+
+			XCTAssertEqual(self.machineType(of: driver.sys), machines[architecture], "\(architecture)")
+
+			let inf = String(decoding: driver.inf, as: UTF8.self)
+
+			XCTAssertTrue(inf.lowercased().contains("viosnd.sys"), "\(architecture)")
+			XCTAssertTrue(inf.contains("PCI\\VEN_1AF4&DEV_1059&SUBSYS_00591AF4"), "\(architecture): the INF has a line for Virtualization.framework's sound device")
+			XCTAssertTrue(inf.contains("EndpointRole"), "\(architecture): playback only for it, it has no input stream")
+			XCTAssertFalse(driver.cat.isEmpty, "\(architecture)")
+			XCTAssertNotNil(SecCertificateCreateWithData(nil, driver.certificate as CFData), "\(architecture): the certificate parses")
+		}
+
+		XCTAssertNotEqual(WindowsAudioDriverBinaries.arm64.certificate, WindowsAudioDriverBinaries.amd64.certificate, "the private keys were thrown away, so each build has its own")
+		XCTAssertNotEqual(WindowsAudioDriverBinaries.arm64.certificate, WindowsGPUDriverBinaries.arm64.certificate)
+	}
+
+	func testAudioIsOnUnlessTurnedOff() throws {
+		XCTAssertTrue(try WindowsInstallationMedia.validatedAudio(nil))
+		XCTAssertTrue(try WindowsInstallationMedia.validatedAudio("  "))
+
+		for on in ["1", "true", "YES", " on "] {
+			XCTAssertTrue(try WindowsInstallationMedia.validatedAudio(on), on)
+		}
+
+		for off in ["0", "false", "No", "OFF"] {
+			XCTAssertFalse(try WindowsInstallationMedia.validatedAudio(off), off)
+		}
+
+		XCTAssertThrowsError(try WindowsInstallationMedia.validatedAudio("maybe"), "refused rather than guessed")
+	}
+
+	func testSetupTrustsTheAudioCertificateAndReportsIt() {
+		let setup = WindowsInstallResources.setupComplete
+		let install = WindowsInstallResources.installScript(for: .arm64)
+
+		XCTAssertTrue(install.contains("copy /y %T%\\caker-audio-test-signing.cer W:\\ProgramData\\caker\\caker-audio-test-signing.cer"), "it is copied when the media has it")
+		XCTAssertTrue(setup.contains("certutil -f -addstore Root C:\\ProgramData\\caker\\caker-audio-test-signing.cer"))
+		XCTAssertTrue(setup.contains("certutil -f -addstore TrustedPublisher C:\\ProgramData\\caker\\caker-audio-test-signing.cer"))
+		XCTAssertTrue(setup.contains("audio=%AUDIORS%"), "the outcome goes in the marker the host reads")
+	}
 }

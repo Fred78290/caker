@@ -148,6 +148,9 @@ enum WindowsInstallResources {
 
 		if exist %T%\caker-test-signing.cer copy /y %T%\caker-test-signing.cer W:\ProgramData\caker\caker-test-signing.cer >> %LOG% || goto fail
 
+		rem The same for the sound driver (see Tools/WindowsAudioDriver)
+		if exist %T%\caker-audio-test-signing.cer copy /y %T%\caker-audio-test-signing.cer W:\ProgramData\caker\caker-audio-test-signing.cer >> %LOG% || goto fail
+
 		call :say Writing the boot files
 		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
 		\#(shim)
@@ -206,6 +209,18 @@ enum WindowsInstallResources {
 		  certutil -f -addstore Root C:\ProgramData\caker\caker-test-signing.cer >nul 2>&1 || set GPUDRV=!errorlevel!
 		  certutil -f -addstore TrustedPublisher C:\ProgramData\caker\caker-test-signing.cer >nul 2>&1 || set GPUDRV=!errorlevel!
 		  bcdedit /set testsigning on >nul 2>&1 || set GPUDRV=!errorlevel!
+		  pnputil /scan-devices >nul 2>&1
+		)
+
+		rem Sound driver: like the GPU driver it is test-signed, so Windows loads it once its certificate is trusted and
+		rem test-signing is on (that also takes effect at the next start). It only binds to Virtualization.framework's
+		rem sound device.
+		set AUDIORS=none
+		if exist C:\ProgramData\caker\caker-audio-test-signing.cer (
+		  set AUDIORS=0
+		  certutil -f -addstore Root C:\ProgramData\caker\caker-audio-test-signing.cer >nul 2>&1 || set AUDIORS=!errorlevel!
+		  certutil -f -addstore TrustedPublisher C:\ProgramData\caker\caker-audio-test-signing.cer >nul 2>&1 || set AUDIORS=!errorlevel!
+		  bcdedit /set testsigning on >nul 2>&1 || set AUDIORS=!errorlevel!
 		  pnputil /scan-devices >nul 2>&1
 		)
 
@@ -300,7 +315,7 @@ enum WindowsInstallResources {
 		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
 		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%& echo display=%DISPLAYRS%& echo framesegment=%SEGRS%)> S:\EFI\caker\installed
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%& echo display=%DISPLAYRS%& echo framesegment=%SEGRS%& echo audio=%AUDIORS%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)
