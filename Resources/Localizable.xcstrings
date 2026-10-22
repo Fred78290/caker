@@ -21030,6 +21030,46 @@
       },
       "shouldTranslate" : false
     },
+    "The frame segment size in WINDOWS_FRAME_SEGMENT_MIB is not valid: expected %d to %d MiB" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La taille du segment de trame de WINDOWS_FRAME_SEGMENT_MIB n'est pas valide : attendu de %d à %d Mio"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the display buffer size may not be applied" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'installation de Windows est terminée, mais la taille du tampon d'affichage n'a peut-être pas été appliquée"
+          }
+        }
+      }
+    },
+    "Display buffer size" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille du tampon d'affichage"
+          }
+        }
+      }
+    },
+    "%lld MB" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Mo"
+          }
+        }
+      }
+    },
     "Windows setup finished successfully" : {
       "extractionState" : "manual",
       "localizations" : {

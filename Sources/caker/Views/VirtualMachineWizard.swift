@@ -136,6 +136,8 @@ struct ShortImageInfoComparator: SortComparator {
 	var provisionVars: ProvisionVariables
 	var supportedPlatform: SupportedPlatform
 	var windowsProductKey: String
+	/// Windows guests: the display driver's frame segment (MiB), which bounds the display size (see `WindowsDisplayLimit`)
+	var windowsFrameSegmentMiB: Int
 
 	#if arch(arm64)
 		var ipswCatalog: [VMImageEntry] {
@@ -188,6 +190,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.provisioningTemplate = String.empty
 		self.provisionVars = ProvisionVariablesStore.load()
 		self.windowsProductKey = ""
+		self.windowsFrameSegmentMiB = WindowsInstallationMedia.defaultFrameSegmentMiB
 	}
 }
 
@@ -1183,6 +1186,19 @@ struct VirtualMachineWizard: View {
 										}
 									}
 								}
+
+								// The biggest display Windows accepts is this many MiB at 4 bytes a pixel: 32 holds 3840x2160
+								LabeledContent("Display buffer size") {
+									Picker("", selection: $model.windowsFrameSegmentMiB) {
+										ForEach(WindowsInstallationMedia.frameSegmentChoicesMiB, id: \.self) { mib in
+											Text("\(mib) MB").tag(mib)
+										}
+									}
+									.labelsHidden()
+									.pickerStyle(.menu)
+									.frame(width: 120)
+									.disabled(self.model.createVM)
+								}
 							} else {
 								// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
 								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
@@ -1846,6 +1862,10 @@ struct VirtualMachineWizard: View {
 
 				if self.model.supportedPlatform == .windows && self.model.windowsProductKey.isEmpty == false {
 					provisionVars.append("\(WindowsInstallationMedia.productKeyVariable)=\(self.model.windowsProductKey)")
+				}
+
+				if self.model.supportedPlatform == .windows {
+					provisionVars.append("\(WindowsInstallationMedia.frameSegmentVariable)=\(self.model.windowsFrameSegmentMiB)")
 				}
 
 				if provisionVars.isEmpty == false {

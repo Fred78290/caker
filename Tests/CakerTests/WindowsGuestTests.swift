@@ -264,6 +264,38 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertEqual(copy.caked.windowsFrameSegmentMiB, 32, "and goes back on the wire")
 	}
 
+	// MARK: - Frame segment (WINDOWS_FRAME_SEGMENT_MIB)
+
+	func testFrameSegmentIsValidatedAgainstWhatTheDriverAccepts() throws {
+		XCTAssertNil(try WindowsInstallationMedia.validatedFrameSegmentMiB(nil))
+		XCTAssertNil(try WindowsInstallationMedia.validatedFrameSegmentMiB(" \n"), "blank: the INF's value is kept")
+		XCTAssertEqual(try WindowsInstallationMedia.validatedFrameSegmentMiB(" 64\n"), 64)
+		XCTAssertEqual(try WindowsInstallationMedia.validatedFrameSegmentMiB("16"), 16)
+		XCTAssertEqual(try WindowsInstallationMedia.validatedFrameSegmentMiB("256"), 256)
+
+		for bad in ["15", "257", "0", "-32", "32.5", "32M", "abc"] {
+			XCTAssertThrowsError(try WindowsInstallationMedia.validatedFrameSegmentMiB(bad), bad)
+		}
+
+		XCTAssertTrue(WindowsInstallationMedia.frameSegmentChoicesMiB.allSatisfy { WindowsInstallationMedia.frameSegmentRangeMiB.contains($0) })
+		XCTAssertTrue(WindowsInstallationMedia.frameSegmentChoicesMiB.contains(WindowsInstallationMedia.defaultFrameSegmentMiB))
+		XCTAssertEqual(WindowsInstallationMedia.defaultFrameSegmentMiB, WindowsGPUDriverBinaries.frameSegmentMiB, "what the INF sets")
+	}
+
+	func testSetupPutsTheFrameSegmentInTheDriverKeyAndReportsIt() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("if exist C:\\ProgramData\\caker\\frame-segment.txt"), "only when one was asked for")
+		XCTAssertTrue(setup.contains("MinFrameSegmentSizeMiB"))
+		XCTAssertTrue(setup.contains("*dev_1050*"), "the virtio GPU's driver key")
+		XCTAssertTrue(setup.contains("if ($c -eq 0) { exit 1 }"), "a missing key is a failure, not a success")
+		XCTAssertTrue(setup.contains("framesegment=%SEGRS%"))
+
+		for architecture in WindowsArchitecture.allCases {
+			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("if exist %T%\\frame-segment.txt copy /y %T%\\frame-segment.txt W:\\ProgramData\\caker\\frame-segment.txt"), "\(architecture)")
+		}
+	}
+
 	// MARK: - Product key (WINDOWS_KEY)
 
 	func testUnattendCarriesTheProductKeyInTheSpecializePassOnly() {

@@ -143,6 +143,9 @@ enum WindowsInstallResources {
 		)
 
 		rem The certificate of the GPU driver build (see Tools/WindowsGPUDriver): SetupComplete.cmd trusts it
+		rem The frame segment (MiB) asked for: SetupComplete.cmd puts it in the display driver's key
+		if exist %T%\frame-segment.txt copy /y %T%\frame-segment.txt W:\ProgramData\caker\frame-segment.txt >> %LOG% || goto fail
+
 		if exist %T%\caker-test-signing.cer copy /y %T%\caker-test-signing.cer W:\ProgramData\caker\caker-test-signing.cer >> %LOG% || goto fail
 
 		call :say Writing the boot files
@@ -213,6 +216,17 @@ enum WindowsInstallResources {
 		if exist C:\ProgramData\caker\caker-test-signing.cer (
 		  reg add HKLM\Software\Caker /v FollowDisplaySize /t REG_DWORD /d 1 /f >nul 2>&1
 		  set DISPLAYRS=!errorlevel!
+		)
+
+		rem Frame segment: the INF gives the display driver a 32 MiB one (a mode whose surface doesn't fit it is refused, see
+		rem WindowsDisplayLimit); a size asked for at build time replaces that value in the driver's key, which the driver
+		rem reads when it starts. Fails (and says so in the marker) when the driver has no key yet, so nothing is claimed
+		rem that didn't happen.
+		set SEGRS=none
+		if exist C:\ProgramData\caker\frame-segment.txt (
+		  set /p SEGMIB=<C:\ProgramData\caker\frame-segment.txt
+		  powershell -NoProfile -ExecutionPolicy Bypass -Command "$n = [int]'!SEGMIB!'; $c = 0; Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' | Where-Object { (Get-ItemProperty $_.PSPath).MatchingDeviceId -like '*dev_1050*' } | ForEach-Object { Set-ItemProperty $_.PSPath -Name MinFrameSegmentSizeMiB -Value $n -Type DWord; $c++ }; if ($c -eq 0) { exit 1 }" >nul 2>&1
+		  set SEGRS=!errorlevel!
 		)
 
 		rem OpenSSH server (a Feature on Demand that isn't in the image): the Win32-OpenSSH build from the media, as a
@@ -286,7 +300,7 @@ enum WindowsInstallResources {
 		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
 		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%& echo display=%DISPLAYRS%)> S:\EFI\caker\installed
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%& echo gpudriver=%GPUDRV%& echo display=%DISPLAYRS%& echo framesegment=%SEGRS%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)

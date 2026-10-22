@@ -40,6 +40,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let username: String
 	private let password: String
 	private let productKey: String?
+	private let frameSegmentMiB: String?
 	private let runMode: Utils.RunMode
 	private let wizardID: UUID
 	private let queue: DispatchQueue
@@ -47,13 +48,14 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let canceled: Mutex<Bool> = .init(false)
 	public var virtualMachine: VirtualMachine?
 
-	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
+	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, frameSegmentMiB: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
 		self.location = location
 		self.config = config
 		self.windowsISO = windowsISO
 		self.username = username
 		self.password = password
 		self.productKey = productKey
+		self.frameSegmentMiB = frameSegmentMiB
 		self.runMode = runMode
 		self.wizardID = wizardID
 		self.queue = queue ?? DispatchQueue.main
@@ -95,6 +97,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		// Checked first: a bad key must fail the build now, not after the downloads
 		let productKey = try WindowsInstallationMedia.validatedProductKey(self.productKey)
+		let frameSegmentMiB = try WindowsInstallationMedia.validatedFrameSegmentMiB(self.frameSegmentMiB)
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let winFspMSI = try await downloadWinFsp(progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
@@ -103,7 +106,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		let openSSH = try await downloadOpenSSH(progressHandler: progressHandler)
 		let authorizedKeys = (try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode)) ?? []
 		let options = WindowsInstallationMedia.Options(
-			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey,
+			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey, frameSegmentMiB: frameSegmentMiB,
 			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL),
 			openSSH: .init(archive: openSSH, authorizedKeys: authorizedKeys))
 		let windowsISO = self.windowsISO
@@ -189,6 +192,11 @@ public class WindowsInstaller: @unchecked Sendable {
 					logger.warn("Windows setup finished, but resizing the display may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
+				if marker.contains("framesegment=none") == false && marker.contains("framesegment=0") == false {
+					progressHandler(.substep(String(localized: "Windows setup finished, but the display buffer size may not be applied")))
+					logger.warn("Windows setup finished, but the display buffer size may not be applied: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				}
+
 				if marker.contains("ssh=0-running") == false {
 					progressHandler(.substep(String(localized: "Windows setup finished, but the OpenSSH server may not be running")))
 					logger.warn("Windows setup finished, but the OpenSSH server may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
@@ -204,7 +212,14 @@ public class WindowsInstaller: @unchecked Sendable {
 				config.provisioned = true
 
 				// With caker's driver the display may be bigger (see WindowsDisplayLimit); the stock one keeps 16 MiB
-				config.windowsFrameSegmentMiB = marker.contains("gpudriver=none") ? nil : WindowsGPUDriverBinaries.frameSegmentMiB
+				// (the value asked for when setup put it in the driver's key, else the INF's)
+				if marker.contains("gpudriver=none") {
+					config.windowsFrameSegmentMiB = nil
+				} else if marker.contains("framesegment=0"), let asked = try? WindowsInstallationMedia.validatedFrameSegmentMiB(self.frameSegmentMiB) {
+					config.windowsFrameSegmentMiB = asked
+				} else {
+					config.windowsFrameSegmentMiB = WindowsGPUDriverBinaries.frameSegmentMiB
+				}
 				try config.save()
 
 				progressHandler(.provisioned(.success(.init(name: location.name, provisioned: true, reason: String(localized: "Windows setup finished successfully")))))

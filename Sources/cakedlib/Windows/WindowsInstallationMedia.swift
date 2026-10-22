@@ -43,6 +43,8 @@ public struct WindowsInstallationMedia {
 		var computerName: String
 		/// Applied by the answer file (the `WINDOWS_KEY` provisioning variable), validated by `validatedProductKey(_:)`.
 		var productKey: String?
+		/// The display driver's frame segment (MiB) asked for, validated by `validatedFrameSegmentMiB(_:)`; nil keeps the INF's.
+		var frameSegmentMiB: Int?
 		/// Installed as a service on first boot when set.
 		var cakeAgent: CakeAgent?
 		/// Installed and started on first boot when set.
@@ -71,6 +73,34 @@ public struct WindowsInstallationMedia {
 
 	public static func productKeyIsValid(_ value: String?) -> Bool {
 		return (try? validatedProductKey(value)) != nil
+	}
+
+	/// The name of the provisioning variable (`--var WINDOWS_FRAME_SEGMENT_MIB=64`) that sets the display driver's frame
+	/// segment, which bounds the display size (see `WindowsDisplayLimit`).
+	public static let frameSegmentVariable = "WINDOWS_FRAME_SEGMENT_MIB"
+
+	/// What the driver accepts for `MinFrameSegmentSizeMiB`.
+	public static let frameSegmentRangeMiB = 16...256
+
+	/// What caker's INF sets (see `WindowsGPUDriverBinaries.frameSegmentMiB`), so what a guest has when none is asked for.
+	public static let defaultFrameSegmentMiB = 32
+
+	/// The sizes the VM wizard offers, in MiB, all inside `frameSegmentRangeMiB`.
+	public static let frameSegmentChoicesMiB = [16, 32, 48, 64, 96, 128, 192, 256]
+
+	/// Returns the frame segment (MiB) to set, nil when there is none (unset or blank: the INF's value is kept). A value
+	/// outside `frameSegmentRangeMiB` is refused rather than clamped: the driver would ignore it and the display would
+	/// not be the size asked for.
+	public static func validatedFrameSegmentMiB(_ value: String?) throws -> Int? {
+		guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines), text.isEmpty == false else {
+			return nil
+		}
+
+		guard let mib = Int(text), frameSegmentRangeMiB.contains(mib) else {
+			throw ServiceError(String(format: String(localized: "The frame segment size in WINDOWS_FRAME_SEGMENT_MIB is not valid: expected %d to %d MiB"), frameSegmentRangeMiB.lowerBound, frameSegmentRangeMiB.upperBound))
+		}
+
+		return mib
 	}
 
 	struct InstallResult {
@@ -298,6 +328,11 @@ public struct WindowsInstallationMedia {
 		try FileManager.default.copyItem(at: viofs, to: caker.appendingPathComponent("virtiofs.exe"))
 
 		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
+
+		// The install script copies it to the installed system, where setup puts it in the driver's key
+		if let frameSegmentMiB = options.frameSegmentMiB {
+			try "\(frameSegmentMiB)\r\n".write(to: caker.appendingPathComponent("frame-segment.txt"), atomically: true, encoding: .utf8)
+		}
 
 		if let openSSH = options.openSSH {
 			try extractOpenSSH(openSSH.archive, to: caker.appendingPathComponent("openssh", isDirectory: true))
