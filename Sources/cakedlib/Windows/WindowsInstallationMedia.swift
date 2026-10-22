@@ -19,7 +19,7 @@
 
 import Foundation
 
-struct WindowsInstallationMedia {
+public struct WindowsInstallationMedia {
 	/// What the cakeagent service needs: the Windows build of the agent and the certificates it authenticates clients with.
 	struct CakeAgent {
 		var executable: URL
@@ -50,12 +50,12 @@ struct WindowsInstallationMedia {
 	}
 
 	/// The name of the provisioning variable (`--var WINDOWS_KEY=...`) that carries the product key.
-	static let productKeyVariable = "WINDOWS_KEY"
+	public static let productKeyVariable = "WINDOWS_KEY"
 
 	/// Returns the product key to put in the answer file, nil when there is none (unset or blank). A key that isn't
 	/// five groups of five letters/digits is refused: Windows would stop on an error dialog nobody can see, in the middle
 	/// of an unattended setup. The key itself is never logged.
-	static func validatedProductKey(_ value: String?) throws -> String? {
+	public static func validatedProductKey(_ value: String?) throws -> String? {
 		guard let key = value?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(), key.isEmpty == false else {
 			return nil
 		}
@@ -67,6 +67,10 @@ struct WindowsInstallationMedia {
 		}
 
 		return key
+	}
+
+	public static func productKeyIsValid(_ value: String?) -> Bool {
+		return (try? validatedProductKey(value)) != nil
 	}
 
 	struct InstallResult {

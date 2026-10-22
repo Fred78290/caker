@@ -7794,6 +7794,16 @@
         }
       }
     },
+    "Invalid product key: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Clé de produit invalide : format attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+          }
+        }
+      }
+    },
     "Invalid response encoding from privileged script" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12452,6 +12462,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le script privilégié a échoué avec le code de sortie %1$d : %2$@"
+          }
+        }
+      }
+    },
+    "Product key" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Clé de produit"
           }
         }
       }
@@ -17606,6 +17626,17 @@
       },
       "shouldTranslate" : false
     },
+    "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "La clé de produit Windows de WINDOWS_KEY n’est pas valide : format attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+          }
+        }
+      }
+    },
     "The WinFsp installer doesn't match its expected checksum (%@)" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -20998,16 +21029,6 @@
         }
       },
       "shouldTranslate" : false
-    },
-    "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La clé de produit Windows de WINDOWS_KEY n'est pas valide : attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-          }
-        }
-      }
     },
     "Windows setup finished successfully" : {
       "extractionState" : "manual",

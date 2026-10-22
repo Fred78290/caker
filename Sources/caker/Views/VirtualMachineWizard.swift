@@ -135,6 +135,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var provisioningTemplate: String
 	var provisionVars: ProvisionVariables
 	var supportedPlatform: SupportedPlatform
+	var windowsProductKey: String
 
 	#if arch(arm64)
 		var ipswCatalog: [VMImageEntry] {
@@ -186,6 +187,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.showDiskFormat = false
 		self.provisioningTemplate = String.empty
 		self.provisionVars = ProvisionVariablesStore.load()
+		self.windowsProductKey = ""
 	}
 }
 
@@ -246,6 +248,8 @@ struct VirtualMachineWizard: View {
 	@State private var vncState: VNCConnectionAppState? = nil
 	@State private var wasCancelled: Bool = false
 	@State private var wizardID = UUID()
+	@FocusState private var windowsProductKeyFocused: Bool
+	@State private var windowsProductKeyInvalid: Bool = false
 
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
@@ -1095,9 +1099,8 @@ struct VirtualMachineWizard: View {
 							}
 						}
 					case .iso:
-						VStack(alignment: .leading) {
+						VStack(alignment: .leading, spacing: 8) {
 							LabeledContent {
-
 								if AppState.shared.connectionMode == .app {
 									HStack {
 										TextField("Choose an ISO image disk.", text: $config.imageName)
@@ -1138,7 +1141,7 @@ struct VirtualMachineWizard: View {
 
 									self.config.imageName = newValue.url
 									self.model.supportedPlatform = plateform
-									
+
 									newValue.applyMinimumResources(to: &self.config)
 
 									if plateform == .windows {
@@ -1152,7 +1155,35 @@ struct VirtualMachineWizard: View {
 								}
 							}
 
-							if self.model.supportedPlatform != .windows {
+							if self.model.supportedPlatform == .windows {
+								LabeledContent("Product key") {
+									VStack(alignment: .leading, spacing: 2) {
+										TextField("", text: $model.windowsProductKey)
+											.focused($windowsProductKeyFocused)
+											.frame(width: 522)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+											.onChange(of: windowsProductKeyFocused) { _, focused in
+												// Validate when the field is left, unless it is empty (the key is optional)
+												if focused == false {
+													let key = self.model.windowsProductKey
+													self.windowsProductKeyInvalid = key.isEmpty == false && WindowsInstallationMedia.productKeyIsValid(key) == false
+												}
+											}
+											.onChange(of: model.windowsProductKey) { _, key in
+												if key.isEmpty {
+													self.windowsProductKeyInvalid = false
+												}
+											}
+
+										if windowsProductKeyInvalid {
+											Text("Invalid product key: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX")
+												.font(.caption)
+												.foregroundStyle(.red)
+										}
+									}
+								}
+							} else {
 								// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
 								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
 								// picker below is only required to override it or for a platform with no default.
@@ -1683,6 +1714,10 @@ struct VirtualMachineWizard: View {
 			} else {
 				valid = false
 			}
+
+			if valid && self.model.supportedPlatform == .windows && self.model.windowsProductKey.isEmpty == false {
+				valid = WindowsInstallationMedia.productKeyIsValid(self.model.windowsProductKey)
+			}
 		}
 
 		if valid {
@@ -1807,7 +1842,11 @@ struct VirtualMachineWizard: View {
 					options.provisionTemplate = self.model.provisioningTemplate
 				}
 
-				let provisionVars = self.model.provisionVars.asProvisionVarStrings
+				var provisionVars = self.model.provisionVars.asProvisionVarStrings
+
+				if self.model.supportedPlatform == .windows && self.model.windowsProductKey.isEmpty == false {
+					provisionVars.append("\(WindowsInstallationMedia.productKeyVariable)=\(self.model.windowsProductKey)")
+				}
 
 				if provisionVars.isEmpty == false {
 					options.provisionVars = provisionVars
