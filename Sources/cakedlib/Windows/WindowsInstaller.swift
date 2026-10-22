@@ -92,7 +92,7 @@ public class WindowsInstaller: @unchecked Sendable {
 			})
 	}
 
-	public func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		// Checked first: a bad key must fail the build now, not after the downloads
 		let productKey = try WindowsInstallationMedia.validatedProductKey(self.productKey)
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
