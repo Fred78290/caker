@@ -11,10 +11,16 @@ fragments above a width of 1024, horizontal streaks below it), although the gues
 driver destroys its framebuffer resource and creates the next one with the same resource id, and the host does not handle
 that. This build gives every framebuffer a new id. Only that changes:
 
-- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-fresh-framebuffer-resource-id> (two commits,
-  up to `46ffb9a`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; proposed upstream as #1687). After review
-  the fresh ids are an option: the INF sets `UseFreshResourceId=1` for the PCI subsystem id Virtualization.framework
-  gives its virtio GPU (`SUBSYS_00501AF4`), so this build only changes behavior there; the original code runs everywhere else.
+- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (three commits, up to
+  `d28b2c9`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two are proposed upstream as #1687 and live
+  on `viogpu-fresh-framebuffer-resource-id`, up to `46ffb9a`). After review the fresh ids are an option: the INF sets
+  `UseFreshResourceId=1` for the PCI subsystem id Virtualization.framework gives its virtio GPU (`SUBSYS_00501AF4`), so this
+  build only changes behavior there; the original code runs everywhere else.
+- The third commit makes the smallest frame segment an option too, `MinFrameSegmentSizeMiB` (16 to 256, 16 when unset, so nothing
+  changes by default) and the same INF section sets it to 32. The segment is allocated once, when the adapter starts, and a
+  display mode whose surface (width x height x 4 bytes) doesn't fit it is refused (`DISP_CHANGE_BADMODE`): 16 MiB is 4.19 million
+  pixels (3440x1440 doesn't fit), 32 MiB is 8.39 million (3840x2160 does). caker keeps a Windows guest's display inside it
+  (`WindowsDisplayLimit`), using `WindowsGPUDriverBinaries.frameSegmentMiB`, recorded in the VM's config at install.
 - Remove this directory, `WindowsGPUDriverBinaries.swift` and the `WindowsGPUDriver` use in `WindowsInstallationMedia` once a
   virtio-win release carries the fix.
 
@@ -53,26 +59,28 @@ msbuild viogpu\viogpudo\viogpudo.vcxproj /p:Configuration="Win11 Release" /p:Pla
 `objfre_win11_arm64\arm64\viogpudo\`, is used). Then create a new code-signing certificate for that architecture
 (`New-SelfSignedCertificate -Type CodeSigningCert`), sign `viogpudo.sys` and `viogpudo.cat` with `signtool sign /fd SHA256 /sha1 <thumbprint>`, export the
 `.cer`, put `viogpudo.sys`, `.inf`, `.cat` and the `.cer` in `arm64/` or `amd64/`, and run `./embed.sh`. Throw the private key away
-(`[RSACertificateExtensions]::GetRSAPrivateKey($cert).Key.Delete()`, then remove the certificate from the store).
+(`[System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($cert).Key.Delete()` with the full type name, which Windows PowerShell
+doesn't resolve from the short one, then remove the certificate from the store; the key file lives in `C:\ProgramData\Microsoft\Crypto\Keys`, check it is empty).
 
 ## Files
 
-`arm64/`:
+`arm64/` (built on a caker ARM64 VM, `100.6.101.58000`):
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `ee91af5cf3c3dc8bd6e17a504825fb95caa21a6b3e6f747bf598319ceb674c0a` |
-| `viogpudo.inf` | `f4a4dd629a6fe2a660da102570635e5e33052609f592a8531347d5b219a69787` |
-| `viogpudo.cat` | `3d5356ad5e396699547a7d2a74542f60975cb3e1fc9f82d02d59f2c6ea301ba4` |
-| `caker-test-signing.cer` | `40077402209d446d864dd816c8335288a94f085db2ad6be53abb317bd7eae972` |
+| `viogpudo.sys` | `5bc24e49e7f4fa48b85354bc63dfc00ea0567650652765d1de24e969533dab3e` |
+| `viogpudo.inf` | `327f911cb840b30f9fbff7fc3fec0097ae0ce59f4daa04705ccf2d3dc9c8dcd1` |
+| `viogpudo.cat` | `376708dbd371018ffb79d82ff7ce416b3642b8593a8a8c9839697f762b600c65` |
+| `caker-test-signing.cer` | `1caef1460e46584dae88e2c709c893c54894aeb0c1e87f64a9935bdca79c36d1` |
 
-`amd64/` (built from the same source, `100.6.101.58000`):
+`amd64/` (the same source, cross-built from that ARM64 VM with the Build Tools' x64 tools, `arm64_amd64` and `/p:Platform=x64`, which also needs the x64
+Spectre libraries, `Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre`; not yet run on an Intel guest):
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `d777b7fb4e184cddc00438d9034435e64fe217e76a1bcbdc7bbcd309b97ea878` |
-| `viogpudo.inf` | `7b6c4a7363c31a1d0e8f90284ce7790c6663f4d292413775b15746d46a4ac2c8` |
-| `viogpudo.cat` | `ee522ee8e04fb4437056acdef466ddcae4c35afe7f47e2b4d78237e42b980b9d` |
-| `caker-test-signing.cer` | `863a40b12111119f95bdc3d6dc380c89f9b36c75773f0e61547c838ea0bf54fc` |
+| `viogpudo.sys` | `54b4bd13e9fa3e1cd7ce34a74dc15b283dc32846672a8d21bf6676a74d20cd94` |
+| `viogpudo.inf` | `5ef77b31235439b8b3d6dd7c347ddd793b92caee5109b66140bc254e1e51f5a5` |
+| `viogpudo.cat` | `763a52281ba7d64c506250eaaaddd4b3d4d69b1ada92728a5982369bab61352e` |
+| `caker-test-signing.cer` | `36c87e8c4f2f62e39392489431e6d9804ac07febbe0d9086c173682b67e1815a` |
 
 The driver is BSD 3-clause, like virtio-win.

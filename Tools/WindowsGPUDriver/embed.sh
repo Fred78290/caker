@@ -27,10 +27,16 @@ package() {
 	echo 'import Foundation'
 	echo
 	echo '/// The virtio GPU driver (viogpudo) the Windows installation media carries instead of virtio-win'"'"'s: the same driver'
-	echo '/// with a fresh resource id for each framebuffer (only on Virtualization.framework'"'"'s GPU), so the picture is right'
-	echo '/// after a resolution change. One build per guest architecture, each test-signed with its own certificate'
+	echo '/// with a fresh resource id for each framebuffer and a 32 MiB frame segment (both only on Virtualization.framework'"'"'s GPU),'
+	echo '/// so the picture is right after a resolution change and a display up to 3840x2160 is accepted. One build per guest'
+	echo '/// architecture, each test-signed with its own certificate'
 	echo '/// (see Tools/WindowsGPUDriver/README.md).'
 	echo 'enum WindowsGPUDriverBinaries {'
+	echo '	/// The frame segment (MiB) this build allocates on Virtualization.framework'"'"'s GPU (the INF'"'"'s MinFrameSegmentSizeMiB): the'
+	echo '	/// biggest display it accepts is that many MiB at 4 bytes a pixel. The stock driver, and a guest installed before this'
+	echo '	/// build, have 16.'
+	echo '	static let frameSegmentMiB = 32'
+	echo
 	echo '	struct Package {'
 	echo '		let sys: Data'
 	echo '		let inf: Data'

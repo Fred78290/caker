@@ -221,6 +221,8 @@ final class WindowsGuestTests: XCTestCase {
 	func testWindowsDisplayLimitIsTheDriversFrameSegment() {
 		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768)), 4 * 1024 * 1024, "16 MiB at 4 bytes a pixel")
 		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 3440, height: 1440)), 3440 * 1440, "a guest that started bigger keeps what it started with")
+		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 8 * 1024 * 1024, "caker's driver: 32 MiB")
+		XCTAssertGreaterThanOrEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 3840 * 2160, "3840x2160 fits")
 	}
 
 	func testWindowsDisplayLimitShrinksOnlyWhatDoesNotFitAndKeepsTheAspectRatio() {
@@ -662,6 +664,8 @@ final class WindowsGuestTests: XCTestCase {
 			XCTAssertTrue(inf.lowercased().contains("viogpudo.sys"), "\(architecture)")
 			XCTAssertTrue(inf.contains("PCI\\VEN_1AF4&DEV_1050&SUBSYS_00501AF4"), "\(architecture): the INF has a line for Virtualization.framework's GPU")
 			XCTAssertTrue(inf.contains("UseFreshResourceId"), "\(architecture): which turns the fresh resource ids on; other hypervisors keep the original behavior")
+			XCTAssertTrue(inf.contains("MinFrameSegmentSizeMiB"), "\(architecture): the frame segment option")
+			XCTAssertTrue(inf.contains("MinFrameSegmentSizeMiB,     %REG_DWORD%, \(WindowsGPUDriverBinaries.frameSegmentMiB)"), "\(architecture): the INF sets what the host assumes")
 			XCTAssertFalse(driver.cat.isEmpty, "\(architecture)")
 			XCTAssertEqual(driver.certificate.first, 0x30, "\(architecture): a DER certificate")
 			XCTAssertNotNil(SecCertificateCreateWithData(nil, driver.certificate as CFData), "\(architecture): the certificate parses")

@@ -202,6 +202,9 @@ public class WindowsInstaller: @unchecked Sendable {
 				// "agent=<install exit code>-running": the service is up, so the host can talk to it
 				config.agent = agentInstalled
 				config.provisioned = true
+
+				// With caker's driver the display may be bigger (see WindowsDisplayLimit); the stock one keeps 16 MiB
+				config.windowsFrameSegmentMiB = marker.contains("gpudriver=none") ? nil : WindowsGPUDriverBinaries.frameSegmentMiB
 				try config.save()
 
 				progressHandler(.provisioned(.success(.init(name: location.name, provisioned: true, reason: String(localized: "Windows setup finished successfully")))))

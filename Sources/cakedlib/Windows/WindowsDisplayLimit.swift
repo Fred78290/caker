@@ -8,13 +8,15 @@ import CoreGraphics
 /// are refused too until the guest restarts. A host window bigger than that must therefore not be sent to the guest as
 /// its display size: the display is kept inside the limit, and the view scales it to the window.
 public enum WindowsDisplayLimit {
-	/// The driver's smallest frame segment.
-	static let minimumSegmentBytes = 16 * 1024 * 1024
+	/// The stock driver's smallest frame segment, in MiB. caker's build raises it to 32 on Virtualization.framework's GPU
+	/// (`WindowsGPUDriverBinaries.frameSegmentMiB`, recorded in `CakeConfig.windowsFrameSegmentMiB` at install).
+	public static let defaultSegmentMiB = 16
 	static let bytesPerPixel = 4
 
-	/// Most pixels a display may have, given the size the guest started with.
-	public static func maxPixels(booted: CGSize) -> Int {
-		max(minimumSegmentBytes / bytesPerPixel, Int(booted.width) * Int(booted.height))
+	/// Most pixels a display may have, given the frame segment (MiB) of the guest's driver and the size the guest
+	/// started with.
+	public static func maxPixels(booted: CGSize, segmentMiB: Int? = nil) -> Int {
+		max((segmentMiB ?? defaultSegmentMiB) * 1024 * 1024 / bytesPerPixel, Int(booted.width) * Int(booted.height))
 	}
 
 	/// `size`, shrunk to fit `maxPixels` with the same aspect ratio (each side even, as displays like), or unchanged

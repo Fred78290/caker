@@ -248,6 +248,14 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["dynamicPortForwarding"] as? Bool ?? false }
 	}
 
+	/// The frame segment (MiB) of the Windows guest's display driver, which bounds the display size (see
+	/// `WindowsDisplayLimit`). Recorded at install from the driver the media carried; nil for a guest installed before
+	/// that, which has the original driver's 16.
+	public var windowsFrameSegmentMiB: Int? {
+		set { self.config["windowsFrameSegmentMiB"] = newValue }
+		get { self.config["windowsFrameSegmentMiB"] as? Int }
+	}
+
 	public var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
 		get { self.config["displayRefit"] as? Bool ?? false }

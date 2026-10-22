@@ -26,7 +26,7 @@ public struct VMView: NSViewRepresentable {
 
 		// Windows' display driver refuses a display past what it allocated at start: keep the display inside it
 		if vzMachineView.automaticallyReconfiguresDisplay && vm.config.isWindowsGuest {
-			vzMachineView.displayPixelLimit = WindowsDisplayLimit.maxPixels(booted: CGSize(width: vm.config.display.width, height: vm.config.display.height))
+			vzMachineView.displayPixelLimit = WindowsDisplayLimit.maxPixels(booted: CGSize(width: vm.config.display.width, height: vm.config.display.height), segmentMiB: vm.config.windowsFrameSegmentMiB)
 		}
 		vzMachineView.capturesSystemKeys = true
 		//vzMachineView.showsHostCursor = false
