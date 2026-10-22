@@ -251,19 +251,29 @@ enum WindowsInstallResources {
 		  rem Windows Server: started in the first seconds of boot, the Go runtime of the agent dies with "mcall called on m->g0
 		  rem stack" before it reaches the service manager (event 7009, "timeout while waiting for the service to connect", seen
 		  rem on Windows Server 2025 x64, mostly in the first seconds of boot). So the service is not started by the service manager
-		  rem but by a task 15 s after boot, which starts it again every 10 s (up to 8 times) until it runs: a start that failed with
+		  rem but by a task 15 s after boot, which starts it again every 10 s (up to 30 times) until it runs: a start that failed with
 		  rem 7009 isn't a service failure, the recovery actions above don't cover it, and the task scheduler doesn't retry a task
-		  rem whose command returned an error. Windows clients start it at boot like any service.
+		  rem whose command returned an error. On a fresh Windows Server 2022 it took 7 tries, on 2025 one at most. Windows clients
+		  rem start it at boot like any service.
+		  set DELAYED=0
 		  set INSTALLTYPE=
 		  for /f "tokens=3" %%t in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v InstallationType 2^>nul ^| find "InstallationType"') do set INSTALLTYPE=%%t
 		  if /i "!INSTALLTYPE!"=="Server" (
 		    sc config cakeagent start= demand >nul 2>&1
-		    schtasks /create /tn "CakeAgent delayed start" /sc onstart /delay 0000:15 /ru SYSTEM /rl highest /f /tr "cmd /c for /l %%i in (1,1,8) do sc query cakeagent | findstr RUNNING >nul || (sc start cakeagent & ping -n 11 127.0.0.1 >nul)" >nul 2>&1
+		    schtasks /create /tn "CakeAgent delayed start" /sc onstart /delay 0000:15 /ru SYSTEM /rl highest /f /tr "cmd /c for /l %%i in (1,1,30) do sc query cakeagent | findstr RUNNING >nul || (sc start cakeagent & ping -n 11 127.0.0.1 >nul)" >nul 2>&1 && set DELAYED=1
+		    rem Windows Server 2022 (build 20348): the agent crashed on 5 starts out of 6 at any time after boot, and the retries
+		    rem above rarely got it up. Without asynchronous preemption (which interrupts threads with SetThreadContext) it doesn't
+		    rem crash, so the service runs without it there, in its own environment. Server 2025 and Windows 11 keep it.
+		    set BUILD=
+		    for /f "tokens=3" %%b in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentBuildNumber 2^>nul ^| find "CurrentBuildNumber"') do set BUILD=%%b
+		    if "!BUILD!"=="20348" reg add HKLM\SYSTEM\CurrentControlSet\Services\CakeAgent /v Environment /t REG_MULTI_SZ /d "GODEBUG=asyncpreemptoff=1" /f >nul 2>&1
 		  )
 		  ping -n 6 127.0.0.1 >nul
 		  sc query cakeagent | find "RUNNING" >nul 2>&1 && set AGENT=!AGENT!-running
+		  rem installed, and the task above starts it at every boot: the host can count on it (agent=0-delayed)
+		  if "!DELAYED!"=="1" if "!AGENT!"=="0" set AGENT=0-delayed
 		  rem a service that isn't running can't say why: run the agent in front for a few seconds and keep what it prints
-		  if "!AGENT!"=="!AGENT:running=!" (
+		  if "!AGENT!"=="!AGENT:running=!" if not "!AGENT!"=="0-delayed" (
 		    sc stop cakeagent >nul 2>&1
 		    start "" /b "C:\Program Files\CakeAgent\cakeagent.exe" serve --listen=vsock://any:5000 --ca-cert=C:\ProgramData\CakeAgent\certs\ca.pem --tls-cert=C:\ProgramData\CakeAgent\certs\server.pem --tls-key=C:\ProgramData\CakeAgent\certs\server.key > S:\EFI\caker\agent.log 2>&1
 		    ping -n 9 127.0.0.1 >nul

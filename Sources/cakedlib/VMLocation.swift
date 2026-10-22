@@ -871,14 +871,28 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
 			}
 
-			if let infos = try? conn.info().wait() {
-				let infos = infos
+			// A call made while the agent isn't listening yet (Windows Server starts it some seconds after boot) can wait forever:
+			// each one gets a deadline, so `wait` is honored and the next one reconnects.
+			let attemptStart = Date.now
 
-				if case .success(let infos) = infos {
+			do {
+				switch try conn.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(5)))).wait() {
+				case .success(let infos):
 					if let runningIP = infos.ipaddresses.first {
 						return runningIP
 					}
+
+					Logger(self).debug("Agent of VM \(self.name) answered with no IP address yet, attempt \(count)")
+				case .failure(let error):
+					Logger(self).debug("Agent of VM \(self.name) failed, attempt \(count): \(error)")
 				}
+			} catch {
+				Logger(self).debug("Agent of VM \(self.name) not reachable, attempt \(count): \(error)")
+			}
+
+			// Don't spin while the connection is refused at once
+			if Date.now.timeIntervalSince(attemptStart) < 1 {
+				Thread.sleep(forTimeInterval: 0.5)
 			}
 
 			count += 1
