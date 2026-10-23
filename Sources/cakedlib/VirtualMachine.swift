@@ -152,7 +152,7 @@ extension VZVirtualMachineConfiguration {
 				return Dynamic(self)._testIgnoreEntitlementChecks as Bool? ?? false
 			}
 			set {
-				Dynamic(self)._testIgnoreEntitlementChecks = newValue
+				Dynamic(self)._setTestIgnoreEntitlementChecks(newValue)
 			}
 		}
 	#endif
