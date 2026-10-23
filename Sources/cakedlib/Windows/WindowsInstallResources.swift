@@ -384,6 +384,101 @@ enum WindowsInstallResources {
 			""")
 	}
 
+	/// Where the agent update goes in a Windows guest: `VMLocation.installAgent` sends the new `cakeagent.exe` and this
+	/// script there, over SSH (`SetupComplete.cmd` made `C:\ProgramData\caker`).
+	static let agentUpdateDirectory = "C:/ProgramData/caker"
+	static let agentUpdateExecutable = "cakeagent-update.exe"
+	static let agentUpdateScript = "install-agent.ps1"
+
+	/// PowerShell run in the guest over SSH to install the agent, or to replace it when the service is already there:
+	/// the same steps as `SetupComplete.cmd`, for a guest whose agent is missing or older than `snapshot`. The new
+	/// executable is already at `C:\ProgramData\caker\cakeagent-update.exe`. The script deletes itself (it carries the
+	/// agent's private key) and the executable, whatever happens. Exit code 0 means the agent is running with `snapshot`.
+	static func agentUpdatePowerShell(snapshot: String, port: UInt16, caCert: String, serverCert: String, serverKey: String) -> String {
+		#"""
+		$ErrorActionPreference = 'Stop'
+		$ProgressPreference = 'SilentlyContinue'
+
+		$snapshot = '\#(snapshot)'
+		$new = 'C:\ProgramData\caker\\#(agentUpdateExecutable)'
+		$dir = 'C:\Program Files\CakeAgent'
+		$exe = "$dir\cakeagent.exe"
+		$certs = 'C:\ProgramData\CakeAgent\certs'
+
+		function Write-Pem($path, $text) {
+			if (-not (Test-Path $path)) {
+				Write-Output "Creating $path"
+				[IO.File]::WriteAllText($path, $text.Trim() + "`n", [Text.Encoding]::ASCII)
+			}
+		}
+
+		try {
+			$service = Get-Service cakeagent -ErrorAction SilentlyContinue
+
+			if ($service -and (Test-Path $exe)) {
+				if ((& $exe version 2>&1 | Out-String) -match $snapshot) {
+					Write-Output 'CakeAgent already installed, skipping'
+					exit 0
+				}
+
+				Write-Output 'CakeAgent already installed, updating'
+
+				# The service owns a helper in the logged-on user's session, which keeps the executable open too
+				Stop-Service cakeagent -Force -ErrorAction SilentlyContinue
+				Start-Sleep 2
+				Get-Process cakeagent -ErrorAction SilentlyContinue | Stop-Process -Force
+				Start-Sleep 1
+				Copy-Item $new $exe -Force
+				Start-Service cakeagent
+			} else {
+				Write-Output 'Installing CakeAgent'
+
+				New-Item -ItemType Directory -Force $dir, $certs | Out-Null
+
+				Write-Pem "$certs\ca.pem" @'
+		\#(caCert)
+		'@
+				Write-Pem "$certs\server.pem" @'
+		\#(serverCert)
+		'@
+				Write-Pem "$certs\server.key" @'
+		\#(serverKey)
+		'@
+
+				icacls $certs /inheritance:r /grant:r 'SYSTEM:(OI)(CI)F' 'Administrators:(OI)(CI)F' | Out-Null
+				Copy-Item $new $exe -Force
+
+				& $exe service install --listen=vsock://any:\#(port) --ca-cert="$certs\ca.pem" --tls-cert="$certs\server.pem" --tls-key="$certs\server.key"
+
+				if ($LASTEXITCODE -ne 0) {
+					throw "cakeagent service install failed: $LASTEXITCODE"
+				}
+
+				sc.exe failure cakeagent reset= 86400 actions= restart/5000/restart/10000/restart/30000 | Out-Null
+				sc.exe failureflag cakeagent 1 | Out-Null
+
+				# The Go runtime of the agent crashes on x64 guests with asynchronous preemption (see SetupComplete.cmd)
+				if ($env:PROCESSOR_ARCHITECTURE -eq 'AMD64') {
+					New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\CakeAgent -Name Environment -PropertyType MultiString -Value 'GODEBUG=asyncpreemptoff=1' -Force | Out-Null
+				}
+
+				Start-Service cakeagent
+			}
+
+			Start-Sleep 5
+
+			if ((Get-Service cakeagent).Status -ne 'Running') {
+				throw 'the cakeagent service is not running'
+			}
+
+			Write-Output 'CakeAgent running'
+		} finally {
+			Remove-Item $new -Force -ErrorAction SilentlyContinue
+			Remove-Item $PSCommandPath -Force -ErrorAction SilentlyContinue
+		}
+		"""#
+	}
+
 	/// `set IMAGE=...` for install.cmd: which edition of install.wim to apply.
 	static func config(imageIndex: Int) -> String {
 		crlf("@echo off\nset IMAGE=/Index:\(imageIndex)\n")

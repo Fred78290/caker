@@ -799,6 +799,24 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertThrowsError(try WindowsInstallationMedia.validatedAudio("maybe"), "refused rather than guessed")
 	}
 
+	func testAgentUpdateScriptInstallsOrReplacesTheServiceAndDeletesItself() {
+		let script = WindowsInstallResources.agentUpdatePowerShell(snapshot: "abc12345", port: 5000, caCert: "-----CA-----", serverCert: "-----SERVER-----", serverKey: "-----KEY-----")
+
+		XCTAssertTrue(script.contains("$snapshot = 'abc12345'"))
+		XCTAssertTrue(script.contains("vsock://any:5000"))
+		XCTAssertTrue(script.contains("-match $snapshot"), "an agent that already has the snapshot is left alone")
+		XCTAssertTrue(script.contains("Stop-Service cakeagent") && script.contains("Start-Service cakeagent"), "an existing service is stopped, replaced and started")
+		XCTAssertTrue(script.contains("service install"), "a missing one is installed")
+		XCTAssertTrue(script.contains("asyncpreemptoff=1"), "x64 guests run the agent without asynchronous preemption, as at install")
+		XCTAssertTrue(script.contains("Remove-Item $PSCommandPath"), "the script carries the agent's private key")
+		XCTAssertTrue(script.contains("C:\\ProgramData\\caker\\\(WindowsInstallResources.agentUpdateExecutable)"), "where VMLocation sends the executable")
+
+		// A PowerShell here-string ends at a closing quote in the first column, and its content must not be indented
+		for pem in ["-----CA-----", "-----SERVER-----", "-----KEY-----"] {
+			XCTAssertTrue(script.contains("\n\(pem)\n'@\n"), "\(pem) is a here-string line in the first column")
+		}
+	}
+
 	func testAutologonIsOffUnlessTurnedOn() throws {
 		XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon(nil))
 		XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon("  "))

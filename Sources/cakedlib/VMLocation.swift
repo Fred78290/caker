@@ -975,6 +975,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func installAgent(updateAgent: Bool, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) async throws -> Bool {
 		Logger(self).info("Installing agent on \(self.name)")
 
+		// A Windows guest has no shell like the others: PowerShell over its OpenSSH server (installed with the guest)
+		if config.isWindowsGuest {
+			return try await installWindowsAgent(config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
+		}
+
 		let imageSource = config.source
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii)
@@ -1163,6 +1168,58 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee ~/install-agent.log'"
 		let result = try ssh.capture(cmd)
+
+		if result.status == 0 {
+			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
+			Logger(self).debug(result.output)
+		} else {
+			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
+
+			throw ServiceError(String(localized: "Agent installation failed on \(self.name)"))
+		}
+
+		return true
+	}
+
+	/// Installs the agent in a Windows guest, or replaces it when its service is already there (the installer's first boot
+	/// does the first install, this is what updates it, or installs it in a guest where it is missing). The executable and a
+	/// PowerShell script go over SSH to `C:\ProgramData\caker` and the script runs elevated: an administrator's SSH session
+	/// is. `installAgent` is true only when the agent runs with the snapshot this build asks for.
+	private func installWindowsAgent(config: CakeConfig, runningIP: String, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		let script = WindowsInstallResources.agentUpdatePowerShell(
+			snapshot: CAKEAGENT_SNAPSHOT, port: UInt16(VMLocation.defaultAgentListenPort),
+			caCert: try String(contentsOf: certificates.caCertURL, encoding: .ascii),
+			serverCert: try String(contentsOf: certificates.serverCertURL, encoding: .ascii),
+			serverKey: try String(contentsOf: certificates.serverKeyURL, encoding: .ascii))
+		let agentBinary = try await Utilities.cakeagentWindowsBinary(runMode: runMode)
+		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(WindowsInstallResources.agentUpdateScript)
+		let ssh = try createSSH(host: runningIP, timeout: timeout)
+
+		try script.write(to: tempFileURL, atomically: true, encoding: .utf8)
+
+		defer {
+			if Logger.Level() < .debug {
+				try? tempFileURL.delete()
+			}
+		}
+
+		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+			try ssh.authenticate(
+				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
+		} else {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		}
+
+		let directory = WindowsInstallResources.agentUpdateDirectory
+
+		// Not sendFile (SCP): libssh2 quotes the path with single quotes, which Windows' cmd.exe takes literally
+		let sftp = try ssh.openSftp()
+
+		try sftp.upload(localURL: agentBinary, remotePath: "\(directory)/\(WindowsInstallResources.agentUpdateExecutable)")
+		try sftp.upload(localURL: tempFileURL, remotePath: "\(directory)/\(WindowsInstallResources.agentUpdateScript)")
+
+		let result = try ssh.capture("powershell -NoProfile -ExecutionPolicy Bypass -File \(directory.replacingOccurrences(of: "/", with: "\\"))\\\(WindowsInstallResources.agentUpdateScript)")
 
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
