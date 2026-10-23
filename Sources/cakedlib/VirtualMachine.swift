@@ -302,10 +302,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		soundOutput.sink = VZHostAudioOutputStreamSink()
 		soundDeviceConfiguration.streams = [soundOutput]
 
-		#if UNSIGNED_CAKER
-			configuration.testIgnoreEntitlementChecks = true
-		#endif
-
 		configuration.bootLoader = try plateform.bootLoader()
 		configuration.cpuCount = Int(config.cpuCount)
 		configuration.memorySize = config.memorySize
@@ -356,6 +352,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
 			}
 		}
+
+		#if UNSIGNED_CAKER
+			configuration.testIgnoreEntitlementChecks = true
+		#endif
 
 		try configuration.validate()
 
