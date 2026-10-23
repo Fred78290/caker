@@ -1162,6 +1162,10 @@ struct VirtualMachineWizard: View {
 							}
 
 							if self.model.supportedPlatform == .windows {
+								if Bundle.isApplicationSandboxed {
+									Text("Windows installation is not available in the App Store build").font(.callout).foregroundStyle(Color.red)
+								}
+
 								LabeledContent("Product key") {
 									VStack(alignment: .leading, spacing: 2) {
 										TextField("", text: $model.windowsProductKey)
@@ -1742,6 +1746,11 @@ struct VirtualMachineWizard: View {
 
 			if valid && self.model.supportedPlatform == .windows && self.model.windowsProductKey.isEmpty == false {
 				valid = WindowsInstallationMedia.productKeyIsValid(self.model.windowsProductKey)
+			}
+
+			// The Windows installer drives hdiutil, diskutil and rsync, which a sandboxed app can't launch
+			if valid && self.model.supportedPlatform == .windows && Bundle.isApplicationSandboxed {
+				valid = false
 			}
 		}
 

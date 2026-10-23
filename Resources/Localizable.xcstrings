@@ -2637,6 +2637,7 @@
       }
     },
     "Check for Updates…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -8597,16 +8598,6 @@
         }
       }
     },
-    "Log on automatically" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir la session automatiquement"
-          }
-        }
-      }
-    },
     "Log level" : {
       "localizations" : {
         "en" : {
@@ -8619,6 +8610,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Niveau de journal (critical, error, warning, notice, debug, trace)"
+          }
+        }
+      }
+    },
+    "Log on automatically" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir la session automatiquement"
           }
         }
       }
@@ -17583,6 +17584,7 @@
       }
     },
     "The value of WINDOWS_AUDIO is not valid: expected 1 or 0" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -17593,6 +17595,7 @@
       }
     },
     "The value of WINDOWS_AUTOLOGON is not valid: expected 1 or 0" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20976,16 +20979,6 @@
         }
       }
     },
-    "Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windows ouvre la session du compte tout seul à chaque démarrage. Le mot de passe est alors conservé en clair dans le registre de l'invité."
-          }
-        }
-      }
-    },
     "Width" : {
       "localizations" : {
         "fr" : {
@@ -21004,6 +20997,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fenêtre"
+          }
+        }
+      }
+    },
+    "Windows 11 guests are unavailable — the installer needs host tools the sandbox blocks (hdiutil, diskutil, rsync), and the App Store build does not run Windows VMs" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les invités Windows 11 sont indisponibles — l’installateur a besoin d’outils de l’hôte que le sandbox bloque (hdiutil, diskutil, rsync), et la version App Store ne lance pas les VM Windows"
           }
         }
       }
@@ -21078,7 +21081,6 @@
       }
     },
     "Windows installation is not available in the App Store build" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -21179,11 +21181,22 @@
       }
     },
     "Windows setup finished, but the sound driver may not load" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'installation de Windows est terminée, mais le pilote audio risque de ne pas se charger"
+          }
+        }
+      }
+    },
+    "Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows ouvre la session du compte tout seul à chaque démarrage. Le mot de passe est alors conservé en clair dans le registre de l'invité."
           }
         }
       }

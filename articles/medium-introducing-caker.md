@@ -197,7 +197,7 @@ The limits are worth knowing:
 
 - **No TPM.** Virtualization.framework has no way to give a guest one, so BitLocker and device encryption are unavailable.
 - **English only** for now, and a reboot started from inside a running Windows guest stops the VM, so you start it again.
-- **Not in the App Store edition.** The installer relies on a private Virtualization.framework setting and on host tools the sandbox does not allow.
+- **Not in the App Store edition.** The installer needs host tools the sandbox does not allow, and the App Store build does not run Windows VMs.
 - **What has been tested:** Windows 11 ARM on Apple Silicon, and Windows 11 x64 on one Intel Mac (a Core i9). Other Intel CPUs and other languages are untested.
 
 ---
