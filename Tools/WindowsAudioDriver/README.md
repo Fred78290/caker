@@ -19,7 +19,7 @@ the driver's own option); every other device keeps the original behavior (both).
 Checked on a Windows 11 ARM64 guest: the device starts, Windows shows "Speakers (XCB VirtIO Audio Device)", and a 440 Hz tone played
 through it is heard on the host. The driver's own log shows `SET_PARAMS`, `PREPARE` and `START` answered OK (`0x8000`) and the stream
 running at 48 kHz stereo 16-bit in real time (the device accepts 48 and 96 kHz, S16/S32/float). The x64 build is the same source and
-INF, cross-built; it has not run on an Intel guest.
+INF, cross-built; it was also checked on an Intel guest, where it works.
 
 The host has to give the output stream a sink (`VZHostAudioOutputStreamSink`, `VirtualMachine.swift`): without one Virtualization.framework
 accepts the guest's playback and discards it, which looks exactly like a driver that does nothing.
