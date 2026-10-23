@@ -1,4 +1,4 @@
-# Caker.app: Running Linux and macOS Virtual Machines in a Native Mac App
+# Caker.app: Running Linux, macOS and Windows Virtual Machines in a Native Mac App
 
 *A tour of Caker's SwiftUI app, from creating a VM to running a multi-VM stack, without opening a terminal*
 
@@ -8,9 +8,9 @@
 
 Caker is an open-source toolchain for running virtual machines on macOS, built on Apple's Virtualization framework. It includes a daemon (`caked`) and a command-line client (`cakectl`), but this article is about the third piece: **Caker.app**, the desktop application.
 
-The app does almost everything the command line does, through windows, sheets and menus. You can create a VM from a cloud image, an ISO or a macOS restore image, watch it install itself, open its display or a terminal, forward ports, share folders, and run several VMs together from a single YAML file. You never need to open Terminal, and if you do, the same VMs are available from `cakectl`.
+The app does almost everything the command line does, through windows, sheets and menus. You can create a VM from a cloud image, an ISO (Linux or Windows 11) or a macOS restore image, watch it install itself, open its display or a terminal, forward ports, share folders, and run several VMs together from a single YAML file. You never need to open Terminal, and if you do, the same VMs are available from `cakectl`.
 
-Caker.app requires macOS 15 or later, and follows macOS 26's Liquid Glass design when it runs there. macOS guests require an Apple Silicon Mac.
+Caker.app requires macOS 15 or later, and follows macOS 26's Liquid Glass design when it runs there. macOS guests require an Apple Silicon Mac, and a Windows 11 guest needs an ISO that matches your Mac (ARM on Apple Silicon, x64 on an Intel Mac).
 
 ---
 
@@ -51,7 +51,7 @@ Every VM also has a context menu with the same actions (Open, Start or Resume, S
 The **Choose OS** step is where you pick the image. Its source can be:
 
 - **qcow2**: a cloud image, picked from a list of preconfigured releases (Ubuntu, Debian, Fedora, CentOS Stream, openSUSE, Alpine), or any image URL you paste
-- **iso**: a Linux installer, from a list of preconfigured ISOs or your own
+- **iso**: a Linux installer, from a list of preconfigured ISOs or your own, or a Windows 11 ISO that you downloaded from Microsoft
 - **ipsw**: a macOS restore image, from macOS 12 to macOS 27 (Apple Silicon only)
 - **oci**: an image stored in an OCI registry such as GitHub Container Registry
 - **template**: one of your own templates
@@ -61,6 +61,16 @@ The **Choose OS** step is where you pick the image. Its source can be:
 ![Wizard, "Choose OS" step](images/caker-app/04-wizard-choose-os-step.png)
 
 The same step holds the guest account: an **administrator name and password**, an optional **SSH public key**, and whether SSH accepts passwords. For cloud images, you can also attach your own **cloud-init user data** and **network configuration**.
+
+### Windows 11
+
+When the ISO's file name contains `windows` (or `win11`), the wizard recognizes a Windows image and adds three Windows-only settings to the **Choose OS** step:
+
+- **Product key**, optional, checked as you leave the field
+- **Display buffer size**: the memory of the display driver, which limits how big the screen can get. The default holds a 3840×2160 display.
+- **Log on automatically**: sign the account in at every start, not only the first one. Without it the guest waits at the lock screen after setup, and anything that needs a signed-in user, such as the display following your window's size, only starts once someone logs on. The password is then kept in the guest's registry in clear text, so the switch is off by default.
+
+The wizard also raises the disk to at least 64 GiB. The rest works as for any other guest: pick **Configure automatically the system** and Caker does the install, as described below.
 
 ### Resources and options
 
@@ -93,6 +103,8 @@ For a distribution without a built-in template, the wizard asks for a template f
 While this runs, **the wizard shows the VM's screen live**, so you can see each screen being filled in.
 
 ![Wizard during an unattended macOS install](images/caker-app/07-wizard-during-an-unattended-macos-install.png)
+
+**Windows 11 works differently.** Windows' installer shows nothing on Virtualization.framework, so there is no screen to read and the wizard shows the install's progress steps instead of the VM's screen. Caker prepares a bootable disk from the ISO, applies the Windows image itself, then finishes the setup on first boot and restarts the VM until it is done. That takes about seven minutes on an M4 Pro. The VM ends up with a display that follows the VM window's size, networking, shared folders, sound, an SSH server and the Caker agent. Windows needs drivers it does not ship, and Caker supplies test-signed builds, so the desktop shows a "Test Mode" watermark. There is no TPM (no BitLocker), only English is configured, and a reboot started from inside the guest stops the VM, so you start it again from the app.
 
 If an installation fails, Caker keeps a short video of the run (`provision.mp4`, in the VM's folder) so you can see the screen it stopped on.
 
@@ -227,7 +239,7 @@ The Settings window has three tabs.
 Caker.app comes in two editions:
 
 - **Direct download** from [GitHub Releases](https://github.com/Fred78290/caker/releases), with automatic updates.
-- **App Store edition**, which runs in the macOS App Sandbox. A few features need privileges the sandbox does not allow: name resolution between VMs, the metadata service's `169.254.169.254` address, attaching physical disks, and resizing ASIF disks from the command line. The app lists them the first time it launches.
+- **App Store edition**, which runs in the macOS App Sandbox. A few features need privileges the sandbox does not allow: the Windows 11 installer, name resolution between VMs, the metadata service's `169.254.169.254` address, attaching physical disks, and resizing ASIF disks from the command line. The app lists them the first time it launches.
 
 ---
 
@@ -240,4 +252,4 @@ Caker is open source, under the AGPL-3.0 license. If you try the app, I would li
 
 ---
 
-*Tags: macOS, Virtualization, SwiftUI, Mac Apps, Developer Tools*
+*Tags: macOS, Windows, Virtualization, SwiftUI, Mac Apps, Developer Tools*
