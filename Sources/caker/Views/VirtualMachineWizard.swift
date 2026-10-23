@@ -138,6 +138,8 @@ struct ShortImageInfoComparator: SortComparator {
 	var windowsProductKey: String
 	/// Windows guests: the display driver's frame segment (MiB), which bounds the display size (see `WindowsDisplayLimit`)
 	var windowsFrameSegmentMiB: Int
+	/// Windows guests: log the account on at every start, not only the first one (`WINDOWS_AUTOLOGON`)
+	var windowsAutologon: Bool
 
 	#if arch(arm64)
 		var ipswCatalog: [VMImageEntry] {
@@ -191,6 +193,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.provisionVars = ProvisionVariablesStore.load()
 		self.windowsProductKey = ""
 		self.windowsFrameSegmentMiB = WindowsInstallationMedia.defaultFrameSegmentMiB
+		self.windowsAutologon = false
 	}
 }
 
@@ -1199,6 +1202,12 @@ struct VirtualMachineWizard: View {
 									.frame(width: 120)
 									.disabled(self.model.createVM)
 								}
+
+								// Without it Windows logs on once, to finish setup, and then waits at the lock screen: nothing that has to
+								// run in the user's session at start (the display following the window size) works until someone logs on
+								Toggle("Log on automatically", isOn: $model.windowsAutologon)
+									.help("Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text.")
+									.disabled(self.model.createVM)
 							} else {
 								// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
 								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
@@ -1866,6 +1875,7 @@ struct VirtualMachineWizard: View {
 
 				if self.model.supportedPlatform == .windows {
 					provisionVars.append("\(WindowsInstallationMedia.frameSegmentVariable)=\(self.model.windowsFrameSegmentMiB)")
+					provisionVars.append("\(WindowsInstallationMedia.autologonVariable)=\(self.model.windowsAutologon ? "1" : "0")")
 				}
 
 				if provisionVars.isEmpty == false {

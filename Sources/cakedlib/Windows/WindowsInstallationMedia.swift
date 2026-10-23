@@ -48,6 +48,9 @@ public struct WindowsInstallationMedia {
 		/// Whether the media carries the sound driver (`WindowsAudioDriverBinaries`); the `WINDOWS_AUDIO` provisioning variable,
 		/// validated by `validatedAudio(_:)`.
 		var audioDriver: Bool = true
+		/// Whether Windows logs the account on at every start (the `WINDOWS_AUTOLOGON` provisioning variable), not only the first
+		/// one; validated by `validatedAutologon(_:)`.
+		var autologon: Bool = false
 		/// Installed as a service on first boot when set.
 		var cakeAgent: CakeAgent?
 		/// Installed and started on first boot when set.
@@ -123,6 +126,32 @@ public struct WindowsInstallationMedia {
 		case "0", "false", "no", "off": return false
 		default:
 			throw ServiceError(String(localized: "The value of WINDOWS_AUDIO is not valid: expected 1 or 0"))
+		}
+	}
+
+	/// The name of the provisioning variable (`--var WINDOWS_AUTOLOGON=1`) that makes Windows log the account on by itself at
+	/// every start. Off by default: the answer file always logs on once, to finish setup, and after that the lock screen
+	/// waits for the password. It matters when something has to run in the user's session at boot, like the agent's display
+	/// helper, which follows the host's window size and only works while someone is logged on. The password is kept in
+	/// the guest's registry in clear text (Winlogon's `DefaultPassword`), as for any automatic logon.
+	public static let autologonVariable = "WINDOWS_AUTOLOGON"
+
+	/// How many logons the answer file allows (`AutoLogon/LogonCount`, 0 to 999): one finishes setup, the maximum is as
+	/// close to "always" as the answer file gets.
+	static let autologonForeverCount = 999
+
+	/// Returns whether the account stays logged on automatically: unset or blank is no, `1`/`true`/`yes`/`on` is yes.
+	/// Anything else is refused rather than guessed.
+	public static func validatedAutologon(_ value: String?) throws -> Bool {
+		guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), text.isEmpty == false else {
+			return false
+		}
+
+		switch text {
+		case "1", "true", "yes", "on": return true
+		case "0", "false", "no", "off": return false
+		default:
+			throw ServiceError(String(localized: "The value of WINDOWS_AUTOLOGON is not valid: expected 1 or 0"))
 		}
 	}
 
@@ -298,7 +327,7 @@ public struct WindowsInstallationMedia {
 		try WindowsInstallResources.installScript(for: architecture).write(to: caker.appendingPathComponent("install.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.setupComplete.write(to: caker.appendingPathComponent("SetupComplete.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.config(imageIndex: image.index).write(to: caker.appendingPathComponent("config.cmd"), atomically: true, encoding: .utf8)
-		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture, productKey: options.productKey).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
+		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture, productKey: options.productKey, autologon: options.autologon).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
 
 		if architecture.usesFramebufferShim {
 			try WindowsEFIBinaries.framebuffer(for: architecture).write(to: caker.appendingPathComponent("framebuffer.efi"))

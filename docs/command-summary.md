@@ -150,7 +150,7 @@ cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
 cakectl build my-win11 iso:///chemin/Windows11_Client_arm64_en-us_26300_9457.iso --cpus 4 --memory 8192 --disk-size 64 --autoinstall
 ```
 
-> Windows 11 est installé par un installateur dédié, pas par PackerLite. **Le nom du fichier ISO doit contenir `windows`** (ou `win11`/`win10`), sinon `--autoinstall` ne fait rien. Détails dans [Provisioning & Recording](provisioning#autoinstall-fr). Variables `--var` propres à Windows : `WINDOWS_KEY` (clé de produit), `WINDOWS_FRAME_SEGMENT_MIB` (tampon d'affichage, 16 à 256 Mo) et `WINDOWS_AUDIO=0` (ne pas installer le pilote son).
+> Windows 11 est installé par un installateur dédié, pas par PackerLite. **Le nom du fichier ISO doit contenir `windows`** (ou `win11`/`win10`), sinon `--autoinstall` ne fait rien. Détails dans [Provisioning & Recording](provisioning#autoinstall-fr). Variables `--var` propres à Windows : `WINDOWS_KEY` (clé de produit), `WINDOWS_FRAME_SEGMENT_MIB` (tampon d'affichage, 16 à 256 Mo) `WINDOWS_AUDIO=0` (ne pas installer le pilote son) et `WINDOWS_AUTOLOGON=1` (ouvrir la session automatiquement à chaque démarrage).
 
 | Option | Description |
 | --- | --- |
@@ -568,7 +568,7 @@ cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
 cakectl build my-win11 iso:///path/Windows11_Client_arm64_en-us_26300_9457.iso --cpus 4 --memory 8192 --disk-size 64 --autoinstall
 ```
 
-> Windows 11 is installed by a dedicated installer, not by PackerLite. **The ISO file name must contain `windows`** (or `win11`/`win10`), otherwise `--autoinstall` does nothing. Details in [Provisioning & Recording](provisioning#autoinstall). Windows-specific `--var`s: `WINDOWS_KEY` (product key), `WINDOWS_FRAME_SEGMENT_MIB` (display buffer, 16 to 256 MB) and `WINDOWS_AUDIO=0` (leave the sound driver out).
+> Windows 11 is installed by a dedicated installer, not by PackerLite. **The ISO file name must contain `windows`** (or `win11`/`win10`), otherwise `--autoinstall` does nothing. Details in [Provisioning & Recording](provisioning#autoinstall). Windows-specific `--var`s: `WINDOWS_KEY` (product key), `WINDOWS_FRAME_SEGMENT_MIB` (display buffer, 16 to 256 MB) `WINDOWS_AUDIO=0` (leave the sound driver out) and `WINDOWS_AUTOLOGON=1` (log on automatically at every start).
 
 | Option | Description |
 | --- | --- |

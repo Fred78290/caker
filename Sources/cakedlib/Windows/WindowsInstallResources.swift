@@ -322,7 +322,7 @@ enum WindowsInstallResources {
 	/// The answer file for the installed system: a local administrator account that logs on automatically,
 	/// and no out-of-box experience. `language` is the image's default (e.g. `en-US`). `productKey`, when given, is
 	/// applied in the specialize pass (the `WINDOWS_KEY` provisioning variable).
-	static func unattend(username: String, password: String, computerName: String, language: String, architecture: WindowsArchitecture, productKey: String? = nil) -> String {
+	static func unattend(username: String, password: String, computerName: String, language: String, architecture: WindowsArchitecture, productKey: String? = nil, autologon: Bool = false) -> String {
 		func escaped(_ value: String) -> String {
 			value.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;")
 		}
@@ -371,7 +371,7 @@ enum WindowsInstallResources {
 			      </UserAccounts>
 			      <AutoLogon>
 			        <Enabled>true</Enabled>
-			        <LogonCount>1</LogonCount>
+			        <LogonCount>\(autologon ? WindowsInstallationMedia.autologonForeverCount : 1)</LogonCount>
 			        <Username>\(escaped(username))</Username>
 			        <Password>
 			          <Value>\(escaped(password))</Value>

@@ -8597,6 +8597,16 @@
         }
       }
     },
+    "Log on automatically" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir la session automatiquement"
+          }
+        }
+      }
+    },
     "Log level" : {
       "localizations" : {
         "en" : {
@@ -17582,6 +17592,16 @@
         }
       }
     },
+    "The value of WINDOWS_AUTOLOGON is not valid: expected 1 or 0" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La valeur de WINDOWS_AUTOLOGON n'est pas valide : 1 ou 0 attendu"
+          }
+        }
+      }
+    },
     "The virtio-win ISO has no %@ driver for %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20952,6 +20972,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconfigurer automatiquement l'affichage de la machine virtuelle pour l'adapter à la fenêtre"
+          }
+        }
+      }
+    },
+    "Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows ouvre la session du compte tout seul à chaque démarrage. Le mot de passe est alors conservé en clair dans le registre de l'invité."
           }
         }
       }

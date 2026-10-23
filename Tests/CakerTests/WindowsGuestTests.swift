@@ -799,6 +799,32 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertThrowsError(try WindowsInstallationMedia.validatedAudio("maybe"), "refused rather than guessed")
 	}
 
+	func testAutologonIsOffUnlessTurnedOn() throws {
+		XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon(nil))
+		XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon("  "))
+
+		for on in ["1", "true", "YES", " on "] {
+			XCTAssertTrue(try WindowsInstallationMedia.validatedAutologon(on), on)
+		}
+
+		for off in ["0", "false", "No", "OFF"] {
+			XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon(off), off)
+		}
+
+		XCTAssertThrowsError(try WindowsInstallationMedia.validatedAutologon("maybe"), "refused rather than guessed")
+		XCTAssertEqual(WindowsInstallationMedia.autologonVariable, "WINDOWS_AUTOLOGON")
+	}
+
+	func testUnattendLogsOnOnceUnlessAutologonIsAsked() {
+		let once = WindowsInstallResources.unattend(username: "admin", password: "admin", computerName: "CAKER", language: "en-US", architecture: .arm64)
+		let always = WindowsInstallResources.unattend(username: "admin", password: "admin", computerName: "CAKER", language: "en-US", architecture: .arm64, autologon: true)
+
+		XCTAssertTrue(once.contains("<LogonCount>1</LogonCount>"), "setup's own logon, as before")
+		XCTAssertTrue(always.contains("<LogonCount>\(WindowsInstallationMedia.autologonForeverCount)</LogonCount>"))
+		XCTAssertTrue(always.contains("<Enabled>true</Enabled>"))
+		XCTAssertLessThanOrEqual(WindowsInstallationMedia.autologonForeverCount, 999, "the answer file's limit")
+	}
+
 	func testSetupTrustsTheAudioCertificateAndReportsIt() {
 		let setup = WindowsInstallResources.setupComplete
 		let install = WindowsInstallResources.installScript(for: .arm64)
