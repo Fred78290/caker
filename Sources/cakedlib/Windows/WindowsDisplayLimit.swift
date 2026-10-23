@@ -34,4 +34,17 @@ public enum WindowsDisplayLimit {
 
 		return CGSize(width: width, height: height)
 	}
+
+	/// `size` with its width rounded down to a multiple of 4 pixels. A display whose rows are not a multiple of 16 bytes
+	/// (4 bytes a pixel) is shown black by the VM's view: Core Animation refuses the surface ("doesn't have the proper data
+	/// alignment! Expected 16 base address and 16 row byte alignment"), although the guest renders it correctly. A window
+	/// on a 1x screen can be any width, so the display asked for must be aligned; the view scales the few pixels back.
+	public static func aligned(_ size: CGSize) -> CGSize {
+		let width = (Int(size.width) / rowAlignmentPixels) * rowAlignmentPixels
+
+		return CGSize(width: CGFloat(max(width, rowAlignmentPixels)), height: size.height)
+	}
+
+	/// 16 bytes at 4 bytes a pixel.
+	static let rowAlignmentPixels = 4
 }

@@ -225,6 +225,20 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertGreaterThanOrEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 3840 * 2160, "3840x2160 fits")
 	}
 
+	func testWindowsDisplayWidthIsAlignedToWhatTheViewCanShow() {
+		// Core Animation shows a surface black unless its rows are a multiple of 16 bytes: 4 pixels at 4 bytes a pixel
+		XCTAssertEqual(WindowsDisplayLimit.aligned(CGSize(width: 2046, height: 995)), CGSize(width: 2044, height: 995))
+		XCTAssertEqual(WindowsDisplayLimit.aligned(CGSize(width: 2047, height: 995)), CGSize(width: 2044, height: 995))
+		XCTAssertEqual(WindowsDisplayLimit.aligned(CGSize(width: 1001, height: 701)), CGSize(width: 1000, height: 701), "only the width matters")
+		XCTAssertEqual(WindowsDisplayLimit.aligned(CGSize(width: 1280, height: 720)), CGSize(width: 1280, height: 720), "already aligned")
+		XCTAssertEqual(WindowsDisplayLimit.aligned(CGSize(width: 3, height: 10)), CGSize(width: 4, height: 10), "never zero")
+
+		// clamp keeps sides even, which is not enough: 2442 is even and not a multiple of 4
+		let clamped = WindowsDisplayLimit.clamp(CGSize(width: 5000, height: 3000), maxPixels: WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: 32))
+
+		XCTAssertEqual(Int(WindowsDisplayLimit.aligned(clamped).width) % 4, 0)
+	}
+
 	func testWindowsDisplayLimitShrinksOnlyWhatDoesNotFitAndKeepsTheAspectRatio() {
 		let limit = WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768))
 

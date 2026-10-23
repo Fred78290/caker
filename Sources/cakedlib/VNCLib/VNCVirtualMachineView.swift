@@ -560,7 +560,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 		}
 
 		let scale = self.window?.backingScaleFactor ?? 1
-		let size = WindowsDisplayLimit.clamp(CGSize(width: (self.bounds.width * scale).rounded(), height: (self.bounds.height * scale).rounded()), maxPixels: limit)
+		let size = WindowsDisplayLimit.aligned(WindowsDisplayLimit.clamp(CGSize(width: (self.bounds.width * scale).rounded(), height: (self.bounds.height * scale).rounded()), maxPixels: limit))
 
 		guard size.width >= 1, size.height >= 1, size != display.sizeInPixels else {
 			return
