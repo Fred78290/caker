@@ -9,5 +9,6 @@ public protocol Importer {
 	var name: String { get }
 	var source: String { get }
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String?, passphrase: String?, copyDisk: Bool, runMode: Utils.RunMode) throws
+	/// `customArguments` carries the undeclared `--importer-arg key=value` options given on the command line, for importers that need extra settings.
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String?, passphrase: String?, copyDisk: Bool, customArguments: [String: String], runMode: Utils.RunMode) throws
 }

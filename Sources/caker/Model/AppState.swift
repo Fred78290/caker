@@ -1,11 +1,11 @@
 import CakeAgentLib
-import System
 import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
 import NIO
 import SwiftUI
+import System
 
 struct MultipassVMInfo: Identifiable {
 	var id: String { name }
@@ -257,7 +257,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		var newItems: [BridgedNetwork] = []
 		let incomingNames = Set(networks.map(\.name))
 		let deleted: [String] = self.networks.compactMap { incomingNames.contains($0.name) ? nil : $0.name }
-		
+
 		for network in networks {
 			if let idx = self.networks.firstIndex(where: { $0.name == network.name }) {
 				self.networks[idx] = BridgedNetwork(network)
@@ -265,11 +265,11 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				newItems.append(BridgedNetwork(network))
 			}
 		}
-		
+
 		self.networks.removeAll(where: {
 			deleted.contains($0.name)
 		})
-		
+
 		self.networks.append(contentsOf: newItems)
 		self.networks.sort(using: BridgedNetworkComparator())
 	}
@@ -478,7 +478,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				} else if let first = $0.uploaded, let second = $1.uploaded {
 					return first < second
 				}
-				
+
 				return $0.fingerprint < $1.fingerprint
 			})
 		}
@@ -696,7 +696,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			Task {
 				do {
 					let templateResult = try await self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
-					
+
 					if templateResult.created {
 						await self.reloadTemplates()
 					} else {
@@ -866,7 +866,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			Task {
 				do {
 					let result = try await self.connectionManager.duplicateTemplate(sourceName: name, templateName: templateName)
-					
+
 					if result.duplicated {
 						await self.reloadTemplates()
 					} else {
@@ -892,7 +892,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			Task {
 				do {
 					let result = try await self.connectionManager.deleteTemplate(templateName: name)
-					
+
 					if result.deleted {
 						await self.reloadTemplates()
 					} else {
@@ -951,7 +951,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
-	func listMultipassVMs() throws -> [MultipassVMInfo] {
+	func listMultipassVMs() throws -> (driver: String, vms: [MultipassVMInfo]) {
 		struct ListEntry: Decodable {
 			let name: String
 			let state: String
@@ -960,6 +960,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 		struct ListResponse: Decodable {
 			let list: [ListEntry]
+		}
+
+		let driver = try Bundle.execSandboxed("multipass", with: ["get", "local.driver"]) { (exitCode, stdout, stderr) in
+			guard exitCode == 0 else {
+				throw ServiceError(String(localized: "Multipass: failed to get driver: \(stderr)"))
+			}
+
+			return stdout.trimmingCharacters(in: .whitespacesAndNewlines)
 		}
 
 		let output = try Bundle.execSandboxed("multipass", with: ["list", "--format", "json"]) { (exitCode, stdout, stderr) in
@@ -971,18 +979,21 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 
 		guard let data = output.data(using: .utf8) else {
-			return []
+			return (driver, [])
 		}
 
 		let response = try JSONDecoder().decode(ListResponse.self, from: data)
 
-		return response.list.map { entry in
-			MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
-		}
+		return (
+			driver,
+			response.list.map { entry in
+				MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
+			}
+		)
 	}
 
 	func authenticateMultipass(_ passphrase: String) throws {
-		try Bundle.execSandboxed("multipass", with: ["authenticate", passphrase]){ (exitCode, stdout, stderr) in
+		try Bundle.execSandboxed("multipass", with: ["authenticate", passphrase]) { (exitCode, stdout, stderr) in
 			guard exitCode == 0 else {
 				throw ServiceError(String(localized: "Multipass: failed to authenticate: \(stderr)"))
 			}
@@ -991,7 +1002,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
-	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
+	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, driver: String) -> ImportedReply {
 		ImportHandler.importVM(
 			importer: ImportHandler.ImportSource.multipass.importer,
 			source: source,
@@ -1002,6 +1013,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			sshPrivateKey: sshKey.flatMap { $0.isEmpty ? nil : $0 },
 			passphrase: sshPassphrase.flatMap { $0.isEmpty ? nil : $0 },
 			copyDisk: true,
+			customArguments: ["driver": driver],
 			uid: geteuid(),
 			gid: getegid(),
 			runMode: connectionMode.runMode

@@ -81,6 +81,7 @@ public struct ImportHandler {
 		sshPrivateKey: String?,
 		passphrase: String?,
 		copyDisk: Bool,
+		customArguments: [String: String] = [:],
 		uid: UInt32,
 		gid: UInt32,
 		runMode: Utils.RunMode,
@@ -165,6 +166,10 @@ public struct ImportHandler {
 						arguments.append("--no-copy-disk")
 					}
 
+					for (key, value) in customArguments.sorted(by: { $0.key < $1.key }) {
+						arguments.append("--importer-arg=\(key)=\(value)")
+					}
+
 					let quote: (String) -> String = { v in "'" + v.replacingOccurrences(of: "'", with: "'\\''") + "'" }
 					let replyString = try runPrivilegedAppleScript(arguments.map(quote).joined(separator: " "))
 
@@ -212,6 +217,10 @@ public struct ImportHandler {
 						arguments.append("--no-copy-disk")
 					}
 
+					for (key, value) in customArguments.sorted(by: { $0.key < $1.key }) {
+						arguments.append("--importer-arg=\(key)=\(value)")
+					}
+
 					let sudo = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: standardOutput, standardError: standardError)
 					let exitCode = try sudo.runAndWait()
 
@@ -238,7 +247,7 @@ public struct ImportHandler {
 			do {
 				tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
-				try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: passphrase, copyDisk: copyDisk, runMode: runMode)
+				try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: passphrase, copyDisk: copyDisk, customArguments: customArguments, runMode: runMode)
 				try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path(percentEncoded: false))
 				try storageLocation.relocate(name, from: tempLocation)
 			} catch {

@@ -31,6 +31,9 @@ struct Import: ParsableCommand {
 	@Flag(name: .customLong("no-copy-disk"), help: ArgumentHelp(String(localized: "Don't copy the source image disk, reference it in place instead. Only supported by importers that already use a raw disk image (tart, utm, virtualbuddy).")))
 	public var noCopyDisk: Bool = false
 
+	@Option(name: .customLong("importer-arg"), help: ArgumentHelp(String(localized: "Custom argument passed to the importer as key=value. Can be repeated.")))
+	public var importerArguments: [String] = []
+
 	@Option(help: .hidden)
 	public var uid: UInt32 = geteuid()
 
@@ -51,6 +54,26 @@ struct Import: ParsableCommand {
 		self.common.runMode
 	}
 
+	mutating func validate() throws {
+		for argument in self.importerArguments {
+			guard let separator = argument.firstIndex(of: "="), separator != argument.startIndex else {
+				throw ValidationError(String(format: String(localized: "Invalid importer argument '%@', expected key=value"), argument))
+			}
+		}
+	}
+
+	var customArguments: [String: String] {
+		var result: [String: String] = [:]
+
+		for argument in self.importerArguments {
+			if let separator = argument.firstIndex(of: "=") {
+				result[String(argument[..<separator])] = String(argument[argument.index(after: separator)...])
+			}
+		}
+
+		return result
+	}
+
 	func run() throws {
 		let importer = self.from.importer
 
@@ -66,6 +89,7 @@ struct Import: ParsableCommand {
 					sshPrivateKey: sshPrivateKey,
 					passphrase: sshPrivateKeyPassphrase,
 					copyDisk: !noCopyDisk,
+					customArguments: customArguments,
 					uid: uid,
 					gid: gid,
 					runMode: self.runMode,

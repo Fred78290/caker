@@ -1,8 +1,8 @@
+import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import Virtualization
-import CakeAgentLib
-import ArgumentParser
 
 private typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance]  // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
 private typealias MultipassInstances = [String: MultipassInstance]  // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
@@ -65,6 +65,7 @@ private struct MultipassRegisteredInstance: Codable, Sendable {
 		var originalRelease: String
 		var path: String
 		var releaseDate: String
+		var os: String?
 
 		enum CodingKeys: String, CodingKey {
 			case aliases
@@ -73,13 +74,14 @@ private struct MultipassRegisteredInstance: Codable, Sendable {
 			case originalRelease = "original_release"
 			case path
 			case releaseDate = "release_date"
+			case os
 		}
 	}
 
 	func diskAttachments() throws -> [MultipassRegisteredInstance.DiskAttachement] {
 		let location = URL(fileURLWithPath: self.image.path).deletingLastPathComponent()
 
-		guard let disks = try? FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter({ $0.pathExtension.lowercased() == "img" || $0.pathExtension.lowercased() == "iso" }) else {
+		guard let disks = try? FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter({ ["asif", "img", "iso"].contains($0.pathExtension.lowercased()) }) else {
 			throw ServiceError(String(localized: "No disk files found in the specified directory: \(location.path(percentEncoded: false))"))
 		}
 
@@ -149,7 +151,7 @@ struct MultipassInstance: Codable, Sendable {
 		case suspending
 		case suspended
 		case unknown
-		
+
 		var description: String {
 			switch self {
 			case .off:
@@ -200,14 +202,12 @@ struct MultipassInstance: Codable, Sendable {
 	}
 
 	struct Metadata: Codable, Sendable {
-		var arguments: [String]
-		var machineType: String
-		//		var mountData: MountData
+		var arguments: [String]?
+		var machineType: String?
 
 		enum CodingKeys: String, CodingKey {
 			case arguments
 			case machineType = "machine_type"
-			//			case mountData = "mount_data"
 		}
 	}
 
@@ -287,7 +287,12 @@ func newJSONEncoder() -> JSONEncoder {
 	return encoder
 }
 
-struct MultipassImporter: Importer {	
+struct MultipassImporter: Importer {
+	private enum Driver: String {
+		case qemu
+		case applevz
+	}
+
 	var needSudo: Bool {
 		return true  // Multipass operations typically require elevated privileges
 	}
@@ -304,14 +309,25 @@ struct MultipassImporter: Importer {
 		return "multipass"
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
-		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
+	private static func parseCustomArguments(_ customArguments: [String: String]) -> Self.Driver {
+		if let driverString = customArguments["driver"], let parsedDriver = Driver(rawValue: driverString.lowercased()) {
+			return parsedDriver
+		}
+
+		return .qemu
+	}
+
+	func importVM(
+		location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, customArguments: [String: String] = [:], runMode: Utils.RunMode
+	) throws {
+		let driver = Self.parseCustomArguments(customArguments)
+		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/\(driver.rawValue)/vault/multipassd-instance-image-records.json"))
 
 		guard let registeredInstance = registeredInstances[source] else {
 			throw ServiceError(String(localized: "No registered instance found for source: \(source)"))
 		}
 
-		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json"))
+		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/\(driver.rawValue)/multipassd-vm-instances.json"))
 
 		guard let instance = instances[source] else {
 			throw ServiceError(String(localized: "No instance found: \(source)"))
@@ -352,7 +368,7 @@ struct MultipassImporter: Importer {
 			screenSize: .standard
 		)
 
-		config.osName = "Ubuntu"
+		config.osName = registeredInstance.image.os ?? "Ubuntu"
 		config.osRelease = registeredInstance.image.currentRelease.isEmpty ? registeredInstance.image.originalRelease : registeredInstance.image.currentRelease
 
 		if let sshPrivateKey = sshPrivateKey {
@@ -386,19 +402,23 @@ struct MultipassImporter: Importer {
 		return try diskAttachments.compactMap { disk in
 			let destinationURL: URL
 			var result: GRPCLib.DiskAttachement? = nil
-
+			
 			if disk.deviceType == .disk {
-
 				if diskCount == 0 {
 					destinationURL = location.diskURL
 				} else {
-					destinationURL = location.rootURL.appendingPathComponent(disk.diskURL.lastPathComponent)
+					destinationURL = location.rootURL.appendingPathComponent(disk.diskURL.lastPathComponent.deletingPathExtension.appending(".img"))
 					result = try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent)
 				}
 
-				diskCount += 1
+				if disk.diskURL.pathExtension == "asif" {
+					print("copy disk \(disk.diskURL.path) to \(destinationURL.path)")
+					try FileManager.default.copyItem(at: disk.diskURL, to: destinationURL)
+				} else {
+					try CloudImageConverter.convertCloudImageToRaw(from: disk.diskURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
+				}
 
-				try CloudImageConverter.convertCloudImageToRaw(from: disk.diskURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
+				diskCount += 1
 			} else {
 				if disk.diskURL.lastPathComponent == "cloud-init-config.iso" {
 					destinationURL = location.rootURL.appendingPathComponent(cloudInitIso)

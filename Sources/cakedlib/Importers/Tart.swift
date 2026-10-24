@@ -61,7 +61,7 @@ struct TartImporter: Importer {
 		return url
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, customArguments: [String: String] = [:], runMode: Utils.RunMode) throws {
 		let vmDir = try locateVM(source: source)
 		let configURL = vmDir.appendingPathComponent("config.json")
 		let diskURL = vmDir.appendingPathComponent("disk.img")
