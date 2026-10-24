@@ -295,13 +295,8 @@ struct ComposeEditorView: View {
 			return ComposeFile.template
 		}
 
-		if let stored = project.storedComposeFile(), let yaml = try? YAMLEncoder().encode(stored) {
-			return """
-				# Rebuilt from "\(project.name)"'s registered definition (compose.json).
-				# The original compose.yml and its comments are not kept. Saving re-runs `compose up`:
-				# a service whose VM already exists is only started, not rebuilt.
-				\(yaml)
-				"""
+		if let stored = project.storedComposeFile(), let text = try? ComposeFile.editableYAML(for: stored) {
+			return text
 		}
 
 		guard let yaml = try? YAMLEncoder().encode(project.reconstructedComposeFile()) else {

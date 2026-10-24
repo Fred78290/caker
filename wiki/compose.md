@@ -299,6 +299,23 @@ cakectl compose ls
 
 Cette commande ne nécessite pas de fichier compose — elle lit le registre global des projets.
 
+### `compose edit`
+
+Reconstruit la définition d'un projet enregistré à partir du registre (`compose.json`), l'ouvre dans `$VISUAL`/`$EDITOR` (`vi` par défaut) et, si elle a changé, l'applique avec `compose up` (la définition éditée remplace celle enregistrée). Le registre ne conserve pas le `compose.yml` d'origine : les commentaires et la mise en forme ne sont pas restaurés.
+
+```
+cakectl compose edit [-o <path>] [--wait-ip-timeout <seconds>] <name>
+caked    compose edit [-o <path>] [--wait-ip-timeout <seconds>] <name>
+```
+
+| Option | Défaut | Description |
+| --- | --- | --- |
+| `-o, --output <path>` | aucun | Écrire la définition dans ce fichier au lieu de l'éditer (rien n'est appliqué) |
+| `--wait-ip-timeout <seconds>` | 180 | Délai maximal d'attente de l'IP |
+| `<name>` | requis | Nom du projet enregistré |
+
+Le nom du projet ne peut pas changer. Si l'édition est invalide, le message d'erreur indique le fichier temporaire où elle a été conservée. `cakectl compose edit` demande à un `caked` qui renvoie la définition enregistrée ; avec un `caked` plus ancien, la commande échoue plutôt que d'appliquer une reconstruction partielle.
+
 ### `compose init`
 
 Écrit un modèle `compose.yml` commenté dans le répertoire courant.
@@ -317,7 +334,7 @@ caked    compose init [--force]
 Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans son interface — disponible dans tous les modes de connexion, y compris `.app` (VM embarquées dans le processus, sans `caked` séparé), puisque la logique Compose ne dépend d'aucun processus serveur.
 
 - **Catégorie « Compose » de la barre latérale** — liste tous les projets enregistrés (mise à jour toutes les 3 secondes, il n'y a pas de mécanisme de notification push pour Compose). Chaque ligne affiche un résumé (« n/m en cours »), un indicateur d'état, et propose Éditer / Démarrer-ou-Arrêter / Supprimer une fois sélectionnée. Un panneau de détail affiche le statut de chaque service individuellement.
-- **Éditeur Compose** — un éditeur YAML brut plutôt qu'un formulaire structuré complet (la richesse polymorphe du format — formes courtes/longues pour `depends_on`/`environment`/`ports`/`volumes` — rendrait un formulaire complet disproportionné pour une première version). Pré-rempli avec le modèle par défaut pour un nouveau projet, ou une reconstruction du projet existant pour une édition (seuls le nom et l'image de chaque service sont mémorisés par le registre — ports, volumes, environnement, réseaux et depends_on doivent être ré-ajoutés si nécessaire). Un indicateur « Analyse OK » / « Erreur d'analyse : … » se met à jour en direct pendant la frappe ; « Enregistrer et démarrer » relance simplement `compose up` avec la définition éditée : les nouveaux services sont construits, ceux dont la VM existe déjà sont seulement démarrés (voir `compose up`). Un petit formulaire « Ajouter un service » insère un bloc YAML préformaté sans avoir à éditer le YAML brut pour un ajout simple.
+- **Éditeur Compose** — un éditeur YAML brut plutôt qu'un formulaire structuré complet (la richesse polymorphe du format — formes courtes/longues pour `depends_on`/`environment`/`ports`/`volumes` — rendrait un formulaire complet disproportionné pour une première version). Pré-rempli avec le modèle par défaut pour un nouveau projet, ou la définition enregistrée du projet existant pour une édition (le `compose.yml` d'origine et ses commentaires ne sont pas conservés ; avec un `caked` ancien, seuls le nom et l'image de chaque service sont restaurés). Un indicateur « Analyse OK » / « Erreur d'analyse : … » se met à jour en direct pendant la frappe ; « Enregistrer et démarrer » relance simplement `compose up` avec la définition éditée : les nouveaux services sont construits, ceux dont la VM existe déjà sont seulement démarrés (voir `compose up`). Un petit formulaire « Ajouter un service » insère un bloc YAML préformaté sans avoir à éditer le YAML brut pour un ajout simple.
 - **Extras de la barre de menus** — un sous-menu « Compose » liste les projets enregistrés avec des actions Ouvrir/Démarrer/Arrêter par projet, plus un élément « Nouveau projet compose… » qui ouvre directement l'éditeur.
 
 ## Résolution DNS entre services
@@ -696,6 +713,23 @@ cakectl compose ls
 
 This command does not need a compose file — it reads the global project registry.
 
+### `compose edit`
+
+Rebuilds a registered project's definition from the registry (`compose.json`), opens it in `$VISUAL`/`$EDITOR` (`vi` by default) and, if it changed, applies it with `compose up` (the edited definition replaces the registered one). The registry does not keep the original `compose.yml`, so comments and formatting are not restored.
+
+```
+cakectl compose edit [-o <path>] [--wait-ip-timeout <seconds>] <name>
+caked    compose edit [-o <path>] [--wait-ip-timeout <seconds>] <name>
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `-o, --output <path>` | none | Write the definition to this file instead of editing it (nothing is applied) |
+| `--wait-ip-timeout <seconds>` | 180 | Max time to wait for the IP |
+| `<name>` | required | Name of the registered project |
+
+The project name cannot change. If the edit is invalid, the error names the temporary file where it was kept. `cakectl compose edit` asks a `caked` that returns the registered definition; against an older `caked` it fails rather than apply a partial reconstruction.
+
 ### `compose init`
 
 Write a commented `compose.yml` template in the current directory.
@@ -714,7 +748,7 @@ caked    compose init [--force]
 Beyond the CLI, the `caker` app offers full Compose management in its own interface — available in every connection mode, including `.app` (VMs embedded in-process, no separate `caked`), since the Compose logic has no server-process dependency at all.
 
 - **"Compose" sidebar category** — lists every registered project (polled every 3 seconds; there's no push-notification mechanism for Compose state). Each row shows a summary ("n/m running"), a status indicator, and offers Edit / Start-or-Stop / Delete once selected. A detail pane shows each service's individual status.
-- **Compose Editor** — a raw-YAML editor rather than a fully structured form (the format's polymorphic richness — short/long forms for `depends_on`/`environment`/`ports`/`volumes` — would make a complete structured form out of proportion for a first pass). Seeded from the default template for a new project, or a best-effort reconstruction of an existing one for editing (only each service's name and image are remembered by the registry — ports, volumes, environment, networks and depends_on must be re-added if the project needs them). A live "Parses OK" / "Parse error: …" indicator updates as you type; "Save & Start" simply re-runs `compose up` with the edited definition: new services are built, services whose VM already exists are only started (see `compose up`). A small "Add service" form inserts a formatted YAML block for a quick addition without hand-editing the raw YAML.
+- **Compose Editor** — a raw-YAML editor rather than a fully structured form (the format's polymorphic richness — short/long forms for `depends_on`/`environment`/`ports`/`volumes` — would make a complete structured form out of proportion for a first pass). Seeded from the default template for a new project, or the registered definition of an existing one for editing (the original `compose.yml` and its comments are not kept; against an older `caked` only each service's name and image are restored). A live "Parses OK" / "Parse error: …" indicator updates as you type; "Save & Start" simply re-runs `compose up` with the edited definition: new services are built, services whose VM already exists are only started (see `compose up`). A small "Add service" form inserts a formatted YAML block for a quick addition without hand-editing the raw YAML.
 - **Menu bar extras** — a "Compose" submenu lists registered projects with per-project Open/Start/Stop actions, plus a "New compose project…" item that opens the editor directly.
 
 ## DNS resolution between services

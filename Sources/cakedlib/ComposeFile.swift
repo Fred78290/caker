@@ -888,6 +888,85 @@ public struct ComposeFile: Codable {
 	}
 }
 
+extension ComposeFile {
+	/// The registered definition as editable YAML, behind a comment explaining where it came from.
+	/// The registry (`compose.json`) keeps the parsed definition, not the original `compose.yml`
+	/// text, so comments and formatting are not preserved. Shared by the Compose Editor in `caker`
+	/// and `compose edit` in `caked`/`cakectl`.
+	public static func editableYAML(for compose: ComposeFile) throws -> String {
+		let yaml = try YAMLEncoder().encode(compose)
+
+		return """
+			# Rebuilt from "\(compose.name)"'s registered definition (compose.json).
+			# The original compose.yml and its comments are not kept. Saving re-runs `compose up`:
+			# a service whose VM already exists is only started, not rebuilt.
+			\(yaml)
+			"""
+	}
+
+	/// Decodes text edited from `editableYAML(for:)`. The project name must not change: the edit
+	/// replaces the definition registered under `expectedName`, and a different name would silently
+	/// register a second project instead.
+	public static func decodeEdited(_ text: String, expectedName: String) throws -> ComposeFile {
+		let compose = try YAMLDecoder().decode(ComposeFile.self, from: text)
+
+		guard compose.name == expectedName else {
+			throw ServiceError(String(format: String(localized: "The compose name must stay '%@' (found '%@'). Use `compose up` with a file to register a new project."), expectedName, compose.name))
+		}
+
+		return compose
+	}
+
+	/// Opens `yaml` in `$VISUAL`/`$EDITOR` (`vi` when neither is set) and returns the edited text,
+	/// or `nil` when it was left unchanged. The editor runs through `sh -c`, so a command with
+	/// arguments such as `code -w` works.
+	public static func editInEditor(_ yaml: String) throws -> (text: String, file: URL)? {
+		let environment = ProcessInfo.processInfo.environment
+		let editor = [environment["VISUAL"], environment["EDITOR"]].compactMap { $0 }.first { $0.isEmpty == false } ?? "vi"
+		let file = FileManager.default.temporaryDirectory.appendingPathComponent("compose-\(UUID().uuidString).yml")
+
+		try yaml.write(to: file, atomically: true, encoding: .utf8)
+
+		// Not Foundation's `Process`: it starts the child in its own process group, which on a
+		// terminal is a background group, so a full-screen editor like `vi` is stopped by
+		// SIGTTOU/SIGTTIN and the command appears to do nothing. `posix_spawn` without
+		// `POSIX_SPAWN_SETPGROUP` keeps the editor in the terminal's foreground group.
+		let arguments = ["/bin/sh", "-c", "\(editor) \"$0\"", file.path]
+		var cArguments: [UnsafeMutablePointer<CChar>?] = arguments.map { strdup($0) } + [nil]
+		defer { cArguments.forEach { free($0) } }
+
+		var pid: pid_t = 0
+		let spawnStatus = posix_spawn(&pid, "/bin/sh", nil, nil, cArguments, environ)
+
+		guard spawnStatus == 0 else {
+			try? FileManager.default.removeItem(at: file)
+			throw ServiceError(String(format: String(localized: "Unable to start the editor '%@': %@"), editor, String(cString: strerror(spawnStatus))))
+		}
+
+		var waitStatus: Int32 = 0
+
+		while waitpid(pid, &waitStatus, 0) == -1 && errno == EINTR {}
+
+		// WIFEXITED / WEXITSTATUS, which Swift doesn't import.
+		let exitedNormally = (waitStatus & 0x7f) == 0
+		let exitCode = (waitStatus >> 8) & 0xff
+
+		guard exitedNormally && exitCode == 0 else {
+			try? FileManager.default.removeItem(at: file)
+			throw ServiceError(String(format: String(localized: "The editor '%@' exited with status %d"), editor, exitedNormally ? exitCode : waitStatus & 0x7f))
+		}
+
+		let edited = try String(contentsOf: file, encoding: .utf8)
+
+		guard edited != yaml else {
+			try? FileManager.default.removeItem(at: file)
+			return nil
+		}
+
+		return (edited, file)
+	}
+}
+
 extension ComposeReplyList.ComposeInfo {
 	/// The definition registered in `compose.json`, decoded from `composeDatas`. `nil` when the
 	/// daemon that answered `ls` predates the field or the payload doesn't decode — callers then fall
