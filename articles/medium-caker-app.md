@@ -64,6 +64,8 @@ The same step holds the guest account: an **administrator name and password**, a
 
 ### Windows 11
 
+![Windows](images/caker-app/22-windows.png)
+
 When the ISO's file name contains `windows` (or `win11`), the wizard recognizes a Windows image and adds three Windows-only settings to the **Choose OS** step:
 
 - **Product key**, optional, checked as you leave the field
