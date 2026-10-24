@@ -889,6 +889,17 @@ public struct ComposeFile: Codable {
 }
 
 extension ComposeReplyList.ComposeInfo {
+	/// The definition registered in `compose.json`, decoded from `composeDatas`. `nil` when the
+	/// daemon that answered `ls` predates the field or the payload doesn't decode — callers then fall
+	/// back to `reconstructedComposeFile()`.
+	public func storedComposeFile() -> ComposeFile? {
+		guard self.composeDatas.isEmpty == false else {
+			return nil
+		}
+
+		return try? YAMLDecoder().decode(ComposeFile.self, from: self.composeDatas)
+	}
+
 	/// Best-effort reconstruction of a startable `ComposeFile` from what the registry still knows
 	/// about this project (name + each service's image). None of the `ls`/`ps` RPCs return the
 	/// original raw compose definition (ports/volumes/environment/networks/`depends_on`) back to the

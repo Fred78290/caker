@@ -8,6 +8,7 @@
 import CakeAgentLib
 import Foundation
 import GRPCLib
+import Yams
 
 public struct ComposeHandler {
 	// "default" is deliberately not in this set — see `provisionNetworks` below, it now needs to
@@ -429,7 +430,11 @@ public struct ComposeHandler {
 				}
 			}
 
-			composeFiles.append(ComposeReplyList.ComposeInfo(name: fileName, services: services))
+			// The registry keeps the whole definition; ship it so a client can rebuild the original
+			// compose.yml (Compose Editor) instead of the names-and-images reconstruction.
+			let composeDatas = (try? YAMLEncoder().encode(app.composeFile)).map { Data($0.utf8) } ?? Data()
+
+			composeFiles.append(ComposeReplyList.ComposeInfo(name: fileName, services: services, composeDatas: composeDatas))
 		}
 
 		return ComposeReplyList(composeFiles: composeFiles, success: true, reason: "")

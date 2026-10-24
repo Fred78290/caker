@@ -57,6 +57,30 @@ final class ComposeProjectStatusTests: XCTestCase {
 		XCTAssertEqual(self.makeInfo(services: []).primaryAction, .start)
 	}
 
+	func testStoredComposeFileRestoresTheWholeRegisteredDefinition() throws {
+		var db = ComposeService()
+		db.image = "ubuntu:24.04"
+		var web = ComposeService()
+		web.image = "ubuntu:24.04"
+		web.dependsOn = .list(["db"])
+		web.packages = ["nginx"]
+		let stored = ComposeFile(name: "demo", services: ["db": db, "web": web])
+		let database = try ComposeFileDatabase(FileManager.default.temporaryDirectory.appendingPathComponent("compose-\(UUID().uuidString).json"))
+
+		try database.upsert("demo", ComposeFileDatabase.ComposeFileStatus(composeFile: stored))
+
+		let info = try XCTUnwrap(ComposeHandler.list(database: database, runMode: .user).composeFiles.first)
+		let restored = try XCTUnwrap(info.storedComposeFile())
+
+		XCTAssertEqual(restored.name, "demo")
+		XCTAssertEqual(restored.services["web"]?.dependsOn?.serviceNames, ["db"])
+		XCTAssertEqual(restored.services["web"]?.packages, ["nginx"])
+	}
+
+	func testStoredComposeFileIsNilWithoutPayload() {
+		XCTAssertNil(self.makeInfo(services: [("app", "ubuntu:24.04", false)]).storedComposeFile())
+	}
+
 	func testReconstructedComposeFileCarriesNameAndImagesOnly() {
 		let info = self.makeInfo(services: [
 			("database", "postgres:16", true),
