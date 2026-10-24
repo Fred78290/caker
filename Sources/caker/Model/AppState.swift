@@ -967,7 +967,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				throw ServiceError(String(localized: "Multipass: failed to get driver: \(stderr)"))
 			}
 
-			return stdout
+			return stdout.trimmingCharacters(in: .whitespacesAndNewlines)
 		}
 
 		let output = try Bundle.execSandboxed("multipass", with: ["list", "--format", "json"]) { (exitCode, stdout, stderr) in
