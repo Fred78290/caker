@@ -1,6 +1,7 @@
+import CakeAgentLib
+import Dynamic
 import Foundation
 import Virtualization
-import CakeAgentLib
 
 public protocol GuestPlateForm {
 	func bootLoader() throws -> VZBootLoader
@@ -13,6 +14,7 @@ public protocol GuestPlateForm {
 struct LinuxPlateform: GuestPlateForm {
 	let nvramURL: URL
 	let needsNestedVirtualization: Bool
+	let machineIdentifier: VZGenericMachineIdentifier
 
 	func bootLoader() throws -> VZBootLoader {
 		let result = VZEFIBootLoader()
@@ -25,11 +27,80 @@ struct LinuxPlateform: GuestPlateForm {
 	func platform() throws -> VZPlatformConfiguration {
 		let config: VZGenericPlatformConfiguration = VZGenericPlatformConfiguration()
 
+		config.machineIdentifier = self.machineIdentifier
+
 		if #available(macOS 15, *) {
 			config.isNestedVirtualizationEnabled = needsNestedVirtualization
 		}
 
 		return config
+	}
+
+	func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration {
+		let result: VZVirtioGraphicsDeviceConfiguration = VZVirtioGraphicsDeviceConfiguration()
+
+		#if DEBUG
+			Logger(self).trace("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+		#endif
+
+		result.scanouts = [
+			VZVirtioGraphicsScanoutConfiguration(
+				widthInPixels: Int(screenSize.width),
+				heightInPixels: Int(screenSize.height)
+			)
+		]
+
+		return result
+	}
+
+	func keyboards(_ suspendable: Bool) -> [VZKeyboardConfiguration] {
+		[VZUSBKeyboardConfiguration()]
+	}
+
+	func pointingDevices(_ suspendable: Bool) -> [VZPointingDeviceConfiguration] {
+		[VZUSBScreenCoordinatePointingDeviceConfiguration()]
+	}
+}
+
+struct WindowsPlatform: GuestPlateForm {
+	let nvramURL: URL
+	let needsNestedVirtualization: Bool
+	let machineIdentifier: VZGenericMachineIdentifier
+
+	func bootLoader() throws -> VZBootLoader {
+		let result = VZEFIBootLoader()
+
+		result.variableStore = VZEFIVariableStore(url: nvramURL)
+
+		return result
+	}
+
+	func platform() throws -> VZPlatformConfiguration {
+		let config: VZGenericPlatformConfiguration = VZGenericPlatformConfiguration()
+
+		config.machineIdentifier = self.machineIdentifier
+
+		if #available(macOS 15, *) {
+			config.isNestedVirtualizationEnabled = needsNestedVirtualization
+		}
+
+		try self.enableWindowsCPUFeatures(config)
+
+		return config
+	}
+
+	/// On Apple silicon, Windows Boot Manager never gets past its first instructions unless the virtual CPU
+	/// emulates the performance monitoring unit (and the fine-grained traps that go with it). The framework only
+	/// offers these as private setters, so they are called by selector at run time. They are ARM features: an
+	/// Intel host calls nothing (WINDOWS_INTEL_PLAN.md step 4 settles whether x64 needs an equivalent).
+	/// Not available in the App Store build, which can't ship private API.
+	private func enableWindowsCPUFeatures(_ config: VZGenericPlatformConfiguration) throws {
+		#if APPSTORE
+			throw ServiceError(String(localized: "Windows VMs are not supported in the App Store build"))
+		#elseif arch(arm64)
+			Dynamic(config)._setPerformanceMonitoringUnitEmulationEnabled(true)
+			Dynamic(config)._setFineGrainedTrapsEmulationEnabled(true)
+		#endif
 	}
 
 	func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration {

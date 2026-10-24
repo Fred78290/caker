@@ -46,6 +46,17 @@ extension View {
 		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
 	}
 
+	/// `fixed`: the content can't change size (min, ideal and max are `minSize`), which makes the window non-resizable
+	/// under `windowResizability(.contentSize)`
+	@ViewBuilder
+	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize, fixed: Bool) -> some View {
+		if fixed {
+			frame(minWidth: minSize.width, idealWidth: minSize.width, maxWidth: minSize.width, minHeight: minSize.height, idealHeight: minSize.height, maxHeight: minSize.height)
+		} else {
+			frame(label, minSize: minSize, idealSize: idealSize)
+		}
+	}
+
 	func frame(_ label: String = "View", minSize: CGSize) -> some View {
 		#if DEBUG
 			Logger(label).trace("frame(minSize: \(minSize)")
@@ -204,7 +215,8 @@ struct HostVirtualMachineView: View {
 							Button("Show cursor", systemImage: showsHostCursor ? "pointer.arrow.slash" : "pointer.arrow") {
 								showsHostCursor.toggle()
 							}
-							.help("Show/Hide host cursor in VM view")
+							.keyboardShortcut("c", modifiers: [.control, .option])
+							.help("Show/Hide host cursor in VM view (⌃⌥C)")
 							.disabled(document.status.isRunning == false)
 						}
 					}

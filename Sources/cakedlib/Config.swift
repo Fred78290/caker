@@ -248,9 +248,23 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["dynamicPortForwarding"] as? Bool ?? false }
 	}
 
+	/// The frame segment (MiB) of the Windows guest's display driver, which bounds the display size (see
+	/// `WindowsDisplayLimit`). Recorded at install from the driver the media carried; nil for a guest installed before
+	/// that, which has the original driver's 16.
+	public var windowsFrameSegmentMiB: Int? {
+		set { self.config["windowsFrameSegmentMiB"] = newValue }
+		get { self.config["windowsFrameSegmentMiB"] as? Int }
+	}
+
 	public var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
-		get { self.config["displayRefit"] as? Bool ?? false }
+		get {
+			if self.hasFixedWindowsDisplay {
+				return false
+			}
+
+			return self.config["displayRefit"] as? Bool ?? false
+		}
 	}
 
 	public var instanceID: String {
@@ -453,9 +467,17 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 
 	public var display: ViewSize {
 		set {
-			self.config["display"] = DisplaySize(viewSize: newValue)
+			if self.hasFixedWindowsDisplay {
+				self.config["display"] = DisplaySize(width: 1024, height: 768)
+			} else {
+				self.config["display"] = DisplaySize(viewSize: newValue)
+			}
 		}
 		get {
+			if self.hasFixedWindowsDisplay {
+				return ViewSize.standard
+			}
+
 			if let display = self.config["display"] as? DisplaySize {
 				return ViewSize(width: display.width, height: display.height)
 			}
@@ -671,17 +693,37 @@ extension CakeConfig {
 
 	public func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
 		switch self.os {
+		case .linux:
+			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
+		case .windows:
+			#if APPSTORE
+				throw ServiceError(String(localized: "Windows 11 ISO installation is not supported in the App Store version of Caked. Please use the direct download version from https://caked.app/download"))
+			#else
+				return WindowsPlatform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
+			#endif
+
 		#if arch(arm64)
 			case .darwin:
 				return DarwinPlateform(nvramURL: nvramURL, ecid: self.getECID(), hardwareModel: self.getHardwareModel()!)
-		#endif
-		case .linux:
-			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
-		#if !arch(arm64)
+		#else
 			default:
 				throw ServiceError(String(localized: "Unsupported plateform"))
 		#endif
 		}
+	}
+
+	public func setMachineIdentitier(_ machineIdentifier: VZGenericMachineIdentifier) {
+		self.ecid = machineIdentifier.dataRepresentation
+	}
+
+	public func getMachineIdentitier() -> VZGenericMachineIdentifier {
+		if let ecid = self.ecid {
+			if let ecid = VZGenericMachineIdentifier(dataRepresentation: ecid) {
+				return ecid
+			}
+		}
+
+		return VZGenericMachineIdentifier()
 	}
 
 	#if arch(arm64)
@@ -715,6 +757,20 @@ extension CakeConfig {
 }
 
 extension VirtualMachineConfiguration {
+	/// A Windows guest: EFI/generic-platform like a Linux VM (`os == .linux`), but with the device set a
+	/// stock Windows installer can drive and without the Linux-only cloud-init/agent/IMDS plumbing.
+	/// `os` stays `.linux` rather than gaining a case, since that value is also a wire/proto enum.
+	public var isWindowsGuest: Bool {
+		self.os == .windows || (self.os == .linux && self.configuredPlatform == .windows)
+	}
+
+	/// A Windows guest that has the stock display driver (no `windowsFrameSegmentMiB` recorded: it was installed with only
+	/// WHQL-signed drivers, `WINDOWS_WHQL_ONLY`, or before caker's driver existed). That driver shows a corrupted picture when
+	/// the display size changes, so the guest keeps the size it booted with and its window must not be resizable.
+	public var hasFixedWindowsDisplay: Bool {
+		self.isWindowsGuest && self.windowsFrameSegmentMiB == nil
+	}
+
 	public func getMacAddress() -> VZMACAddress? {
 		if let addr = self.macAddress {
 			return VZMACAddress(string: addr)
@@ -900,7 +956,7 @@ extension VirtualMachineConfiguration {
 				readOnly: false,
 				synchronizationMode: .full)
 
-			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
+			return self.rootStorageDevice(attachment: blockAttachment)
 		} else {
 			if FileManager.default.fileExists(atPath: diskPath) == false {
 				throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
@@ -908,7 +964,7 @@ extension VirtualMachineConfiguration {
 
 			let asif = rootDiskURL.asifDisk
 
-			return VZVirtioBlockDeviceConfiguration(
+			return self.rootStorageDevice(
 				attachment: try VZDiskImageStorageDeviceAttachment(
 					url: rootDiskURL,
 					readOnly: false,
@@ -916,6 +972,16 @@ extension VirtualMachineConfiguration {
 					synchronizationMode: .full
 				))
 		}
+	}
+
+	/// A Windows guest has no inbox virtio-blk driver, so its system disk is exposed as an NVMe
+	/// namespace (Windows Setup and PE both ship `stornvme`); every other guest keeps virtio-blk.
+	private func rootStorageDevice(attachment: VZStorageDeviceAttachment) -> VZStorageDeviceConfiguration {
+		if self.os == .windows {
+			return VZNVMExpressControllerDeviceConfiguration(attachment: attachment)
+		}
+
+		return VZVirtioBlockDeviceConfiguration(attachment: attachment)
 	}
 
 	public func additionalDiskAttachments() throws -> [VZStorageDeviceConfiguration] {
@@ -935,7 +1001,7 @@ extension VirtualMachineConfiguration {
 				}
 
 				do {
-					return try $0.configuration(relativeTo: self.locationURL)
+					return try $0.configuration(relativeTo: self.locationURL, windowsGuest: self.os == .windows)
 				} catch {
 					Logger(self).error("Failed to create disk attachment for \($0.description): \(error)")
 					return nil

@@ -12,6 +12,7 @@ import NIOPortForwarding
 public enum VirtualizedOS: String, Codable, Sendable {
 	case darwin
 	case linux
+	case windows
 }
 
 public enum Architecture: String, Codable, CustomStringConvertible, Identifiable, Sendable {
@@ -220,9 +221,12 @@ public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 		// it can never match the already-lowercased `rawValue` above — including when reading back
 		// a value this same type previously wrote out via its own `.rawValue` (see CakeConfig.configuredPlatform).
 		// RHEL's official ISO filenames use "rhel", not "redhat" (e.g. "rhel-9.4-x86_64-dvd.iso"), so
-		// .redhat needs that as an additional alias.
+		// .redhat needs that as an additional alias. Microsoft's own Windows ISO filenames never contain the
+		// word "windows" either (e.g. "Win11_25H2_English_Arm64_v2.iso"), so .windows matches "win10"/"win11".
 		let value = Self.allCases.first {
-			rawValue.contains($0.rawValue.lowercased()) || ($0 == .redhat && rawValue.contains("rhel"))
+			rawValue.contains($0.rawValue.lowercased())
+				|| ($0 == .redhat && rawValue.contains("rhel"))
+				|| ($0 == .windows && (rawValue.contains("windows11") || rawValue.contains("win11") || rawValue.contains("win10")))
 		}
 
 		if let value = value {
@@ -260,6 +264,8 @@ public protocol VirtualMachineConfiguration {
 	var osRelease: String? { set get }
 	var dynamicPortForwarding: Bool { set get }
 	var displayRefit: Bool { set get }
+	/// Windows guests: the frame segment (MiB) of the display driver, which bounds the display size. nil is the stock driver's 16.
+	var windowsFrameSegmentMiB: Int? { set get }
 	var instanceID: String { set get }
 	var dhcpClientID: String? { set get }
 	var sshAuthorizedKey: String? { set get }
@@ -298,6 +304,8 @@ extension Caked.Configuration.VirtualizedOS {
 			self = .linux
 		case .darwin:
 			self = .darwin
+		case .windows:
+			self = .microsoft
 		}
 	}
 }
@@ -505,6 +513,9 @@ extension VirtualMachineConfiguration {
 				$0.height = Int32(display.height)
 			}
 			$0.displayRefit = self.displayRefit
+			if let windowsFrameSegmentMiB {
+				$0.windowsFrameSegmentMiB = UInt32(windowsFrameSegmentMiB)
+			}
 			$0.mounts = self.mounts.map({ .init($0) })
 			$0.attachedDisks = self.attachedDisks.map({ .init($0) })
 			$0.sockets = self.sockets.map({ .init($0) })

@@ -19,7 +19,7 @@ public struct SandboxLimitationsView: View {
 			bodySection
 			footerSection
 		}
-		.frame(width: 520, height: 670)
+		.frame(width: 520, height: 720)
 		.shadow(radius: 10)
 		.onAppear {
 			hasSeenSandboxSplash = true
@@ -54,6 +54,7 @@ public struct SandboxLimitationsView: View {
 				LimitationRow(icon: "externaldrive.badge.exclamationmark", text: String(localized: "Resizing an ASIF disk and attaching physical block devices from the command line are unavailable"))
 				LimitationRow(icon: "network.badge.shield.half.filled", text: String(localized: "Reaching IMDS at the AWS-style 169.254.169.254 address needs a redirect the sandbox blocks"))
 				LimitationRow(icon: "network.slash", text: String(localized: "The Compose DNS resolver (reaching VMs by name, e.g. mariadb.myapp.compose.internal) is unavailable — it needs a port redirect the sandbox blocks"))
+				LimitationRow(icon: "pc", text: String(localized: "Windows 11 guests are unavailable — the installer needs host tools the sandbox blocks (hdiutil, diskutil, rsync), and the App Store build does not run Windows VMs"))
 			}
 			.padding(.horizontal, 8)
 

@@ -848,6 +848,16 @@ public nonisolated struct Caked_Caked: Sendable {
       set {_uniqueStorage()._provisioned = newValue}
     }
 
+    /// Windows guests: the frame segment (MiB) of the display driver, which bounds the display size; absent when it is the stock driver's 16
+    public var windowsFrameSegmentMiB: UInt32 {
+      get {_storage._windowsFrameSegmentMiB ?? 0}
+      set {_uniqueStorage()._windowsFrameSegmentMiB = newValue}
+    }
+    /// Returns true if `windowsFrameSegmentMiB` has been explicitly set.
+    public var hasWindowsFrameSegmentMiB: Bool {_storage._windowsFrameSegmentMiB != nil}
+    /// Clears the value of `windowsFrameSegmentMiB`. Subsequent reads from it will return its default value.
+    public mutating func clearWindowsFrameSegmentMiB() {_uniqueStorage()._windowsFrameSegmentMiB = nil}
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     /// VirtualizedOS represents the type of virtualized operating system
@@ -856,6 +866,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case unsupported // = 0
       case darwin // = 1
       case linux // = 2
+      case microsoft // = 3
       case UNRECOGNIZED(Int)
 
       public init() {
@@ -867,6 +878,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case 0: self = .unsupported
         case 1: self = .darwin
         case 2: self = .linux
+        case 3: self = .microsoft
         default: self = .UNRECOGNIZED(rawValue)
         }
       }
@@ -876,6 +888,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case .unsupported: return 0
         case .darwin: return 1
         case .linux: return 2
+        case .microsoft: return 3
         case .UNRECOGNIZED(let i): return i
         }
       }
@@ -885,6 +898,7 @@ public nonisolated struct Caked_Caked: Sendable {
         .unsupported,
         .darwin,
         .linux,
+        .microsoft,
       ]
 
     }
@@ -7836,7 +7850,7 @@ nonisolated extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisioned\0\u{1}sshAuthorizedKey\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisioned\0\u{1}sshAuthorizedKey\0\u{1}windowsFrameSegmentMiB\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -7886,6 +7900,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
     var _rootDisk: String? = nil
     var _diskFormat: Caked_Caked.Configuration.DiskFormat? = nil
     var _provisioned: Bool = false
+    var _windowsFrameSegmentMiB: UInt32? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -7943,6 +7958,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       _rootDisk = source._rootDisk
       _diskFormat = source._diskFormat
       _provisioned = source._provisioned
+      _windowsFrameSegmentMiB = source._windowsFrameSegmentMiB
     }
   }
 
@@ -8008,6 +8024,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         case 45: try { try decoder.decodeSingularEnumField(value: &_storage._diskFormat) }()
         case 46: try { try decoder.decodeSingularBoolField(value: &_storage._provisioned) }()
         case 47: try { try decoder.decodeSingularStringField(value: &_storage._sshAuthorizedKey) }()
+        case 48: try { try decoder.decodeSingularUInt32Field(value: &_storage._windowsFrameSegmentMiB) }()
         default: break
         }
       }
@@ -8161,6 +8178,9 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       try { if let v = _storage._sshAuthorizedKey {
         try visitor.visitSingularStringField(value: v, fieldNumber: 47)
       } }()
+      try { if let v = _storage._windowsFrameSegmentMiB {
+        try visitor.visitSingularUInt32Field(value: v, fieldNumber: 48)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -8217,6 +8237,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         if _storage._rootDisk != rhs_storage._rootDisk {return false}
         if _storage._diskFormat != rhs_storage._diskFormat {return false}
         if _storage._provisioned != rhs_storage._provisioned {return false}
+        if _storage._windowsFrameSegmentMiB != rhs_storage._windowsFrameSegmentMiB {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -8227,7 +8248,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
 }
 
 nonisolated extension Caked_Caked.Configuration.VirtualizedOS: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unsupported\0\u{1}darwin\0\u{1}linux\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unsupported\0\u{1}darwin\0\u{1}linux\0\u{1}microsoft\0")
 }
 
 nonisolated extension Caked_Caked.Configuration.Architecture: SwiftProtobuf._ProtoNameProviding {

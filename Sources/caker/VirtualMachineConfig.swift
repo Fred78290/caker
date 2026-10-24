@@ -178,6 +178,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		}
 	}
 
+	/// Read-only here: recorded by the Windows installer (see `CakeConfig.windowsFrameSegmentMiB`), not edited from the GUI
+	var windowsFrameSegmentMiB: Int? = nil
+
 	var displayRefitIfChanged: Bool? {
 		self.changedFields?.contains(\.displayRefit) == true ? self.displayRefit : nil
 	}
@@ -581,6 +584,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.osRelease = config.osRelease
 		self.dynamicPortForwarding = config.dynamicPortForwarding
 		self.displayRefit = config.displayRefit
+		self.windowsFrameSegmentMiB = config.windowsFrameSegmentMiB
 		self.instanceID = config.instanceID
 		self.dhcpClientID = config.dhcpClientID
 		self.sshAuthorizedKey = config.sshAuthorizedKey

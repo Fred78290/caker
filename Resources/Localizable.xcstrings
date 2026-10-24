@@ -395,6 +395,18 @@
         }
       }
     },
+    "%@ failed (%d): %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ a échoué (%2$d) : %3$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "%@ has mounted volumes. Please unmount them before use." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -402,6 +414,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ comporte des volumes montés. Veuillez les démonter avant utilisation."
+          }
+        }
+      }
+    },
+    "%@ has no ARM64 or x64 Windows boot loader" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ne contient pas de chargeur de démarrage Windows ARM64 ou x64"
           }
         }
       }
@@ -428,6 +451,17 @@
         }
       }
     },
+    "%@ is a Windows %@ installation ISO, but this Mac can only run Windows %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est un ISO d’installation de Windows %@, mais ce Mac ne peut exécuter que Windows %@"
+          }
+        }
+      }
+    },
     "%@ is already running." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -438,6 +472,18 @@
           }
         }
       }
+    },
+    "%@ is not a Windows installation ISO" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n’est pas un ISO d’installation de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "%@ is not sudoable" : {
       "extractionState" : "manual",
@@ -597,6 +643,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld Instances"
+          }
+        }
+      }
+    },
+    "%lld MB" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Mo"
           }
         }
       }
@@ -1757,12 +1813,34 @@
         }
       }
     },
+    "Boot the Windows installation media" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Démarrer le support d’installation de Windows"
+          }
+        }
+      }
+    },
     "Bootable iso url." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "URL iso amorçable."
+          }
+        }
+      }
+    },
+    "Booting the Windows installation media" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Démarrage du support d’installation de Windows"
           }
         }
       }
@@ -2202,6 +2280,18 @@
         }
       }
     },
+    "Can't attach %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’attacher %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Can't autodetect a supported shell." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2256,6 +2346,18 @@
           }
         }
       }
+    },
+    "Can't mount %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de monter %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Can't serialize vmnet network: %@" : {
       "extractionState" : "manual",
@@ -3443,6 +3545,42 @@
         }
       }
     },
+    "Copying the virtio drivers" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie des pilotes virtio"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Copying the Windows installation files" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie des fichiers d’installation de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Corrupt Windows image: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Windows corrompue : %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Could not determine the macOS version from the IPSW filename '%@'. Specify --macos-version (%@) or provide your own template with --template." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3799,6 +3937,18 @@
           }
         }
       }
+    },
+    "Creating the installation disk" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Création du disque d’installation"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Creation date not available for: %@" : {
       "extractionState" : "manual",
@@ -4542,6 +4692,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disques additionnels"
+          }
+        }
+      }
+    },
+    "Display buffer size" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille du tampon d'affichage"
           }
         }
       }
@@ -5854,6 +6014,17 @@
         }
       }
     },
+    "Finish windows setup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Finalisation de la configuration de Windows"
+          }
+        }
+      }
+    },
     "first ip used for the configured shared network, e.g., \"192.168.105.1\"" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7061,6 +7232,40 @@
         }
       }
     },
+    "Installing Windows" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installation de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Installing Windows needs wimlib: run `brew install wimlib`" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows nécessite wimlib : exécutez `brew install wimlib`"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size: the window can't be resized." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installe uniquement les pilotes signés par Microsoft, ceux de virtio-win. Pas de mode test-signing ni de filigrane « Test Mode », mais pas de son, et l’affichage de l’invité garde sa taille : la fenêtre n’est pas redimensionnable."
+          }
+        }
+      }
+    },
     "Instance %@ is deleted and cannot be imported." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7619,6 +7824,16 @@
         }
       }
     },
+    "Invalid product key: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Clé de produit invalide : format attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+          }
+        }
+      }
+    },
     "Invalid response encoding from privileged script" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7865,6 +8080,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "clé"
+          }
+        }
+      }
+    },
+    "Key" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Clé"
           }
         }
       }
@@ -8393,6 +8619,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Niveau de journal (critical, error, warning, notice, debug, trace)"
+          }
+        }
+      }
+    },
+    "Log on automatically" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir la session automatiquement"
           }
         }
       }
@@ -10703,6 +10939,18 @@
         }
       }
     },
+    "Not a Windows image (WIM) file" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce n’est pas un fichier image Windows (WIM)"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Not authorized" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10719,6 +10967,18 @@
           }
         }
       }
+    },
+    "Not found in the Windows image: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introuvable dans l’image Windows : %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "nothing here" : {
       "extractionState" : "manual",
@@ -12147,6 +12407,30 @@
         }
       }
     },
+    "Preparing the Windows installation media" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation du support d’installation de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Preparing the Windows installer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation de l’installateur de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Preset image" : {
       "localizations" : {
         "fr" : {
@@ -12218,6 +12502,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le script privilégié a échoué avec le code de sortie %1$d : %2$@"
+          }
+        }
+      }
+    },
+    "Product key" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Clé de produit"
           }
         }
       }
@@ -12843,6 +13137,18 @@
           }
         }
       }
+    },
+    "Reading the Windows installation ISO" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture de l’ISO d’installation de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Reads .cakerenv from the current directory (or --env-file) and stops VMs in reverse depends-on order." : {
       "extractionState" : "manual",
@@ -15012,12 +15318,12 @@
         }
       }
     },
-    "Show/Hide host cursor in VM view" : {
+    "Show/Hide host cursor in VM view (⌃⌥C)" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher/Masquer le curseur de l'hôte dans la vue VM"
+            "value" : "Afficher/Masquer le curseur de l'hôte dans la vue VM (⌃⌥C)"
           }
         }
       }
@@ -15915,6 +16221,18 @@
           }
         }
       }
+    },
+    "Starting Windows for the first time" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premier démarrage de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Starts services defined in compose.yml in depends_on order. Creates VMs that do not yet exist." : {
       "extractionState" : "manual",
@@ -16873,6 +17191,17 @@
         }
       }
     },
+    "The frame segment size in WINDOWS_FRAME_SEGMENT_MIB is not valid: expected %d to %d MiB" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La taille du segment de trame de WINDOWS_FRAME_SEGMENT_MIB n'est pas valide : attendu de %d à %d Mio"
+          }
+        }
+      }
+    },
     "The hardware model of %@ is not supported on this Mac" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16883,6 +17212,30 @@
           }
         }
       }
+    },
+    "The installation disk has no GPT" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le disque d’installation n’a pas de table GPT"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "The installation disk has no such partition" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le disque d’installation n’a pas cette partition"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "The IPv6 prefix to use with shared mode" : {
       "extractionState" : "manual",
@@ -17052,6 +17405,28 @@
         }
       }
     },
+    "The OpenSSH archive doesn't match its expected checksum (%@)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "L’archive OpenSSH ne correspond pas à la somme de contrôle attendue (%@)"
+          }
+        }
+      }
+    },
+    "The OpenSSH archive has no sshd.exe" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’archive OpenSSH ne contient pas sshd.exe"
+          }
+        }
+      }
+    },
     "The option '%@' does not take any value, but '%@' was specified." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17217,6 +17592,61 @@
         }
       }
     },
+    "The value of WINDOWS_AUDIO is not valid: expected 1 or 0" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La valeur de WINDOWS_AUDIO n'est pas valide : 1 ou 0 attendu"
+          }
+        }
+      }
+    },
+    "The value of WINDOWS_AUTOLOGON is not valid: expected 1 or 0" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La valeur de WINDOWS_AUTOLOGON n'est pas valide : 1 ou 0 attendu"
+          }
+        }
+      }
+    },
+    "The value of WINDOWS_WHQL_ONLY is not valid: expected 1 or 0" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La valeur de WINDOWS_WHQL_ONLY n'est pas valide : 1 ou 0 attendu"
+          }
+        }
+      }
+    },
+    "The virtio-win ISO has no %@ driver for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO virtio-win n’a pas de pilote %@ pour %@"
+          }
+        }
+      }
+    },
+    "The virtio-win ISO has no virtio-fs service for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO virtio-win n’a pas de service virtio-fs pour %@"
+          }
+        }
+      }
+    },
     "The virtual machine is running. Do you want terminate it them and quit?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17267,6 +17697,41 @@
           }
         }
       }
+    },
+    "The Windows installation ISO has no image to install" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO d’installation de Windows ne contient aucune image à installer"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "La clé de produit Windows de WINDOWS_KEY n’est pas valide : format attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+          }
+        }
+      }
+    },
+    "The WinFsp installer doesn't match its expected checksum (%@)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installateur WinFsp ne correspond pas à la somme de contrôle attendue (%@)"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "This App Store build of Caker runs inside the macOS App Sandbox, which restricts which files, sockets, and directories it may access. A few features are limited as a result:" : {
       "comment" : "Body text of the sandbox limitations splash screen.",
@@ -18982,6 +19447,18 @@
         }
       }
     },
+    "Unsupported Windows image: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Windows non prise en charge : %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Update agent" : {
       "localizations" : {
         "fr" : {
@@ -19112,6 +19589,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utiliser les noms de réseau unifiés"
+          }
+        }
+      }
+    },
+    "Use only WHQL-signed drivers (no sound, no display resizing)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "N’utiliser que des pilotes signés WHQL (ni son, ni redimensionnement de l’affichage)"
           }
         }
       }
@@ -20543,6 +21030,230 @@
           }
         }
       }
+    },
+    "Windows 11 guests are unavailable — the installer needs host tools the sandbox blocks (hdiutil, diskutil, rsync), and the App Store build does not run Windows VMs" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les invités Windows 11 sont indisponibles — l’installateur a besoin d’outils de l’hôte que le sandbox bloque (hdiutil, diskutil, rsync), et la version App Store ne lance pas les VM Windows"
+          }
+        }
+      }
+    },
+    "Windows can only be installed unattended: pass --autoinstall" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows ne peut être installé que sans surveillance : ajoutez --autoinstall"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Windows did not finish setting itself up" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows n’a pas terminé sa configuration"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Windows first boot, run %lld of %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Premier démarrage de Windows, tentative %lld sur %lld"
+          }
+        }
+      }
+    },
+    "Windows installation failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Échec de l’installation de Windows"
+          }
+        }
+      }
+    },
+    "Windows installation failed:\n%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’installation de Windows :\n%@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Windows installation finished" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Installation de Windows terminée"
+          }
+        }
+      }
+    },
+    "Windows installation is not available in the App Store build" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows n’est pas disponible dans la version App Store"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Windows installation timed out" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Délai dépassé pour l’installation de Windows"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Windows setup finished successfully" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Installation de Windows terminée avec succès"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but directory sharing may not work" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Installation de Windows terminée, mais le partage de répertoires risque de ne pas fonctionner"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but resizing the display may not work" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows est terminée, mais le redimensionnement de l’affichage ne fonctionne peut-être pas"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the cakeagent service may not be running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Installation de Windows terminée, mais le service cakeagent risque de ne pas être en cours d'exécution"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the display buffer size may not be applied" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'installation de Windows est terminée, mais la taille du tampon d'affichage n'a peut-être pas été appliquée"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the GPU driver may not load" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows est terminée, mais le pilote GPU ne se chargera peut-être pas"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the OpenSSH server may not be running" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Installation de Windows terminée, mais le serveur OpenSSH risque de ne pas être en cours d’exécution"
+          }
+        }
+      }
+    },
+    "Windows setup finished, but the sound driver may not load" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'installation de Windows est terminée, mais le pilote audio risque de ne pas se charger"
+          }
+        }
+      }
+    },
+    "Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows ouvre la session du compte tout seul à chaque démarrage. Le mot de passe est alors conservé en clair dans le registre de l'invité."
+          }
+        }
+      }
+    },
+    "Windows VMs are not supported in the App Store build" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les VM Windows ne sont pas prises en charge dans la version App Store"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Windows VMs are not supported on this version of macOS (missing %@)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les VM Windows ne sont pas prises en charge sur cette version de macOS (%@ manquant)"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "write_files entry for '%@' cannot set both 'content' and 'source'" : {
       "extractionState" : "manual",

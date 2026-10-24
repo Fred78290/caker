@@ -88,7 +88,8 @@ struct VNC: CakeAgentParsableCommand {
 				vncURL: vncURL,
 				screenSize: screenSize,
 				tunnel: nil,
-				allowClientResize: true,
+				// A Windows guest with the stock display driver keeps its size: the window can't be resized
+				allowClientResize: result.config.hasFixedWindowsDisplay == false,
 				provisionning: provisionning,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)

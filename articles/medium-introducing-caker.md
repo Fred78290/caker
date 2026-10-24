@@ -8,7 +8,7 @@
 
 If you develop on a Mac, you have probably needed a virtual machine at some point: a Linux box to test a deployment script, a clean macOS install to reproduce a bug, or a small cluster to try a database setup before it reaches staging. There are good tools for this already. Most of them handle one part of the job well, and you end up using one tool to download images, another to run them, and a set of shell scripts to configure the guests.
 
-**Caker** tries to cover the whole job in one toolchain. It is open source, written entirely in Swift, and built directly on Apple's **Virtualization.framework**. It installs a macOS guest from an IPSW and clicks through Setup Assistant for you. It runs a two-VM MariaDB + phpMyAdmin stack from a `compose.yml`. Each VM gets port forwarding, shared folders, an EC2-style metadata service and name resolution, and you can drive all of it from a terminal, a native desktop app or a web browser.
+**Caker** tries to cover the whole job in one toolchain. It is open source, written entirely in Swift, and built directly on Apple's **Virtualization.framework**. It installs a macOS guest from an IPSW and clicks through Setup Assistant for you, and it installs Windows 11 from an ISO with no clicks at all. It runs a two-VM MariaDB + phpMyAdmin stack from a `compose.yml`. Each VM gets port forwarding, shared folders, an EC2-style metadata service and name resolution, and you can drive all of it from a terminal, a native desktop app or a web browser.
 
 This article walks through what Caker is, how its pieces fit together, and the features you are most likely to use.
 
@@ -40,7 +40,7 @@ If you have used Docker, the split will look familiar: `caked` plays the role of
 
 Each running VM gets its own small service process, and the daemon collects their live status (CPU, memory, screenshots, state changes) and streams it to connected clients. This is how the desktop app shows live thumbnails of your VMs without polling.
 
-Caker requires **macOS 15 or later**. macOS guests require Apple Silicon. Linux guests run on Apple Silicon and on Intel Macs.
+Caker requires **macOS 15 or later**. macOS guests require Apple Silicon. Linux guests run on Apple Silicon and on Intel Macs, and so do **Windows 11** guests, as long as the ISO matches the Mac's architecture (Windows 11 for ARM on Apple Silicon, x64 on an Intel Mac).
 
 ---
 
@@ -89,7 +89,7 @@ Caker accepts several kinds of image sources, all through the same `build`/`laun
 - **Simplestreams remotes**, LXD-style: `ubuntu:noble`, `ubuntu:24.04`. Add more with `cakectl remote add`.
 - **Cloud images over HTTPS**: any qcow2 or raw image URL.
 - **OCI registries**: `oci://ghcr.io/you/image:latest`. You can also `push` your own VMs to a registry and `pull` them on another machine, after a `cakectl login`.
-- **ISO installers** for Linux distributions.
+- **ISO installers** for Linux distributions and for Windows 11.
 - **IPSW restore images** for macOS guests.
 - **Templates**: turn a configured VM into a reusable golden image with `cakectl template create my-vm golden`, then build new VMs from `template://golden`.
 
@@ -160,6 +160,46 @@ What makes these templates more reliable than a list of keystrokes and fixed del
 When a run fails, Caker keeps a **debug video** (`provision.mp4`, plain H.264) of the whole provisioning session, so you can see which screen the template stopped on.
 
 You don't have to write templates by hand. **`caked record my-vm`** opens the VM in a window and records your clicks and keystrokes as you go through the installer, then writes a ready-to-edit `.packerlite.yaml`. Its "locate mode" uses the same text recognition to record `<click text=…>` steps instead of raw coordinates. The desktop app can record the same way from its toolbar. To re-run provisioning on a VM that has already been built, use **`cakectl provision my-vm`**. It opens a live VNC view so you can watch it from another machine.
+
+---
+
+## Windows 11, installed unattended
+
+Windows 11 gets the same `--autoinstall` flag, but it is not installed by PackerLite. Windows' installer shows nothing on Virtualization.framework (Apple's firmware gives a guest no framebuffer, so the installer draws into nothing), which leaves PackerLite nothing to read. Caker has a dedicated installer for it instead:
+
+```bash
+cakectl build my-win11 iso:///path/to/Windows11_Client_arm64_en-us_26300_9457.iso \
+  --cpus 4 --memory 8192 --disk-size 64 --user admin --password admin --autoinstall
+```
+
+Two things to know before you try it. **The ISO's file name must contain `windows`** (or `win11`/`win10`, for Microsoft's own names), because that is how Caker recognizes the image. And the ISO must match your Mac: Windows 11 for ARM on Apple Silicon, x64 on an Intel Mac. You download the ISO from Microsoft yourself.
+
+What happens during the build:
+
+- Caker turns the ISO into a bootable disk that Virtualization.framework can start (the ISO as downloaded has no partition table, so the firmware can't boot it), and edits Windows' setup environment so it runs Caker's own install script.
+- That script partitions the VM's disk, applies the Windows image and drivers, and writes an answer file: a local administrator account from your `--user` and `--password`, no out-of-box experience, no Microsoft account screens.
+- On first boot, Caker finishes the setup inside the guest and restarts the VM until it is done, then reports what it installed.
+
+The result is a VM that reaches a working desktop with a display that follows the window's size, networking, shared folders (`--mount` folders show up as a drive, through WinFsp and virtio-fs), sound, an OpenSSH server with your keys already authorized, and the Caker agent running as a service. On an M4 Pro the install takes about three minutes and the first boot about four more.
+
+A few options go through `--var`, and the desktop app's wizard offers the same ones:
+
+| Variable | Effect |
+| --- | --- |
+| `WINDOWS_KEY` | A product key for the answer file |
+| `WINDOWS_FRAME_SEGMENT_MIB` | The display driver's memory, 16 to 256 MiB, which sets the biggest screen the guest accepts (32 holds 3840×2160) |
+| `WINDOWS_AUDIO=0` | Leave the sound driver out |
+| `WINDOWS_AUTOLOGON=1` | Log the account on at every start, not only once (the password then stays in the guest's registry in clear text, so it is off by default) |
+| `WINDOWS_WHQL_ONLY=1` | Install only drivers Microsoft signed (virtio-win's own): no test-signing mode and no "Test Mode" watermark, but no sound, and the guest keeps its display size, so its window can't be resized |
+
+Some of this rests on drivers that Windows does not ship. With virtio-win's stock display driver, Virtualization.framework shows a corrupted picture after a resolution change, and there is no Windows driver at all for its sound device. So Caker embeds a patched build of the open-source virtio-win display driver and an open-source virtio sound driver with a small change for Apple's device (both fixes are proposed upstream). Windows only loads signed kernel drivers, so they are **test-signed** with throwaway certificates, and the guest runs in test-signing mode: you will see a "Test Mode" watermark on the desktop.
+
+The limits are worth knowing:
+
+- **No TPM.** Virtualization.framework has no way to give a guest one, so BitLocker and device encryption are unavailable.
+- **Any language works**: Caker installs the language of the ISO you give it, so use the French or Japanese ISO and you get a French or Japanese Windows. A reboot started from inside a running Windows guest stops the VM, so you start it again.
+- **Not in the App Store edition.** The installer needs host tools the sandbox does not allow, and the App Store build does not run Windows VMs.
+- **What has been tested:** Windows 11 ARM on Apple Silicon, and Windows 11 x64 on one Intel Mac (a Core i9), both in English and in French. Other Intel CPUs are untested.
 
 ---
 
@@ -240,7 +280,7 @@ If a whole stack is more than you need, a **`.cakerenv`** file at the root of a 
 
 `Caker.app` is a SwiftUI application that follows macOS 26's Liquid Glass design, and it covers most of what the CLI does:
 
-- **A creation wizard** with an image catalog picker, resources, shared folders, ports, sockets, and provisioning options and variables. During an unattended install, the wizard shows the VM's screen live.
+- **A creation wizard** with an image catalog picker, resources, shared folders, ports, sockets, and provisioning options and variables, including the Windows options (product key, display memory, automatic logon). During an unattended Linux or macOS install, the wizard shows the VM's screen live.
 - **Mosaic or list view** of your VMs, with live screenshots, CPU and memory, and a detail pane.
 - **Embedded VMs.** In app mode, VMs run inside Caker.app with no daemon required. You can also connect it to a local or remote `caked`.
 - **Compose management**: a sidebar listing your projects with per-service status, a YAML editor that validates the file as you type, and Start/Stop from the menu bar.
@@ -282,7 +322,7 @@ caked service listen --rest
 Caker comes in two editions:
 
 - **Direct download** from [GitHub Releases](https://github.com/Fred78290/caker/releases): every feature, with Sparkle automatic updates.
-- **App Store edition**: runs inside the macOS App Sandbox. A few features can't work there because they need a short `sudo` helper or raw device access: Compose DNS, the `169.254.169.254` IMDS alias, physical block devices, and resizing ASIF disks from the CLI. The app lists these limitations the first time it launches.
+- **App Store edition**: runs inside the macOS App Sandbox. A few features can't work there because they need a short `sudo` helper, raw device access or a private setting: the Windows 11 installer, Compose DNS, the `169.254.169.254` IMDS alias, physical block devices, and resizing ASIF disks from the CLI. The app lists these limitations the first time it launches.
 
 Both editions use the same engine, and IMDS itself still works in the sandboxed edition, on its gateway address.
 
@@ -294,6 +334,7 @@ A few implementation details:
 
 - **All Swift**: Swift Argument Parser for the CLIs, grpc-swift for the RPC layer, SwiftNIO for networking, port forwarding and SSH, Vapor for the REST API, and Apple's `Containerization` library for OCI and ext4 handling.
 - **macOS 27 guests** install even where Apple's `VZMacOSInstaller` stalls (a known regression when installing macOS 27 on a macOS 26 host). For these guests, Caker uses an alternative restore path: it boots the VM in DFU mode and restores the IPSW through Apple's device-restore framework, much as Apple Configurator restores a physical Mac.
+- **Windows guests, without wimlib.** Caker edits Windows' setup image (a `boot.wim` archive) with its own pure-Swift reader and writer, including a decoder for Microsoft's LZX compression. No `wimlib` or other external tool is needed on the Mac.
 - **One process per VM.** Each running VM has its own service process, and a crash affects only that VM.
 - **Disk conversion without external tools.** QCOW2 and VMDK images are converted to raw in pure Swift.
 
@@ -311,4 +352,4 @@ If you try it, I would like to hear what you build with it, and what you think i
 
 ---
 
-*Tags: macOS, Virtualization, Swift, DevOps, Developer Tools*
+*Tags: macOS, Windows, Virtualization, Swift, DevOps, Developer Tools*

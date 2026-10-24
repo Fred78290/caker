@@ -63,15 +63,22 @@ extension VirtualMachine {
 public struct VMBuilder {
 	public static let IPSWStartNotification = NSNotification.Name("IPSWStartNotification")
 	public static let IPSWTerminatedNotification = NSNotification.Name("IPSWTerminatedNotification")
+	public static let WinPEStartNotification = NSNotification.Name("WinPEStartNotification")
+	public static let WinPETerminatedNotification = NSNotification.Name("WinPETerminatedNotification")
 
 	public static let memoryMinSize: UInt64 = 512 * MoB
+	static let windowsMinCPU: UInt16 = 2
+	static let windowsMinMemory: UInt64 = 4096
+	static let windowsMinDiskSize: UInt64 = 64
 
 	private static func build(id: UUID, vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
 		let imageURL = URL(spaced: options.image)!
+		var autoinstall = options.autoinstall
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
 		var password = options.password
+		var virtualizedOS: VirtualizedOS = .linux
 
 		defer {
 			location.removePID()
@@ -96,11 +103,13 @@ public struct VMBuilder {
 
 				_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
 
+				virtualizedOS = .darwin
+
 				config = CakeConfig(
 					location: location.rootURL,
 					rootDisk: options.root,
 					diskFormat: options.diskFormat,
-					os: .darwin,
+					os: virtualizedOS,
 					autostart: options.autostart,
 					configuredUser: options.user,
 					configuredPassword: password,
@@ -134,7 +143,7 @@ public struct VMBuilder {
 
 				config.macAddress = VZMACAddress.randomLocallyAdministered().string
 
-				if config.os == .darwin {
+				if virtualizedOS == .darwin {
 					#if arch(arm64)
 						config.ecid = VZMacMachineIdentifier().dataRepresentation
 					#else
@@ -142,18 +151,36 @@ public struct VMBuilder {
 					#endif
 				}
 			} else {
+				// Desktop vs. server variant of the same distro (e.g. Fedora Workstation vs. Fedora
+				// Server), detected the same way as configuredPlatform above — from the image
+				// URL/filename, not the ISO's actual contents. Defaults to server (false) when
+				// neither word appears, matching osDesktop's own default. Persisted here (like
+				// osName for macOS) so a later standalone `caked provision` has it without needing
+				// the original ISO.
+				let imageNameLowercased = options.image.lowercased()
+				let plateform = SupportedPlatform(rawValue: imageNameLowercased)
+
 				// Create NVRAM
 				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 
 				if imageSource == .iso {
-					attachedDisks.append(DiskAttachement(diskPath: URL(spaced: options.image)!))
+					if plateform == .windows {
+						#if APPSTORE
+							throw ServiceError(String(localized: "Windows 11 ISO installation is not supported in the App Store version of Caked. Please use the direct download version from https://caked.app/download"))
+						#else
+							virtualizedOS = .windows
+							autoinstall = true
+						#endif
+					} else {
+						attachedDisks.append(DiskAttachement(diskPath: URL(spaced: options.image)!))
+					}
 				}
 
 				config = CakeConfig(
 					location: location.rootURL,
 					rootDisk: options.root,
 					diskFormat: options.diskFormat,
-					os: .linux,
+					os: virtualizedOS,
 					autostart: options.autostart,
 					configuredUser: options.user,
 					configuredPassword: password,
@@ -168,23 +195,14 @@ public struct VMBuilder {
 					memorySizeMin: Self.memoryMinSize,
 					screenSize: options.screenSize)
 
-				let autoinstall = options.autoinstall && imageSource == .iso
+				let autoinstall = autoinstall && imageSource == .iso
 
-				config.useCloudInit = imageSource != .iso || autoinstall
-				config.agent = imageSource != .iso || autoinstall
+				config.useCloudInit = (imageSource != .iso || autoinstall) && virtualizedOS == .linux
+				config.agent = (imageSource != .iso || autoinstall) && virtualizedOS == .linux
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
 				config.sshAuthorizedKey = options.sshAuthorizedKey
-
-				// Desktop vs. server variant of the same distro (e.g. Fedora Workstation vs. Fedora
-				// Server), detected the same way as configuredPlatform above — from the image
-				// URL/filename, not the ISO's actual contents. Defaults to server (false) when
-				// neither word appears, matching osDesktop's own default. Persisted here (like
-				// osName for macOS) so a later standalone `caked provision` has it without needing
-				// the original ISO.
-				let imageNameLowercased = options.image.lowercased()
-				let plateform = SupportedPlatform(rawValue: imageNameLowercased)
-
+				config.ecid = VZGenericMachineIdentifier().dataRepresentation
 				config.osName = plateform.rawValue
 				config.osDesktop = imageNameLowercased.contains("workstation") || imageNameLowercased.contains("desktop")
 			}
@@ -195,7 +213,7 @@ public struct VMBuilder {
 			if config.rootDisk == nil {
 				config.diskSize = options.diskSize * GiB
 
-				if config.os == .darwin {
+				if virtualizedOS == .darwin {
 					try location.expandDisk(options.diskSize, format: config.diskFormat)
 				} else {
 					try location.resizeDisk(options.diskSize, format: config.diskFormat)
@@ -208,13 +226,13 @@ public struct VMBuilder {
 			config.console = options.consoleURL?.description
 			config.forwardedPorts = options.forwardedPorts
 			config.dynamicPortForwarding = options.dynamicPortForwarding
-			config.suspendable = options.suspendable && config.os == .darwin
+			config.suspendable = options.suspendable && virtualizedOS == .darwin
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 			config.source = imageSource
 
 			try config.save()
 
-			if config.os == .linux && config.useCloudInit {
+			if virtualizedOS == .linux && config.useCloudInit {
 				let cloudInit = try CloudInit(
 					plateform: SupportedPlatform(rawValue: options.image),
 					userName: options.user,
@@ -267,7 +285,7 @@ public struct VMBuilder {
 
 						try config.save()
 
-						if let vm, options.autoinstall {
+						if let vm, autoinstall {
 							try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
 							try await vm.restartAfterIPSW()
@@ -463,18 +481,35 @@ public struct VMBuilder {
 	}
 
 	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
-		let resolvedOptions = try options.resolveImageId()
+		var resolvedOptions = try options.resolveImageId()
 
-		// An `--alias`-resolved ISO already had cpu/memory raised to its catalog entry's own
-		// minimum above (see `resolveImageId`'s "Also raise cpu/memory..." step) — every entry's
-		// minimum is well above the bare defaults, so this only fires for a plain `--image
-		// some.iso` build with no `--alias`/`--cpus`/`--memory` override, where there's no catalog
-		// minimum to fall back on at all. Most ISO installers need more than 1 CPU/512MB to boot
-		// reliably, so this is worth a heads-up rather than a silent under-provisioned build.
-		if resolvedOptions.imageSource == .iso, resolvedOptions.cpu == BuildOptions.defaultCPU, resolvedOptions.memory == BuildOptions.defaultMemory {
-			Logger("VMBuilder").warn(
-				"Building \(vmName) from an ISO image with the default \(BuildOptions.defaultCPU) CPU / \(BuildOptions.defaultMemory)MB memory — most installers need more to boot reliably; pass --cpus/--memory explicitly, or --alias with a matching catalog id, to size the VM appropriately."
-			)
+		if resolvedOptions.imageSource == .iso {
+			if SupportedPlatform(rawValue: resolvedOptions.image) == .windows {
+				resolvedOptions.autoinstall = true
+
+				if resolvedOptions.cpu < Self.windowsMinCPU || resolvedOptions.memory < Self.windowsMinMemory || resolvedOptions.diskSize < Self.windowsMinDiskSize {
+					// Windows 11's own minimums (4 GiB RAM, 2 CPUs, 64 GB disk). The bundled template bypasses Setup's
+					// hardware checks, which only lets the install start — it doesn't make a smaller VM usable.
+					Logger("VMBuilder").warn(
+						"Windows 11 needs at least \(Self.windowsMinCPU) CPUs, \(Self.windowsMinMemory)MB memory and a \(Self.windowsMinDiskSize)GB disk; \(vmName) is configured with \(resolvedOptions.cpu) CPUs, \(resolvedOptions.memory)MB and \(resolvedOptions.diskSize)GB — pass --cpus/--memory/--disk-size accordingly. Automatically adjusting the VM configuration to meet the minimum requirements."
+					)
+
+					resolvedOptions.cpu = max(resolvedOptions.cpu, Self.windowsMinCPU)
+					resolvedOptions.memory = max(resolvedOptions.memory, Self.windowsMinMemory)
+					resolvedOptions.diskSize = max(resolvedOptions.diskSize, Self.windowsMinDiskSize)
+				}
+			} else if resolvedOptions.imageSource == .iso, resolvedOptions.cpu == BuildOptions.defaultCPU, resolvedOptions.memory == BuildOptions.defaultMemory {
+				// An `--alias`-resolved ISO already had cpu/memory raised to its catalog entry's own
+				// minimum above (see `resolveImageId`'s "Also raise cpu/memory..." step) — every entry's
+				// minimum is well above the bare defaults, so this only fires for a plain `--image
+				// some.iso` build with no `--alias`/`--cpus`/`--memory` override, where there's no catalog
+				// minimum to fall back on at all. Most ISO installers need more than 1 CPU/512MB to boot
+				// reliably, so this is worth a heads-up rather than a silent under-provisioned build.
+				Logger("VMBuilder").warn(
+					"Building \(vmName) from an ISO image with the default \(BuildOptions.defaultCPU) CPU / \(BuildOptions.defaultMemory)MB memory — most installers need more to boot reliably; pass --cpus/--memory explicitly, or --alias with a matching catalog id, to size the VM appropriately."
+				)
+
+			}
 		}
 
 		let options = try await self.cloneImage(vmName: vmName, location: location, options: resolvedOptions, runMode: runMode, progressHandler: progressHandler)

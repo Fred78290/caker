@@ -169,6 +169,8 @@ extension VirtualizedOS {
 			self = .darwin
 		case .linux:
 			self = .linux
+		case .microsoft:
+			self = .windows
 		default:
 			return nil
 		}
@@ -337,6 +339,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var osRelease: String?
 	public var dynamicPortForwarding: Bool
 	public var displayRefit: Bool
+	public var windowsFrameSegmentMiB: Int?
 	public var instanceID: String
 	public var dhcpClientID: String?
 	public var sshAuthorizedKey: String?
@@ -388,6 +391,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.osRelease = from.osRelease
 		self.dynamicPortForwarding = from.dynamicPortForwarding
 		self.displayRefit = from.displayRefit
+		self.windowsFrameSegmentMiB = from.windowsFrameSegmentMiB
 		self.instanceID = from.instanceID
 		self.dhcpClientID = from.dhcpClientID
 		self.sshAuthorizedKey = from.sshAuthorizedKey
@@ -439,6 +443,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.osRelease = from.osRelease
 		self.dynamicPortForwarding = from.dynamicPortForwarding
 		self.displayRefit = from.displayRefit
+		self.windowsFrameSegmentMiB = from.hasWindowsFrameSegmentMiB ? Int(from.windowsFrameSegmentMiB) : nil
 		self.instanceID = from.instanceID
 		self.dhcpClientID = from.dhcpClientID
 		self.sshAuthorizedKey = from.sshAuthorizedKey

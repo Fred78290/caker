@@ -75,6 +75,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "macos15"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "win11"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

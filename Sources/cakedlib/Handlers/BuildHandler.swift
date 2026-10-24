@@ -146,31 +146,41 @@ public struct BuildHandler {
 						}
 
 						if result.autoinstall && result.imageSource == .iso {
-							// An explicit --template always wins; otherwise falls back to a built-in template for
-							// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
-							// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
-							// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
-							// distro — in which case no provisioning runs unless --template was given.
-							let config = try location.config()
-							let imageURL = URL(spaced: result.image)!
-							let explicitTemplate = (result.provisionTemplate?.isEmpty == false) ? result.provisionTemplate : nil
+							if SupportedPlatform(rawValue: result.image) == .windows {
+								// Windows has its own unattended installer (see WindowsInstaller); PackerLite's OCR-driven
+								// templates can't drive it, since nothing is shown while Windows' installer runs.
+								let config = try location.config()
+								let installer = WindowsInstaller(
+									location: location, config: config, windowsISO: URL(spaced: result.image)!, username: config.configuredUser, password: config.configuredPassword ?? "admin", productKey: result.provisionVarsDict[WindowsInstallationMedia.productKeyVariable], frameSegmentMiB: result.provisionVarsDict[WindowsInstallationMedia.frameSegmentVariable], audio: result.provisionVarsDict[WindowsInstallationMedia.audioVariable], autologon: result.provisionVarsDict[WindowsInstallationMedia.autologonVariable], whqlOnly: result.provisionVarsDict[WindowsInstallationMedia.whqlOnlyVariable], wizardID: result.identifier, queue: queue, runMode: runMode)
 
-							if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
-								let template = try await PackerLiteTemplate.load(from: content, variables: result.setupVariables(config, runMode: runMode))
-
-								try await Task.sleep(nanoseconds: 2 * 100_000_000)
-
-								try await PackerLiteEngine.internalProvisionning(id: result.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
-									let progress = progress.progressValue
-
-									if case .terminated(_, _) = progress {
-										terminatedSent = true
-									}
-
-									progressHandler(progress)
-								}
+								try await installer.install(progressHandler: progressHandler)
 							} else {
-								Logger(self).info("No PackerLite template found for \(imageURL.lastPathComponent), skipping provisioning")
+								// An explicit --template always wins; otherwise falls back to a built-in template for
+								// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
+								// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
+								// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
+								// distro — in which case no provisioning runs unless --template was given.
+								let config = try location.config()
+								let imageURL = URL(spaced: result.image)!
+								let explicitTemplate = (result.provisionTemplate?.isEmpty == false) ? result.provisionTemplate : nil
+
+								if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
+									let template = try await PackerLiteTemplate.load(from: content, variables: result.setupVariables(config, runMode: runMode))
+
+									try await Task.sleep(nanoseconds: 2 * 100_000_000)
+
+									try await PackerLiteEngine.internalProvisionning(id: result.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
+										let progress = progress.progressValue
+
+										if case .terminated(_, _) = progress {
+											terminatedSent = true
+										}
+
+										progressHandler(progress)
+									}
+								} else {
+									Logger(self).info("No PackerLite template found for \(imageURL.lastPathComponent), skipping provisioning")
+								}
 							}
 						}
 

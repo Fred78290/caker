@@ -43,7 +43,8 @@ struct VNC: GrpcParsableCommand {
 				vncURL: vncURL,
 				screenSize: screenSize,
 				tunnel: tunnel,
-				allowClientResize: true,
+				// A Windows guest with the stock display driver keeps its size: the window can't be resized
+				allowClientResize: config.hasFixedWindowsDisplay == false,
 				provisionning: result.infos.status == .provisioning,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)

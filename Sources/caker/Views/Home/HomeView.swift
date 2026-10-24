@@ -504,7 +504,7 @@ struct HomeView: View {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
 					.colorSchemeForColor()
 					.restorationState(.disabled)
-					.frame(width: 700, height: 750)
+					.frame(width: 730, height: 750)
 			}
 		case .compose:
 			ComposeEditorView(

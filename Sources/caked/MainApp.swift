@@ -83,8 +83,10 @@ struct MainWindow: Scene {
 		let idealWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let idealHeight = CGFloat(display.height)
-		let maxWidth: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.width) : .infinity
-		let maxHeight: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.height) : .infinity
+		// A Windows guest with the stock display driver keeps the size it booted with: its window can't grow either
+		let fixedSize = self.vm.mode == .recording || self.vm.mode == .provisioning || self.params.config.hasFixedWindowsDisplay
+		let maxWidth: CGFloat = fixedSize ? CGFloat(display.width) : .infinity
+		let maxHeight: CGFloat = fixedSize ? CGFloat(display.height) : .infinity
 
 		WindowGroup(self.params.name, id: "VM") {
 			VMView(self.vm, params: self.params)

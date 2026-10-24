@@ -1,6 +1,7 @@
 import AppKit
 import ArgumentParser
 import CakeAgentLib
+import Dynamic
 import Foundation
 import GRPCLib
 import NIO
@@ -29,6 +30,34 @@ public protocol VirtualMachineDelegate: AnyObject {
 	}
 #endif
 
+extension VZVirtualMachine.State {
+	public var description: String {
+		switch self {
+		case .stopped:
+			return "stopped"
+		case .running:
+			return "running"
+		case .paused:
+			return "paused"
+		case .error:
+			return "error"
+		case .starting:
+			return "starting"
+		case .pausing:
+			return "pausing"
+		case .resuming:
+			return "resuming"
+		case .stopping:
+			return "stopping"
+		case .saving:
+			return "saving"
+		case .restoring:
+			return "restoring"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
 extension SSHError.Kind {
 	var description: String {
 		switch self {
@@ -114,6 +143,19 @@ extension SSHError.Kind {
 			return String(localized: "key authentication failed")
 		}
 	}
+}
+
+extension VZVirtualMachineConfiguration {
+	#if UNSIGNED_CAKER
+		public var testIgnoreEntitlementChecks: Bool {
+			get {
+				return Dynamic(self)._testIgnoreEntitlementChecks as Bool? ?? false
+			}
+			set {
+				Dynamic(self)._setTestIgnoreEntitlementChecks(newValue)
+			}
+		}
+	#endif
 }
 
 extension VZVirtualMachine {
@@ -230,7 +272,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
 		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
 		// unavailable there.
-		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
+		if IMDSNetworkInterface.imdsEnabled {
 			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
 
@@ -254,7 +296,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		devices.append(contentsOf: additionalDiskAttachments)
 
-		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
+		// Without a sink the guest's playback is accepted by the device and then discarded.
+		let soundOutput = VZVirtioSoundDeviceOutputStreamConfiguration()
+
+		soundOutput.sink = VZHostAudioOutputStreamSink()
+		soundDeviceConfiguration.streams = [soundOutput]
 
 		configuration.bootLoader = try plateform.bootLoader()
 		configuration.cpuCount = Int(config.cpuCount)
@@ -295,6 +341,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			let consoleURL = try config.consoleAttachment()
 
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		} else if config.isWindowsGuest {
+			// Windows binds its virtio-vsock driver (installed with the other virtio drivers) when the device is
+			// there, and the first boot should see the same hardware as every later one.
+			configuration.socketDevices.append(VZVirtioSocketDeviceConfiguration())
 		}
 
 		if mode != .provisioning && location.template == false && runMode != .app {
@@ -302,6 +352,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
 			}
 		}
+
+		#if UNSIGNED_CAKER
+			configuration.testIgnoreEntitlementChecks = true
+		#endif
 
 		try configuration.validate()
 
@@ -598,7 +652,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 			#else
 				return VZVirtualMachineStartOptions()
 			#endif
-		case .linux:
+		case .linux, .windows:
 			return VZVirtualMachineStartOptions()
 		}
 	}
@@ -902,7 +956,10 @@ extension VirtualMachine {
 
 		try? self.saveScreenshot()
 
-		if self.env.config.os != .darwin && self.virtualMachine.canRequestStop {
+		if self.env.config.isWindowsGuest && self.virtualMachine.canStop {
+			self.shutdownWindowsGuest(completionHandler: completionHandler)
+			self.didChangedState(false)
+		} else if self.env.config.os != .darwin && self.virtualMachine.canRequestStop {
 			self.logger.info("Requesting stop VM \(self.location.name)...")
 
 			try self.virtualMachine.requestStop(completionHandler: completionHandler)
@@ -929,6 +986,44 @@ extension VirtualMachine {
 
 			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
+			}
+		}
+	}
+
+	/// Stops a Windows guest the way a Linux one stops on `requestStop()`.
+	///
+	/// `requestStop()` only presses the virtual power button, and Windows never sees it: Virtualization.framework gives
+	/// a generic-platform guest no ACPI tables, so there is no power button for Windows to bind. The request is
+	/// accepted and nothing happens, which leaves the VM (and its `vmrun` process) running forever. The guest is shut
+	/// down through the agent instead; without an agent, or if it doesn't power off in time, the VM is stopped.
+	private func shutdownWindowsGuest(timeout: TimeInterval = 60, completionHandler: StopCompletionHandler? = nil) {
+		// The agent call and the wait block, and `vmQueue` is the queue `stopVM` needs
+		DispatchQueue.global().async {
+			if self.config.agent, (try? self.location.agentURL.exists()) == true {
+				do {
+					self.logger.info("Shutting down Windows guest \(self.location.name) through its agent...")
+
+					let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.location.agentURL, timeout: 5, runMode: self.env.runMode)
+
+					try client.shutdown().log()
+
+					let deadline = Date().addingTimeInterval(timeout)
+
+					while self.virtualMachine.state == .running && Date() < deadline {
+						Thread.sleep(forTimeInterval: 0.1)
+					}
+				} catch {
+					self.logger.warn("Can't shut down Windows guest \(self.location.name) through its agent: \(error)")
+				}
+			} else {
+				self.logger.warn("Windows guest \(self.location.name) has no agent to shut it down, stopping it")
+			}
+
+			switch self.virtualMachine.state {
+			case .stopped, .stopping:
+				completionHandler?(nil)
+			default:
+				self.stopVM(completionHandler: completionHandler)
 			}
 		}
 	}
@@ -965,7 +1060,8 @@ extension VirtualMachine {
 // MARK: - Run VM
 extension VirtualMachine {
 	private func shouldRetryAgentInstall(for config: CakeConfig) -> Bool {
-		return config.source.supportProvisionning
+		// A Windows guest gets its agent from the installer's first boot, not over SSH
+		return config.source.supportProvisionning && config.isWindowsGuest == false
 	}
 
 	private func cancelAgentInstallRetry() {
@@ -1032,7 +1128,8 @@ extension VirtualMachine {
 		let config = self.config
 		let response = try self.location.waitIP(on: on, config: config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
 			return eventLoop.makeFutureWithTask {
-				if let runningIP = runningIP, config.agent == false {
+				// A Windows guest gets its agent from the installer's first boot: the SSH install is for Linux and macOS
+				if let runningIP = runningIP, config.agent == false, config.isWindowsGuest == false {
 					if config.installAgent {
 						do {
 							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
@@ -1196,6 +1293,10 @@ extension VirtualMachine {
 							self.suspendFromUI { _ in
 								continuation.resume()
 							}
+						}
+					} else if self.config.isWindowsGuest {
+						self.shutdownWindowsGuest { _ in
+							continuation.resume()
 						}
 					} else {
 						do {

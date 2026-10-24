@@ -375,22 +375,22 @@ extension VZVirtualMachineView {
 
 	public var showsHostCursor: Bool {
 		get {
-			guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
+			/*guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
 				return false
 			}
 
 			guard let value = object_getIvar(self, field) as? Bool else {
 				return false
-			}
+			}*/
 
-			return value
+			return Dynamic(self.framebufferView).showsCursor as Bool? ?? false
 		}
 		set {
-			guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
+			/*guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
 				return
 			}
 
-			object_setIvar(self, field, newValue)
+			object_setIvar(self, field, newValue)*/
 
 			Dynamic(self.framebufferView).showsCursor = newValue
 		}
@@ -518,6 +518,58 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	/// the event itself. Only set while a recording session is actually active — nil (the default)
 	/// is zero overhead for ordinary local-window VM display.
 	public var actionRecorder: RecordedActionHandler?
+
+	/// Most pixels the guest's display may have; nil (the default) means no limit. Set for guests whose display
+	/// driver refuses a bigger one (see `WindowsDisplayLimit`). While set, the view reconfigures the display itself,
+	/// to its own size shrunk to the limit, instead of leaving that to `automaticallyReconfiguresDisplay`.
+	public var displayPixelLimit: Int? {
+		didSet {
+			if displayPixelLimit != nil {
+				self.automaticallyReconfiguresDisplay = false
+				self.scheduleLimitedDisplayReconfigure()
+			}
+		}
+	}
+
+	private var limitedReconfigure: DispatchWorkItem?
+
+	override public func setFrameSize(_ newSize: NSSize) {
+		super.setFrameSize(newSize)
+
+		if self.displayPixelLimit != nil {
+			self.scheduleLimitedDisplayReconfigure()
+		}
+	}
+
+	/// Reconfigures the display to this view's size (in pixels) once it has stopped changing, within the limit.
+	private func scheduleLimitedDisplayReconfigure() {
+		self.limitedReconfigure?.cancel()
+
+		let work = DispatchWorkItem { [weak self] in
+			self?.reconfigureWithinLimit()
+		}
+
+		self.limitedReconfigure = work
+
+		DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: work)
+	}
+
+	private func reconfigureWithinLimit() {
+		guard #available(macOS 14.0, *), let limit = self.displayPixelLimit, let display = self.virtualMachine?.graphicsDevices.first?.displays.first else {
+			return
+		}
+
+		let scale = self.window?.backingScaleFactor ?? 1
+		let size = WindowsDisplayLimit.aligned(WindowsDisplayLimit.clamp(CGSize(width: (self.bounds.width * scale).rounded(), height: (self.bounds.height * scale).rounded()), maxPixels: limit))
+
+		guard size.width >= 1, size.height >= 1, size != display.sizeInPixels else {
+			return
+		}
+
+		self.logger.info("Reconfiguring the display to \(Int(size.width))x\(Int(size.height)) (limit \(limit) pixels)")
+
+		try? display.reconfigure(sizeInPixels: size)
+	}
 
 	/// Running VNC-style button bitmask (bit0=left, bit1=middle, bit2=right — matching
 	/// `VNCInputHandler`'s convention) built up from this view's own mouse down/up overrides, fed

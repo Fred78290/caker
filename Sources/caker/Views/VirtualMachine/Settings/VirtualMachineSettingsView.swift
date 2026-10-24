@@ -178,7 +178,10 @@ struct VirtualMachineSettingsView: View {
 			Form {
 				self.cpuCountAndMemoryView()
 				self.optionsView()
-				self.displaySizeView()
+
+				if config.hasFixedWindowsDisplay == false {
+					self.displaySizeView()
+				}
 			}.formStyle(.grouped)
 		}.frame(maxHeight: .infinity)
 	}

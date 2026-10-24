@@ -25,7 +25,7 @@ Voyez cela comme Docker : `caked` est comme le démon Docker, et `cakectl` est c
 
 ### Quelles plateformes sont supportées ?
 
-Actuellement, Caker ne supporte que macOS en raison de sa dépendance au framework Virtualization d'Apple. Le support de Linux et Windows n'est pas prévu pour le moment.
+Caker s'exécute uniquement sur macOS (hôte), en raison de sa dépendance au framework Virtualization d'Apple. Les invités peuvent être macOS, Linux et Windows 11 (installation sans surveillance avec `--autoinstall`, voir [Provisioning](provisioning) ; le nom de l'ISO doit contenir `windows`). Un hôte Linux ou Windows n'est pas prévu.
 
 ## Questions de développement
 
@@ -134,6 +134,10 @@ Oui, le service de métadonnées d'instance (IMDS) pour les VM Linux fonctionne 
 
 Non. Le résolveur DNS de Compose (joindre une VM par son nom, par exemple `mariadb.myapp.compose.internal`) a besoin d'une redirection `pf` du port 53, installée par un petit assistant root via `sudo` — ce que l'App Sandbox de macOS ne permet pas. Dans la version sandboxée, le résolveur tourne mais reste injoignable depuis les VM : la résolution par nom ne fonctionne donc pas, sans message d'erreur, et les éléments « Démarrer/Arrêter caked DNS » du menu Service de Caker.app n'y sont pas proposés. Pour contourner, joignez les VM par leur adresse IP (`cakectl infos <vm>`) ou utilisez la version en téléchargement direct. Voir [Compose](compose) et [Sandbox](sandbox).
 
+### Windows 11 est-il disponible dans la version App Store ?
+
+Non, ni pour l'installer ni pour le lancer. L'installation d'un invité Windows 11 (`--autoinstall` sur une ISO Windows) lance `hdiutil`, `diskutil` et `rsync`, ce que le bac à sable de l'App Store n'autorise pas, et la version App Store ne lance pas les VM Windows. L'assistant de création refuse une ISO Windows et `build --autoinstall` répond « L'installation de Windows n'est pas disponible dans la version App Store » ; une VM Windows installée avec l'autre version ne démarre pas non plus. Contournement : utiliser la version en téléchargement direct.
+
 ## Questions d'utilisation
 
 ### Puis-je exécuter plusieurs VM simultanément ?
@@ -226,7 +230,7 @@ Think of it like Docker: `caked` is like the Docker daemon, and `cakectl` is lik
 
 ### What platforms are supported?
 
-Currently, Caker only supports macOS due to its reliance on the Apple Virtualization framework. Linux and Windows support is not planned at this time.
+Caker only runs on macOS (as the host), due to its reliance on the Apple Virtualization framework. Guests can be macOS, Linux and Windows 11 (unattended install with `--autoinstall`, see [Provisioning](provisioning); the ISO's file name must contain `windows`). A Linux or Windows host is not planned.
 
 ## Development Questions
 
@@ -334,6 +338,10 @@ Yes, the instance metadata service (IMDS) for Linux VMs works in the sandboxed v
 ### Is Compose DNS resolution available in the App Store version?
 
 No. The Compose DNS resolver (reaching a VM by name, for example `mariadb.myapp.compose.internal`) needs a `pf` redirect of port 53, installed by a small root helper through `sudo` — which the macOS App Sandbox doesn't allow. In the sandboxed version the resolver runs but stays unreachable from any VM, so name resolution doesn't work, with no error message, and the "Start/Stop caked DNS" items in Caker.app's Service menu aren't offered there. To work around it, reach VMs by IP address (`cakectl infos <vm>`) or use the direct-download build. See [Compose](compose) and [Sandbox](sandbox).
+
+### Is Windows 11 available in the App Store version?
+
+No, neither to install nor to run one. Installing a Windows 11 guest (`--autoinstall` on a Windows ISO) runs `hdiutil`, `diskutil` and `rsync`, which the App Store sandbox does not allow, and the App Store build does not run Windows VMs. The creation wizard refuses a Windows ISO and `build --autoinstall` answers "Windows installation is not available in the App Store build"; a Windows VM installed with the other build does not start either. Workaround: use the direct-download build.
 
 ## Usage Questions
 
