@@ -830,6 +830,20 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertFalse(linux.hasFixedWindowsDisplay, "only Windows guests")
 	}
 
+	func testFixedDisplayIsKnownToCakectlFromTheWire() {
+		var message = Caked.Configuration.with {
+			$0.os = .linux
+			$0.arch = .arm64
+			$0.source = .raw
+			$0.configuredPlatform = .windows
+		}
+
+		XCTAssertTrue(CakedConfiguration(message).hasFixedWindowsDisplay, "what `cakectl vnc` reads to keep the window at the guest's size")
+
+		message.windowsFrameSegmentMiB = 32
+		XCTAssertFalse(CakedConfiguration(message).hasFixedWindowsDisplay)
+	}
+
 	func testWhqlOnlyIsOffUnlessTurnedOn() throws {
 		XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly(nil))
 		XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly("  "))

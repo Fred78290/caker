@@ -524,7 +524,7 @@ public struct VNCApp: App {
 					maxHeight: allowClientResize ? .infinity : CGFloat(appState.screenSize.height)
 				)
 				.presentedWindowToolbarStyle(.unifiedCompact)
-				.windowMinimizeBehavior(allowClientResize ? .enabled : .disabled)
+				.windowMinimizeBehavior(self.appState.provisionning ? .disabled : .enabled)
 				.windowResizeBehavior(allowClientResize ? .enabled : .disabled)
 				.windowFullScreenBehavior(allowClientResize ? .enabled : .disabled)
 				.windowToolbarFullScreenVisibility(.onHover)
