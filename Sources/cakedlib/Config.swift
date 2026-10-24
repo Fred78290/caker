@@ -750,6 +750,13 @@ extension VirtualMachineConfiguration {
 		self.os == .windows || (self.os == .linux && self.configuredPlatform == .windows)
 	}
 
+	/// A Windows guest that has the stock display driver (no `windowsFrameSegmentMiB` recorded: it was installed with only
+	/// WHQL-signed drivers, `WINDOWS_WHQL_ONLY`, or before caker's driver existed). That driver shows a corrupted picture when
+	/// the display size changes, so the guest keeps the size it booted with and its window must not be resizable.
+	public var hasFixedWindowsDisplay: Bool {
+		self.isWindowsGuest && self.windowsFrameSegmentMiB == nil
+	}
+
 	public func getMacAddress() -> VZMACAddress? {
 		if let addr = self.macAddress {
 			return VZMACAddress(string: addr)

@@ -21021,12 +21021,12 @@
         }
       }
     },
-    "Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size when the window is resized." : {
+    "Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size: the window can't be resized." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installe uniquement les pilotes signés par Microsoft, ceux de virtio-win. Pas de mode test-signing ni de filigrane « Test Mode », mais pas de son, et l’affichage de l’invité garde sa taille quand la fenêtre est redimensionnée."
+            "value" : "Installe uniquement les pilotes signés par Microsoft, ceux de virtio-win. Pas de mode test-signing ni de filigrane « Test Mode », mais pas de son, et l’affichage de l’invité garde sa taille : la fenêtre n’est pas redimensionnable."
           }
         }
       }

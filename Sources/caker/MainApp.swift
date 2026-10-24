@@ -192,16 +192,18 @@ struct MainApp: App {
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.cgSize
+			// A Windows guest with the stock display driver keeps the size it booted with: its window can't be resized
+			let fixed = document.virtualMachineConfig.hasFixedWindowsDisplay
 
 			if document.location != nil || document.url.isFileURL == false {
 				HostVirtualMachineView(document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
-					.windowResizeBehavior(.enabled)
-					.windowFullScreenBehavior(.enabled)
+					.windowResizeBehavior(fixed ? .disabled : .enabled)
+					.windowFullScreenBehavior(fixed ? .disabled : .enabled)
 					.windowToolbarFullScreenVisibility(.onHover)
 					.restorationState(.disabled)
-					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
+					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize, fixed: fixed)
 			} else {
 				self.failedLoadVirtualMachine(document.name)
 			}
@@ -216,15 +218,16 @@ struct MainApp: App {
 		WindowGroup(id: "VM", for: URL.self) { $vmURL in
 			if let vmURL, let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 				let initialSize = document.virtualMachineConfig.display.cgSize
+				let fixed = document.virtualMachineConfig.hasFixedWindowsDisplay
 
 				HostVirtualMachineView(document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
-					.windowResizeBehavior(.enabled)
-					.windowFullScreenBehavior(.enabled)
+					.windowResizeBehavior(fixed ? .disabled : .enabled)
+					.windowFullScreenBehavior(fixed ? .disabled : .enabled)
 					.windowToolbarFullScreenVisibility(.onHover)
 					.restorationState(.disabled)
-					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
+					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize, fixed: fixed)
 					.navigationTitle(document.name)
 			} else {
 				self.failedLoadVirtualMachine("Service is not runing or stopped")

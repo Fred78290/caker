@@ -1219,7 +1219,7 @@ struct VirtualMachineWizard: View {
 								// Caker's own drivers are test-signed (a trusted throwaway certificate and a "Test Mode" desktop); without
 								// them the display can't follow the window and there is no sound
 								Toggle("Use only WHQL-signed drivers (no sound, no display resizing)", isOn: $model.windowsWhqlOnly)
-									.help("Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size when the window is resized.")
+									.help("Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size: the window can't be resized.")
 									.disabled(self.model.createVM)
 									.onChange(of: model.windowsWhqlOnly) { _, whql in
 										if whql {

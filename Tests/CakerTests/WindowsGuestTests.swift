@@ -817,6 +817,19 @@ final class WindowsGuestTests: XCTestCase {
 		}
 	}
 
+	func testAWindowsGuestWithTheStockDisplayDriverHasAFixedDisplay() {
+		let windows = makeConfig(platform: .windows)
+		let linux = makeConfig(platform: .ubuntu)
+
+		windows.windowsFrameSegmentMiB = nil
+		XCTAssertTrue(windows.hasFixedWindowsDisplay, "WHQL-only, or installed before caker's driver: the window can't be resized")
+
+		windows.windowsFrameSegmentMiB = WindowsGPUDriverBinaries.frameSegmentMiB
+		XCTAssertFalse(windows.hasFixedWindowsDisplay, "caker's driver follows the window")
+
+		XCTAssertFalse(linux.hasFixedWindowsDisplay, "only Windows guests")
+	}
+
 	func testWhqlOnlyIsOffUnlessTurnedOn() throws {
 		XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly(nil))
 		XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly("  "))
