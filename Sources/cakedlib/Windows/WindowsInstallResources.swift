@@ -49,11 +49,12 @@ enum WindowsInstallResources {
 		"""#)
 
 	/// Partitions the empty system disk, applies the Windows image, adds the virtio drivers and the boot files.
-	static func installScript(for architecture: WindowsArchitecture) -> String {
-		self.installScript(for: architecture, usingFramebufferShim: architecture.usesFramebufferShim)
+	static func installScript(for architecture: WindowsArchitecture, whqlOnly: Bool = false) -> String {
+		self.installScript(for: architecture, usingFramebufferShim: architecture.usesFramebufferShim, whqlOnly: whqlOnly)
 	}
 
-	static func installScript(for architecture: WindowsArchitecture, usingFramebufferShim: Bool) -> String {
+	/// `whqlOnly`: every driver is signed by Microsoft, so nothing is added with `/ForceUnsigned` (an unsigned one fails the install).
+	static func installScript(for architecture: WindowsArchitecture, usingFramebufferShim: Bool, whqlOnly: Bool = false) -> String {
 		// The framebuffer helpers and the loader that starts them (see WindowsArchitecture.usesFramebufferShim)
 		let shim =
 			usingFramebufferShim
@@ -116,7 +117,7 @@ enum WindowsInstallResources {
 		if not "%RESULT%"=="0" goto fail
 
 		call :say Adding the virtio drivers
-		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse\#(architecture.usesCakerGPUDriver ? " /ForceUnsigned" : "")
+		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse\#(architecture.usesCakerGPUDriver && whqlOnly == false ? " /ForceUnsigned" : "")
 		set RESULT=%errorlevel%
 		copy /y X:\Windows\Logs\DISM\dism.log %T%\dism.log >nul 2>&1
 		if not "%RESULT%"=="0" goto fail

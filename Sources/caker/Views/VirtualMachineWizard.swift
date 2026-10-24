@@ -140,6 +140,8 @@ struct ShortImageInfoComparator: SortComparator {
 	var windowsFrameSegmentMiB: Int
 	/// Windows guests: log the account on at every start, not only the first one (`WINDOWS_AUTOLOGON`)
 	var windowsAutologon: Bool
+	/// Windows guests: only drivers signed by Microsoft (`WINDOWS_WHQL_ONLY`): no sound and no display following the window
+	var windowsWhqlOnly: Bool
 
 	#if arch(arm64)
 		var ipswCatalog: [VMImageEntry] {
@@ -194,6 +196,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.windowsProductKey = ""
 		self.windowsFrameSegmentMiB = WindowsInstallationMedia.defaultFrameSegmentMiB
 		self.windowsAutologon = false
+		self.windowsWhqlOnly = false
 	}
 }
 
@@ -896,7 +899,7 @@ struct VirtualMachineWizard: View {
 			VStack(alignment: .leading) {
 				Toggle("Autostart", isOn: $config.autostart).disabled(self.model.createVM)
 				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding).disabled(self.model.createVM)
-				Toggle("Refit display", isOn: $config.displayRefit).disabled(self.model.createVM)
+				Toggle("Refit display", isOn: $config.displayRefit).disabled(self.model.createVM || (self.model.supportedPlatform == .windows && self.model.windowsWhqlOnly))
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization).disabled(self.model.createVM)
 				Toggle("Use network ifnames", isOn: $config.ifname).disabled(self.model.createVM)
 
@@ -1204,7 +1207,7 @@ struct VirtualMachineWizard: View {
 									.labelsHidden()
 									.pickerStyle(.menu)
 									.frame(width: 120)
-									.disabled(self.model.createVM)
+									.disabled(self.model.createVM || self.model.windowsWhqlOnly)
 								}
 
 								// Without it Windows logs on once, to finish setup, and then waits at the lock screen: nothing that has to
@@ -1212,6 +1215,17 @@ struct VirtualMachineWizard: View {
 								Toggle("Log on automatically", isOn: $model.windowsAutologon)
 									.help("Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text.")
 									.disabled(self.model.createVM)
+
+								// Caker's own drivers are test-signed (a trusted throwaway certificate and a "Test Mode" desktop); without
+								// them the display can't follow the window and there is no sound
+								Toggle("Use only WHQL-signed drivers (no sound, no display resizing)", isOn: $model.windowsWhqlOnly)
+									.help("Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size when the window is resized.")
+									.disabled(self.model.createVM)
+									.onChange(of: model.windowsWhqlOnly) { _, whql in
+										if whql {
+											self.config.displayRefit = false
+										}
+									}
 							} else {
 								// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
 								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
@@ -1885,6 +1899,7 @@ struct VirtualMachineWizard: View {
 				if self.model.supportedPlatform == .windows {
 					provisionVars.append("\(WindowsInstallationMedia.frameSegmentVariable)=\(self.model.windowsFrameSegmentMiB)")
 					provisionVars.append("\(WindowsInstallationMedia.autologonVariable)=\(self.model.windowsAutologon ? "1" : "0")")
+					provisionVars.append("\(WindowsInstallationMedia.whqlOnlyVariable)=\(self.model.windowsWhqlOnly ? "1" : "0")")
 				}
 
 				if provisionVars.isEmpty == false {

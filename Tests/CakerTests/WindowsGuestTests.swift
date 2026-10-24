@@ -817,6 +817,33 @@ final class WindowsGuestTests: XCTestCase {
 		}
 	}
 
+	func testWhqlOnlyIsOffUnlessTurnedOn() throws {
+		XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly(nil))
+		XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly("  "))
+
+		for on in ["1", "true", "YES", " on "] {
+			XCTAssertTrue(try WindowsInstallationMedia.validatedWhqlOnly(on), on)
+		}
+
+		for off in ["0", "false", "No", "OFF"] {
+			XCTAssertFalse(try WindowsInstallationMedia.validatedWhqlOnly(off), off)
+		}
+
+		XCTAssertThrowsError(try WindowsInstallationMedia.validatedWhqlOnly("maybe"), "refused rather than guessed")
+		XCTAssertEqual(WindowsInstallationMedia.whqlOnlyVariable, "WINDOWS_WHQL_ONLY")
+	}
+
+	func testWhqlOnlyAddsTheDriversWithoutForcingUnsignedOnes() {
+		for architecture in [WindowsArchitecture.arm64, .amd64] {
+			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("/Add-Driver /Driver:%T%\\drivers /Recurse /ForceUnsigned"), "caker's test-signed drivers need it, \(architecture)")
+
+			let whql = WindowsInstallResources.installScript(for: architecture, whqlOnly: true)
+
+			XCTAssertTrue(whql.contains("/Add-Driver /Driver:%T%\\drivers /Recurse"), "\(architecture)")
+			XCTAssertFalse(whql.contains("ForceUnsigned"), "an unsigned driver must fail the install, \(architecture)")
+		}
+	}
+
 	func testAutologonIsOffUnlessTurnedOn() throws {
 		XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon(nil))
 		XCTAssertFalse(try WindowsInstallationMedia.validatedAutologon("  "))

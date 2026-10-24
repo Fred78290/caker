@@ -43,6 +43,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let frameSegmentMiB: String?
 	private let audio: String?
 	private let autologon: String?
+	private let whqlOnly: String?
 	private let runMode: Utils.RunMode
 	private let wizardID: UUID
 	private let queue: DispatchQueue
@@ -50,7 +51,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	private let canceled: Mutex<Bool> = .init(false)
 	public var virtualMachine: VirtualMachine?
 
-	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, frameSegmentMiB: String? = nil, audio: String? = nil, autologon: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
+	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, productKey: String? = nil, frameSegmentMiB: String? = nil, audio: String? = nil, autologon: String? = nil, whqlOnly: String? = nil, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
 		self.location = location
 		self.config = config
 		self.windowsISO = windowsISO
@@ -60,6 +61,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		self.frameSegmentMiB = frameSegmentMiB
 		self.audio = audio
 		self.autologon = autologon
+		self.whqlOnly = whqlOnly
 		self.runMode = runMode
 		self.wizardID = wizardID
 		self.queue = queue ?? DispatchQueue.main
@@ -104,6 +106,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		let frameSegmentMiB = try WindowsInstallationMedia.validatedFrameSegmentMiB(self.frameSegmentMiB)
 		let audioDriver = try WindowsInstallationMedia.validatedAudio(self.audio)
 		let autologon = try WindowsInstallationMedia.validatedAutologon(self.autologon)
+		let whqlOnly = try WindowsInstallationMedia.validatedWhqlOnly(self.whqlOnly)
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let winFspMSI = try await downloadWinFsp(progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
@@ -112,7 +115,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		let openSSH = try await downloadOpenSSH(progressHandler: progressHandler)
 		let authorizedKeys = (try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode)) ?? []
 		let options = WindowsInstallationMedia.Options(
-			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey, frameSegmentMiB: frameSegmentMiB, audioDriver: audioDriver, autologon: autologon,
+			username: username, password: password, computerName: Self.computerName(for: location.name), productKey: productKey, frameSegmentMiB: frameSegmentMiB, audioDriver: audioDriver, autologon: autologon, whqlDriversOnly: whqlOnly,
 			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL),
 			openSSH: .init(archive: openSSH, authorizedKeys: authorizedKeys))
 		let windowsISO = self.windowsISO
@@ -231,6 +234,13 @@ public class WindowsInstaller: @unchecked Sendable {
 				} else {
 					config.windowsFrameSegmentMiB = WindowsGPUDriverBinaries.frameSegmentMiB
 				}
+
+				// The stock display driver shows a corrupted picture when the display size changes: the guest keeps its size
+				// and the view scales it, so the host must not ask for a new one when the window is resized
+				if whqlOnly {
+					config.displayRefit = false
+				}
+
 				try config.save()
 
 				progressHandler(.provisioned(.success(.init(name: location.name, provisioned: true, reason: String(localized: "Windows setup finished successfully")))))

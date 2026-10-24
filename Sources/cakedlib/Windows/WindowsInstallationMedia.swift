@@ -51,6 +51,9 @@ public struct WindowsInstallationMedia {
 		/// Whether Windows logs the account on at every start (the `WINDOWS_AUTOLOGON` provisioning variable), not only the first
 		/// one; validated by `validatedAutologon(_:)`.
 		var autologon: Bool = false
+		/// Only drivers Microsoft signed (the `WINDOWS_WHQL_ONLY` provisioning variable, `validatedWhqlOnly(_:)`): virtio-win's
+		/// own, with no caker driver, no sound and no test-signing mode. Overrides `audioDriver` and `frameSegmentMiB`.
+		var whqlDriversOnly: Bool = false
 		/// Installed as a service on first boot when set.
 		var cakeAgent: CakeAgent?
 		/// Installed and started on first boot when set.
@@ -152,6 +155,30 @@ public struct WindowsInstallationMedia {
 		case "0", "false", "no", "off": return false
 		default:
 			throw ServiceError(String(localized: "The value of WINDOWS_AUTOLOGON is not valid: expected 1 or 0"))
+		}
+	}
+
+	/// The name of the provisioning variable (`--var WINDOWS_WHQL_ONLY=1`) that installs only drivers signed by Microsoft
+	/// (WHQL): the ones on the virtio-win ISO, which Red Hat signs. Caker's own drivers (`Tools/WindowsGPUDriver`,
+	/// `Tools/WindowsAudioDriver`) are test-signed, which needs a throwaway certificate trusted in the guest and
+	/// test-signing mode ("Test Mode" watermark); with this variable none of that is installed. The price: the stock
+	/// display driver shows a corrupted picture when Virtualization.framework changes the display size, so the guest
+	/// keeps its size (`displayRefit` is turned off and the view scales it), and there is no sound, because Windows
+	/// has no signed driver for Virtualization.framework's sound device. Off by default.
+	public static let whqlOnlyVariable = "WINDOWS_WHQL_ONLY"
+
+	/// Returns whether only WHQL-signed drivers are installed: unset or blank is no, `1`/`true`/`yes`/`on` is yes.
+	/// Anything else is refused rather than guessed.
+	public static func validatedWhqlOnly(_ value: String?) throws -> Bool {
+		guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), text.isEmpty == false else {
+			return false
+		}
+
+		switch text {
+		case "1", "true", "yes", "on": return true
+		case "0", "false", "no", "off": return false
+		default:
+			throw ServiceError(String(localized: "The value of WINDOWS_WHQL_ONLY is not valid: expected 1 or 0"))
 		}
 	}
 
@@ -324,7 +351,7 @@ public struct WindowsInstallationMedia {
 
 		try FileManager.default.createDirectory(at: drivers, withIntermediateDirectories: true)
 		try Data("caker".utf8).write(to: caker.appendingPathComponent("media.id"))
-		try WindowsInstallResources.installScript(for: architecture).write(to: caker.appendingPathComponent("install.cmd"), atomically: true, encoding: .utf8)
+		try WindowsInstallResources.installScript(for: architecture, whqlOnly: options.whqlDriversOnly).write(to: caker.appendingPathComponent("install.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.setupComplete.write(to: caker.appendingPathComponent("SetupComplete.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.config(imageIndex: image.index).write(to: caker.appendingPathComponent("config.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture, productKey: options.productKey, autologon: options.autologon).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
@@ -356,7 +383,7 @@ public struct WindowsInstallationMedia {
 
 		// The GPU driver: caker's build (Tools/WindowsGPUDriver) replaces virtio-win's, and the certificate it is signed with
 		// goes along for SetupComplete.cmd to trust
-		if architecture.usesCakerGPUDriver {
+		if architecture.usesCakerGPUDriver && options.whqlDriversOnly == false {
 			let gpu = drivers.appendingPathComponent("viogpudo", isDirectory: true)
 
 			try? FileManager.default.removeItem(at: gpu)
@@ -371,7 +398,7 @@ public struct WindowsInstallationMedia {
 		}
 
 		// The sound driver (Tools/WindowsAudioDriver): Windows has none for Virtualization.framework's virtio-snd device
-		if options.audioDriver {
+		if options.audioDriver && options.whqlDriversOnly == false {
 			let audio = drivers.appendingPathComponent("viosnd", isDirectory: true)
 
 			try? FileManager.default.removeItem(at: audio)
@@ -397,7 +424,7 @@ public struct WindowsInstallationMedia {
 		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
 
 		// The install script copies it to the installed system, where setup puts it in the driver's key
-		if let frameSegmentMiB = options.frameSegmentMiB {
+		if let frameSegmentMiB = options.frameSegmentMiB, options.whqlDriversOnly == false {
 			try "\(frameSegmentMiB)\r\n".write(to: caker.appendingPathComponent("frame-segment.txt"), atomically: true, encoding: .utf8)
 		}
 
