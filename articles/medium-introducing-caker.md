@@ -190,6 +190,7 @@ A few options go through `--var`, and the desktop app's wizard offers the same o
 | `WINDOWS_FRAME_SEGMENT_MIB` | The display driver's memory, 16 to 256 MiB, which sets the biggest screen the guest accepts (32 holds 3840×2160) |
 | `WINDOWS_AUDIO=0` | Leave the sound driver out |
 | `WINDOWS_AUTOLOGON=1` | Log the account on at every start, not only once (the password then stays in the guest's registry in clear text, so it is off by default) |
+| `WINDOWS_WHQL_ONLY=1` | Install only drivers Microsoft signed (virtio-win's own): no test-signing mode and no "Test Mode" watermark, but no sound, and the guest keeps its display size, so its window can't be resized |
 
 Some of this rests on drivers that Windows does not ship. With virtio-win's stock display driver, Virtualization.framework shows a corrupted picture after a resolution change, and there is no Windows driver at all for its sound device. So Caker embeds a patched build of the open-source virtio-win display driver and an open-source virtio sound driver with a small change for Apple's device (both fixes are proposed upstream). Windows only loads signed kernel drivers, so they are **test-signed** with throwaway certificates, and the guest runs in test-signing mode: you will see a "Test Mode" watermark on the desktop.
 

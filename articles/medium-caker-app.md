@@ -69,6 +69,7 @@ When the ISO's file name contains `windows` (or `win11`), the wizard recognizes 
 - **Product key**, optional, checked as you leave the field
 - **Display buffer size**: the memory of the display driver, which limits how big the screen can get. The default holds a 3840×2160 display.
 - **Log on automatically**: sign the account in at every start, not only the first one. Without it the guest waits at the lock screen after setup, and anything that needs a signed-in user, such as the display following your window's size, only starts once someone logs on. The password is then kept in the guest's registry in clear text, so the switch is off by default.
+- **Use only WHQL-signed drivers**: installs only the drivers Microsoft signed (virtio-win's own). The desktop has no "Test Mode" watermark, but there is no sound, and the display keeps its size: the guest's window can't be resized, and **Refit display** is switched off and greyed out.
 
 The wizard also raises the disk to at least 64 GiB. The rest works as for any other guest: pick **Configure automatically the system** and Caker does the install, as described below.
 
