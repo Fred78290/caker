@@ -20,7 +20,7 @@ struct Compose: ParsableCommand {
 		commandName: "compose",
 		abstract: String(localized: "Manage VMs from a compose.yml file"),
 		discussion: String(localized: "Reads compose.yml (or docker-compose.yml) and manages VMs as services, with the same CLI as docker compose."),
-		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeRm.self, ComposeLs.self, ComposeInit.self]
+		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeRm.self, ComposeLs.self, ComposeEdit.self, ComposeInit.self]
 	)
 }
 
@@ -236,6 +236,80 @@ struct ComposeLs: GrpcParsableCommand {
 		).response.wait().compose.ls
 
 		return options.format.render(ComposeReplyList(reply))
+	}
+}
+
+// MARK: - Edit
+
+struct ComposeEdit: AsyncGrpcParsableCommand {
+	static let configuration = CommandConfiguration(
+		commandName: "edit",
+		abstract: String(localized: "Edit a registered compose project"),
+		discussion: String(localized: "Fetches the project's definition from caked (compose.json), opens it in $VISUAL/$EDITOR and applies it with `compose up` when it changed. With --output the definition is only written to a file. The original compose.yml and its comments are not kept by caked.")
+	)
+
+	@OptionGroup(title: String(localized: "Client options"))
+	var options: Client.Options
+
+	@Option(
+		name: [.customLong("output"), .customShort("o")],
+		help: ArgumentHelp(String(localized: "Write the definition to this file instead of editing it"), valueName: "path"))
+	var output: String? = nil
+
+	@Option(
+		help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
+	var waitIPTimeout: Int = 180
+
+	@Argument(help: ArgumentHelp(String(localized: "Name of the registered compose project"), valueName: "name"))
+	var name: String
+
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+		let list = try await client.compose(.with { $0.ls = .init() }, callOptions: callOptions).response.get().compose.ls
+
+		guard let info = list.composeFiles.map({ ComposeReplyList.ComposeInfo($0) }).first(where: { $0.name == name }) else {
+			throw ValidationError(String(format: String(localized: "compose %@ not found"), name))
+		}
+
+		// A caked that predates the stored definition in `ls` would only give names and images, and
+		// applying that back would wipe the registered definition: refuse instead.
+		guard let stored = info.storedComposeFile() else {
+			throw ValidationError(String(localized: "This caked does not return the registered definition: update it to use `compose edit`."))
+		}
+
+		let yaml = try ComposeFile.editableYAML(for: stored)
+
+		if let output {
+			try yaml.write(toFile: output.expandingTildeInPath, atomically: true, encoding: .utf8)
+			return String(format: String(localized: "Created %@"), output)
+		}
+
+		guard let edited = try ComposeFile.editInEditor(yaml) else {
+			return String(localized: "No changes")
+		}
+
+		let compose: ComposeFile
+
+		do {
+			compose = try ComposeFile.decodeEdited(edited.text, expectedName: name)
+		} catch {
+			throw ValidationError(String(format: String(localized: "%@\nYour edit was kept in %@"), error.reason, edited.file.path))
+		}
+
+		try? FileManager.default.removeItem(at: edited.file)
+
+		let composeDatas = try Data(YAMLEncoder().encode(compose).utf8)
+		let reply = try await client.compose(
+			.with {
+				$0.up = .with {
+					$0.composeDatas = composeDatas
+					$0.waitIptimeout = Int32(waitIPTimeout)
+					$0.replaceDefinition = true  // the edited text is the user's own definition
+				}
+			},
+			callOptions: callOptions
+		).response.get().compose.up
+
+		return options.format.render(ComposeReplyUp(reply))
 	}
 }
 

@@ -57,6 +57,30 @@ final class ComposeProjectStatusTests: XCTestCase {
 		XCTAssertEqual(self.makeInfo(services: []).primaryAction, .start)
 	}
 
+	func testStoredComposeFileRestoresTheWholeRegisteredDefinition() throws {
+		var db = ComposeService()
+		db.image = "ubuntu:24.04"
+		var web = ComposeService()
+		web.image = "ubuntu:24.04"
+		web.dependsOn = .list(["db"])
+		web.packages = ["nginx"]
+		let stored = ComposeFile(name: "demo", services: ["db": db, "web": web])
+		let database = try ComposeFileDatabase(FileManager.default.temporaryDirectory.appendingPathComponent("compose-\(UUID().uuidString).json"))
+
+		try database.upsert("demo", ComposeFileDatabase.ComposeFileStatus(composeFile: stored))
+
+		let info = try XCTUnwrap(ComposeHandler.list(database: database, runMode: .user).composeFiles.first)
+		let restored = try XCTUnwrap(info.storedComposeFile())
+
+		XCTAssertEqual(restored.name, "demo")
+		XCTAssertEqual(restored.services["web"]?.dependsOn?.serviceNames, ["db"])
+		XCTAssertEqual(restored.services["web"]?.packages, ["nginx"])
+	}
+
+	func testStoredComposeFileIsNilWithoutPayload() {
+		XCTAssertNil(self.makeInfo(services: [("app", "ubuntu:24.04", false)]).storedComposeFile())
+	}
+
 	func testReconstructedComposeFileCarriesNameAndImagesOnly() {
 		let info = self.makeInfo(services: [
 			("database", "postgres:16", true),
@@ -80,5 +104,69 @@ final class ComposeProjectStatusTests: XCTestCase {
 		let compose = info.reconstructedComposeFile()
 
 		XCTAssertNil(compose.services["app"]?.image)
+	}
+
+	// MARK: - compose edit
+
+	private func withEditor(_ editor: String, _ body: () throws -> Void) throws {
+		let previous = ProcessInfo.processInfo.environment["EDITOR"]
+
+		unsetenv("VISUAL")
+		setenv("EDITOR", editor, 1)
+		defer {
+			if let previous { setenv("EDITOR", previous, 1) } else { unsetenv("EDITOR") }
+		}
+
+		try body()
+	}
+
+	func testEditableYAMLRoundTripsThroughDecodeEdited() throws {
+		var web = ComposeService()
+		web.image = "ubuntu:24.04"
+		web.packages = ["nginx"]
+		let text = try ComposeFile.editableYAML(for: ComposeFile(name: "demo", services: ["web": web]))
+
+		XCTAssertTrue(text.hasPrefix("# Rebuilt from \"demo\""))
+
+		let decoded = try ComposeFile.decodeEdited(text, expectedName: "demo")
+
+		XCTAssertEqual(decoded.services["web"]?.packages, ["nginx"])
+	}
+
+	func testDecodeEditedRejectsARenamedProject() throws {
+		let text = try ComposeFile.editableYAML(for: ComposeFile(name: "demo", services: [:]))
+
+		XCTAssertThrowsError(try ComposeFile.decodeEdited(text, expectedName: "other"))
+	}
+
+	func testEditInEditorReturnsNilWhenUnchanged() throws {
+		try self.withEditor("true") {
+			XCTAssertNil(try ComposeFile.editInEditor("name: demo\n"))
+		}
+	}
+
+	func testEditInEditorReturnsTheEditedText() throws {
+		try self.withEditor("sed -i '' s/demo/changed/") {
+			let edited = try XCTUnwrap(try ComposeFile.editInEditor("name: demo\n"))
+
+			XCTAssertEqual(edited.text, "name: changed\n")
+			try? FileManager.default.removeItem(at: edited.file)
+		}
+	}
+
+	/// A child in its own process group is a background job on a terminal: `vi` gets stopped by
+	/// SIGTTOU/SIGTTIN and `compose edit` hangs showing nothing.
+	func testEditInEditorRunsTheEditorInTheCallersProcessGroup() throws {
+		let editor = "sh -c '[ \"$(ps -o pgid= -p $$ | tr -d \" \")\" = \"\(getpgrp())\" ]'"
+
+		try self.withEditor(editor) {
+			XCTAssertNil(try ComposeFile.editInEditor("name: demo\n"))
+		}
+	}
+
+	func testEditInEditorThrowsWhenTheEditorFails() throws {
+		try self.withEditor("false") {
+			XCTAssertThrowsError(try ComposeFile.editInEditor("name: demo\n"))
+		}
 	}
 }

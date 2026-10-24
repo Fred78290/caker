@@ -148,6 +148,9 @@ public struct ComposeReplyList: Codable {
 	public struct ComposeInfo: Codable, Hashable, Identifiable {
 		public var name: String
 		public var services: [ComposeServiceInfo]
+		/// YAML of the definition registered for this project (`compose.json`), empty when the
+		/// `caked` that answered predates the field.
+		public var composeDatas: Data
 
 		public var id: String { self.name }
 
@@ -163,17 +166,20 @@ public struct ComposeReplyList: Codable {
 			.with {
 				$0.composeName = self.name
 				$0.services = self.services.map { $0.caked }
+				$0.composeDatas = self.composeDatas
 			}
 		}
 
-		public init(name: String, services: [ComposeServiceInfo]) {
+		public init(name: String, services: [ComposeServiceInfo], composeDatas: Data = Data()) {
 			self.name = name
 			self.services = services
+			self.composeDatas = composeDatas
 		}
 
 		public init(_ from: Caked_ComposeReply.ComposeReplyList.ComposeInfo) {
 			self.name = from.composeName
 			self.services = from.services.map { ComposeServiceInfo($0) }
+			self.composeDatas = from.composeDatas
 		}
 
 		/// How many services currently have at least one running instance.

@@ -423,6 +423,9 @@ public nonisolated struct Caked_Caked: Sendable {
 
         public var services: [Caked_Caked.ComposeReply.ComposeServiceInfo] = []
 
+        /// YAML of the registered definition, as stored in compose.json (empty from a caked that predates it)
+        public var composeDatas: Data = Data()
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -7570,7 +7573,7 @@ nonisolated extension Caked_Caked.ComposeReply.ComposeReplyList: SwiftProtobuf.M
 
 nonisolated extension Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeReply.ComposeReplyList.protoMessageName + ".ComposeInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeName\0\u{1}services\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeName\0\u{1}services\0\u{1}composeDatas\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7580,6 +7583,7 @@ nonisolated extension Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo: Swi
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.composeName) }()
       case 2: try { try decoder.decodeRepeatedMessageField(value: &self.services) }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.composeDatas) }()
       default: break
       }
     }
@@ -7592,12 +7596,16 @@ nonisolated extension Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo: Swi
     if !self.services.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.services, fieldNumber: 2)
     }
+    if !self.composeDatas.isEmpty {
+      try visitor.visitSingularBytesField(value: self.composeDatas, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo, rhs: Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo) -> Bool {
     if lhs.composeName != rhs.composeName {return false}
     if lhs.services != rhs.services {return false}
+    if lhs.composeDatas != rhs.composeDatas {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

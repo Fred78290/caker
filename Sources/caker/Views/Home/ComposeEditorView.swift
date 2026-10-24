@@ -14,8 +14,8 @@ import Yams
 /// feature. `ComposeFile`'s real shape is polymorphic enough (`ComposeDepends`/`ComposeEnvironment`/
 /// `ComposePort`/`ComposeVolume`, nested `ComposeNetwork`/`ComposeDeploy`) that a fully structured
 /// form for every field is out of proportion for a first pass — this is a `TextEditor` seeded from
-/// `ComposeFile.template` (new project) or a best-effort reconstruction of an existing project's
-/// known services (edit), with a live "parses OK"/"parse error: …" indicator (debounced ~300ms) and
+/// `ComposeFile.template` (new project) or the definition stored in `compose.json` for an existing
+/// project (edit; names/images only when talking to a `caked` that predates it), with a live "parses OK"/"parse error: …" indicator (debounced ~300ms) and
 /// a small "Add service" quick-add sheet that inserts a formatted YAML block rather than replacing
 /// hand-editing entirely.
 ///
@@ -286,12 +286,17 @@ struct ComposeEditorView: View {
 		return normalized
 	}
 
-	/// New project → `ComposeFile.template`. Editing a registered project → a best-effort
-	/// reconstruction from the names/images the registry still knows about (see the type doc above
-	/// for why the rest of the definition can't be recovered).
+	/// New project → `ComposeFile.template`. Editing a registered project → the definition stored in
+	/// `compose.json`, re-encoded as YAML (the original `compose.yml` text and its comments are gone,
+	/// but every field the registry kept is back). Only a `caked` that predates the stored definition
+	/// in `ls` falls back to the names/images reconstruction.
 	static func seedText(for project: ComposeReplyList.ComposeInfo?) -> String {
 		guard let project else {
 			return ComposeFile.template
+		}
+
+		if let stored = project.storedComposeFile(), let text = try? ComposeFile.editableYAML(for: stored) {
+			return text
 		}
 
 		guard let yaml = try? YAMLEncoder().encode(project.reconstructedComposeFile()) else {

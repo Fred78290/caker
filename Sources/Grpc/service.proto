@@ -188,6 +188,8 @@ message Caked {
       message ComposeInfo {
         string                      composeName = 1;
         repeated ComposeServiceInfo services    = 2;
+        // YAML of the registered definition, as stored in compose.json (empty from a caked that predates it)
+        bytes                       composeDatas = 3;
       }
 
       repeated ComposeInfo composeFiles = 1;
