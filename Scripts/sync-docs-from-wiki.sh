@@ -142,7 +142,7 @@ if [[ -f "${WIKI_DIR}/home.md" ]]; then
     echo ""
     echo "![Caker App Icon]({{ '/assets/images/CakedAppIcon.png' | relative_url }}){: width=\"192\" }"
     echo ""
-    echo "[![Build](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml)"
+    echo "[![Build](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml/badge.svg)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml)"
     echo "[![Publish Wiki](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/publish-wiki.yaml/badge.svg?branch=main)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/publish-wiki.yaml)"
     echo "[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://caker.aldunelabs.com)"
     echo "[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/${GITHUB_REPOSITORY}/blob/main/LICENSE)"
