@@ -10,7 +10,7 @@ Caker is an open-source toolchain for running virtual machines on macOS, built o
 
 The app does almost everything the command line does, through windows, sheets and menus. You can create a VM from a cloud image, an ISO (Linux or Windows 11) or a macOS restore image, watch it install itself, open its display or a terminal, forward ports, share folders, and run several VMs together from a single YAML file. You never need to open Terminal, and if you do, the same VMs are available from `cakectl`.
 
-Caker.app requires macOS 15 or later, and follows macOS 26's Liquid Glass design when it runs there. macOS guests require an Apple Silicon Mac, and a Windows 11 guest needs an ISO that matches your Mac (ARM on Apple Silicon, x64 on an Intel Mac).
+Caker.app requires macOS 15 or later, and follows macOS 26's Liquid Glass design when it runs there. macOS guests require an Apple Silicon Mac, and a Windows 11 guest needs an ISO that matches your Mac (ARM on Apple Silicon, x64 on an Intel Mac). On an Intel Mac, Windows Server 2025 and Windows Server 2022 install the same way.
 
 ---
 
@@ -65,6 +65,8 @@ The same step holds the guest account: an **administrator name and password**, a
 ### Windows 11
 
 ![Windows](images/caker-app/22-windows.png)
+
+On an Intel Mac, Windows Server 2025 and Windows Server 2022 are supported as well, with the same wizard and the same unattended install.
 
 When the ISO's file name contains `windows` (or `win11`), the wizard recognizes a Windows image and adds three Windows-only settings to the **Choose OS** step:
 
