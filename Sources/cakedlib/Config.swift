@@ -461,9 +461,17 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 
 	public var display: ViewSize {
 		set {
-			self.config["display"] = DisplaySize(viewSize: newValue)
+			if self.hasFixedWindowsDisplay {
+				self.config["display"] = DisplaySize(width: 1024, height: 768)
+			} else {
+				self.config["display"] = DisplaySize(viewSize: newValue)
+			}
 		}
 		get {
+			if self.hasFixedWindowsDisplay {
+				return ViewSize.standard
+			}
+
 			if let display = self.config["display"] as? DisplaySize {
 				return ViewSize(width: display.width, height: display.height)
 			}

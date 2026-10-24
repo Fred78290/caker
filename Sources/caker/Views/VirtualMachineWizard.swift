@@ -767,11 +767,19 @@ struct VirtualMachineWizard: View {
 	}
 
 	func generalSettings() -> some View {
-		VStack {
+		var showSizeView: Bool = true
+		
+		if self.model.supportedPlatform == .windows && self.model.windowsWhqlOnly {
+			showSizeView = false
+		}
+
+		return VStack {
 			Form {
 				self.cpuCountAndMemoryView()
 				self.optionsView()
-				self.displaySizeView()
+				if showSizeView {
+					self.displaySizeView()
+				}
 			}.formStyle(.grouped)
 		}.frame(maxHeight: .infinity)
 	}
@@ -1167,65 +1175,67 @@ struct VirtualMachineWizard: View {
 							if self.model.supportedPlatform == .windows {
 								if Bundle.isApplicationSandboxed {
 									Text("Windows installation is not available in the App Store build").font(.callout).foregroundStyle(Color.red)
-								}
+								} else {
+									LabeledContent("Product key") {
+										VStack(alignment: .leading, spacing: 2) {
+											TextField("", text: $model.windowsProductKey)
+												.focused($windowsProductKeyFocused)
+												.frame(width: 522)
+												.rounded(.leading)
+												.disabled(self.model.createVM)
+												.onChange(of: windowsProductKeyFocused) { _, focused in
+													// Validate when the field is left, unless it is empty (the key is optional)
+													if focused == false {
+														let key = self.model.windowsProductKey
+														self.windowsProductKeyInvalid = key.isEmpty == false && WindowsInstallationMedia.productKeyIsValid(key) == false
+													}
+												}
+												.onChange(of: model.windowsProductKey) { _, key in
+													if key.isEmpty {
+														self.windowsProductKeyInvalid = false
+													}
+												}
 
-								LabeledContent("Product key") {
-									VStack(alignment: .leading, spacing: 2) {
-										TextField("", text: $model.windowsProductKey)
-											.focused($windowsProductKeyFocused)
-											.frame(width: 522)
-											.rounded(.leading)
-											.disabled(self.model.createVM)
-											.onChange(of: windowsProductKeyFocused) { _, focused in
-												// Validate when the field is left, unless it is empty (the key is optional)
-												if focused == false {
-													let key = self.model.windowsProductKey
-													self.windowsProductKeyInvalid = key.isEmpty == false && WindowsInstallationMedia.productKeyIsValid(key) == false
+											if windowsProductKeyInvalid {
+												Text("Invalid product key: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX")
+													.font(.caption)
+													.foregroundStyle(.red)
+											}
+										}
+									}
+
+									// The biggest display Windows accepts is this many MiB at 4 bytes a pixel: 32 holds 3840x2160
+									if model.windowsWhqlOnly == false {
+										LabeledContent("Display buffer size") {
+											Picker("", selection: $model.windowsFrameSegmentMiB) {
+												ForEach(WindowsInstallationMedia.frameSegmentChoicesMiB, id: \.self) { mib in
+													Text("\(mib) MB").tag(mib)
 												}
 											}
-											.onChange(of: model.windowsProductKey) { _, key in
-												if key.isEmpty {
-													self.windowsProductKeyInvalid = false
-												}
+											.labelsHidden()
+											.pickerStyle(.menu)
+											.frame(width: 120)
+											.disabled(self.model.createVM || self.model.windowsWhqlOnly)
+										}
+									}
+
+									// Without it Windows logs on once, to finish setup, and then waits at the lock screen: nothing that has to
+									// run in the user's session at start (the display following the window size) works until someone logs on
+									Toggle("Log on automatically", isOn: $model.windowsAutologon)
+										.help("Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text.")
+										.disabled(self.model.createVM)
+
+									// Caker's own drivers are test-signed (a trusted throwaway certificate and a "Test Mode" desktop); without
+									// them the display can't follow the window and there is no sound
+									Toggle("Use only WHQL-signed drivers (no sound, no display resizing)", isOn: $model.windowsWhqlOnly)
+										.help("Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size: the window can't be resized.")
+										.disabled(self.model.createVM)
+										.onChange(of: model.windowsWhqlOnly) { _, whql in
+											if whql {
+												self.config.displayRefit = false
 											}
-
-										if windowsProductKeyInvalid {
-											Text("Invalid product key: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX")
-												.font(.caption)
-												.foregroundStyle(.red)
 										}
-									}
 								}
-
-								// The biggest display Windows accepts is this many MiB at 4 bytes a pixel: 32 holds 3840x2160
-								LabeledContent("Display buffer size") {
-									Picker("", selection: $model.windowsFrameSegmentMiB) {
-										ForEach(WindowsInstallationMedia.frameSegmentChoicesMiB, id: \.self) { mib in
-											Text("\(mib) MB").tag(mib)
-										}
-									}
-									.labelsHidden()
-									.pickerStyle(.menu)
-									.frame(width: 120)
-									.disabled(self.model.createVM || self.model.windowsWhqlOnly)
-								}
-
-								// Without it Windows logs on once, to finish setup, and then waits at the lock screen: nothing that has to
-								// run in the user's session at start (the display following the window size) works until someone logs on
-								Toggle("Log on automatically", isOn: $model.windowsAutologon)
-									.help("Windows signs the account in by itself at every start. The password is then kept in the guest's registry in clear text.")
-									.disabled(self.model.createVM)
-
-								// Caker's own drivers are test-signed (a trusted throwaway certificate and a "Test Mode" desktop); without
-								// them the display can't follow the window and there is no sound
-								Toggle("Use only WHQL-signed drivers (no sound, no display resizing)", isOn: $model.windowsWhqlOnly)
-									.help("Installs only the drivers Microsoft signed, from virtio-win. No test-signing mode and no \"Test Mode\" watermark, but no sound, and the guest's display keeps its size: the window can't be resized.")
-									.disabled(self.model.createVM)
-									.onChange(of: model.windowsWhqlOnly) { _, whql in
-										if whql {
-											self.config.displayRefit = false
-										}
-									}
 							} else {
 								// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
 								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
