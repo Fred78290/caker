@@ -258,7 +258,13 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 
 	public var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
-		get { self.config["displayRefit"] as? Bool ?? false }
+		get {
+			if self.hasFixedWindowsDisplay {
+				return false
+			}
+
+			return self.config["displayRefit"] as? Bool ?? false
+		}
 	}
 
 	public var instanceID: String {
