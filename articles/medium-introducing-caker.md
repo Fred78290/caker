@@ -197,9 +197,9 @@ Some of this rests on drivers that Windows does not ship. With virtio-win's stoc
 The limits are worth knowing:
 
 - **No TPM.** Virtualization.framework has no way to give a guest one, so BitLocker and device encryption are unavailable.
-- **English only** for now, and a reboot started from inside a running Windows guest stops the VM, so you start it again.
+- **Any language works**: Caker installs the language of the ISO you give it, so use the French or Japanese ISO and you get a French or Japanese Windows. A reboot started from inside a running Windows guest stops the VM, so you start it again.
 - **Not in the App Store edition.** The installer needs host tools the sandbox does not allow, and the App Store build does not run Windows VMs.
-- **What has been tested:** Windows 11 ARM on Apple Silicon, and Windows 11 x64 on one Intel Mac (a Core i9). Other Intel CPUs and other languages are untested.
+- **What has been tested:** Windows 11 ARM on Apple Silicon, and Windows 11 x64 on one Intel Mac (a Core i9). Other Intel CPUs are untested.
 
 ---
 
