@@ -962,7 +962,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			let list: [ListEntry]
 		}
 
-		let driver = try Bundle.execSandboxed("multipass", with: ["get", "local-driver"]) { (exitCode, stdout, stderr) in
+		let driver = try Bundle.execSandboxed("multipass", with: ["get", "local.driver"]) { (exitCode, stdout, stderr) in
 			guard exitCode == 0 else {
 				throw ServiceError(String(localized: "Multipass: failed to get driver: \(stderr)"))
 			}
