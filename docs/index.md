@@ -8,7 +8,7 @@ nav_order: 1
 
 ![Caker App Icon]({{ '/assets/images/CakedAppIcon.png' | relative_url }}){: width="192" }
 
-[![Build](https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/Fred78290/caker/actions/workflows/release.yaml)
+[![Build](https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg)](https://github.com/Fred78290/caker/actions/workflows/release.yaml)
 [![Publish Wiki](https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml/badge.svg?branch=main)](https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://caker.aldunelabs.com)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/Fred78290/caker/blob/main/LICENSE)
