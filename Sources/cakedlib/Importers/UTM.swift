@@ -65,7 +65,7 @@ struct UTMImporter: Importer {
 		return dict
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, customArguments: [String: String] = [:], runMode: Utils.RunMode) throws {
 		let bundleURL = try locateVM(source: source)
 		let configURL = bundleURL.appendingPathComponent("config.plist")
 		let dataURL = bundleURL.appendingPathComponent("Data", isDirectory: true)

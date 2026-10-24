@@ -64,7 +64,7 @@ struct VirtualBuddyImporter: Importer {
 	private static let supportedImageExtensions: [String] = ["img", "asif"]
 	private static let unsupportedImageExtensions: [String] = ["dmg", "sparseimage"]
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, customArguments: [String: String] = [:], runMode: Utils.RunMode) throws {
 		let bundleURL = try locateVM(source: source)
 		let configURL = bundleURL.appendingPathComponent(".vbdata/Config.plist")
 

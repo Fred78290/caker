@@ -287,7 +287,12 @@ func newJSONEncoder() -> JSONEncoder {
 	return encoder
 }
 
-struct MultipassImporter: Importer {	
+struct MultipassImporter: Importer {
+	private enum Driver: String {
+		case qemu
+		case applevz
+	}
+
 	var needSudo: Bool {
 		return true  // Multipass operations typically require elevated privileges
 	}
@@ -304,14 +309,23 @@ struct MultipassImporter: Importer {
 		return "multipass"
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
-		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
+	private static func parseCustomArguments(_ customArguments: [String: String]) -> Self.Driver {
+		if let driverString = customArguments["driver"], let parsedDriver = Driver(rawValue: driverString.lowercased()) {
+			return parsedDriver
+		}
+		
+		return .qemu
+	}
+
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, customArguments: [String: String] = [:], runMode: Utils.RunMode) throws {
+		let driver = Self.parseCustomArguments(customArguments)
+		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/\(driver.rawValue)/vault/multipassd-instance-image-records.json"))
 
 		guard let registeredInstance = registeredInstances[source] else {
 			throw ServiceError(String(localized: "No registered instance found for source: \(source)"))
 		}
 
-		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json"))
+		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/\(driver.rawValue)/multipassd-vm-instances.json"))
 
 		guard let instance = instances[source] else {
 			throw ServiceError(String(localized: "No instance found: \(source)"))

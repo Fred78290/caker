@@ -11,6 +11,7 @@ import SwiftUI
 struct ImportMultipassView: View {
 	@Environment(\.dismiss) private var dismiss
 
+	@State private var driver: String = "qemu"
 	@State private var vms: [MultipassVMInfo] = []
 	@State private var selectedVM: Set<MultipassVMInfo.ID> = []
 	@State private var targetName: String = ""
@@ -341,7 +342,8 @@ struct ImportMultipassView: View {
 				let result = try AppState.shared.listMultipassVMs()
 
 				await MainActor.run {
-					vms = result
+					driver = result.driver
+					vms = result.vms
 					isLoading = false
 				}
 			} catch let shellError as ShellError where shellError.error.contains("multipass authenticate") {
@@ -420,6 +422,7 @@ struct ImportMultipassView: View {
 		let clear = clearPassword
 		let key = sshKey.isEmpty ? nil : sshKey
 		let passphrase = sshPassphrase.isEmpty ? nil : sshPassphrase
+		let driver = self.driver
 
 		Task.detached(priority: .userInitiated) {
 			let result = AppState.shared.importFromMultipass(
@@ -429,7 +432,8 @@ struct ImportMultipassView: View {
 				password: pass,
 				clearPassword: clear,
 				sshKey: key,
-				sshPassphrase: passphrase
+				sshPassphrase: passphrase,
+				driver: driver
 			)
 
 			await MainActor.run {
