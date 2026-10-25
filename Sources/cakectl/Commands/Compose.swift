@@ -6,11 +6,11 @@
 //
 
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
-import CakeAgentLib
 import Yams
 
 // MARK: - Parent command
@@ -36,39 +36,50 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	@Option(
 		help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout: Int = 180
 
-	@Argument(help: ArgumentHelp(String(localized: "Services to start (default: all)")))
-	var services: [String] = []
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
-		let compose = try loadCompose()
-		let composeDatas = try Data(YAMLEncoder().encode(compose).utf8)
+		if let appName = self.compose.name {
+			let reply = try await client.compose(
+				.with {
+					$0.up = .with {
+						$0.appName = appName
+						$0.waitIptimeout = Int32(waitIPTimeout)
+						$0.services = self.compose.services
+						$0.replaceDefinition = false  // the file is the user's own definition
+					}
+				},
+				callOptions: callOptions
+			).response.get().compose.up
 
-		let reply = try await client.compose(
-			.with {
-				$0.up = .with {
-					$0.composeDatas = composeDatas
-					$0.waitIptimeout = Int32(waitIPTimeout)
-					$0.services = services
-					$0.replaceDefinition = true  // the file is the user's own definition
-				}
-			},
-			callOptions: callOptions
-		).response.get().compose.up
+			return options.format.render(ComposeReplyUp(reply))
+		} else {
+			let compose = try loadCompose()
+			let composeDatas = try Data(YAMLEncoder().encode(compose).utf8)
 
-		return options.format.render(ComposeReplyUp(reply))
+			let reply = try await client.compose(
+				.with {
+					$0.up = .with {
+						$0.datas = composeDatas
+						$0.waitIptimeout = Int32(waitIPTimeout)
+						$0.services = self.compose.services
+						$0.replaceDefinition = true  // the file is the user's own definition
+					}
+				},
+				callOptions: callOptions
+			).response.get().compose.up
+
+			return options.format.render(ComposeReplyUp(reply))
+		}
 	}
 
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -85,27 +96,21 @@ struct ComposeDown: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	@Flag(
 		name: [.customLong("force")],
 		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "Services to stop (default: all)")))
-	var services: [String] = []
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		let compose = try loadCompose()
-
+		let appName = try self.appName()
 		let reply = try client.compose(
 			.with {
 				$0.down = .with {
-					$0.name = compose.name
-					$0.services = services
+					$0.name = appName
+					$0.services = self.compose.services
 					$0.force = force
 				}
 			},
@@ -115,8 +120,18 @@ struct ComposeDown: GrpcParsableCommand {
 		return options.format.render(ComposeReplyDown(reply))
 	}
 
+	private func appName() throws -> String {
+		if let name = self.compose.name {
+			return name
+		} else {
+			let compose = try loadCompose()
+
+			return compose.name
+		}
+	}
+
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -133,22 +148,16 @@ struct ComposePs: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
-
-	@Argument(help: ArgumentHelp(String(localized: "Services to show (default: all)")))
-	var services: [String] = []
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		let compose = try loadCompose()
-
+		let appName = try self.appName()
 		let reply = try client.compose(
 			.with {
 				$0.ps = .with {
-					$0.name = compose.name
-					$0.services = services
+					$0.name = appName
+					$0.services = self.compose.services
 				}
 			},
 			callOptions: callOptions
@@ -157,8 +166,18 @@ struct ComposePs: GrpcParsableCommand {
 		return options.format.render(ComposeReplyPs(reply))
 	}
 
+	private func appName() throws -> String {
+		if let name = self.compose.name {
+			return name
+		} else {
+			let compose = try loadCompose()
+
+			return compose.name
+		}
+	}
+
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -175,10 +194,8 @@ struct ComposeRm: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	@Flag(
 		name: [.customLong("stop")],
@@ -190,17 +207,14 @@ struct ComposeRm: GrpcParsableCommand {
 		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
-	var services: [String] = []
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		let compose = try loadCompose()
+		let appName = try self.appName()
 
 		let reply = try client.compose(
 			.with {
 				$0.delete = .with {
-					$0.name = compose.name
-					$0.services = services
+					$0.name = appName
+					$0.services = self.compose.services
 					$0.force = force
 					$0.stop = stop
 				}
@@ -211,8 +225,18 @@ struct ComposeRm: GrpcParsableCommand {
 		return options.format.render(ComposeReplyDelete(reply))
 	}
 
+	private func appName() throws -> String {
+		if let name = self.compose.name {
+			return name
+		} else {
+			let compose = try loadCompose()
+
+			return compose.name
+		}
+	}
+
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -245,7 +269,10 @@ struct ComposeEdit: AsyncGrpcParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "edit",
 		abstract: String(localized: "Edit a registered compose project"),
-		discussion: String(localized: "Fetches the project's definition from caked (compose.json), opens it in $VISUAL/$EDITOR and applies it with `compose up` when it changed. With --output the definition is only written to a file. The original compose.yml and its comments are not kept by caked.")
+		discussion: String(
+			localized:
+				"Fetches the project's definition from caked (compose.json), opens it in $VISUAL/$EDITOR and applies it with `compose up` when it changed. With --output the definition is only written to a file. The original compose.yml and its comments are not kept by caked."
+		)
 	)
 
 	@OptionGroup(title: String(localized: "Client options"))
@@ -301,7 +328,7 @@ struct ComposeEdit: AsyncGrpcParsableCommand {
 		let reply = try await client.compose(
 			.with {
 				$0.up = .with {
-					$0.composeDatas = composeDatas
+					$0.datas = composeDatas
 					$0.waitIptimeout = Int32(waitIPTimeout)
 					$0.replaceDefinition = true  // the edited text is the user's own definition
 				}

@@ -932,7 +932,7 @@ extension ComposeFile {
 		// SIGTTOU/SIGTTIN and the command appears to do nothing. `posix_spawn` without
 		// `POSIX_SPAWN_SETPGROUP` keeps the editor in the terminal's foreground group.
 		let arguments = ["/bin/sh", "-c", "\(editor) \"$0\"", file.path]
-		var cArguments: [UnsafeMutablePointer<CChar>?] = arguments.map { strdup($0) } + [nil]
+		let cArguments: [UnsafeMutablePointer<CChar>?] = arguments.map { strdup($0) } + [nil]
 		defer { cArguments.forEach { free($0) } }
 
 		var pid: pid_t = 0
