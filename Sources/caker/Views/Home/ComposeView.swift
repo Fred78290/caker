@@ -363,6 +363,9 @@ struct ComposeView: View {
 					let reply = try ComposeHandler.rm(client: client, name: project.name, stop: stopFirst, runMode: runMode)
 
 					DispatchQueue.main.async {
+						// Deleted or not, some of the project's VMs may be gone: drop their documents.
+						Self.forgetDeletedVirtualMachines(of: project)
+
 						if reply.success {
 							onDeleted()
 						} else {
@@ -377,6 +380,29 @@ struct ComposeView: View {
 					}
 				}
 			}
+		}
+	}
+
+	/// In `.app` mode the VMs live in this process: `AppState` keeps a `VirtualMachineDocument` per VM and only
+	/// learns of a deletion through the directory watcher, which can miss it when `compose rm` removes the
+	/// directory right after stopping the VM. Dismiss and forget the documents of the project's VMs whose
+	/// directory no longer exists, the way `AppState.deleteVirtualMachine` does for a single VM.
+	static func forgetDeletedVirtualMachines(of project: ComposeReplyList.ComposeInfo) {
+		guard AppState.shared.connectionManager.connectionMode == .app else {
+			return
+		}
+
+		let storage = StorageLocation(runMode: .app)
+
+		for service in project.services {
+			let name = "compose-\(project.name)-\(service.name)"
+
+			guard (try? storage.find(name)) == nil, let document = AppState.shared.findVirtualMachineDocument(name) else {
+				continue
+			}
+
+			document.setState(.deleted)
+			AppState.shared.removeVirtualMachineDocument(document.url)
 		}
 	}
 
