@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2700"
+   LastUpgradeVersion = "2710"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -79,6 +79,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "macos15"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "compose-myapp-phpmyadmin"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -106,7 +110,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-ui"
+            argument = "--ui"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
