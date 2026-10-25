@@ -124,8 +124,10 @@ struct ComposeView: View {
 				.controlSize(.small)
 				.help(String(localized: "Edit this compose project"))
 
-				Button {
-					self.togglePrimaryAction(project)
+				AsyncButton { done in
+					self.togglePrimaryAction(project) { _ in
+						done()
+					}
 				} label: {
 					self.actionIcon(
 						project.primaryAction == .start ? "play.fill" : "stop.fill",
@@ -138,12 +140,14 @@ struct ComposeView: View {
 						? String(localized: "Start this project's services")
 						: String(localized: "Stop this project's services"))
 
-				Button {
+				AsyncButton { done in
 					Self.confirmAndDelete(project) {
 						if self.navigationModel.selectedComposeProject?.name == project.name {
 							self.navigationModel.selectedComposeProject = nil
 						}
 						self.refresh()
+					} onCancel: {
+						done()
 					}
 				} label: {
 					self.actionIcon("trash", color: .red)
@@ -160,18 +164,22 @@ struct ComposeView: View {
 				self.editorTarget = .edit(project)
 			}
 
-			Button(project.primaryAction == .start ? "Start" : "Stop") {
-				self.togglePrimaryAction(project)
+			AsyncButton(project.primaryAction == .start ? "Start" : "Stop") { done in
+				self.togglePrimaryAction(project) { _ in
+					done()
+				}
 			}
 
 			Divider()
 
-			Button("Delete…", role: .destructive) {
+			AsyncButton("Delete…") { done in
 				Self.confirmAndDelete(project) {
 					if self.navigationModel.selectedComposeProject?.name == project.name {
 						self.navigationModel.selectedComposeProject = nil
 					}
 					self.refresh()
+				} onCancel: {
+					done()
 				}
 			}
 		}
@@ -190,15 +198,21 @@ struct ComposeView: View {
 		}
 	}
 
-	private func togglePrimaryAction(_ project: ComposeReplyList.ComposeInfo) {
+	private func togglePrimaryAction(_ project: ComposeReplyList.ComposeInfo, completionHandler: @escaping (_ canceled: Bool) -> Void) {
 		switch project.primaryAction {
 		case .start:
 			Self.start(project) {
 				self.refresh()
+				completionHandler(false)
+			} onCancel: {
+				completionHandler(true)
 			}
 		case .stop:
 			Self.confirmAndStop(project) {
 				self.refresh()
+				completionHandler(false)
+			} onCancel: {
+				completionHandler(true)
 			}
 		}
 	}
@@ -207,7 +221,7 @@ struct ComposeView: View {
 	/// `ComposeReplyList.ComposeInfo.reconstructedComposeFile()`) and calls `compose up` — not
 	/// destructive, so no confirmation, unlike stop/delete. The reconstruction is names and images
 	/// only, so it must never replace the project's stored definition (`replaceDefinition: false`).
-	static func start(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void) {
+	static func start(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void, onCancel: (() -> Void)? = nil) {
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
 
@@ -219,11 +233,13 @@ struct ComposeView: View {
 					if reply.success {
 						onDone()
 					} else {
+						onCancel?()
 						alertError(String(localized: "Failed to start compose project"), reply.reason)
 					}
 				}
 			} catch {
 				await MainActor.run {
+					onCancel?()
 					alertError(error)
 				}
 			}
@@ -232,7 +248,7 @@ struct ComposeView: View {
 
 	/// Asks for confirmation, then stops every service in `project`. `onDone` runs on the main
 	/// thread after a successful stop.
-	static func confirmAndStop(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void) {
+	static func confirmAndStop(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void, onCancel: (() -> Void)? = nil) {
 		DispatchQueue.main.async {
 			let alert = NSGlassEffectAlert()
 
@@ -243,6 +259,7 @@ struct ComposeView: View {
 			alert.addButton(withTitle: String(localized: "Cancel"))
 
 			guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
+				onCancel?()
 				return
 			}
 
@@ -257,11 +274,13 @@ struct ComposeView: View {
 						if reply.success {
 							onDone()
 						} else {
+							onCancel?()
 							alertError(String(localized: "Failed to stop compose project"), reply.reason)
 						}
 					}
 				} catch {
 					DispatchQueue.main.async {
+						onCancel?()
 						alertError(error)
 					}
 				}
@@ -272,7 +291,7 @@ struct ComposeView: View {
 	/// Asks for confirmation (naming how many services will be stopped first, if any), then removes
 	/// `project` — used by both this view's inline row action and `HomeView`'s toolbar Delete button
 	/// for the `.compose` category, matching `ImageCacheView.confirmAndDelete`'s shape.
-	static func confirmAndDelete(_ project: ComposeReplyList.ComposeInfo, onDeleted: @escaping () -> Void) {
+	static func confirmAndDelete(_ project: ComposeReplyList.ComposeInfo, onDeleted: @escaping () -> Void, onCancel: (() -> Void)? = nil) {
 		DispatchQueue.main.async {
 			let alert = NSGlassEffectAlert()
 			let runningNote =
@@ -287,6 +306,7 @@ struct ComposeView: View {
 			alert.addButton(withTitle: String(localized: "Cancel"))
 
 			guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
+				onCancel?()
 				return
 			}
 
@@ -302,11 +322,13 @@ struct ComposeView: View {
 						if reply.success {
 							onDeleted()
 						} else {
+							onCancel?()
 							alertError(String(localized: "Delete failed"), reply.reason)
 						}
 					}
 				} catch {
 					DispatchQueue.main.async {
+						onCancel?()
 						alertError(error)
 					}
 				}
