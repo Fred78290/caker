@@ -25,6 +25,9 @@ struct ComposeView: View {
 	@State private var projects: [ComposeReplyList.ComposeInfo] = []
 	@State private var loadError: String? = nil
 	@State private var editorTarget: EditorTarget? = nil
+	/// Projects with a start/stop/delete in flight: their row buttons are disabled until it is done and the
+	/// list has been reloaded, so a second action can't be started on top of the first.
+	@State private var busyProjects: Set<String> = []
 
 	enum EditorTarget: Identifiable {
 		case new
@@ -87,6 +90,8 @@ struct ComposeView: View {
 
 	@ViewBuilder
 	private func row(_ project: ComposeReplyList.ComposeInfo) -> some View {
+		let busy = self.busyProjects.contains(project.name)
+
 		HStack(spacing: 12) {
 			ZStack {
 				RoundedRectangle(cornerRadius: 9)
@@ -122,6 +127,7 @@ struct ComposeView: View {
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
+				.disabled(busy)
 				.help(String(localized: "Edit this compose project"))
 
 				AsyncButton { done in
@@ -135,53 +141,47 @@ struct ComposeView: View {
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
+				.disabled(busy)
 				.help(
 					project.primaryAction == .start
 						? String(localized: "Start this project's services")
 						: String(localized: "Stop this project's services"))
 
 				AsyncButton { done in
-					Self.confirmAndDelete(project) {
-						if self.navigationModel.selectedComposeProject?.name == project.name {
-							self.navigationModel.selectedComposeProject = nil
-						}
-						self.refresh()
-					} onCancel: {
-						done()
-					}
+					self.delete(project, done: done)
 				} label: {
 					self.actionIcon("trash", color: .red)
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
+				.disabled(busy)
 				.help(String(localized: "Delete this compose project"))
 			}
 		}
 		.padding(.vertical, 4)
 		.contentShape(Rectangle())
+		// The row is keyed by name only (`ComposeInfo` is `Hashable` on `name`), so without this SwiftUI
+		// keeps the old row when a poll or an action changes the services' state, and the counter stays stale.
+		.id("\(project.name)#\(project.runningServiceCount)/\(project.totalServiceCount)#\(busy)")
 		.contextMenu {
 			Button("Edit…") {
 				self.editorTarget = .edit(project)
 			}
+			.disabled(busy)
 
 			AsyncButton(project.primaryAction == .start ? "Start" : "Stop") { done in
 				self.togglePrimaryAction(project) { _ in
 					done()
 				}
 			}
+			.disabled(busy)
 
 			Divider()
 
 			AsyncButton("Delete…") { done in
-				Self.confirmAndDelete(project) {
-					if self.navigationModel.selectedComposeProject?.name == project.name {
-						self.navigationModel.selectedComposeProject = nil
-					}
-					self.refresh()
-				} onCancel: {
-					done()
-				}
+				self.delete(project, done: done)
 			}
+			.disabled(busy)
 		}
 	}
 
@@ -198,22 +198,66 @@ struct ComposeView: View {
 		}
 	}
 
+	/// Marks `project` busy (or not). Called from `AsyncButton` actions, which don't run on the main thread.
+	private func setBusy(_ project: ComposeReplyList.ComposeInfo, _ busy: Bool) {
+		let name = project.name
+
+		DispatchQueue.main.async {
+			if busy {
+				self.busyProjects.insert(name)
+			} else {
+				self.busyProjects.remove(name)
+			}
+		}
+	}
+
 	private func togglePrimaryAction(_ project: ComposeReplyList.ComposeInfo, completionHandler: @escaping (_ canceled: Bool) -> Void) {
+		self.setBusy(project, true)
+
+		// Busy ends once the list has been reloaded, so the row never shows the old counter with live buttons.
+		let finished: (Bool) -> Void = { canceled in
+			if canceled {
+				self.setBusy(project, false)
+				completionHandler(true)
+			} else {
+				self.refresh {
+					self.setBusy(project, false)
+					completionHandler(false)
+				}
+			}
+		}
+
 		switch project.primaryAction {
 		case .start:
 			Self.start(project) {
-				self.refresh()
-				completionHandler(false)
+				finished(false)
 			} onCancel: {
-				completionHandler(true)
+				finished(true)
 			}
 		case .stop:
 			Self.confirmAndStop(project) {
-				self.refresh()
-				completionHandler(false)
+				finished(false)
 			} onCancel: {
-				completionHandler(true)
+				finished(true)
 			}
+		}
+	}
+
+	private func delete(_ project: ComposeReplyList.ComposeInfo, done: @escaping () -> Void) {
+		self.setBusy(project, true)
+
+		Self.confirmAndDelete(project) {
+			if self.navigationModel.selectedComposeProject?.name == project.name {
+				self.navigationModel.selectedComposeProject = nil
+			}
+
+			self.refresh {
+				self.setBusy(project, false)
+				done()
+			}
+		} onCancel: {
+			self.setBusy(project, false)
+			done()
 		}
 	}
 
@@ -344,7 +388,8 @@ struct ComposeView: View {
 		}
 	}
 
-	private func refresh() {
+	/// Reloads the projects; `completion` runs on the main thread once the list has been updated (or the reload failed).
+	private func refresh(completion: (() -> Void)? = nil) {
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
 
@@ -355,6 +400,7 @@ struct ComposeView: View {
 				DispatchQueue.main.async {
 					guard reply.success else {
 						self.loadError = reply.reason
+						completion?()
 						return
 					}
 
@@ -371,10 +417,13 @@ struct ComposeView: View {
 					} else if let selected = self.navigationModel.selectedComposeProject {
 						self.navigationModel.selectedComposeProject = self.projects.first { $0.name == selected.name }
 					}
+
+					completion?()
 				}
 			} catch {
 				DispatchQueue.main.async {
 					self.loadError = error.localizedDescription
+					completion?()
 				}
 			}
 		}
