@@ -51,7 +51,7 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 						$0.appName = appName
 						$0.waitIptimeout = Int32(waitIPTimeout)
 						$0.services = self.compose.services
-						$0.replaceDefinition = false  // the file is the user's own definition
+						$0.replaceDefinition = false  // keep the already-registered project definition
 					}
 				},
 				callOptions: callOptions
