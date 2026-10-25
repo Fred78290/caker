@@ -236,17 +236,20 @@ Quand `user`/`password` sont omis, l'invité est créé avec `admin`/`admin`.
 Démarre (et crée si nécessaire) les services dans l'ordre de `depends_on`.
 
 ```
-cakectl compose up [-f <file>] [--wait-ip-timeout <seconds>] [services...]
-caked    compose up [-f <file>] [--wait-ip-timeout <seconds>] [services...]
+cakectl compose up [-f <file> | -n <name>] [--wait-ip-timeout <seconds>] [services...]
+caked    compose up [-f <file> | -n <name>] [--wait-ip-timeout <seconds>] [services...]
 ```
 
 | Option | Défaut | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | détection auto | Chemin du fichier compose |
+| `-n, --name <name>` | — | Nom d'un projet déjà enregistré (voir `compose ls`) ; utilisé à la place du fichier |
 | `--wait-ip-timeout <seconds>` | `180` | Durée d'attente de l'IP de chaque VM avant abandon |
 | `[services...]` | tous | Limiter à des services nommés spécifiques |
 
 Si `up` est interrompu ou échoue partiellement, les VM démarrées avec succès sont enregistrées. Relancer `compose up` ne tentera pas de recréer les VM déjà existantes.
+
+Avec `-n/--name`, `up` ne lit aucun fichier : il démarre le projet déjà enregistré tel qu'il est (sa définition enregistrée n'est pas modifiée). C'est ce que font les actions **Démarrer** de la barre latérale et de la barre de menus de Caker.app. Il faut que le projet figure dans `compose ls`, sinon `up` échoue avec `compose <name> not found`.
 
 Le fichier lu par `up` remplace la définition enregistrée pour ce projet, donc un service **ajouté** au fichier depuis le dernier `up` est construit et démarré. Une VM déjà construite, elle, n'est jamais reconstruite : son matériel, son disque, son réseau et sa configuration cloud-init sont fixés à la création. Si la définition d'un tel service a changé, `up` se contente de le démarrer et l'indique dans son message — pour appliquer le changement, supprimez-le (`compose rm`) puis relancez `compose up`. De même, un service **retiré** du fichier garde sa VM (qui n'est plus atteinte par `down`/`rm`/`ps`, puisqu'ils parcourent la définition courante) et `up` le signale.
 
@@ -255,13 +258,14 @@ Le fichier lu par `up` remplace la définition enregistrée pour ce projet, donc
 Arrête les services dans l'ordre inverse de `depends_on`.
 
 ```
-cakectl compose down [-f <file>] [--force] [services...]
-caked    compose down [-f <file>] [--force] [services...]
+cakectl compose down [-f <file> | -n <name>] [--force] [services...]
+caked    compose down [-f <file> | -n <name>] [--force] [services...]
 ```
 
 | Option | Défaut | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | détection auto | Chemin du fichier compose |
+| `-n, --name <name>` | — | Nom d'un projet déjà enregistré (voir `compose ls`) ; utilisé à la place du fichier |
 | `--force` | désactivé | Forcer l'arrêt sans arrêt gracieux |
 | `[services...]` | tous | Limiter à des services nommés spécifiques |
 
@@ -269,14 +273,17 @@ caked    compose down [-f <file>] [--force] [services...]
 
 Affiche le statut des services enregistrés sous ce projet compose.
 
+La sortie liste les services (nom, image, statut) ; si le projet n'est pas enregistré ou si l'appel échoue, elle affiche la raison de l'échec.
+
 ```
-cakectl compose ps [-f <file>] [services...]
-caked    compose ps [-f <file>] [services...]
+cakectl compose ps [-f <file> | -n <name>] [services...]
+caked    compose ps [-f <file> | -n <name>] [services...]
 ```
 
 | Option | Défaut | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | détection auto | Chemin du fichier compose |
+| `-n, --name <name>` | — | Nom d'un projet déjà enregistré (voir `compose ls`) ; utilisé à la place du fichier |
 | `[services...]` | tous | Limiter à des services nommés spécifiques |
 
 ### `compose rm`
@@ -284,13 +291,14 @@ caked    compose ps [-f <file>] [services...]
 Supprime les VM de service et désenregistre le projet.
 
 ```
-cakectl compose rm [-f <file>] [--stop] [--force] [services...]
-caked    compose rm [-f <file>] [--stop] [--force] [services...]
+cakectl compose rm [-f <file> | -n <name>] [--stop] [--force] [services...]
+caked    compose rm [-f <file> | -n <name>] [--stop] [--force] [services...]
 ```
 
 | Option | Défaut | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | détection auto | Chemin du fichier compose |
+| `-n, --name <name>` | — | Nom d'un projet déjà enregistré (voir `compose ls`) ; utilisé à la place du fichier |
 | `--stop` | désactivé | Arrêter les services en cours avant suppression |
 | `--force` | désactivé | Forcer l'arrêt sans arrêt gracieux (n'a d'effet qu'avec `--stop`) |
 | `[services...]` | tous | Limiter à des services nommés spécifiques |
@@ -650,17 +658,20 @@ When `user`/`password` are omitted, the guest is created with `admin`/`admin`.
 Start (and create if needed) services in `depends_on` order.
 
 ```
-cakectl compose up [-f <file>] [--wait-ip-timeout <seconds>] [services...]
-caked    compose up [-f <file>] [--wait-ip-timeout <seconds>] [services...]
+cakectl compose up [-f <file> | -n <name>] [--wait-ip-timeout <seconds>] [services...]
+caked    compose up [-f <file> | -n <name>] [--wait-ip-timeout <seconds>] [services...]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | auto-detect | Path to compose file |
+| `-n, --name <name>` | — | Name of an already-registered project (see `compose ls`); used instead of the file |
 | `--wait-ip-timeout <seconds>` | `180` | How long to wait for each VM's IP before giving up |
 | `[services...]` | all | Limit to specific named services |
 
 If `up` is interrupted or partially fails, the successfully started VMs are recorded. Re-running `compose up` will not attempt to re-create VMs that already exist.
+
+With `-n/--name`, `up` reads no file: it starts the already-registered project as it is, leaving its registered definition untouched. This is what the **Start** actions in Caker.app's sidebar and menu bar do. The project must appear in `compose ls`, otherwise `up` fails with `compose <name> not found`.
 
 The file `up` reads replaces the definition registered for that project, so a service **added** to the file since the last `up` is built and started. A VM that is already built is never rebuilt, though: its hardware, disk, network and cloud-init configuration are fixed when it is created. If such a service's definition has changed, `up` only starts it and says so in its output — to apply the change, remove it (`compose rm`) and run `compose up` again. Likewise, a service **removed** from the file keeps its VM (which `down`/`rm`/`ps` no longer reach, since they walk the current definition) and `up` points that out.
 
@@ -669,13 +680,14 @@ The file `up` reads replaces the definition registered for that project, so a se
 Stop services in reverse `depends_on` order.
 
 ```
-cakectl compose down [-f <file>] [--force] [services...]
-caked    compose down [-f <file>] [--force] [services...]
+cakectl compose down [-f <file> | -n <name>] [--force] [services...]
+caked    compose down [-f <file> | -n <name>] [--force] [services...]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | auto-detect | Path to compose file |
+| `-n, --name <name>` | — | Name of an already-registered project (see `compose ls`); used instead of the file |
 | `--force` | off | Force stop without graceful shutdown |
 | `[services...]` | all | Limit to specific named services |
 
@@ -683,14 +695,17 @@ caked    compose down [-f <file>] [--force] [services...]
 
 Show status of services registered under this compose project.
 
+The output lists the services (name, image, status); when the project isn't registered or the call fails, it prints the failure reason instead.
+
 ```
-cakectl compose ps [-f <file>] [services...]
-caked    compose ps [-f <file>] [services...]
+cakectl compose ps [-f <file> | -n <name>] [services...]
+caked    compose ps [-f <file> | -n <name>] [services...]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | auto-detect | Path to compose file |
+| `-n, --name <name>` | — | Name of an already-registered project (see `compose ls`); used instead of the file |
 | `[services...]` | all | Limit to specific named services |
 
 ### `compose rm`
@@ -698,13 +713,14 @@ caked    compose ps [-f <file>] [services...]
 Remove (delete) service VMs and unregister the project.
 
 ```
-cakectl compose rm [-f <file>] [--stop] [--force] [services...]
-caked    compose rm [-f <file>] [--stop] [--force] [services...]
+cakectl compose rm [-f <file> | -n <name>] [--stop] [--force] [services...]
+caked    compose rm [-f <file> | -n <name>] [--stop] [--force] [services...]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | auto-detect | Path to compose file |
+| `-n, --name <name>` | — | Name of an already-registered project (see `compose ls`); used instead of the file |
 | `--stop` | off | Stop running services before removing |
 | `--force` | off | Force stop without graceful shutdown (only has an effect with `--stop`) |
 | `[services...]` | all | Limit to specific named services |
