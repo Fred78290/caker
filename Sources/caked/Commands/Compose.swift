@@ -49,17 +49,14 @@ struct ComposeUp: AsyncParsableCommand {
 		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
 
 		if let name = self.compose.name {
-			guard var compose = composeFileDatabase.get(name) else {
-				throw ServiceError(String(localized: "Composition is not registered"))
-			}
-
-			let reply = await CakedLib.ComposeHandler.up(
-				compose: &compose,
+			let reply = try await CakedLib.ComposeHandler.up(
+				database: composeFileDatabase,
+				name: name,
 				services: self.compose.services,
 				waitIPTimeout: waitIPTimeout,
 				runMode: common.runMode
 			)
-			
+
 			Logger.appendNewLine(self.common.format.render(reply))
 		} else {
 			let compose = try loadCompose()

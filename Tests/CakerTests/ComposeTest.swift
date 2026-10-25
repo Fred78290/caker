@@ -1596,12 +1596,41 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(database.get(name)?.composeFile.services.keys.sorted(), ["old"])
 	}
 
+	func testUpByNameThrowsForAnUnregisteredProject() async throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		do {
+			_ = try await ComposeHandler.up(database: database, name: "test-up-unknown-\(UUID().uuidString.prefix(8).lowercased())", services: [], waitIPTimeout: 1, runMode: .user)
+			XCTFail("expected an error for an unregistered project")
+		} catch {
+			XCTAssertTrue(error.reason.contains("not found"))
+		}
+	}
+
+	func testUpByNameKeepsTheRegisteredDefinition() async throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let name = "test-up-byname-\(UUID().uuidString.prefix(8).lowercased())"
+		try database.upsert(name, ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["old": svc])))
+
+		// An unknown service fails before anything is built, and the registered definition stays as it was.
+		let reply = try await ComposeHandler.up(database: database, name: name, services: ["nope"], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertFalse(reply.success)
+		XCTAssertEqual(database.get(name)?.composeFile.services.keys.sorted(), ["old"])
+	}
+
 	func testComposeRequestUpReplaceDefinitionDefaultsToFalseOnTheWire() throws {
 		// A client that predates the field never sets it; the daemon must read that as "keep the
 		// registered definition", the behaviour those clients were written against.
 		XCTAssertFalse(Caked_ComposeRequest.ComposeRequestUp().replaceDefinition)
 
-		let oldClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.composeDatas = Data("name: p".utf8) }.serializedData()
+		let oldClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.datas = Data("name: p".utf8) }.serializedData()
 		XCTAssertFalse(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: oldClient).replaceDefinition)
 
 		let newClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.replaceDefinition = true }.serializedData()

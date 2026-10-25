@@ -59,12 +59,9 @@ struct ComposeHandler {
 				let composeFileDatabase = try Home(runMode: runMode).composeFileDatabase()
 
 				if case .appName(let appName) = request.compose {
-					guard var compose = composeFileDatabase.get(appName) else {
-						return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), appName)))
-					}
-
-					let reply = await CakedLib.ComposeHandler.up(
-						compose: &compose,
+					let reply = try await CakedLib.ComposeHandler.up(
+						database: composeFileDatabase,
+						name: appName,
 						services: request.services,
 						waitIPTimeout: Int(request.waitIptimeout),
 						runMode: runMode

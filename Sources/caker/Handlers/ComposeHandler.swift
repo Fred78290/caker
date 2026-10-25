@@ -82,12 +82,9 @@ extension ComposeHandler {
 		guard let client else {
 			let database = try Home(runMode: runMode).composeFileDatabase()
 
-			guard var compose = database.get(name) else {
-				throw ServiceError(String(localized: "Composition is not registered"))
-			}
-
-			return await CakedLib.ComposeHandler.up(
-				compose: &compose,
+			return try await CakedLib.ComposeHandler.up(
+				database: database,
+				name: name,
 				services: services,
 				waitIPTimeout: waitIPTimeout,
 				runMode: runMode
