@@ -1596,6 +1596,25 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(database.get(name)?.composeFile.services.keys.sorted(), ["old"])
 	}
 
+	func testWaitUntilStoppedReturnsOnceEveryVMStopped() {
+		var polls = 0
+
+		// "a" stops after 3 checks, "b" is already stopped.
+		let remaining = ComposeHandler.waitUntilStopped(["a", "b"], timeout: 5, interval: 0.01) { name in
+			guard name == "a" else { return false }
+			polls += 1
+			return polls < 3
+		}
+
+		XCTAssertEqual(remaining, [])
+	}
+
+	func testWaitUntilStoppedReportsVMsThatNeverStop() {
+		let remaining = ComposeHandler.waitUntilStopped(["stuck", "gone"], timeout: 0.1, interval: 0.02) { $0 == "stuck" }
+
+		XCTAssertEqual(remaining, ["stuck"])
+	}
+
 	func testUpByNameThrowsForAnUnregisteredProject() async throws {
 		let (database, cleanup) = try makeTemporaryDatabase()
 		defer { cleanup() }

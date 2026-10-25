@@ -390,6 +390,19 @@ public struct ComposeHandler {
 					if Logger.LoggingLevel() > .info {
 						print(Format.text.render(result.objects))
 					}
+
+					// A stop is only a request: a graceful one returns as soon as the guest is told to shut
+					// down, and a VM that is still running can't be deleted (`DeleteHandler` leaves it in
+					// place, "VM is running"). Without waiting, `rm --stop` deleted nothing and the project
+					// and its VMs stayed. Only VMs the stop actually reached are worth waiting for.
+					let requested = result.objects.filter { $0.stopped }.map { $0.name }
+					let stillRunning = Self.waitUntilStopped(requested, timeout: force ? 15 : 120) { name in
+						(try? storage.find(name))?.status.isRunning ?? false
+					}
+
+					if stillRunning.isEmpty == false {
+						warning.append(String(format: String(localized: "VM %@ is still running after the stop request"), stillRunning.joined(separator: ", ")))
+					}
 				}
 
 				let result = DeleteHandler.delete(all: false, names: vmToDelete.map { $0.key }, runMode: runMode)
@@ -487,6 +500,20 @@ public struct ComposeHandler {
 	/// as not stopped too — is not a failure.
 	static func stopFailures(in objects: [StoppedObject], isRunning: (String) -> Bool) -> [StoppedObject] {
 		objects.filter { $0.stopped == false && isRunning($0.name) }
+	}
+
+	/// Polls until none of `names` is running any more, or `timeout` seconds have passed; returns the ones
+	/// still running (empty when they all stopped).
+	static func waitUntilStopped(_ names: [String], timeout: TimeInterval, interval: TimeInterval = 0.5, isRunning: (String) -> Bool) -> [String] {
+		let deadline = Date().addingTimeInterval(timeout)
+		var remaining = names.filter(isRunning)
+
+		while remaining.isEmpty == false && Date() < deadline {
+			Thread.sleep(forTimeInterval: interval)
+			remaining = remaining.filter(isRunning)
+		}
+
+		return remaining
 	}
 
 	// MARK: - Private
