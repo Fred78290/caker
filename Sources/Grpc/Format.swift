@@ -686,7 +686,11 @@ extension CakeAgentLib.Format {
 	}
 	
 	public func render(_ data: ComposeReplyPs) -> String {
-		return self.renderSingle(data)
+		if data.success {
+			return self.renderList(data.services)
+		}
+
+		return self.renderSingle(ComposeReplyDown(name: data.name, success: false, reason: data.reason))
 	}
 	
 	public func render(_ data: ComposeReplyDelete) -> String {

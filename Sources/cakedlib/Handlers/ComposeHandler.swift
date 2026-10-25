@@ -221,6 +221,24 @@ public struct ComposeHandler {
 		return reply
 	}
 
+	/// Starts an already-registered project by name, leaving its stored definition untouched, and persists
+	/// what was launched exactly like `up(database:compose:replaceDefinition:…)` does — even on partial
+	/// failure, so the next `up` doesn't try to re-create VMs that now exist. Behind the app's "Start" action
+	/// and `compose up -n <name>`; throws if no project is registered under `name`.
+	public static func up(database: ComposeFileDatabase, name: String, services: [String], waitIPTimeout: Int, runMode: Utils.RunMode) async throws -> ComposeReplyUp {
+		guard var status = database.get(name) else {
+			throw ServiceError(String(format: String(localized: "compose %@ not found"), name))
+		}
+
+		let reply = await self.up(compose: &status, services: services, waitIPTimeout: waitIPTimeout, runMode: runMode)
+
+		if reply.success || status.installed.isEmpty == false {
+			try database.upsert(name, status)
+		}
+
+		return reply
+	}
+
 	/// Services already built (`installed`) that `current` still defines but whose definition differs from
 	/// `previous`. Compared through sorted-key JSON: `ComposeService` isn't `Equatable`, and its
 	/// dictionary-valued fields (`environment`, `networks`…) don't encode in a stable order otherwise.

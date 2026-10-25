@@ -428,6 +428,7 @@
 		9BA941172F3C891100B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941162F3C890C00B51543 /* PingHandler.swift */; };
 		9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941182F3C896E00B51543 /* PingHandler.swift */; };
 		9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */; };
+		9BACE12C308E0F64009A9F95 /* ComposeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACE12B308E0F5E009A9F95 /* ComposeOptions.swift */; };
 		9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */; };
 		9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */; };
 		9BAF74B62EBBD7CC0036CE1B /* MultiplatformTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74AF2EBBD7CC0036CE1B /* MultiplatformTab.swift */; };
@@ -1383,6 +1384,7 @@
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
 		9BA941182F3C896E00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
 		9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
+		9BACE12B308E0F5E009A9F95 /* ComposeOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeOptions.swift; sourceTree = "<group>"; };
 		9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WizardModel.swift; sourceTree = "<group>"; };
 		9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeVirtualDocument.swift; sourceTree = "<group>"; };
 		9BAF74AF2EBBD7CC0036CE1B /* MultiplatformTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTab.swift; sourceTree = "<group>"; };
@@ -2737,6 +2739,7 @@
 			isa = PBXGroup;
 			children = (
 				9BB3BE092DB3F17500799A6A /* BuildOptions.swift */,
+				9BACE12B308E0F5E009A9F95 /* ComposeOptions.swift */,
 				9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */,
 				9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */,
 				9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */,
@@ -4132,6 +4135,7 @@
 				9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */,
 				9B464C672D5A45DF00164BF5 /* common.swift in Sources */,
 				9B464C772D5A472400164BF5 /* service.grpc.swift in Sources */,
+				9BACE12C308E0F64009A9F95 /* ComposeOptions.swift in Sources */,
 				9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */,
 				9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */,
 				9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */,

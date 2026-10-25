@@ -34,17 +34,12 @@ struct ComposeUp: AsyncParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	@Option(
 		help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout: Int = 180
-
-	@Argument(help: ArgumentHelp(String(localized: "Services to start (default: all)")))
-	var services: [String] = []
 
 	mutating func validate() throws {
 		Logger.setLevel(common.logLevel)
@@ -52,27 +47,41 @@ struct ComposeUp: AsyncParsableCommand {
 
 	func run() async throws {
 		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
-		let compose = try loadCompose()
 
-		guard compose.name.isEmpty == false else {
-			throw ServiceError(String(localized: "compose name must not be empty"))
+		if let name = self.compose.name {
+			let reply = try await CakedLib.ComposeHandler.up(
+				database: composeFileDatabase,
+				name: name,
+				services: self.compose.services,
+				waitIPTimeout: waitIPTimeout,
+				runMode: common.runMode
+			)
+
+			Logger.appendNewLine(self.common.format.render(reply))
+		} else {
+			let compose = try loadCompose()
+			
+			guard compose.name.isEmpty == false else {
+				throw ServiceError(String(localized: "compose name must not be empty"))
+			}
+			
+			// The file on disk is the user's own definition, so it replaces whatever is registered under
+			// its name — that is what lets `up` build a service added to the file since the last run.
+			let reply = try await CakedLib.ComposeHandler.up(
+				database: composeFileDatabase,
+				compose: compose,
+				replaceDefinition: true,
+				services: self.compose.services,
+				waitIPTimeout: waitIPTimeout,
+				runMode: common.runMode
+			)
+			
+			Logger.appendNewLine(self.common.format.render(reply))
 		}
-
-		// The file on disk is the user's own definition, so it replaces whatever is registered under
-		// its name — that is what lets `up` build a service added to the file since the last run.
-		let reply = try await CakedLib.ComposeHandler.up(
-			database: composeFileDatabase,
-			compose: compose,
-			replaceDefinition: true,
-			services: services,
-			waitIPTimeout: waitIPTimeout,
-			runMode: common.runMode
-		)
-		Logger.appendNewLine(self.common.format.render(reply))
 	}
 
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -89,18 +98,13 @@ struct ComposeDown: ParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	@Flag(
 		name: [.customLong("force")],
 		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
-
-	@Argument(help: ArgumentHelp(String(localized: "Services to stop (default: all)")))
-	var services: [String] = []
 
 	mutating func validate() throws {
 		Logger.setLevel(common.logLevel)
@@ -108,17 +112,22 @@ struct ComposeDown: ParsableCommand {
 
 	func run() throws {
 		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
-		let appName = try loadCompose().name
+		let appName = try appName()
 
 		guard let compose = composeFileDatabase.get(appName) else {
 			throw ServiceError(String(localized: "Composition is not registered"))
 		}
 
-		Logger.appendNewLine(self.common.format.render(CakedLib.ComposeHandler.down(compose: compose, services: services, force: force, runMode: common.runMode)))
+		Logger.appendNewLine(self.common.format.render(CakedLib.ComposeHandler.down(compose: compose, services: self.compose.services, force: force, runMode: common.runMode)))
+	}
+
+	private func appName() throws -> String {
+		if let name = self.compose.name { return name }
+		return try loadCompose().name
 	}
 
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -135,13 +144,8 @@ struct ComposePs: ParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
-
-	@Argument(help: ArgumentHelp(String(localized: "Services to show (default: all)")))
-	var services: [String] = []
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	mutating func validate() throws {
 		Logger.setLevel(common.logLevel)
@@ -149,17 +153,26 @@ struct ComposePs: ParsableCommand {
 
 	func run() throws {
 		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
-		let compose = try loadCompose()
+		
+		if let appName = self.compose.name {
+			guard let compose = composeDatabase.get(appName) else {
+				throw ServiceError(String(localized: "Composition is not registered"))
+			}
 
-		guard composeDatabase.get(compose.name) != nil else {
-			throw ServiceError(String(localized: "Composition is not registered"))
+			Logger.appendNewLine(self.common.format.render(CakedLib.ComposeHandler.ps(compose: compose.composeFile, services: self.compose.services, runMode: common.runMode)))
+		} else {
+			let compose = try loadCompose()
+
+			guard composeDatabase.get(compose.name) != nil else {
+				throw ServiceError(String(localized: "Composition is not registered"))
+			}
+
+			Logger.appendNewLine(self.common.format.render(CakedLib.ComposeHandler.ps(compose: compose, services: self.compose.services, runMode: common.runMode)))
 		}
-
-		Logger.appendNewLine(self.common.format.render(CakedLib.ComposeHandler.ps(compose: compose, services: services, runMode: common.runMode)))
 	}
 
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }
@@ -176,10 +189,8 @@ struct ComposeRm: ParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(
-		name: [.customLong("file"), .customShort("f")],
-		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String? = nil
+	@OptionGroup(title: String(localized: "Compose options"))
+	var compose: ComposeOptions
 
 	@Flag(
 		name: [.customLong("stop")],
@@ -191,22 +202,19 @@ struct ComposeRm: ParsableCommand {
 		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
-	var services: [String] = []
-
 	mutating func validate() throws {
 		Logger.setLevel(common.logLevel)
 	}
 
 	func run() throws {
 		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
-		let appName = try loadCompose().name
+		let appName = try appName()
 
 		guard var compose = composeFileDatabase.get(appName) else {
 			throw ServiceError(String(localized: "Composition is not registered"))
 		}
 
-		let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: services, stop: stop, force: force, runMode: common.runMode)
+		let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: self.compose.services, stop: stop, force: force, runMode: common.runMode)
 
 		// Persist partial deletions even on failure. If all tracked services are gone,
 		// remove the app entry; otherwise update it with the remaining installed set.
@@ -219,8 +227,13 @@ struct ComposeRm: ParsableCommand {
 		Logger.appendNewLine(self.common.format.render(reply))
 	}
 
+	private func appName() throws -> String {
+		if let name = self.compose.name { return name }
+		return try loadCompose().name
+	}
+
 	private func loadCompose() throws -> ComposeFile {
-		if let path = file { return try ComposeFile.load(fromFile: path) }
+		if let path = self.compose.file { return try ComposeFile.load(fromFile: path) }
 		return try ComposeFile.load()
 	}
 }

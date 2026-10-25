@@ -210,11 +210,10 @@ struct ComposeView: View {
 	static func start(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void) {
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
-		let compose = project.reconstructedComposeFile()
 
 		Task {
 			do {
-				let reply = try await ComposeHandler.up(client: client, compose: compose, replaceDefinition: false, runMode: runMode)
+				let reply = try await ComposeHandler.up(client: client, name: project.name, runMode: runMode)
 
 				await MainActor.run {
 					if reply.success {

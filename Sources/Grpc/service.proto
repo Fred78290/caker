@@ -112,7 +112,11 @@ message Empty {}
 message Caked {
   message ComposeRequest {
     message ComposeRequestUp {
-      bytes           composeDatas  = 1;
+      oneof compose {
+        bytes  datas   = 1;
+        string appName = 5;
+      }
+
       int32           waitIPTimeout = 2;
       repeated string services      = 3;
       // true: composeDatas is a user-authored definition that replaces the one already registered under
@@ -189,7 +193,7 @@ message Caked {
         string                      composeName = 1;
         repeated ComposeServiceInfo services    = 2;
         // YAML of the registered definition, as stored in compose.json (empty from a caked that predates it)
-        bytes                       composeDatas = 3;
+        bytes composeDatas = 3;
       }
 
       repeated ComposeInfo composeFiles = 1;
@@ -442,7 +446,7 @@ message Caked {
     optional DiskFormat diskFormat  = 45;
     bool                provisioned = 46;
   // Windows guests: the frame segment (MiB) of the display driver, which bounds the display size; absent when it is the stock driver's 16
-    optional uint32     windowsFrameSegmentMiB = 48;
+    optional uint32 windowsFrameSegmentMiB = 48;
   }
 
   message ScreenSize {
@@ -1159,7 +1163,7 @@ message Caked {
         map<string,string> properties   = 11;
         // Display name. Added after the other fields, never renumbered, so a client and a caked of
         // different versions still decode each other; empty from a caked that predates it.
-        string             name         = 12;
+        string name = 12;
       }
 
       message ListImagesInfoReply {
@@ -1183,7 +1187,7 @@ message Caked {
           string          remoteName  = 5;
           string          description = 6;
           // Display name, appended for the same reason as ImageInfo.name.
-          string          name        = 7;
+          string name = 7;
         }
 
         optional PulledImageInfo info    = 1;

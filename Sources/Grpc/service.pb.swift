@@ -165,7 +165,23 @@ public nonisolated struct Caked_Caked: Sendable {
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
 
-      public var composeDatas: Data = Data()
+      public var compose: Caked_Caked.ComposeRequest.ComposeRequestUp.OneOf_Compose? = nil
+
+      public var datas: Data {
+        get {
+          if case .datas(let v)? = compose {return v}
+          return Data()
+        }
+        set {compose = .datas(newValue)}
+      }
+
+      public var appName: String {
+        get {
+          if case .appName(let v)? = compose {return v}
+          return String()
+        }
+        set {compose = .appName(newValue)}
+      }
 
       public var waitIptimeout: Int32 = 0
 
@@ -176,6 +192,12 @@ public nonisolated struct Caked_Caked: Sendable {
       public var replaceDefinition: Bool = false
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public nonisolated enum OneOf_Compose: Equatable, Sendable {
+        case datas(Data)
+        case appName(String)
+
+      }
 
       public init() {}
     }
@@ -7002,7 +7024,7 @@ nonisolated extension Caked_Caked.ComposeRequest: SwiftProtobuf.Message, SwiftPr
 
 nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestUp"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeDatas\0\u{1}waitIPTimeout\0\u{1}services\0\u{1}replaceDefinition\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}datas\0\u{1}waitIPTimeout\0\u{1}services\0\u{1}replaceDefinition\0\u{1}appName\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7010,19 +7032,38 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularBytesField(value: &self.composeDatas) }()
+      case 1: try {
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
+        if let v = v {
+          if self.compose != nil {try decoder.handleConflictingOneOf()}
+          self.compose = .datas(v)
+        }
+      }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self.waitIptimeout) }()
       case 3: try { try decoder.decodeRepeatedStringField(value: &self.services) }()
       case 4: try { try decoder.decodeSingularBoolField(value: &self.replaceDefinition) }()
+      case 5: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.compose != nil {try decoder.handleConflictingOneOf()}
+          self.compose = .appName(v)
+        }
+      }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.composeDatas.isEmpty {
-      try visitor.visitSingularBytesField(value: self.composeDatas, fieldNumber: 1)
-    }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if case .datas(let v)? = self.compose {
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 1)
+    } }()
     if self.waitIptimeout != 0 {
       try visitor.visitSingularInt32Field(value: self.waitIptimeout, fieldNumber: 2)
     }
@@ -7032,11 +7073,14 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
     if self.replaceDefinition != false {
       try visitor.visitSingularBoolField(value: self.replaceDefinition, fieldNumber: 4)
     }
+    try { if case .appName(let v)? = self.compose {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestUp, rhs: Caked_Caked.ComposeRequest.ComposeRequestUp) -> Bool {
-    if lhs.composeDatas != rhs.composeDatas {return false}
+    if lhs.compose != rhs.compose {return false}
     if lhs.waitIptimeout != rhs.waitIptimeout {return false}
     if lhs.services != rhs.services {return false}
     if lhs.replaceDefinition != rhs.replaceDefinition {return false}

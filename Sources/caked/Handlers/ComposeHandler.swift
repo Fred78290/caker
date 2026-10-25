@@ -57,26 +57,43 @@ struct ComposeHandler {
 		mutating func run(on: any EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 			do {
 				let composeFileDatabase = try Home(runMode: runMode).composeFileDatabase()
-				let compose = try YAMLDecoder().decode(ComposeFile.self, from: request.composeDatas)
 
-				guard compose.name.isEmpty == false else {
-					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
-				}
+				if case .appName(let appName) = request.compose {
+					let reply = try await CakedLib.ComposeHandler.up(
+						database: composeFileDatabase,
+						name: appName,
+						services: request.services,
+						waitIPTimeout: Int(request.waitIptimeout),
+						runMode: runMode
+					).caked
 
-				// `replaceDefinition` is false for a client that predates the field, which keeps the old
-				// behaviour (the registered definition wins) rather than silently changing it under them.
-				let reply = try await CakedLib.ComposeHandler.up(
-					database: composeFileDatabase,
-					compose: compose,
-					replaceDefinition: request.replaceDefinition,
-					services: request.services,
-					waitIPTimeout: Int(request.waitIptimeout),
-					runMode: runMode
-				).caked
-
-				return .with {
-					$0.compose = .with {
-						$0.up = reply
+					return .with {
+						$0.compose = .with {
+							$0.up = reply
+						}
+					}
+				} else {
+					let compose = try YAMLDecoder().decode(ComposeFile.self, from: request.datas)
+					
+					guard compose.name.isEmpty == false else {
+						return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
+					}
+					
+					// `replaceDefinition` is false for a client that predates the field, which keeps the old
+					// behaviour (the registered definition wins) rather than silently changing it under them.
+					let reply = try await CakedLib.ComposeHandler.up(
+						database: composeFileDatabase,
+						compose: compose,
+						replaceDefinition: request.replaceDefinition,
+						services: request.services,
+						waitIPTimeout: Int(request.waitIptimeout),
+						runMode: runMode
+					).caked
+					
+					return .with {
+						$0.compose = .with {
+							$0.up = reply
+						}
 					}
 				}
 			} catch {

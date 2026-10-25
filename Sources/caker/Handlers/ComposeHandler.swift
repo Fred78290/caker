@@ -61,10 +61,39 @@ extension ComposeHandler {
 		return try await ComposeReplyUp(
 			client.compose(.with {
 				$0.up = .with {
-					$0.composeDatas = composeDatas
+					$0.datas = composeDatas
 					$0.waitIptimeout = Int32(waitIPTimeout)
 					$0.services = services
 					$0.replaceDefinition = replaceDefinition
+				}
+			}).response.get().compose.up)
+	}
+
+	/// Starts an already-registered compose project by name (sidebar/menu-bar "Start" action, and
+	/// the moral equivalent of `compose up -n <name>`), without loading a compose file on disk.
+	///
+	/// This path intentionally keeps the stored project definition (`replaceDefinition = false`) and
+	/// only requests "start what is already registered under this name".
+	public static func up(client: CakedServiceClient?, name: String, services: [String] = [], waitIPTimeout: Int = 180, runMode: Utils.RunMode) async throws -> ComposeReplyUp {
+		guard let client else {
+			let database = try Home(runMode: runMode).composeFileDatabase()
+
+			return try await CakedLib.ComposeHandler.up(
+				database: database,
+				name: name,
+				services: services,
+				waitIPTimeout: waitIPTimeout,
+				runMode: runMode
+			)
+		}
+
+		return try await ComposeReplyUp(
+			client.compose(.with {
+				$0.up = .with {
+					$0.appName = name
+					$0.waitIptimeout = Int32(waitIPTimeout)
+					$0.services = services
+					$0.replaceDefinition = false
 				}
 			}).response.get().compose.up)
 	}
