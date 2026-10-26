@@ -19,9 +19,9 @@ struct CakerMenuBarExtraScene: Scene {
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings
 
-#if TRACE_SWIFTUI_DEALLOC
-	let tracker = TrackDealloc(from: "CakerMenuBarExtraScene")
-#endif
+	#if TRACE_SWIFTUI_DEALLOC
+		let tracker = TrackDealloc(from: "CakerMenuBarExtraScene")
+	#endif
 
 	// Make initializer accessible from other files
 	init(model: NavigationModel) {
@@ -44,9 +44,9 @@ struct CakerMenuBarExtraScene: Scene {
 				openWindow(id: "home")
 			}.keyboardShortcut("H")
 				.help("Show the main window.")
-			
+
 			Divider()
-			
+
 			Menu("Options") {
 				Button("Settings") {
 					openSettings()
@@ -60,11 +60,11 @@ struct CakerMenuBarExtraScene: Scene {
 					open()
 				}.keyboardShortcut("O")
 					.help("Open new virtual machine.")
-				
+
 				Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
 					.help("Requires restarting Caker to take affect.")
 			}
-			
+
 			Menu("Service") {
 				Button("Browser of services") {
 					openWindow(id: "remote")
@@ -80,7 +80,7 @@ struct CakerMenuBarExtraScene: Scene {
 						MainApp.installCakedService()
 					}
 				}
-				
+
 				if self.appState.cakedServiceInstalled {
 					if self.appState.cakedServiceRunning {
 						Button("Stop service") {
@@ -120,7 +120,7 @@ struct CakerMenuBarExtraScene: Scene {
 					}
 				}
 			}
-			
+
 			Divider()
 
 			if self.model.documents.isEmpty {

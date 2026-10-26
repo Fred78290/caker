@@ -20263,6 +20263,17 @@
         }
       }
     },
+    "VM %@ is still running after the stop request" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ tourne encore après la demande d'arrêt"
+          }
+        }
+      }
+    },
     "VM %@ not matched in compose name %@" : {
       "extractionState" : "manual",
       "localizations" : {
