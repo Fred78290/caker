@@ -224,7 +224,7 @@ struct ComposeView: View {
 		}
 	}
 
-	/// Marks `project` busy (or not). Called from `AsyncButton` actions, which don't run on the main thread.
+	/// Marks `project` busy (or not). The `DispatchQueue.main.async` hop keeps it safe to call from any thread.
 	private func setBusy(_ project: ComposeReplyList.ComposeInfo, action: ComposeAction) {
 		let name = project.name
 
