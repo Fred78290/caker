@@ -27,7 +27,30 @@ struct ComposeView: View {
 	@State private var editorTarget: EditorTarget? = nil
 	/// Projects with a start/stop/delete in flight: their row buttons are disabled until it is done and the
 	/// list has been reloaded, so a second action can't be started on top of the first.
-	@State private var busyProjects: Set<String> = []
+	@State private var busyProjects: [String: ComposeAction] = [:]
+
+	enum ComposeAction: Identifiable, Equatable {
+		case start
+		case stop
+		case delete
+		case none
+
+		init(_ from: ComposeReplyList.ComposeInfo.PrimaryAction) {
+			switch from {
+			case .start: self = .start
+			case .stop: self = .stop
+			}
+		}
+
+		var id: String {
+			switch self {
+			case .start: return "start"
+			case .stop: return "stop"
+			case .delete: return "delete"
+			case .none: return "none"
+			}
+		}
+	}
 
 	enum EditorTarget: Identifiable {
 		case new
@@ -90,7 +113,8 @@ struct ComposeView: View {
 
 	@ViewBuilder
 	private func row(_ project: ComposeReplyList.ComposeInfo) -> some View {
-		let busy = self.busyProjects.contains(project.name)
+		let action = self.busyProjects[project.name] ?? .none
+		let busy = action != .none
 
 		HStack(spacing: 12) {
 			ZStack {
@@ -130,14 +154,14 @@ struct ComposeView: View {
 				.disabled(busy)
 				.help(String(localized: "Edit this compose project"))
 
-				AsyncButton { done in
-					self.togglePrimaryAction(project) { _ in
-						done()
-					}
+				Button {
+					self.togglePrimaryAction(project)
 				} label: {
 					self.actionIcon(
 						project.primaryAction == .start ? "play.fill" : "stop.fill",
-						color: project.primaryAction == .start ? .green : .orange)
+						color: project.primaryAction == .start ? .green : .orange,
+						running: action == .start || action == .stop
+					)
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
@@ -147,10 +171,10 @@ struct ComposeView: View {
 						? String(localized: "Start this project's services")
 						: String(localized: "Stop this project's services"))
 
-				AsyncButton { done in
-					self.delete(project, done: done)
+				Button {
+					self.delete(project)
 				} label: {
-					self.actionIcon("trash", color: .red)
+					self.actionIcon("trash", color: .red, running: action == .delete)
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
@@ -169,82 +193,75 @@ struct ComposeView: View {
 			}
 			.disabled(busy)
 
-			AsyncButton(project.primaryAction == .start ? "Start" : "Stop") { done in
-				self.togglePrimaryAction(project) { _ in
-					done()
-				}
+			Button(project.primaryAction == .start ? "Start" : "Stop") {
+				self.togglePrimaryAction(project)
 			}
 			.disabled(busy)
 
 			Divider()
 
-			AsyncButton("Delete…") { done in
-				self.delete(project, done: done)
+			Button("Delete…") {
+				self.delete(project)
 			}
 			.disabled(busy)
 		}
 	}
 
-	private func actionIcon(_ systemImage: String, color: Color) -> some View {
+	private func actionIcon(_ systemImage: String, color: Color, running: Bool = false) -> some View {
 		ZStack {
 			RoundedRectangle(cornerRadius: 9)
 				.fill(color.gradient)
 				.frame(width: 30, height: 30)
-			Image(systemName: systemImage)
-				.resizable()
-				.aspectRatio(contentMode: .fit)
-				.foregroundStyle(.white)
-				.frame(width: 14, height: 14)
+			if running {
+				ProgressView().frame(height: 10).scaleEffect(0.5)
+			} else {
+				Image(systemName: systemImage)
+					.resizable()
+					.aspectRatio(contentMode: .fit)
+					.foregroundStyle(.white)
+					.frame(width: 14, height: 14)
+			}
 		}
 	}
 
 	/// Marks `project` busy (or not). Called from `AsyncButton` actions, which don't run on the main thread.
-	private func setBusy(_ project: ComposeReplyList.ComposeInfo, _ busy: Bool) {
+	private func setBusy(_ project: ComposeReplyList.ComposeInfo, action: ComposeAction) {
 		let name = project.name
 
 		DispatchQueue.main.async {
-			if busy {
-				self.busyProjects.insert(name)
+			if action != .none {
+				self.busyProjects[name] = action
 			} else {
-				self.busyProjects.remove(name)
+				self.busyProjects.removeValue(forKey: name)
 			}
 		}
 	}
 
-	private func togglePrimaryAction(_ project: ComposeReplyList.ComposeInfo, completionHandler: @escaping (_ canceled: Bool) -> Void) {
-		self.setBusy(project, true)
-
-		// Busy ends once the list has been reloaded, so the row never shows the old counter with live buttons.
-		let finished: (Bool) -> Void = { canceled in
-			if canceled {
-				self.setBusy(project, false)
-				completionHandler(true)
-			} else {
-				self.refresh {
-					self.setBusy(project, false)
-					completionHandler(false)
-				}
-			}
-		}
+	private func togglePrimaryAction(_ project: ComposeReplyList.ComposeInfo) {
+		self.setBusy(project, action: .init(project.primaryAction))
 
 		switch project.primaryAction {
 		case .start:
 			Self.start(project) {
-				finished(false)
+				self.refresh {
+					self.setBusy(project, action: .none)
+				}
 			} onCancel: {
-				finished(true)
+				self.setBusy(project, action: .none)
 			}
 		case .stop:
 			Self.confirmAndStop(project) {
-				finished(false)
+				self.refresh {
+					self.setBusy(project, action: .none)
+				}
 			} onCancel: {
-				finished(true)
+				self.setBusy(project, action: .none)
 			}
 		}
 	}
 
-	private func delete(_ project: ComposeReplyList.ComposeInfo, done: @escaping () -> Void) {
-		self.setBusy(project, true)
+	private func delete(_ project: ComposeReplyList.ComposeInfo) {
+		self.setBusy(project, action: .delete)
 
 		Self.confirmAndDelete(project) {
 			if self.navigationModel.selectedComposeProject?.name == project.name {
@@ -252,12 +269,10 @@ struct ComposeView: View {
 			}
 
 			self.refresh {
-				self.setBusy(project, false)
-				done()
+				self.setBusy(project, action: .none)
 			}
 		} onCancel: {
-			self.setBusy(project, false)
-			done()
+			self.setBusy(project, action: .none)
 		}
 	}
 
@@ -396,8 +411,9 @@ struct ComposeView: View {
 
 		for service in project.services {
 			let name = "compose-\(project.name)-\(service.name)"
+			let location = storage.location(name)
 
-			guard (try? storage.find(name)) == nil, let document = AppState.shared.findVirtualMachineDocument(name) else {
+			guard let document = AppState.shared.findVirtualMachineDocument(location.rootURL) else {
 				continue
 			}
 
