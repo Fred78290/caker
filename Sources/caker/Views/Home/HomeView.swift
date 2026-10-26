@@ -554,6 +554,7 @@ struct HomeView: View {
 					ComposeView.confirmAndDelete(project) {
 						self.navigationModel.selectedComposeProject = nil
 						self.navigationModel.composeReloadToken += 1
+					} onCancel: {
 					}
 				}
 			case .tasks:

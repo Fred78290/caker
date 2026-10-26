@@ -25,6 +25,32 @@ struct ComposeView: View {
 	@State private var projects: [ComposeReplyList.ComposeInfo] = []
 	@State private var loadError: String? = nil
 	@State private var editorTarget: EditorTarget? = nil
+	/// Projects with a start/stop/delete in flight: their row buttons are disabled until it is done and the
+	/// list has been reloaded, so a second action can't be started on top of the first.
+	@State private var busyProjects: [String: ComposeAction] = [:]
+
+	enum ComposeAction: Identifiable, Equatable {
+		case start
+		case stop
+		case delete
+		case none
+
+		init(_ from: ComposeReplyList.ComposeInfo.PrimaryAction) {
+			switch from {
+			case .start: self = .start
+			case .stop: self = .stop
+			}
+		}
+
+		var id: String {
+			switch self {
+			case .start: return "start"
+			case .stop: return "stop"
+			case .delete: return "delete"
+			case .none: return "none"
+			}
+		}
+	}
 
 	enum EditorTarget: Identifiable {
 		case new
@@ -87,6 +113,9 @@ struct ComposeView: View {
 
 	@ViewBuilder
 	private func row(_ project: ComposeReplyList.ComposeInfo) -> some View {
+		let action = self.busyProjects[project.name] ?? .none
+		let busy = action != .none
+
 		HStack(spacing: 12) {
 			ZStack {
 				RoundedRectangle(cornerRadius: 9)
@@ -122,6 +151,7 @@ struct ComposeView: View {
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
+				.disabled(busy)
 				.help(String(localized: "Edit this compose project"))
 
 				Button {
@@ -129,77 +159,120 @@ struct ComposeView: View {
 				} label: {
 					self.actionIcon(
 						project.primaryAction == .start ? "play.fill" : "stop.fill",
-						color: project.primaryAction == .start ? .green : .orange)
+						color: project.primaryAction == .start ? .green : .orange,
+						running: action == .start || action == .stop
+					)
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
+				.disabled(busy)
 				.help(
 					project.primaryAction == .start
 						? String(localized: "Start this project's services")
 						: String(localized: "Stop this project's services"))
 
 				Button {
-					Self.confirmAndDelete(project) {
-						if self.navigationModel.selectedComposeProject?.name == project.name {
-							self.navigationModel.selectedComposeProject = nil
-						}
-						self.refresh()
-					}
+					self.delete(project)
 				} label: {
-					self.actionIcon("trash", color: .red)
+					self.actionIcon("trash", color: .red, running: action == .delete)
 				}
 				.withButtonStyle(.borderless)
 				.controlSize(.small)
+				.disabled(busy)
 				.help(String(localized: "Delete this compose project"))
 			}
 		}
 		.padding(.vertical, 4)
 		.contentShape(Rectangle())
+		// The row is keyed by name only (`ComposeInfo` is `Hashable` on `name`), so without this SwiftUI
+		// keeps the old row when a poll or an action changes the services' state, and the counter stays stale.
+		.id("\(project.name)#\(project.runningServiceCount)/\(project.totalServiceCount)#\(busy)")
 		.contextMenu {
 			Button("Edit…") {
 				self.editorTarget = .edit(project)
 			}
+			.disabled(busy)
 
 			Button(project.primaryAction == .start ? "Start" : "Stop") {
 				self.togglePrimaryAction(project)
 			}
+			.disabled(busy)
 
 			Divider()
 
-			Button("Delete…", role: .destructive) {
-				Self.confirmAndDelete(project) {
-					if self.navigationModel.selectedComposeProject?.name == project.name {
-						self.navigationModel.selectedComposeProject = nil
-					}
-					self.refresh()
-				}
+			Button("Delete…") {
+				self.delete(project)
 			}
+			.disabled(busy)
 		}
 	}
 
-	private func actionIcon(_ systemImage: String, color: Color) -> some View {
+	private func actionIcon(_ systemImage: String, color: Color, running: Bool = false) -> some View {
 		ZStack {
 			RoundedRectangle(cornerRadius: 9)
 				.fill(color.gradient)
 				.frame(width: 30, height: 30)
-			Image(systemName: systemImage)
-				.resizable()
-				.aspectRatio(contentMode: .fit)
-				.foregroundStyle(.white)
-				.frame(width: 14, height: 14)
+			if running {
+				ProgressView().frame(height: 10).scaleEffect(0.5)
+			} else {
+				Image(systemName: systemImage)
+					.resizable()
+					.aspectRatio(contentMode: .fit)
+					.foregroundStyle(.white)
+					.frame(width: 14, height: 14)
+			}
+		}
+	}
+
+	/// Marks `project` busy (or not). The `DispatchQueue.main.async` hop keeps it safe to call from any thread.
+	private func setBusy(_ project: ComposeReplyList.ComposeInfo, action: ComposeAction) {
+		let name = project.name
+
+		DispatchQueue.main.async {
+			if action != .none {
+				self.busyProjects[name] = action
+			} else {
+				self.busyProjects.removeValue(forKey: name)
+			}
 		}
 	}
 
 	private func togglePrimaryAction(_ project: ComposeReplyList.ComposeInfo) {
+		self.setBusy(project, action: .init(project.primaryAction))
+
 		switch project.primaryAction {
 		case .start:
 			Self.start(project) {
-				self.refresh()
+				self.refresh {
+					self.setBusy(project, action: .none)
+				}
+			} onCancel: {
+				self.setBusy(project, action: .none)
 			}
 		case .stop:
 			Self.confirmAndStop(project) {
-				self.refresh()
+				self.refresh {
+					self.setBusy(project, action: .none)
+				}
+			} onCancel: {
+				self.setBusy(project, action: .none)
 			}
+		}
+	}
+
+	private func delete(_ project: ComposeReplyList.ComposeInfo) {
+		self.setBusy(project, action: .delete)
+
+		Self.confirmAndDelete(project) {
+			if self.navigationModel.selectedComposeProject?.name == project.name {
+				self.navigationModel.selectedComposeProject = nil
+			}
+
+			self.refresh {
+				self.setBusy(project, action: .none)
+			}
+		} onCancel: {
+			self.setBusy(project, action: .none)
 		}
 	}
 
@@ -207,7 +280,7 @@ struct ComposeView: View {
 	/// `ComposeReplyList.ComposeInfo.reconstructedComposeFile()`) and calls `compose up` — not
 	/// destructive, so no confirmation, unlike stop/delete. The reconstruction is names and images
 	/// only, so it must never replace the project's stored definition (`replaceDefinition: false`).
-	static func start(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void) {
+	static func start(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void, onCancel: (() -> Void)? = nil) {
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
 
@@ -219,11 +292,13 @@ struct ComposeView: View {
 					if reply.success {
 						onDone()
 					} else {
+						onCancel?()
 						alertError(String(localized: "Failed to start compose project"), reply.reason)
 					}
 				}
 			} catch {
 				await MainActor.run {
+					onCancel?()
 					alertError(error)
 				}
 			}
@@ -232,7 +307,7 @@ struct ComposeView: View {
 
 	/// Asks for confirmation, then stops every service in `project`. `onDone` runs on the main
 	/// thread after a successful stop.
-	static func confirmAndStop(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void) {
+	static func confirmAndStop(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void, onCancel: (() -> Void)? = nil) {
 		DispatchQueue.main.async {
 			let alert = NSGlassEffectAlert()
 
@@ -243,6 +318,7 @@ struct ComposeView: View {
 			alert.addButton(withTitle: String(localized: "Cancel"))
 
 			guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
+				onCancel?()
 				return
 			}
 
@@ -257,11 +333,13 @@ struct ComposeView: View {
 						if reply.success {
 							onDone()
 						} else {
+							onCancel?()
 							alertError(String(localized: "Failed to stop compose project"), reply.reason)
 						}
 					}
 				} catch {
 					DispatchQueue.main.async {
+						onCancel?()
 						alertError(error)
 					}
 				}
@@ -272,7 +350,7 @@ struct ComposeView: View {
 	/// Asks for confirmation (naming how many services will be stopped first, if any), then removes
 	/// `project` — used by both this view's inline row action and `HomeView`'s toolbar Delete button
 	/// for the `.compose` category, matching `ImageCacheView.confirmAndDelete`'s shape.
-	static func confirmAndDelete(_ project: ComposeReplyList.ComposeInfo, onDeleted: @escaping () -> Void) {
+	static func confirmAndDelete(_ project: ComposeReplyList.ComposeInfo, onDeleted: @escaping () -> Void, onCancel: (() -> Void)? = nil) {
 		DispatchQueue.main.async {
 			let alert = NSGlassEffectAlert()
 			let runningNote =
@@ -287,6 +365,7 @@ struct ComposeView: View {
 			alert.addButton(withTitle: String(localized: "Cancel"))
 
 			guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
+				onCancel?()
 				return
 			}
 
@@ -299,18 +378,47 @@ struct ComposeView: View {
 					let reply = try ComposeHandler.rm(client: client, name: project.name, stop: stopFirst, runMode: runMode)
 
 					DispatchQueue.main.async {
+						// Deleted or not, some of the project's VMs may be gone: drop their documents.
+						Self.forgetDeletedVirtualMachines(of: project)
+
 						if reply.success {
 							onDeleted()
 						} else {
+							onCancel?()
 							alertError(String(localized: "Delete failed"), reply.reason)
 						}
 					}
 				} catch {
 					DispatchQueue.main.async {
+						onCancel?()
 						alertError(error)
 					}
 				}
 			}
+		}
+	}
+
+	/// In `.app` mode the VMs live in this process: `AppState` keeps a `VirtualMachineDocument` per VM and only
+	/// learns of a deletion through the directory watcher, which can miss it when `compose rm` removes the
+	/// directory right after stopping the VM. Dismiss and forget the documents of the project's VMs whose
+	/// directory no longer exists, the way `AppState.deleteVirtualMachine` does for a single VM.
+	static func forgetDeletedVirtualMachines(of project: ComposeReplyList.ComposeInfo) {
+		guard AppState.shared.connectionManager.connectionMode == .app else {
+			return
+		}
+
+		let storage = StorageLocation(runMode: .app)
+
+		for service in project.services {
+			let name = "compose-\(project.name)-\(service.name)"
+			let location = storage.location(name)
+
+			guard let document = AppState.shared.findVirtualMachineDocument(location.rootURL) else {
+				continue
+			}
+
+			document.setState(.deleted)
+			AppState.shared.removeVirtualMachineDocument(document.url)
 		}
 	}
 
@@ -322,7 +430,8 @@ struct ComposeView: View {
 		}
 	}
 
-	private func refresh() {
+	/// Reloads the projects; `completion` runs on the main thread once the list has been updated (or the reload failed).
+	private func refresh(completion: (() -> Void)? = nil) {
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
 
@@ -333,6 +442,7 @@ struct ComposeView: View {
 				DispatchQueue.main.async {
 					guard reply.success else {
 						self.loadError = reply.reason
+						completion?()
 						return
 					}
 
@@ -349,10 +459,13 @@ struct ComposeView: View {
 					} else if let selected = self.navigationModel.selectedComposeProject {
 						self.navigationModel.selectedComposeProject = self.projects.first { $0.name == selected.name }
 					}
+
+					completion?()
 				}
 			} catch {
 				DispatchQueue.main.async {
 					self.loadError = error.localizedDescription
+					completion?()
 				}
 			}
 		}
