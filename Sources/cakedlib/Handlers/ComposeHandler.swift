@@ -508,8 +508,12 @@ public struct ComposeHandler {
 		let deadline = Date().addingTimeInterval(timeout)
 		var remaining = names.filter(isRunning)
 
-		while remaining.isEmpty == false && Date() < deadline {
-			Thread.sleep(forTimeInterval: interval)
+		while remaining.isEmpty == false {
+			let now = Date()
+			guard now < deadline else { break }
+
+			let nextWake = min(now.addingTimeInterval(interval), deadline)
+			RunLoop.current.run(until: nextWake)
 			remaining = remaining.filter(isRunning)
 		}
 
