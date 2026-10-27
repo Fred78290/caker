@@ -27,7 +27,8 @@ package() {
 	echo 'import Foundation'
 	echo
 	echo '/// The virtio GPU driver (viogpudo) the Windows installation media carries instead of virtio-win'"'"'s: the same driver'
-	echo '/// with a fresh resource id for each framebuffer, the scanout disabled before a framebuffer is destroyed and a 64 MiB frame segment (both only on Virtualization.framework'"'"'s GPU),'
+	echo '/// with the scanout disabled before a framebuffer is destroyed on every path, plus a fresh resource id for each framebuffer'
+	echo '/// and a 64 MiB frame segment (both only on Virtualization.framework'"'"'s GPU),'
 	echo '/// so the picture is right after a resolution change and a display up to 5120x3200 is accepted. One build per guest'
 	echo '/// architecture, each test-signed with its own certificate'
 	echo '/// (see Tools/WindowsGPUDriver/README.md).'

@@ -3,7 +3,8 @@
 import Foundation
 
 /// The virtio GPU driver (viogpudo) the Windows installation media carries instead of virtio-win's: the same driver
-/// with a fresh resource id for each framebuffer, the scanout disabled before a framebuffer is destroyed and a 64 MiB frame segment (both only on Virtualization.framework's GPU),
+/// with the scanout disabled before a framebuffer is destroyed on every path, plus a fresh resource id for each framebuffer
+/// and a 64 MiB frame segment (both only on Virtualization.framework's GPU),
 /// so the picture is right after a resolution change and a display up to 5120x3200 is accepted. One build per guest
 /// architecture, each test-signed with its own certificate
 /// (see Tools/WindowsGPUDriver/README.md).
