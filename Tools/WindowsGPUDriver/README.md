@@ -9,18 +9,21 @@ the same source with the same INF (see WINDOWS_INTEL_PLAN.md, Phase 4b).
 After a resolution change Virtualization.framework shows a corrupted picture with the stock driver (black with garbled
 fragments above a width of 1024, horizontal streaks below it), although the guest renders the new mode correctly. The
 driver destroys its framebuffer resource and creates the next one with the same resource id, and the host does not handle
-that. This build gives every framebuffer a new id. Only that changes:
+that. This build gives every framebuffer a new id, and disables the scanout before it destroys the old framebuffer (the
+host refuses to destroy the resource a scanout is showing, which would leave it allocated; that part is WKosikowski's
+suggestion on #1687, commit `1932c77` of their fork, and needs no option). Only that changes:
 
-- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (three commits, up to
-  `d28b2c9`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two are proposed upstream as #1687 and live
-  on `viogpu-fresh-framebuffer-resource-id`, up to `46ffb9a`). After review the fresh ids are an option: the INF sets
+- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (four commits, up to
+  `efeadeb3`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two and the scanout one are proposed upstream
+  as #1687 and live on `viogpu-fresh-framebuffer-resource-id`, up to `e2c7d208`). After review the fresh ids are an option: the INF sets
   `UseFreshResourceId=1` for the PCI subsystem id Virtualization.framework gives its virtio GPU (`SUBSYS_00501AF4`), so this
   build only changes behavior there; the original code runs everywhere else.
-- The third commit makes the smallest frame segment an option too, `MinFrameSegmentSizeMiB` (16 to 256, 16 when unset, so nothing
+- The third commit (`d28b2c9`) makes the smallest frame segment an option too, `MinFrameSegmentSizeMiB` (16 to 256, 16 when unset, so nothing
   changes by default) and the same INF section sets it to 32. The segment is allocated once, when the adapter starts, and a
   display mode whose surface (width x height x 4 bytes) doesn't fit it is refused (`DISP_CHANGE_BADMODE`): 16 MiB is 4.19 million
   pixels (3440x1440 doesn't fit), 32 MiB is 8.39 million (3840x2160 does). caker keeps a Windows guest's display inside it
   (`WindowsDisplayLimit`), using `WindowsGPUDriverBinaries.frameSegmentMiB`, recorded in the VM's config at install.
+- The fourth commit (`efeadeb3`; `e2c7d208` on the #1687 branch) disables scanout 0 before the framebuffer is detached and destroyed, on every path.
 - Remove this directory, `WindowsGPUDriverBinaries.swift` and the `WindowsGPUDriver` use in `WindowsInstallationMedia` once a
   virtio-win release carries the fix.
 
@@ -68,19 +71,19 @@ doesn't resolve from the short one, then remove the certificate from the store; 
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `5bc24e49e7f4fa48b85354bc63dfc00ea0567650652765d1de24e969533dab3e` |
-| `viogpudo.inf` | `327f911cb840b30f9fbff7fc3fec0097ae0ce59f4daa04705ccf2d3dc9c8dcd1` |
-| `viogpudo.cat` | `376708dbd371018ffb79d82ff7ce416b3642b8593a8a8c9839697f762b600c65` |
-| `caker-test-signing.cer` | `1caef1460e46584dae88e2c709c893c54894aeb0c1e87f64a9935bdca79c36d1` |
+| `viogpudo.sys` | `765a9ea2066ad1643e75e6a1c91248524b555e6f2de88b0967725f1a7c2a92a0` |
+| `viogpudo.inf` | `1f1da6656601d0d0abc54b90b2d7c0bc11a035673822062d4dfcaa673a3f17ef` |
+| `viogpudo.cat` | `22ceb8ddd1e9b789f44ae7d43007a5b2bc0739dbc06e7b0abdcaa147dfef16f5` |
+| `caker-test-signing.cer` | `9032e1e069d15cb084d33dacb15f19c636a8b0379324c3ac97b9514e2ac7bbb3` |
 
 `amd64/` (the same source, cross-built from that ARM64 VM with the Build Tools' x64 tools, `arm64_amd64` and `/p:Platform=x64`, which also needs the x64
 Spectre libraries, `Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre`; not yet run on an Intel guest):
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `54b4bd13e9fa3e1cd7ce34a74dc15b283dc32846672a8d21bf6676a74d20cd94` |
-| `viogpudo.inf` | `5ef77b31235439b8b3d6dd7c347ddd793b92caee5109b66140bc254e1e51f5a5` |
-| `viogpudo.cat` | `763a52281ba7d64c506250eaaaddd4b3d4d69b1ada92728a5982369bab61352e` |
-| `caker-test-signing.cer` | `36c87e8c4f2f62e39392489431e6d9804ac07febbe0d9086c173682b67e1815a` |
+| `viogpudo.sys` | `f3298ab653c4509c2f72ea048f7d0a853339a50b9b871b1c11b4ad94bbe48a54` |
+| `viogpudo.inf` | `014073ece296292833d899401cbbc5fae28a3b1a4a210821633bfccb2ac5c9b1` |
+| `viogpudo.cat` | `01ec20fa1f467d3ec0cd5775d3bc7ca072da56ff009e37efea8fea3a6763ed7c` |
+| `caker-test-signing.cer` | `e414ebd45a6e9de5db3b75d1d8419393cdce326f74b3bd69dadc2a99f3f2c9de` |
 
 The driver is BSD 3-clause, like virtio-win.

@@ -15,7 +15,7 @@ Signature="$Windows NT$"
 Class=Display
 ClassGUID={4d36e968-e325-11ce-bfc1-08002be10318}
 Provider=%VENDOR%
-DriverVer = 10/22/2026,100.6.101.58000
+DriverVer = 10/27/2026,100.6.101.58000
 CatalogFile=viogpudo.cat
 PnpLockdown     = 1
 
