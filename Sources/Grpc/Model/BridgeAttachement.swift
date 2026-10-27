@@ -27,6 +27,10 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 }
 
 public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable, Sendable {
+	public static var defaultNetworkName = "default"
+	public static var defaultNetworkUUID = "E20D7252-ED0D-4FF0-83CE-DEB180EA6EE4"
+	public static var defaultNetworkDescription: String { String(localized: "Default shared network") }
+
 	public var network: String
 	public var mode: NetworkMode?
 	public var macAddress: String?
@@ -95,7 +99,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 			}
 		}
 		
-		if macAddress == nil && network != "nat" && network != "NAT shared network" {
+		if macAddress == nil && network != BridgeAttachement.defaultNetworkName && network != BridgeAttachement.defaultNetworkName {
 			macAddress = VZMACAddress.randomLocallyAdministered()
 		}
 		
@@ -113,7 +117,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	}
 	
 	public func isNAT() -> Bool {
-		return self.network == "nat" || self.network == "NAT shared network"
+		return self.network == BridgeAttachement.defaultNetworkName || self.network == BridgeAttachement.defaultNetworkName
 	}
 	
 	public func isBridged() -> Bool {

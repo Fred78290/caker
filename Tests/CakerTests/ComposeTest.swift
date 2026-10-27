@@ -915,11 +915,11 @@ final class ComposeTest: XCTestCase {
 		// resolution added for `driver: bridge` entries.
 		var svc = ComposeService()
 		svc.image = "ubuntu:24.04"
-		svc.networks = ["nat"]
+		svc.networks = [BridgeAttachement.defaultNetworkName]
 
 		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
 
-		XCTAssertEqual(built.options.networks.map { $0.network }, ["nat"])
+		XCTAssertEqual(built.options.networks.map { $0.network }, [BridgeAttachement.defaultNetworkName])
 	}
 
 	func testHandlerUpFailsFastForUnresolvableCustomBridgeNetwork() async throws {

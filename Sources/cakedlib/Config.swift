@@ -832,7 +832,7 @@ extension VirtualMachineConfiguration {
 		if let nat = networks.first(where: { $0.isNAT() }) {
 			attachedNetworks.append(nat)
 		} else {
-			attachedNetworks.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddress))
+			attachedNetworks.append(BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: self.macAddress))
 		}
 
 		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))

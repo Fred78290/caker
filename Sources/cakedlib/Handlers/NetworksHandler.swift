@@ -71,7 +71,7 @@ public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 		case .bridged:
 			return String(localized: "Bridged network")
 		case .nat:
-			return String(localized: "NAT shared network")
+			return BridgeAttachement.defaultNetworkDescription
 		}
 	}
 
@@ -616,7 +616,7 @@ public struct NetworksHandler {
 			// recomputes them from defaultNatNetwork/defaultImdsNetwork on every access),
 			// so any override written here would be silently discarded on the next read.
 			// Reject up front rather than reporting a misleading "configured: true".
-			guard networkName != "nat", networkName != IMDSNetworkInterface.imdsNetworkName else {
+			guard networkName != BridgeAttachement.defaultNetworkName, networkName != IMDSNetworkInterface.imdsNetworkName else {
 				throw ServiceError(String(localized: "Network \(networkName) is a reserved default network and cannot be configured"))
 			}
 
@@ -1032,7 +1032,7 @@ public struct NetworksHandler {
 		let referencedNetworks = Self.referencedNetworks(runMode: runMode)
 
 		if var defaultNatNetwork = self._defaultNatNetwork {
-			defaultNatNetwork.usedBy = referencedNetworks.usage(name: "nat")
+			defaultNatNetwork.usedBy = referencedNetworks.usage(name: BridgeAttachement.defaultNetworkName)
 
 			return defaultNatNetwork
 		}
@@ -1072,17 +1072,17 @@ public struct NetworksHandler {
         }
 
         let defaultNatNetwork = BridgedNetwork(
-			name: "nat",
+			name: BridgeAttachement.defaultNetworkName,
             mode: .nat,
-            description: "NAT shared network",
+            description: BridgeAttachement.defaultNetworkName,
             gateway: dhcpStart,
             dhcpEnd: dhcpEnd,
             dhcpLease: dhcpLease,
-            interfaceID: "nat",
+			interfaceID: BridgeAttachement.defaultNetworkUUID,
             endpoint: String.empty,
             running: true,
             managed: false,
-			usedBy: referencedNetworks.usage(name: "nat"))
+			usedBy: referencedNetworks.usage(name: BridgeAttachement.defaultNetworkName))
 
         if failed == false {
             self._defaultNatNetwork = defaultNatNetwork

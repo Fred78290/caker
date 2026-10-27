@@ -223,7 +223,7 @@ struct VMXMap: Sendable {
 						name = vnet!
 					}
 				} else {
-					name = "nat"
+					name = BridgeAttachement.defaultNetworkName
 				}
 
 				if address == nil {
@@ -367,7 +367,7 @@ struct VMWareImporter: Importer {
 				if let mac = ethernet.macAddress {
 					macAddress = VZMACAddress(string: mac)
 				}
-				return GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)
+				return GRPCLib.BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil)
 			} else if ethernet.connectionType == .hostOnly {
 				return GRPCLib.BridgeAttachement(network: "host", mode: .auto, macAddress: ethernet.macAddress)
 			} else if ethernet.connectionType == .bridged {
