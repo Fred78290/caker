@@ -9,18 +9,21 @@ the same source with the same INF (see WINDOWS_INTEL_PLAN.md, Phase 4b).
 After a resolution change Virtualization.framework shows a corrupted picture with the stock driver (black with garbled
 fragments above a width of 1024, horizontal streaks below it), although the guest renders the new mode correctly. The
 driver destroys its framebuffer resource and creates the next one with the same resource id, and the host does not handle
-that. This build gives every framebuffer a new id. Only that changes:
+that. This build gives every framebuffer a new id, and disables the scanout before it destroys the old framebuffer (the
+host refuses to destroy the resource a scanout is showing, which would leave it allocated; that part is WKosikowski's
+suggestion on #1687, commit `1932c77` of their fork, and needs no option). Only that changes:
 
-- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (three commits, up to
-  `d28b2c9`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two are proposed upstream as #1687 and live
-  on `viogpu-fresh-framebuffer-resource-id`, up to `46ffb9a`). After review the fresh ids are an option: the INF sets
+- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (seven commits, up to
+  `deef7495`, then upstream master merged (`30283f9b`, no change under `viogpu`), on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two and the scanout one are proposed upstream
+  as #1687 and live on `viogpu-fresh-framebuffer-resource-id`, up to `5cdca231`). After review the fresh ids are an option: the INF sets
   `UseFreshResourceId=1` for the PCI subsystem id Virtualization.framework gives its virtio GPU (`SUBSYS_00501AF4`), so this
   build only changes behavior there; the original code runs everywhere else.
-- The third commit makes the smallest frame segment an option too, `MinFrameSegmentSizeMiB` (16 to 256, 16 when unset, so nothing
-  changes by default) and the same INF section sets it to 32. The segment is allocated once, when the adapter starts, and a
+- The third commit (`d28b2c9`) makes the smallest frame segment an option too, `MinFrameSegmentSizeMiB` (16 to 256, 16 when unset, so nothing
+  changes by default) and the same INF section sets it to 64 (it was 32 until the seventh commit). The segment is allocated once, when the adapter starts, and a
   display mode whose surface (width x height x 4 bytes) doesn't fit it is refused (`DISP_CHANGE_BADMODE`): 16 MiB is 4.19 million
-  pixels (3440x1440 doesn't fit), 32 MiB is 8.39 million (3840x2160 does). caker keeps a Windows guest's display inside it
+  pixels (3440x1440 doesn't fit), 32 MiB is 8.39 million (3840x2160 does), 64 MiB is 16.8 million (5120x3200 does). caker keeps a Windows guest's display inside it
   (`WindowsDisplayLimit`), using `WindowsGPUDriverBinaries.frameSegmentMiB`, recorded in the VM's config at install.
+- The fourth commit (`efeadeb3`; `e2c7d208` on the #1687 branch) disables scanout 0 before the framebuffer is detached and destroyed, on every path. The fifth (`f461ccc4`; `bd2a115b`) sends that command with a fence and waits for the device to complete it (`CtrlQueue::DisableScanout`, up to one second, only below DISPATCH_LEVEL), as a reviewer of #1687 asked. The sixth (`8f907288`; `5cdca231`) makes `DisableScanout` return a status (success only for `RESP_OK_NODATA`): after a timeout or an error `DestroyFrameBufferObj` leaves the resource alone (it abandons the framebuffer and its id) instead of detaching and unref'ing it. Measured with a test build that logged each call to the registry: 36 calls on a Windows 11 ARM64 guest, all `RESP_OK_NODATA`, the slowest 5 ms. The seventh (`deef7495`, only on this branch: the option isn't in #1687) raises the frame segment the INF sets for Apple from 32 to 64 MiB.
 - Remove this directory, `WindowsGPUDriverBinaries.swift` and the `WindowsGPUDriver` use in `WindowsInstallationMedia` once a
   virtio-win release carries the fix.
 
@@ -68,19 +71,19 @@ doesn't resolve from the short one, then remove the certificate from the store; 
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `5bc24e49e7f4fa48b85354bc63dfc00ea0567650652765d1de24e969533dab3e` |
-| `viogpudo.inf` | `327f911cb840b30f9fbff7fc3fec0097ae0ce59f4daa04705ccf2d3dc9c8dcd1` |
-| `viogpudo.cat` | `376708dbd371018ffb79d82ff7ce416b3642b8593a8a8c9839697f762b600c65` |
-| `caker-test-signing.cer` | `1caef1460e46584dae88e2c709c893c54894aeb0c1e87f64a9935bdca79c36d1` |
+| `viogpudo.sys` | `166d7f52447930f8f5485681de2aa99fdffdf4ed8cb86ad4ec12ff24f633fe25` |
+| `viogpudo.inf` | `f90c828aeb4f83a5fd8bc7c67a3a470ffb93e617bb2d517daba4fa4de9507ae6` |
+| `viogpudo.cat` | `6e7f04b414ba623d66a9fe822626ffb564fb9ca63382dcd5f52d951a2787d11c` |
+| `caker-test-signing.cer` | `b21bf4b8335051dfcc33db3061afc01db6a68ab99c9a153d9b5241e46fef8b15` |
 
 `amd64/` (the same source, cross-built from that ARM64 VM with the Build Tools' x64 tools, `arm64_amd64` and `/p:Platform=x64`, which also needs the x64
 Spectre libraries, `Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre`; not yet run on an Intel guest):
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `54b4bd13e9fa3e1cd7ce34a74dc15b283dc32846672a8d21bf6676a74d20cd94` |
-| `viogpudo.inf` | `5ef77b31235439b8b3d6dd7c347ddd793b92caee5109b66140bc254e1e51f5a5` |
-| `viogpudo.cat` | `763a52281ba7d64c506250eaaaddd4b3d4d69b1ada92728a5982369bab61352e` |
-| `caker-test-signing.cer` | `36c87e8c4f2f62e39392489431e6d9804ac07febbe0d9086c173682b67e1815a` |
+| `viogpudo.sys` | `d9d6c1b5d55830b9bbead0575330af7c74f05e1895702f5796c8b3b3a770f310` |
+| `viogpudo.inf` | `4a65e97f28150be0201eee85061ca9e191f04525aaa8d13e714814d39c4ad431` |
+| `viogpudo.cat` | `b9d4ae80a506a960a40d98f0f8e95ee7190a700a36987c17002ecd88b20fff0c` |
+| `caker-test-signing.cer` | `98b6fd1b4b56a42993279ced1f54722409a3772b04ce948da315f9c44ce4c79d` |
 
 The driver is BSD 3-clause, like virtio-win.

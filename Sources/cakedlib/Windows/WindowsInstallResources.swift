@@ -234,7 +234,7 @@ enum WindowsInstallResources {
 		  set DISPLAYRS=!errorlevel!
 		)
 
-		rem Frame segment: the INF gives the display driver a 32 MiB one (a mode whose surface doesn't fit it is refused, see
+		rem Frame segment: the INF gives the display driver a 64 MiB one (a mode whose surface doesn't fit it is refused, see
 		rem WindowsDisplayLimit); a size asked for at build time replaces that value in the driver's key, which the driver
 		rem reads when it starts. Fails (and says so in the marker) when the driver has no key yet, so nothing is claimed
 		rem that didn't happen.

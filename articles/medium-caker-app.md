@@ -71,7 +71,7 @@ On an Intel Mac, Windows Server 2025 and Windows Server 2022 are supported as we
 When the ISO's file name contains `windows` (or `win11`), the wizard recognizes a Windows image and adds three Windows-only settings to the **Choose OS** step:
 
 - **Product key**, optional, checked as you leave the field
-- **Display buffer size**: the memory of the display driver, which limits how big the screen can get. The default holds a 3840×2160 display.
+- **Display buffer size**: the memory of the display driver, which limits how big the screen can get. The default holds a 5120×3200 display.
 - **Log on automatically**: sign the account in at every start, not only the first one. Without it the guest waits at the lock screen after setup, and anything that needs a signed-in user, such as the display following your window's size, only starts once someone logs on. The password is then kept in the guest's registry in clear text, so the switch is off by default.
 - **Use only WHQL-signed drivers**: installs only the drivers Microsoft signed (virtio-win's own). The desktop has no "Test Mode" watermark, but there is no sound, and the display keeps its size: the guest's window can't be resized, and **Refit display** is switched off and greyed out.
 
