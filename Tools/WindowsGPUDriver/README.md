@@ -13,9 +13,9 @@ that. This build gives every framebuffer a new id, and disables the scanout befo
 host refuses to destroy the resource a scanout is showing, which would leave it allocated; that part is WKosikowski's
 suggestion on #1687, commit `1932c77` of their fork, and needs no option). Only that changes:
 
-- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (four commits, up to
-  `efeadeb3`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two and the scanout one are proposed upstream
-  as #1687 and live on `viogpu-fresh-framebuffer-resource-id`, up to `e2c7d208`). After review the fresh ids are an option: the INF sets
+- Source: <https://github.com/Fred78290/kvm-guest-drivers-windows/tree/viogpu-32mib-frame-segment> (five commits, up to
+  `f461ccc4`, on top of `virtio-win/kvm-guest-drivers-windows` `d92b9c0`; the first two and the scanout one are proposed upstream
+  as #1687 and live on `viogpu-fresh-framebuffer-resource-id`, up to `bd2a115b`). After review the fresh ids are an option: the INF sets
   `UseFreshResourceId=1` for the PCI subsystem id Virtualization.framework gives its virtio GPU (`SUBSYS_00501AF4`), so this
   build only changes behavior there; the original code runs everywhere else.
 - The third commit (`d28b2c9`) makes the smallest frame segment an option too, `MinFrameSegmentSizeMiB` (16 to 256, 16 when unset, so nothing
@@ -23,7 +23,7 @@ suggestion on #1687, commit `1932c77` of their fork, and needs no option). Only 
   display mode whose surface (width x height x 4 bytes) doesn't fit it is refused (`DISP_CHANGE_BADMODE`): 16 MiB is 4.19 million
   pixels (3440x1440 doesn't fit), 32 MiB is 8.39 million (3840x2160 does). caker keeps a Windows guest's display inside it
   (`WindowsDisplayLimit`), using `WindowsGPUDriverBinaries.frameSegmentMiB`, recorded in the VM's config at install.
-- The fourth commit (`efeadeb3`; `e2c7d208` on the #1687 branch) disables scanout 0 before the framebuffer is detached and destroyed, on every path.
+- The fourth commit (`efeadeb3`; `e2c7d208` on the #1687 branch) disables scanout 0 before the framebuffer is detached and destroyed, on every path. The fifth (`f461ccc4`; `bd2a115b`) sends that command with a fence and waits for the device to complete it (`CtrlQueue::DisableScanout`, up to one second, only below DISPATCH_LEVEL), as a reviewer of #1687 asked.
 - Remove this directory, `WindowsGPUDriverBinaries.swift` and the `WindowsGPUDriver` use in `WindowsInstallationMedia` once a
   virtio-win release carries the fix.
 
@@ -71,19 +71,19 @@ doesn't resolve from the short one, then remove the certificate from the store; 
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `765a9ea2066ad1643e75e6a1c91248524b555e6f2de88b0967725f1a7c2a92a0` |
+| `viogpudo.sys` | `aeaef89d6c9cb494c29f24361e5a22655eed0adc55e253e0d2d35be294118ee6` |
 | `viogpudo.inf` | `1f1da6656601d0d0abc54b90b2d7c0bc11a035673822062d4dfcaa673a3f17ef` |
-| `viogpudo.cat` | `22ceb8ddd1e9b789f44ae7d43007a5b2bc0739dbc06e7b0abdcaa147dfef16f5` |
-| `caker-test-signing.cer` | `9032e1e069d15cb084d33dacb15f19c636a8b0379324c3ac97b9514e2ac7bbb3` |
+| `viogpudo.cat` | `36bbcb7dcbc685eaa9dfbd98d0c3cc1dbff771dab352d5ee262011b855b9b618` |
+| `caker-test-signing.cer` | `61ac63527693ab34ecf5ace1df2e601e3083b831665a3ce31ad6d512f5b2e80a` |
 
 `amd64/` (the same source, cross-built from that ARM64 VM with the Build Tools' x64 tools, `arm64_amd64` and `/p:Platform=x64`, which also needs the x64
 Spectre libraries, `Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre`; not yet run on an Intel guest):
 
 | File | SHA-256 |
 |---|---|
-| `viogpudo.sys` | `f3298ab653c4509c2f72ea048f7d0a853339a50b9b871b1c11b4ad94bbe48a54` |
+| `viogpudo.sys` | `a47efaa07ae46dded5d9c572c536fd84858cf1354576166a348c98706223b371` |
 | `viogpudo.inf` | `014073ece296292833d899401cbbc5fae28a3b1a4a210821633bfccb2ac5c9b1` |
-| `viogpudo.cat` | `01ec20fa1f467d3ec0cd5775d3bc7ca072da56ff009e37efea8fea3a6763ed7c` |
-| `caker-test-signing.cer` | `e414ebd45a6e9de5db3b75d1d8419393cdce326f74b3bd69dadc2a99f3f2c9de` |
+| `viogpudo.cat` | `cbd4e6254bb63dc5279a2760ef5d87ea0202bb3df2cf9b709721667369d4a5c2` |
+| `caker-test-signing.cer` | `6b5c7096b953514d2465c8a4651a3c39d6daf4797d809286340b02d46f7f34ec` |
 
 The driver is BSD 3-clause, like virtio-win.

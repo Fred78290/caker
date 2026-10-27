@@ -173,7 +173,7 @@ subsystem id its GPU reports, is unknown, so look before building anything:
      --quiet --norestart`): the WDK installer puts no VSIX on disk when only Build Tools are present, and the layout from `wdksetup /layout` has none either. The ARM64 build VM (`caked build`, then install the tools over
      `caked exec`/SSH) has the x64 compiler too and should be able to cross-build x64 (not tried); on the Intel Mac a
      Windows x64 VM does it natively.
-   - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-32mib-frame-segment` (up to `efeadeb3`; the fresh-id part and the scanout fix are also on `viogpu-fresh-framebuffer-resource-id`, the branch of #1687; or upstream
+   - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-32mib-frame-segment` (up to `f461ccc4`; the fresh-id part and the scanout fix are also on `viogpu-fresh-framebuffer-resource-id`, the branch of #1687; or upstream
      `master` once #1687 is merged). If step 0 found another subsystem id, first add a model line for it to
      `viogpu/viogpudo/viogpudo.inx` next to the `SUBSYS_00501AF4` one (same install section: `VioGpuDod_Apple_Inst`, which adds
      `UseFreshResourceId=1`), push it to the PR and say so there. Build `VirtIO\VirtioLib.vcxproj` then
@@ -245,10 +245,10 @@ needs the ad hoc re-signing described above.
 - **Any language**: the answer file takes `InputLocale`/`SystemLocale`/`UILanguage`/`UserLocale` from the image's default language, so a French (or any other)
   ISO gives that Windows. Checked with the French ISO on ARM64 and on x64.
 - **Single display, WHQL-only drivers, fixed-size window** (cakeagent#22 `useOnlyGPU`, `WINDOWS_WHQL_ONLY`) are not architecture-specific in the code; they were checked on ARM64 only.
-- **GPU driver rebuilt (2026-10-27)** on the fork branch `viogpu-32mib-frame-segment` at `efeadeb3`: on top of the fresh framebuffer id (opt-in), the 32 MiB frame
+- **GPU driver rebuilt (2026-10-27)** on the fork branch `viogpu-32mib-frame-segment` at `f461ccc4`: on top of the fresh framebuffer id (opt-in), the 32 MiB frame
   segment (opt-in) and the INF line for `SUBSYS_00501AF4`, `DestroyFrameBufferObj` now disables scanout 0 before `DETACH_BACKING`/`RESOURCE_UNREF`, on every path
   (WKosikowski's suggestion on virtio-win/kvm-guest-drivers-windows#1687, their commit `1932c77`, also `e2c7d208` on the #1687 branch). Virtualization.framework
-  refuses to unref the resource a scanout shows, so the old framebuffer stayed allocated on the host at each mode change. Both architectures were rebuilt in
+  refuses to unref the resource a scanout shows, so the old framebuffer stayed allocated on the host at each mode change. The command is sent with a fence and waited for (`CtrlQueue::DisableScanout`, `bd2a115b` on the #1687 branch) after a CodeRabbit review comment. Both architectures were rebuilt in
   one run on the ARM64 build VM (`win11build`, `/p:Platform=ARM64` and the `arm64_amd64` cross tools with `/p:Platform=x64`), signed with new throwaway
   certificates, and `Tools/WindowsGPUDriver/README.md` has the new hashes. **The x64 files have not run on an Intel guest**: the check to repeat is Phase 4b
   step 4 (marker `gpudriver=0 display=0`, then `SetScreenSize` at 1280x720, 800x600, 1920x1080, 1100x700 and 1024x768 each clean). Note that the INF is the same
