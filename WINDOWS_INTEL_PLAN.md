@@ -4,13 +4,15 @@ Goal: `caked build my-win11 iso:///path/to/Win11_x64.iso --autoinstall` produces
 **Intel Mac**, with the same result as the Apple-silicon path (Windows 11 ARM): display, network, shared folders
 (WinFsp + virtio-fs), virtio-vsock, and the cakeagent service reachable over vsock with mutual TLS.
 
-Status: **phase 1 is implemented and unit-tested (`WindowsArchitecture`); nothing has been booted on Intel yet.** Everything marked *unknown* below has to be
-found out on a real Intel Mac before the code that depends on it is written. The Apple-silicon implementation
+Status: **Windows 11 x64 installs and runs on an Intel Mac** (phases 1 to 4b, results below), as do Windows Server 2025 and Windows Server 2022 (see
+"Windows Server and other results since" below). What is still open is listed there too: the framebuffer shim has never been left out (unknown 3), a
+guest reboot has not been checked (5), and the x64 GPU driver rebuilt with the scanout fix has not run on an Intel guest yet. The *unknown* items in
+section 2 were the questions to settle before writing code; the ones that are answered say so. The Apple-silicon implementation
 is documented in `CLAUDE.md` ("Windows 11 for ARM is installed by `WindowsInstaller`…") and `wiki/provisioning.md`;
 this plan assumes you have read the first one.
 
 Non-goals: Windows 11 ARM on an Intel Mac (impossible without emulation), Windows 10, a TPM (same limits as ARM:
-Virtualization.framework has no ACPI/TPM hook), non-English ISOs (same as ARM), the App Store build.
+Virtualization.framework has no ACPI/TPM hook), the App Store build. (Non-English ISOs used to be a non-goal: any Windows language installs now, because the answer file takes the image's own default language. Checked with the French ISO on ARM64 and x64.)
 
 ## 1. What carries over unchanged, what is ARM-specific
 
@@ -171,7 +173,7 @@ subsystem id its GPU reports, is unknown, so look before building anything:
      --quiet --norestart`): the WDK installer puts no VSIX on disk when only Build Tools are present, and the layout from `wdksetup /layout` has none either. The ARM64 build VM (`caked build`, then install the tools over
      `caked exec`/SSH) has the x64 compiler too and should be able to cross-build x64 (not tried); on the Intel Mac a
      Windows x64 VM does it natively.
-   - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-fresh-framebuffer-resource-id` (or upstream
+   - Source: the fork branch `Fred78290/kvm-guest-drivers-windows` `viogpu-32mib-frame-segment` (up to `efeadeb3`; the fresh-id part and the scanout fix are also on `viogpu-fresh-framebuffer-resource-id`, the branch of #1687; or upstream
      `master` once #1687 is merged). If step 0 found another subsystem id, first add a model line for it to
      `viogpu/viogpudo/viogpudo.inx` next to the `SUBSYS_00501AF4` one (same install section: `VioGpuDod_Apple_Inst`, which adds
      `UseFreshResourceId=1`), push it to the PR and say so there. Build `VirtIO\VirtioLib.vcxproj` then
@@ -233,6 +235,26 @@ each rendered a clean desktop at that size on the host, and 1024x768 too. Not do
 is the control: same hardware, corrupted at 800x600 and 1280x720). Observed, not explained: one restart of that VM ended with `Unable to get IP for VM` from
 `caked start` although the guest was up on its desktop at the old address (the next start worked); and a `caked` built with plain `swift build`
 needs the ad hoc re-signing described above.
+
+### Windows Server and other results since (see `CLAUDE.md`, Windows section, for the details)
+- **Windows Server 2025 and 2022 install on Intel** with the same media layout and scripts. Their cakeagent (Go runtime) crashed at boot; the cause is not fully
+  understood ("early boot + async preemption" under VZ on Intel). `SetupComplete.cmd` starts the agent from a delayed boot task on a Server install and gives the
+  service `GODEBUG=asyncpreemptoff=1`. That setting is now applied to **every** x64 guest: on the Core i9-10850K a Windows 11 x64 guest crashed the agent on 8
+  launches out of 8 with the default runtime and on 0 out of 8 with it, so the crash is not specific to Server or to early boot. The in-place agent update
+  (`VMLocation.installAgent`, `agentUpdatePowerShell`) does the same on x64.
+- **Any language**: the answer file takes `InputLocale`/`SystemLocale`/`UILanguage`/`UserLocale` from the image's default language, so a French (or any other)
+  ISO gives that Windows. Checked with the French ISO on ARM64 and on x64.
+- **Single display, WHQL-only drivers, fixed-size window** (cakeagent#22 `useOnlyGPU`, `WINDOWS_WHQL_ONLY`) are not architecture-specific in the code; they were checked on ARM64 only.
+- **GPU driver rebuilt (2026-10-27)** on the fork branch `viogpu-32mib-frame-segment` at `efeadeb3`: on top of the fresh framebuffer id (opt-in), the 32 MiB frame
+  segment (opt-in) and the INF line for `SUBSYS_00501AF4`, `DestroyFrameBufferObj` now disables scanout 0 before `DETACH_BACKING`/`RESOURCE_UNREF`, on every path
+  (WKosikowski's suggestion on virtio-win/kvm-guest-drivers-windows#1687, their commit `1932c77`, also `e2c7d208` on the #1687 branch). Virtualization.framework
+  refuses to unref the resource a scanout shows, so the old framebuffer stayed allocated on the host at each mode change. Both architectures were rebuilt in
+  one run on the ARM64 build VM (`win11build`, `/p:Platform=ARM64` and the `arm64_amd64` cross tools with `/p:Platform=x64`), signed with new throwaway
+  certificates, and `Tools/WindowsGPUDriver/README.md` has the new hashes. **The x64 files have not run on an Intel guest**: the check to repeat is Phase 4b
+  step 4 (marker `gpudriver=0 display=0`, then `SetScreenSize` at 1280x720, 800x600, 1920x1080, 1100x700 and 1024x768 each clean). Note that the INF is the same
+  as before apart from its date, so `UseFreshResourceId=1` and the segment size still come from the Apple line.
+- Other users on Virtualization.framework (ARM64, macOS 27) reported that with fresh ids alone the width-not-divisible-by-4 sizes (1366, 1371) stay black; caker
+  already rounds the host display's width down to a multiple of 4 (`WindowsDisplayLimit.aligned`), so this does not reach the guest through caker.
 
 ### Phase 5 — docs and release hygiene
 - `wiki/provisioning.md` (EN/FR): Intel support, ISO architecture rules, limits; regenerate `docs/` with
