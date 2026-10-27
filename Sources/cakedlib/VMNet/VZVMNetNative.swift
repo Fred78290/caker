@@ -67,7 +67,7 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 		var mask = in_addr(s_addr: in_addr_t(netmask.storage))
 		var status: vmnet_return_t = .VMNET_SUCCESS
 
-		guard let network_configuration = vmnet_network_configuration_create(networkConfig.mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, &status) else {
+		guard let network_configuration = vmnet_network_configuration_create(networkConfig.mode == .host ? .VMNET_HOST_MODE : .VMNET_SHARED_MODE, &status) else {
 			throw ServiceError(String(localized: "Can't create vmnet configuration: \(status.description)"))
 		}
 
@@ -104,8 +104,6 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 		if networkConfig.mode == .host {
 			vmnet_network_configuration_disable_nat44(network_configuration)
 			vmnet_network_configuration_disable_nat66(network_configuration)
-		} else {
-			vmnet_network_configuration_set_external_interface(network_configuration)
 		}
 
 		guard let network = vmnet_network_create(network_configuration, &status) else {
