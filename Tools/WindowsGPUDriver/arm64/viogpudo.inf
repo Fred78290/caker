@@ -88,8 +88,8 @@ HKR,, UsePresentProgress,          %REG_DWORD%, 0
 
 [VioGpuDod_AppleSettings]
 HKR,, UseFreshResourceId,         %REG_DWORD%, 1
-; 32 MiB frame segment (3840x2160); the default is 16 MiB
-HKR,, MinFrameSegmentSizeMiB,     %REG_DWORD%, 32
+; 64 MiB frame segment (5120x3200); the default is 16 MiB
+HKR,, MinFrameSegmentSizeMiB,     %REG_DWORD%, 64
 
 [VioGpuDod_PCI_MSIX]
 HKR, "Interrupt Management",, 0x00000010

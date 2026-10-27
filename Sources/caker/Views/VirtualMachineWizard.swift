@@ -1204,7 +1204,7 @@ struct VirtualMachineWizard: View {
 										}
 									}
 
-									// The biggest display Windows accepts is this many MiB at 4 bytes a pixel: 32 holds 3840x2160
+									// The biggest display Windows accepts is this many MiB at 4 bytes a pixel: 64 holds 5120x3200
 									if model.windowsWhqlOnly == false {
 										LabeledContent("Display buffer size") {
 											Picker("", selection: $model.windowsFrameSegmentMiB) {
