@@ -1215,6 +1215,7 @@ message Caked {
         int32  used        = 9;
         bool   running     = 10;
         bool   managed     = 11;
+        bool   dns         = 12;
       }
 
       message NetworkInfoReply {
@@ -1476,6 +1477,7 @@ message Caked {
       optional string uuid        = 5;
       optional string nat66prefix = 6;
       optional int32  dhcpLease   = 7;
+      optional bool   dns         = 8;
     }
 
     message CreateNetworkRequest {
@@ -1487,6 +1489,7 @@ message Caked {
       optional string uuid        = 6;
       optional string nat66prefix = 7;
       optional int32  dhcpLease   = 8;
+      optional bool   dns         = 9;
     }
 
     NetworkCommand command = 1;

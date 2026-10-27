@@ -56,6 +56,9 @@ struct Networks: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "socket path")))
 		public var socketPath: String? = nil
 
+		@Flag(name: [.customLong("dns")], help: ArgumentHelp(String(localized: "Enable DNS")))
+		public var dns: Bool = false
+
 		public init() {
 
 		}
@@ -83,15 +86,14 @@ struct Networks: ParsableCommand {
 				self.subnetMask = "255.255.255.0"
 				self.interfaceID = UUID().uuidString
 				self.nat66Prefix = nil
+				self.dns = false
+
 			} else {
 				let home: Home = try Home(runMode: runMode)
 				let networkConfig = try home.sharedNetworks()
 
 				guard let network = networkConfig.sharedNetworks[networkName] else {
 					throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
-				}
-				guard network.mode != .nat else {
-					throw ServiceError(String(localized: "Network \(networkName) is default nated, please use a different network"))
 				}
 
 				self.mode = network.mode
@@ -101,6 +103,7 @@ struct Networks: ParsableCommand {
 				self.subnetMask = network.netmask
 				self.interfaceID = network.interfaceID
 				self.nat66Prefix = network.nat66Prefix
+				self.dns = network.dns ?? false
 			}
 		}
 
@@ -165,13 +168,13 @@ struct Networks: ParsableCommand {
 			}
 		}
 
-		func createVZVMNet(runMode: Utils.RunMode) throws -> (URL, VZVMNet) {
+		func createVZVMNet(runMode: Utils.RunMode) throws -> (socketURL: URL, vmnet: VZVMNet) {
 			let network: VZSharedNetwork
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.networkName) {
-				network = VZSharedNetwork(mode: self.mode, netmask: String.empty, dhcpStart: String.empty, dhcpEnd: String.empty, dhcpLease: nil, interfaceID: self.interfaceID, nat66Prefix: nil)
+				network = VZSharedNetwork(mode: self.mode, netmask: String.empty, dhcpStart: String.empty, dhcpEnd: String.empty, dhcpLease: nil, interfaceID: self.interfaceID, nat66Prefix: nil, dns: false)
 			} else {
-				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix)
+				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix, dns: self.dns)
 			}
 
 			guard let grp = getgrnam(self.socketGroup) else {
@@ -240,7 +243,6 @@ struct Networks: ParsableCommand {
 		var conf = CommandConfiguration(
 			abstract: String(localized: "Manage host network devices"),
 			subcommands: [
-				Networks.NatInfos.self,
 				Networks.Infos.self,
 				Networks.List.self,
 				Networks.Create.self,
@@ -282,6 +284,7 @@ struct Networks: ParsableCommand {
 
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
+		var coordinatorTask: Task<Void, Never>? = nil
 
 		defer {
 			try? pidFile.deleteIfFileExists()
@@ -307,7 +310,7 @@ struct Networks: ParsableCommand {
 					let networkConfig = try home.sharedNetworks()
 
 					if let network = networkConfig.sharedNetworks[options.networkName] {
-						try? vzvmnet.1.reconfigure(networkConfig: network)
+						try? vzvmnet.vmnet.reconfigure(networkConfig: network)
 					}
 				} catch {
 					Logger(self).error("Failed to reconfigure network: \(error)")
@@ -323,10 +326,29 @@ struct Networks: ParsableCommand {
 			if let sig = signalReconfigure {
 				sig.cancel()
 			}
+			
+			coordinatorTask?.cancel()
 		}
 
 		do {
-			try vzvmnet.1.start()
+			try vzvmnet.vmnet.start { network in
+				if let dns = network.dns, dns {
+					coordinatorTask = Task {
+						let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNSServer.internalBindPort, usePID: false)
+
+						await withTaskCancellationHandler(
+							operation: {
+								await coordinator.startPollingSync(interval: ComposeDNSServer.pollInterval, eager: true)
+								coordinatorTask = nil
+							},
+							onCancel: {
+								Task.sync {
+									await coordinator.shutdown()
+								}
+							})
+					}
+				}
+			}
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")
 
@@ -432,31 +454,6 @@ struct Networks: ParsableCommand {
 			}
 		} else {
 			return [StartedNetworkReply(name: "<all>", started: false, reason: networks.reason)]
-		}
-	}
-
-	struct NatInfos: ParsableCommand {
-		static let configuration = CommandConfiguration(
-			commandName: "nat-infos",
-			abstract: String(localized: "default nat network address"),
-			discussion: String(localized: "This command is used retrieve the default nat network address"),
-			shouldDisplay: false)
-
-		@OptionGroup(title: String(localized: "Global options"))
-		var common: CommonOptions
-
-		func validate() throws {
-			Logger.setLevel(self.common.logLevel)
-
-			if #unavailable(macOS 26) {
-				if geteuid() != 0 {
-					throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
-				}
-			}
-		}
-
-		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.natNetworkInfos()))
 		}
 	}
 
@@ -612,7 +609,8 @@ struct Networks: ParsableCommand {
 				dhcpEnd: self.options.dhcpEnd,
 				dhcpLease: self.options.dhcpLease,
 				interfaceID: self.options.interfaceID,
-				nat66Prefix: self.options.nat66Prefix
+				nat66Prefix: self.options.nat66Prefix,
+				dns: self.options.dns
 			)
 
 			try network.validate(runMode: common.runMode)
@@ -660,7 +658,8 @@ struct Networks: ParsableCommand {
 				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
 				dhcpLease: self.options.dhcpLease ?? existing.dhcpLease,
 				interfaceID: self.options.interfaceID ?? existing.interfaceID,
-				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix
+				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix,
+				dns: self.options.dns ?? existing.dns ?? false
 			)
 
 			if existing != changed {

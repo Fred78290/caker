@@ -87,6 +87,9 @@ struct NetworkDetailView: View {
 								.labelsHidden()
 
 								Spacer()
+								Toggle("Enable DNS", isOn: $currentItem.dns)
+									.allowsHitTesting(forEditing)
+								Spacer()
 							}
 						}
 
@@ -208,13 +211,13 @@ struct NetworkDetailView: View {
 
 							Task.detached {
 								let result = AppState.shared.stopNetwork(networkName: name)
-								
+
 								await MainActor.run {
 									defer {
 										networkActionRunning = false
 										done()
 									}
-									
+
 									if result.stopped == false {
 										alertError(String(localized: "Stop network failed"), result.reason)
 									} else {
@@ -237,7 +240,18 @@ struct NetworkDetailView: View {
 #Preview {
 	NetworkDetailView(
 		.constant(
-			BridgedNetwork(name: BridgeAttachement.defaultNetworkName, mode: .nat,
-						   description: BridgeAttachement.defaultNetworkDescription, gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: BridgeAttachement.defaultNetworkUUID, endpoint: String.empty, running: false, managed: false, usedBy: 0)),
+			BridgedNetwork(
+				name: BridgeAttachement.defaultNetworkName,
+				mode: .nat,
+				description: BridgeAttachement.defaultNetworkDescription,
+				gateway: BridgeAttachement.defaultNetworkGateway,
+				dhcpEnd: String.empty,
+				dhcpLease: String.empty,
+				interfaceID: BridgeAttachement.defaultNetworkUUID,
+				endpoint: String.empty,
+				running: false,
+				managed: true,
+				dns: true,
+				usedBy: 0)),
 		reloadNetwork: .constant(false), forEditing: true)
 }

@@ -122,6 +122,7 @@ public final class ComposeDNSServer: Sendable {
 	private let channelBox: Mutex<Channel?> = Mutex(nil)
 
 	public static let internalBindPort = 28053
+	public static let pollInterval: Double = 3
 
 	public let needsPFRedirect: Bool
 	public let internalPort: Int

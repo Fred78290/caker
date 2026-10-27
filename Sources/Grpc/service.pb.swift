@@ -5238,6 +5238,8 @@ public nonisolated struct Caked_Caked: Sendable {
 
         public var managed: Bool = false
 
+        public var dns: Bool = false
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -6282,6 +6284,15 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `dhcpLease`. Subsequent reads from it will return its default value.
       public mutating func clearDhcpLease() {self._dhcpLease = nil}
 
+      public var dns: Bool {
+        get {_dns ?? false}
+        set {_dns = newValue}
+      }
+      /// Returns true if `dns` has been explicitly set.
+      public var hasDns: Bool {self._dns != nil}
+      /// Clears the value of `dns`. Subsequent reads from it will return its default value.
+      public mutating func clearDns() {self._dns = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -6292,6 +6303,7 @@ public nonisolated struct Caked_Caked: Sendable {
       fileprivate var _uuid: String? = nil
       fileprivate var _nat66Prefix: String? = nil
       fileprivate var _dhcpLease: Int32? = nil
+      fileprivate var _dns: Bool? = nil
     }
 
     public nonisolated struct CreateNetworkRequest: Sendable {
@@ -6336,6 +6348,15 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `dhcpLease`. Subsequent reads from it will return its default value.
       public mutating func clearDhcpLease() {self._dhcpLease = nil}
 
+      public var dns: Bool {
+        get {_dns ?? false}
+        set {_dns = newValue}
+      }
+      /// Returns true if `dns` has been explicitly set.
+      public var hasDns: Bool {self._dns != nil}
+      /// Clears the value of `dns`. Subsequent reads from it will return its default value.
+      public mutating func clearDns() {self._dns = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -6343,6 +6364,7 @@ public nonisolated struct Caked_Caked: Sendable {
       fileprivate var _uuid: String? = nil
       fileprivate var _nat66Prefix: String? = nil
       fileprivate var _dhcpLease: Int32? = nil
+      fileprivate var _dns: Bool? = nil
     }
 
     public init() {}
@@ -14974,7 +14996,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, Sw
 
 nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0\u{1}managed\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0\u{1}managed\0\u{1}dns\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -14993,6 +15015,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
       case 9: try { try decoder.decodeSingularInt32Field(value: &self.used) }()
       case 10: try { try decoder.decodeSingularBoolField(value: &self.running) }()
       case 11: try { try decoder.decodeSingularBoolField(value: &self.managed) }()
+      case 12: try { try decoder.decodeSingularBoolField(value: &self.dns) }()
       default: break
       }
     }
@@ -15032,6 +15055,9 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if self.managed != false {
       try visitor.visitSingularBoolField(value: self.managed, fieldNumber: 11)
     }
+    if self.dns != false {
+      try visitor.visitSingularBoolField(value: self.dns, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -15047,6 +15073,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if lhs.used != rhs.used {return false}
     if lhs.running != rhs.running {return false}
     if lhs.managed != rhs.managed {return false}
+    if lhs.dns != rhs.dns {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -16725,7 +16752,7 @@ nonisolated extension Caked_Caked.NetworkRequest.NetworkCommand: SwiftProtobuf._
 
 nonisolated extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.NetworkRequest.protoMessageName + ".ConfigureNetworkRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0\u{1}dns\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -16740,6 +16767,7 @@ nonisolated extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftP
       case 5: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
       case 7: try { try decoder.decodeSingularInt32Field(value: &self._dhcpLease) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self._dns) }()
       default: break
       }
     }
@@ -16771,6 +16799,9 @@ nonisolated extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftP
     try { if let v = self._dhcpLease {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 7)
     } }()
+    try { if let v = self._dns {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 8)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -16782,6 +16813,7 @@ nonisolated extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftP
     if lhs._uuid != rhs._uuid {return false}
     if lhs._nat66Prefix != rhs._nat66Prefix {return false}
     if lhs._dhcpLease != rhs._dhcpLease {return false}
+    if lhs._dns != rhs._dns {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -16789,7 +16821,7 @@ nonisolated extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftP
 
 nonisolated extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.NetworkRequest.protoMessageName + ".CreateNetworkRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0\u{1}dns\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -16805,6 +16837,7 @@ nonisolated extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProt
       case 6: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
       case 8: try { try decoder.decodeSingularInt32Field(value: &self._dhcpLease) }()
+      case 9: try { try decoder.decodeSingularBoolField(value: &self._dns) }()
       default: break
       }
     }
@@ -16839,6 +16872,9 @@ nonisolated extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProt
     try { if let v = self._dhcpLease {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 8)
     } }()
+    try { if let v = self._dns {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 9)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -16851,6 +16887,7 @@ nonisolated extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProt
     if lhs._uuid != rhs._uuid {return false}
     if lhs._nat66Prefix != rhs._nat66Prefix {return false}
     if lhs._dhcpLease != rhs._dhcpLease {return false}
+    if lhs._dns != rhs._dns {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -32,7 +32,8 @@ extension Caked_CreateNetworkRequest {
 			dhcpEnd: self.dhcpEnd,
 			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
 			interfaceID: self.hasUuid ? self.uuid : UUID().uuidString,
-			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil
+			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil,
+			dns: self.dns
 		)
 	}
 }
@@ -47,7 +48,8 @@ extension Caked_ConfigureNetworkRequest {
 			dhcpEnd: self.hasDhcpEnd ? self.dhcpEnd : nil,
 			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
 			interfaceID: self.hasUuid ? self.uuid : nil,
-			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil
+			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil,
+			dns: self.hasDns ? self.dns : nil
 		)
 	}
 }
@@ -119,8 +121,9 @@ public struct UsedNetworkConfig {
 	public var dhcpLease: Int32? = nil
 	public var interfaceID: String? = UUID().uuidString
 	public var nat66Prefix: String? = nil
+	public var dns: Bool? = false
 
-	public init(mode: VMNetMode, networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, dhcpLease: Int32?, interfaceID: String? = nil, nat66Prefix: String? = nil) {
+	public init(mode: VMNetMode, networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, dhcpLease: Int32?, interfaceID: String? = nil, nat66Prefix: String? = nil, dns: Bool? = nil) {
 		self.mode = mode
 		self.networkName = networkName
 		self.netmask = netmask
@@ -129,6 +132,7 @@ public struct UsedNetworkConfig {
 		self.dhcpLease = dhcpLease
 		self.interfaceID = interfaceID
 		self.nat66Prefix = nat66Prefix
+		self.dns = dns
 	}
 
 	public init(name: String, config: VZSharedNetwork? = nil) {
@@ -140,6 +144,7 @@ public struct UsedNetworkConfig {
 		self.dhcpLease = config?.dhcpLease
 		self.interfaceID = config?.interfaceID
 		self.nat66Prefix = config?.nat66Prefix
+		self.dns = config?.dns
 	}
 }
 
@@ -283,19 +288,16 @@ public struct NetworksHandler {
 		var bridgedNetwork: String? = nil
 		let logger = Logger(self)
 		let networks: [BridgeAttachement] = networks.compactMap { inf in
-			if inf.isNAT() == false {
-				if inf.isBridged() {
-					bridgedNetwork = CakedKeyConfig.bridgedNetwork.string()
+			if inf.isBridged() {
+				bridgedNetwork = CakedKeyConfig.bridgedNetwork.string()
 
-					if bridgedNetwork == nil {
-						logger.error("Bridged network is not configured, skipping bridged networks")
-					}
+				if bridgedNetwork == nil {
+					logger.error("Bridged network is not configured, skipping bridged networks")
+					return nil
 				}
-
-				return inf
 			}
 
-			return nil
+			return inf
 		}
 
 		guard networks.isEmpty == false else {
@@ -1005,27 +1007,6 @@ public struct NetworksHandler {
 		return "Network \(networkName) stopped"
 	}
 
-	public static func natNetworkInfos() throws -> String {
-        let defaultNetwork = "192.168.64.1/24"
-        let configFile = "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist"
-
-        if #available(macOS 26, *) {
-			return defaultNetwork
-        } else if FileManager.default.fileExists(atPath: configFile) {
-			let address = try Shell.bash(to: "defaults", arguments: ["read", configFile, "Shared_Net_Address"])
-			let netmask = try Shell.bash(to: "defaults", arguments: ["read", configFile, "Shared_Net_Mask"])
-
-            // No virtualization ready
-            if address.isEmpty || netmask.isEmpty {
-                return defaultNetwork
-            }
-
-            return "\(address)/\(netmask.netmaskToCidr())"
-        } else {
-            return defaultNetwork
-        }
-	}
-
 	private static var _defaultNatNetwork: BridgedNetwork?
 
 	public static func defaultNatNetwork(runMode: Utils.RunMode) -> BridgedNetwork {
@@ -1037,56 +1018,32 @@ public struct NetworksHandler {
 			return defaultNatNetwork
 		}
 
-		var dhcpStart = String.empty
 		var dhcpEnd = String.empty
 		var dhcpLease = String.empty
-        var failed = false
 
-        if let lease = try? getDHCPLease() {
+		if let lease = try? getDHCPLease() {
 			dhcpLease = "\(lease)"
 		}
 
-		do {
-			if #available(macOS 26, *) {
-				dhcpStart = try natNetworkInfos()
-			} else if geteuid() == 0 {
-				dhcpStart = try natNetworkInfos()
-			} else {
-				let sudo = try SudoCaked(arguments: ["networks", "nat-infos", "--text"], runMode: .user)
-
-				if try sudo.runAndWait() == 0 {
-					dhcpStart = sudo.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
-				}
-			}
-		} catch {
-			Logger("NetworksHandler").error("Unable to get nat infos: \(error), use default")
-            
-            dhcpStart = "192.168.64.1/24"
-            failed = true
+		if let network = BridgeAttachement.defaultNetworkGateway.toNetwork() {
+			dhcpEnd = "\(network.range.upperBound.description)/\(network.bits)"
 		}
 
-        if dhcpStart.isEmpty == false {
-            if let network = dhcpStart.toNetwork() {
-                dhcpEnd = "\(network.range.upperBound.description)/\(network.bits)"
-            }
-        }
-
-        let defaultNatNetwork = BridgedNetwork(
+		let defaultNatNetwork = BridgedNetwork(
 			name: BridgeAttachement.defaultNetworkName,
-            mode: .nat,
-            description: BridgeAttachement.defaultNetworkName,
-            gateway: dhcpStart,
-            dhcpEnd: dhcpEnd,
-            dhcpLease: dhcpLease,
+			mode: .nat,
+			description: BridgeAttachement.defaultNetworkName,
+			gateway: BridgeAttachement.defaultNetworkGateway,
+			dhcpEnd: dhcpEnd,
+			dhcpLease: dhcpLease,
 			interfaceID: BridgeAttachement.defaultNetworkUUID,
-            endpoint: String.empty,
-            running: true,
-            managed: false,
+			endpoint: String.empty,
+			running: false,
+			managed: false,
+			dns: true,
 			usedBy: referencedNetworks.usage(name: BridgeAttachement.defaultNetworkName))
 
-        if failed == false {
-            self._defaultNatNetwork = defaultNatNetwork
-        }
+		self._defaultNatNetwork = defaultNatNetwork
 
 		return defaultNatNetwork
 	}
@@ -1115,7 +1072,7 @@ public struct NetworksHandler {
 		return usedNetworks
 	}
 
-	public static func networks(all : Bool = false, runMode: Utils.RunMode) -> ListNetworksReply {
+	public static func networks(all: Bool = false, runMode: Utils.RunMode) -> ListNetworksReply {
 		do {
 			var networks: [BridgedNetwork] = []
 			let home: Home = try Home(runMode: runMode)
@@ -1123,11 +1080,11 @@ public struct NetworksHandler {
 			let referencedNetworks = Self.referencedNetworks(runMode: runMode)
 			let networkInterfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
 
-			func createBridgedNetwork(_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String) throws -> BridgedNetwork {
+			func createBridgedNetwork(_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String, _ dns: Bool) throws -> BridgedNetwork {
 				let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
 				let endpoint: String
 				let running = socketURL.pidFile.isPIDRunning().running
-				let managed = mode == .bridged ? NetworksHandler.hasVMNetEntitlement == false : mode != .nat
+				let managed = mode == .bridged ? NetworksHandler.hasVMNetEntitlement == false : true
 
 				if try socketURL.socket.exists() {
 					endpoint = socketURL.socket.path(percentEncoded: false)
@@ -1136,15 +1093,42 @@ public struct NetworksHandler {
 				}
 
 				return BridgedNetwork(
-					name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, running: running, managed: managed, usedBy: referencedNetworks.usage(name: name))
+					name: name,
+					mode: mode,
+					description: description,
+					gateway: gateway,
+					dhcpEnd: dhcpEnd,
+					dhcpLease: dhcpLease,
+					interfaceID: uuid,
+					endpoint: endpoint,
+					running: running,
+					managed: managed,
+					dns: dns,
+					usedBy: referencedNetworks.usage(name: name))
 			}
 
 			try networks.append(
 				contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
 					if let address = networkInterfaces[inf.identifier] {
-						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, String.empty, address.network.description, "\(address.range.upperBound.description)/\(address.network.bits)", String.empty)
+						return try createBridgedNetwork(
+							inf.identifier,
+							.bridged,
+							inf.localizedDisplayName ?? inf.identifier,
+							String.empty,
+							address.network.description,
+							"\(address.range.upperBound.description)/\(address.network.bits)",
+							String.empty,
+							false)
 					} else {
-						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, String.empty, String.empty, String.empty, String.empty)
+						return try createBridgedNetwork(
+							inf.identifier,
+							.bridged,
+							inf.localizedDisplayName ?? inf.identifier,
+							String.empty,
+							String.empty,
+							String.empty,
+							String.empty,
+							false)
 					}
 				})
 
@@ -1155,8 +1139,9 @@ public struct NetworksHandler {
 				let gateway = "\($1.value.dhcpStart)/\(cidr)"
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 				let uuid = $1.value.interfaceID
+				let dns = $1.value.dns ?? false
 
-				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease))
+				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease, dns))
 			}.sorted {
 				$0 < $1
 			}
@@ -1170,7 +1155,7 @@ public struct NetworksHandler {
 	public static func status(networkName: String, runMode: Utils.RunMode) -> NetworkInfoReply {
 		let referencedNetworks = Self.referencedNetworks(runMode: runMode)
 		var result: BridgedNetwork
-		var mode: BridgedNetworkMode = .nat
+		var mode: BridgedNetworkMode = .shared
 		var description: String = String.empty
 		var uuid: String = String.empty
 		var gateway: String = String.empty
@@ -1178,6 +1163,7 @@ public struct NetworksHandler {
 		var dhcpLease: String = String.empty
 		var endpoint: String = String.empty
 		var managed = true
+		var dns = false
 
 		if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
 			let interfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
@@ -1194,18 +1180,42 @@ public struct NetworksHandler {
 		} else {
 			guard let networkConfig = try? Home(runMode: runMode).sharedNetworks() else {
 				return NetworkInfoReply(
-					info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, running: false, managed: false, usedBy: 0),
-					success: false, reason: String(localized: "Unable to get the list of networks"))
+					info: BridgedNetwork(
+						name: String.empty,
+						mode: .shared,
+						description: String.empty,
+						gateway: String.empty,
+						dhcpLease: String.empty,
+						interfaceID: String.empty,
+						endpoint: String.empty,
+						running: false,
+						managed: false,
+						dns: false,
+						usedBy: 0),
+					success: false,
+					reason: String(localized: "Unable to get the list of networks"))
 			}
 
 			guard let network = networkConfig.sharedNetworks[networkName] else {
 				return NetworkInfoReply(
-					info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, running: false, managed: false, usedBy: 0),
-					success: false, reason: String(localized: "Network \(networkName) doesn't exists"))
+					info: BridgedNetwork(
+						name: String.empty,
+						mode: .shared,
+						description: String.empty,
+						gateway: String.empty,
+						dhcpLease: String.empty,
+						interfaceID: String.empty,
+						endpoint: String.empty,
+						running: false,
+						managed: false,
+						dns: false,
+						usedBy: 0),
+					success: false,
+					reason: String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			let cidr = network.netmask.netmaskToCidr()
-
+			dns = network.dns ?? false
 			mode = .init(network.mode)
 			description = network.mode.description
 			uuid = network.interfaceID
@@ -1226,13 +1236,34 @@ public struct NetworksHandler {
 			}
 
 			result = BridgedNetwork(
-				name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, running: running, managed: managed,
+				name: networkName,
+				mode: mode,
+				description: description,
+				gateway: gateway,
+				dhcpEnd: dhcpEnd,
+				dhcpLease: dhcpLease,
+				interfaceID: uuid,
+				endpoint: endpoint,
+				running: running,
+				managed: managed,
+				dns: dns,
 				usedBy: referencedNetworks.usage(name: networkName))
 
 			return NetworkInfoReply(info: result, success: true, reason: String(localized: "Success"))
 		} catch {
 			return NetworkInfoReply(
-				info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, running: false, managed: managed, usedBy: 0),
+				info: BridgedNetwork(
+					name: String.empty,
+					mode: .shared,
+					description: String.empty,
+					gateway: String.empty,
+					dhcpLease: String.empty,
+					interfaceID: String.empty,
+					endpoint: String.empty,
+					running: false,
+					managed: managed,
+					dns: false,
+					usedBy: 0),
 				success: false,
 				reason: error.reason)
 		}

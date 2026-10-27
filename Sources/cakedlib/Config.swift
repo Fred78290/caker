@@ -851,48 +851,40 @@ extension VirtualMachineConfiguration {
 		let sharedNetworks = networkConfig.sharedNetworks
 
 		return try networks.compactMap { inf in
-			if inf.isNAT() {
-				if let macAddress = self.getMacAddress() {
-					return NATNetworkInterface(macAddress: macAddress)
-				}
-
-				return NATNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())
+			let macAddress: VZMACAddress
+			if inf.isNAT(), let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
+				macAddress = mac
+			} else if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
+				macAddress = mac
 			} else {
-				let macAddress: VZMACAddress
+				macAddress = VZMACAddress.randomLocallyAdministered()
+			}
 
-				if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
-					macAddress = mac
-				} else {
-					macAddress = VZMACAddress.randomLocallyAdministered()
-				}
+			if let networkConfig = sharedNetworks[inf.network] {
+				return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
+			} else {
+				func foundInterface() throws -> VZBridgedNetworkInterface? {
+					let network: String
 
-				if let networkConfig = sharedNetworks[inf.network] {
-					return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
-				} else {
-
-					func foundInterface() throws -> VZBridgedNetworkInterface? {
-						let network: String
-
-						if inf.isBridged() {
-							guard let name = CakedKeyConfig.bridgedNetwork.string() else {
-								throw ServiceError(String(localized: "Any bridged network is not configured"))
-							}
-							network = name
-						} else {
-							network = inf.network
+					if inf.isBridged() {
+						guard let name = CakedKeyConfig.bridgedNetwork.string() else {
+							throw ServiceError(String(localized: "Any bridged network is not configured"))
 						}
-
-						return VZBridgedNetworkInterface.networkInterfaces.first {
-							$0.identifier == network || $0.localizedDisplayName == network
-						}
+						network = name
+					} else {
+						network = inf.network
 					}
 
-					if let interface = try foundInterface() {
-						if NetworksHandler.hasVMNetEntitlement {
-							return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
-						} else {
-							return VMNetworkInterface(interface: interface, macAddress: macAddress)
-						}
+					return VZBridgedNetworkInterface.networkInterfaces.first {
+						$0.identifier == network || $0.localizedDisplayName == network
+					}
+				}
+
+				if let interface = try foundInterface() {
+					if NetworksHandler.hasVMNetEntitlement {
+						return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
+					} else {
+						return VMNetworkInterface(interface: interface, macAddress: macAddress)
 					}
 				}
 			}

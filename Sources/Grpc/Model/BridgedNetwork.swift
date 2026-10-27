@@ -31,6 +31,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 	public var endpoint: String = String.empty
 	public var running: Bool = false
 	public var managed: Bool = false
+	public var dns: Bool = false
 	public var usedBy: Int = 0
 
 	public var id: String {
@@ -67,6 +68,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		endpoint: String,
 		running: Bool,
 		managed: Bool,
+		dns: Bool,
 		usedBy: Int
 	) {
 		self.name = name
@@ -80,6 +82,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.usedBy = usedBy
 		self.running = running
 		self.managed = managed
+		self.dns = dns
 	}
 
 	public static func random(existingNetworks: [BridgedNetwork] = []) -> BridgedNetwork {
@@ -111,6 +114,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			endpoint: String.empty,
 			running: false,
 			managed: true,
+			dns: false,
 			usedBy: 0
 		)
 	}
@@ -126,6 +130,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.usedBy = Int(from.used)
 		self.running = from.running
 		self.managed = from.managed
+		self.dns = from.dns
 	}
 
 	public var caked: Caked_NetworkInfo {
@@ -140,6 +145,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			$0.used = Int32(self.usedBy)
 			$0.running = self.running
 			$0.managed = self.managed
+			$0.dns = self.dns
 		}
 	}
 }

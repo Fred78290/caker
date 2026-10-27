@@ -46,7 +46,7 @@ struct Dns: AsyncParsableCommand {
 		help: ArgumentHelp(
 			String(localized: "Seconds between rescans for compose-tagged VMs"),
 			discussion: String(localized: "How often the resolver's registry is refreshed from disk. Lower values notice a new/removed service sooner, at the cost of more frequent DHCP-lease-table reads.")))
-	var pollInterval: Double = 3
+	var pollInterval: Double = ComposeDNSServer.pollInterval
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
@@ -59,7 +59,13 @@ struct Dns: AsyncParsableCommand {
 	func run() async throws {
 		let logger = Logger(self)
 		let runMode = self.common.runMode
-		let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, internalPort: self.internalPort)
+
+		guard let gateway = ComposeDNS.natGatewayAddress(runMode: runMode) else {
+			logger.error("Compose DNS server could not determine the NAT network gateway; skipping")
+			return
+		}
+
+		let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: gateway, internalPort: self.internalPort, usePID: true)
 
 		// Same SIGINT-as-clean-shutdown pattern `caked service listen`/`caked record`/`caked
 		// provision`/`caked build` already use: cancel the default top-level handler (which just

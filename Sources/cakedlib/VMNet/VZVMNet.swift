@@ -12,7 +12,7 @@ let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
 public protocol VZVMNet {
 	func reconfigure(networkConfig: VZSharedNetwork) throws
-	func start() throws
+	func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws
 	func stop()
 	func restart()
 }
@@ -129,7 +129,6 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 	internal let eventLoop: EventLoop
 	internal let networkName: String
-	internal var networkConfig: VZSharedNetwork
 	internal let logger = Logger("VZVMNetImpl")
 	internal let socketPath: URL
 	internal let pidFile: URL
@@ -138,6 +137,8 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 	internal let runMode: Utils.RunMode
 	internal let trace: Bool
 	internal let socketGroup: gid_t
+
+	public var networkConfig: VZSharedNetwork
 
 	private func setupSignals() {
 		sigcaught.forEach { sig in
@@ -175,7 +176,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		self.networkConfig = networkConfig
 	}
 
-	public func start() throws {
+	public func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws {
 		guard self.grpcServer == nil else {
 			throw ServiceError(String(localized: "VMNet \(self.networkName) is already running"))
 		}
@@ -210,6 +211,8 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 			try self.pidFile.writePID()
 
 			do {
+				startedHandler(self.networkConfig)
+
 				try await self.semaphore.waitUnlessCancelled()
 			} catch {
 				Logger(self).error("Error: \(error)")

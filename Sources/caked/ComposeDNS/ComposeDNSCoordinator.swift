@@ -69,11 +69,15 @@ public actor ComposeDNSCoordinator {
 	private var startTask: Task<Void, Error>?
 	private var pollTask: Task<Void, Never>?
 	private var stopWhenEmpty = true
+	private let bindAddress: String
+	private let usePID: Bool
 
-	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = ComposeDNSServer.internalBindPort) {
+	public init(group: EventLoopGroup, runMode: Utils.RunMode, bindAddress: String, internalPort: Int = ComposeDNSServer.internalBindPort, usePID: Bool) {
 		self.group = group
 		self.runMode = runMode
+		self.bindAddress = bindAddress
 		self.internalPort = internalPort
+		self.usePID = usePID
 	}
 
 	/// Registers every already-running compose-tagged VM at daemon startup (the daemon
@@ -217,14 +221,16 @@ public actor ComposeDNSCoordinator {
 			self.logger.info("Compose DNS server stopped")
 		}
 
-		// Tied to the poll loop stopping, not to a server happening to be bound at this exact
-		// moment — see `writePID()`'s own doc comment for why. `shutdown(stopPolling: false)`
-		// (the registry-emptied-out path in `refreshFromDisk()`) only tears down the UDP server;
-		// the coordinator is still polling and remains "the" compose DNS authority for this
-		// `runMode`, so the PID file must stay in place for `isResolverRunning(runMode:)` to keep
-		// seeing it.
-		if stopPolling, let home = try? Home(runMode: self.runMode) {
-			try? home.composeDnsPID.delete()
+		if self.usePID {
+			// Tied to the poll loop stopping, not to a server happening to be bound at this exact
+			// moment — see `writePID()`'s own doc comment for why. `shutdown(stopPolling: false)`
+			// (the registry-emptied-out path in `refreshFromDisk()`) only tears down the UDP server;
+			// the coordinator is still polling and remains "the" compose DNS authority for this
+			// `runMode`, so the PID file must stay in place for `isResolverRunning(runMode:)` to keep
+			// seeing it.
+			if stopPolling, let home = try? Home(runMode: self.runMode) {
+				try? home.composeDnsPID.delete()
+			}
 		}
 	}
 
@@ -240,6 +246,7 @@ public actor ComposeDNSCoordinator {
 	/// bound, `ensureResolverRunning(runMode:)` could see no PID file during exactly that window
 	/// and spawn a redundant second `caked dns` right on top of an already-running one.
 	private func writePID() {
+		guard self.usePID else { return }
 		guard let home = try? Home(runMode: self.runMode) else { return }
 
 		try? home.composeDnsPID.writePID()
@@ -248,12 +255,7 @@ public actor ComposeDNSCoordinator {
 	private func ensureServerRunning() async {
 		guard self.server == nil, self.startTask == nil else { return }
 
-		guard let gateway = ComposeDNS.natGatewayAddress(runMode: self.runMode) else {
-			self.logger.warn("Compose DNS server could not determine the NAT network gateway; skipping")
-			return
-		}
-
-		let server = ComposeDNSServer(group: self.group, registry: self.registry, bindAddress: gateway, internalPort: self.internalPort)
+		let server = ComposeDNSServer(group: self.group, registry: self.registry, bindAddress: self.bindAddress, internalPort: self.internalPort)
 
 		self.server = server
 
@@ -261,10 +263,10 @@ public actor ComposeDNSCoordinator {
 			do {
 				try await server.startWithRetry()
 
-				self.logger.info("Compose DNS server started at \(gateway):\(server.internalPort)")
+				self.logger.info("Compose DNS server started at \(self.bindAddress):\(server.internalPort)")
 
 				if server.needsPFRedirect {
-					await self.enableRedirect(gateway: gateway, internalPort: server.internalPort)
+					await self.enableRedirect(gateway: self.bindAddress, internalPort: server.internalPort)
 				}
 			} catch is CancellationError {
 				// Torn down before it managed to start; nothing to log.

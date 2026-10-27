@@ -13,8 +13,8 @@ public protocol NetworkAttachement {
 	func stop(runMode: Utils.RunMode)
 }
 
-// MARK: - Network shared
-public class NATNetworkInterface: NetworkAttachement {
+// MARK: - Network native NAT
+public class IsolatedNATNetworkInterface: NetworkAttachement {
 	let macAddress: VZMACAddress
 
 	public init(macAddress: VZMACAddress) {
