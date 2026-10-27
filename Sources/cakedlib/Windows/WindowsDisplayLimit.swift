@@ -8,7 +8,7 @@ import CoreGraphics
 /// are refused too until the guest restarts. A host window bigger than that must therefore not be sent to the guest as
 /// its display size: the display is kept inside the limit, and the view scales it to the window.
 public enum WindowsDisplayLimit {
-	/// The stock driver's smallest frame segment, in MiB. caker's build raises it to 32 on Virtualization.framework's GPU
+	/// The stock driver's smallest frame segment, in MiB. caker's build raises it to 64 on Virtualization.framework's GPU
 	/// (`WindowsGPUDriverBinaries.frameSegmentMiB`, recorded in `CakeConfig.windowsFrameSegmentMiB` at install).
 	public static let defaultSegmentMiB = 16
 	static let bytesPerPixel = 4

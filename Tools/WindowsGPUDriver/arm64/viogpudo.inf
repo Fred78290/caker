@@ -15,7 +15,7 @@ Signature="$Windows NT$"
 Class=Display
 ClassGUID={4d36e968-e325-11ce-bfc1-08002be10318}
 Provider=%VENDOR%
-DriverVer = 10/22/2026,100.6.101.58000
+DriverVer = 10/27/2026,100.6.101.58000
 CatalogFile=viogpudo.cat
 PnpLockdown     = 1
 
@@ -88,8 +88,8 @@ HKR,, UsePresentProgress,          %REG_DWORD%, 0
 
 [VioGpuDod_AppleSettings]
 HKR,, UseFreshResourceId,         %REG_DWORD%, 1
-; 32 MiB frame segment (3840x2160); the default is 16 MiB
-HKR,, MinFrameSegmentSizeMiB,     %REG_DWORD%, 32
+; 64 MiB frame segment (5120x3200); the default is 16 MiB
+HKR,, MinFrameSegmentSizeMiB,     %REG_DWORD%, 64
 
 [VioGpuDod_PCI_MSIX]
 HKR, "Interrupt Management",, 0x00000010

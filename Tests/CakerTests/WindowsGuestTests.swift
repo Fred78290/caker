@@ -221,8 +221,8 @@ final class WindowsGuestTests: XCTestCase {
 	func testWindowsDisplayLimitIsTheDriversFrameSegment() {
 		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768)), 4 * 1024 * 1024, "16 MiB at 4 bytes a pixel")
 		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 3440, height: 1440)), 3440 * 1440, "a guest that started bigger keeps what it started with")
-		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 8 * 1024 * 1024, "caker's driver: 32 MiB")
-		XCTAssertGreaterThanOrEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 3840 * 2160, "3840x2160 fits")
+		XCTAssertEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 16 * 1024 * 1024, "caker's driver: 64 MiB")
+		XCTAssertGreaterThanOrEqual(WindowsDisplayLimit.maxPixels(booted: CGSize(width: 1024, height: 768), segmentMiB: WindowsGPUDriverBinaries.frameSegmentMiB), 5120 * 3200, "5120x3200 fits (3840x2160 too)")
 	}
 
 	func testWindowsDisplayWidthIsAlignedToWhatTheViewCanShow() {

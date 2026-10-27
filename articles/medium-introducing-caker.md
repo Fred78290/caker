@@ -187,7 +187,7 @@ A few options go through `--var`, and the desktop app's wizard offers the same o
 | Variable | Effect |
 | --- | --- |
 | `WINDOWS_KEY` | A product key for the answer file |
-| `WINDOWS_FRAME_SEGMENT_MIB` | The display driver's memory, 16 to 256 MiB, which sets the biggest screen the guest accepts (32 holds 3840×2160) |
+| `WINDOWS_FRAME_SEGMENT_MIB` | The display driver's memory, 16 to 256 MiB, which sets the biggest screen the guest accepts (64, the default, holds 5120×3200) |
 | `WINDOWS_AUDIO=0` | Leave the sound driver out |
 | `WINDOWS_AUTOLOGON=1` | Log the account on at every start, not only once (the password then stays in the guest's registry in clear text, so it is off by default) |
 | `WINDOWS_WHQL_ONLY=1` | Install only drivers Microsoft signed (virtio-win's own): no test-signing mode and no "Test Mode" watermark, but no sound, and the guest keeps its display size, so its window can't be resized |

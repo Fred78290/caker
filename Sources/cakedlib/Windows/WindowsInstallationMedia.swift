@@ -92,7 +92,7 @@ public struct WindowsInstallationMedia {
 	public static let frameSegmentRangeMiB = 16...256
 
 	/// What caker's INF sets (see `WindowsGPUDriverBinaries.frameSegmentMiB`), so what a guest has when none is asked for.
-	public static let defaultFrameSegmentMiB = 32
+	public static let defaultFrameSegmentMiB = 64
 
 	/// The sizes the VM wizard offers, in MiB, all inside `frameSegmentRangeMiB`.
 	public static let frameSegmentChoicesMiB = [16, 32, 48, 64, 96, 128, 192, 256]
