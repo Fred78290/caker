@@ -1052,6 +1052,19 @@ class CloudInit {
 				echo 'nameserver 127.0.0.1' > /etc/resolv.conf
 				rc-update add dnsmasq default || :
 				rc-service dnsmasq restart || :
+			elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev/null; then
+				# EL has no systemd-resolved by default: NetworkManager owns /etc/resolv.conf, so let its
+				# dnsmasq plugin forward only the compose domain and leave every other lookup untouched.
+				(dnf install -y dnsmasq || yum install -y dnsmasq) || :
+				mkdir -p /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq.d
+				cat > /etc/NetworkManager/conf.d/00-compose-dns.conf <<'EOF'
+			[main]
+			dns=dnsmasq
+			EOF
+				cat > /etc/NetworkManager/dnsmasq.d/compose-dns.conf <<'EOF'
+			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
+			EOF
+				systemctl restart NetworkManager || :
 			else
 				mkdir -p /etc/systemd/resolved.conf.d
 				cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'

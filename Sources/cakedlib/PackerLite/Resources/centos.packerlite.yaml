@@ -156,11 +156,14 @@ post_boot_command:
     - sudo systemctl enable cloud-config.service
     - sudo systemctl enable cloud-final.service
     - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"
+    - sudo dnf install -y dnsmasq || sudo yum install -y dnsmasq
     - |
-      sudo sh -c 'mkdir -p /etc/systemd/resolved.conf.d && cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf' <<'EOF'
-      [Resolve]
-      DNS=${var.dnsIP}:${var.dnsPort}
-      Domains=~${var.domain}
+      sudo sh -c 'mkdir -p /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq.d && cat > /etc/NetworkManager/conf.d/00-compose-dns.conf' <<'EOF'
+      [main]
+      dns=dnsmasq
       EOF
-    - sudo systemctl enable systemd-resolved || true
-    - sudo systemctl restart systemd-resolved || true
+    - |
+      sudo sh -c 'cat > /etc/NetworkManager/dnsmasq.d/compose-dns.conf' <<'EOF'
+      server=/${var.domain}/${var.dnsIP}#${var.dnsPort}
+      EOF
+    - sudo systemctl restart NetworkManager || true
