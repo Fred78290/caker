@@ -48,6 +48,8 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			return "s390x"
 		case .x86_64:
 			return "x86_64"
+		case .loong64:
+			return "loong64"
 		}
 	}
 
@@ -86,6 +88,8 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			self = .s390x
 		case "x86_64":
 			self = .x86_64
+		case "loong64":
+			self = .loong64
 		default:
 			Logger("Architecture").warn("Unknown architecture: \(rawValue)")
 			// Default to amd64 if unknown
@@ -110,6 +114,7 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 	case riscv64
 	case s390x
 	case x86_64
+	case loong64
 
 	public static func current() -> Architecture {
 		#if arch(arm64)
