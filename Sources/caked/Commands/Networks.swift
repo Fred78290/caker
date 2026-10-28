@@ -258,7 +258,6 @@ struct Networks: ParsableCommand {
 
 		#if !APPSTORE
 			conf.subcommands.append(Networks.ImdsRedirect.self)
-			conf.subcommands.append(Networks.ComposeDNSRedirect.self)
 		#endif
 
 		return conf
@@ -334,11 +333,11 @@ struct Networks: ParsableCommand {
 			try vzvmnet.vmnet.start { network in
 				if let dns = network.dns, dns {
 					coordinatorTask = Task {
-						let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort, usePID: false)
+						let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
 
 						await withTaskCancellationHandler(
 							operation: {
-								await coordinator.startPollingSync(interval: ComposeDNSServer.pollInterval, eager: true)
+								await coordinator.startPollingSync()
 								coordinatorTask = nil
 							},
 							onCancel: {
@@ -789,42 +788,6 @@ struct Networks: ParsableCommand {
 				try PFRedirect.disableAddressAlias()
 			} else {
 				try PFRedirect.enableAddressAlias(externalAddress: self.externalAddress, targetAddress: self.internalAddress, targetPort: self.internalPort)
-			}
-		}
-	}
-
-	struct ComposeDNSRedirect: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the compose DNS pf port redirect"), shouldDisplay: false)
-
-		@OptionGroup(title: String(localized: "Global options"))
-		var common: CommonOptions
-
-		@Flag(help: .hidden)
-		var disable: Bool = false
-
-		@Option(name: [.customLong("gateway-address")], help: .hidden)
-		var gatewayAddress: String = String.empty
-
-		@Option(name: [.customLong("internal-port")], help: .hidden)
-		var internalPort: Int = 0
-
-		func validate() throws {
-			Logger.setLevel(self.common.logLevel)
-
-			if geteuid() != 0 {
-				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
-			}
-
-			if self.disable == false && (self.internalPort == 0 || self.gatewayAddress.isEmpty) {
-				throw ValidationError(String(localized: "--gateway-address and --internal-port are required"))
-			}
-		}
-
-		func run() throws {
-			if self.disable {
-				try PFRedirect.disableComposeDNSRedirect()
-			} else {
-				try PFRedirect.enableComposeDNSRedirect(gatewayAddress: self.gatewayAddress, internalPort: self.internalPort)
 			}
 		}
 	}

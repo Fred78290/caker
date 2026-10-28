@@ -79,16 +79,8 @@ final class ComposeDNSInboundHandler: ChannelInboundHandler {
 	}
 }
 
-/// Owns the bound UDP channel. Binding/privilege story mirrors `IMDSServer` exactly (see its
-/// own doc comment): always binds the gateway address, on port 53 directly when root, or on
-/// `internalPort` unprivileged — `needsPFRedirect` then tells `ComposeDNSCoordinator` whether a
-/// `pf` UDP+TCP port redirect (`PFRedirect.enableComposeDNSRedirect`, via the same short-lived
-/// root helper IMDS uses) is additionally needed. Unlike IMDS's port-80 redirect (a convenience
-/// for guest tooling that hardcodes 80, with IMDS itself already reachable either way), this one
-/// is not optional when unprivileged: `resolvectl dns` has no way to target a non-standard port,
-/// so the compose DNS split-DNS setup guests get (see `ComposeFile.toBuildOptions`) simply does
-/// not work without it — same "needs passwordless sudo configured for caked" caveat as IMDS's own
-/// redirect, silently skipped (and the feature inert, not broken) in a sandboxed build.
+/// Owns the bound UDP channel, bound to the network's gateway address on `internalPort`
+/// (28053): guests are configured to query that port directly, so no `pf` redirect is involved.
 /// Thrown by `ComposeDNSServer.start()`/`startWithRetry()` when the target `bindAddress` isn't
 /// currently assigned to any host network interface — see `gatewayNotPresent`'s own doc comment
 /// for why this gets special handling rather than being just another `bind()` failure.
@@ -123,7 +115,6 @@ public final class ComposeDNSServer: Sendable {
 
 	public static let pollInterval: Double = 3
 
-	public let needsPFRedirect: Bool
 	public let internalPort: Int
 	public let bindAddress: String
 
@@ -133,7 +124,6 @@ public final class ComposeDNSServer: Sendable {
 		self.registry = registry
 		self.bindAddress = bindAddress
 		self.internalPort = internalPort
-		self.needsPFRedirect = false
 	}
 
 	/// `true` if `address` is currently assigned to a live host network interface — checked
