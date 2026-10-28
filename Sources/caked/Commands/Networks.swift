@@ -594,6 +594,10 @@ struct Networks: ParsableCommand {
 			let home: Home = try Home(runMode: self.common.runMode)
 			let networkConfig = try home.sharedNetworks()
 
+			if self.options.name == BridgeAttachement.defaultNetworkName || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
+				throw ValidationError(String(localized: "Network \(self.options.name) is a reserved default network and cannot be used"))
+			}
+
 			if networkConfig.sharedNetworks[self.options.name] != nil {
 				throw ValidationError(String(localized: "Network \(self.options.name) already exist"))
 			}
@@ -696,6 +700,10 @@ struct Networks: ParsableCommand {
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.name) {
 				throw ValidationError(String(localized: "Unable to delete physical network \(self.name)"))
+			}
+
+			if self.name == BridgeAttachement.defaultNetworkName || self.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
+				throw ValidationError(String(localized: "Network \(self.name) is a reserved default network and cannot be deleted"))
 			}
 
 			if networkConfig.sharedNetworks[self.name] == nil {
