@@ -1035,11 +1035,10 @@ class CloudInit {
 		let install_cakeagent: String =
 			"""
 			#!/bin/sh
-			if [ grep /etc/os-release -q 'ID=Alpine' ]; then
-			apk add dnsmasq
-			
-			mkdir -p /etc/dnsmasq.d/
-			cat > /etc/dnsmasq.d/compose-dns.conf <<'EOF'
+			if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
+				apk add dnsmasq || :
+				mkdir -p /etc/dnsmasq.d /etc/udhcpc
+				cat > /etc/dnsmasq.d/compose-dns.conf <<'EOF'
 			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
 			server=\(dnsIP)
 			server=1.1.1.1
@@ -1049,27 +1048,22 @@ class CloudInit {
 			listen-address=127.0.0.1
 			strict-order
 			EOF
-
-			mkdir -p /etc/udhcpc
-			echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
-
-			chmod 777 /usr/local/bin/install-compose-dns.sh
-			/usr/local/bin/install-compose-dns.sh
-
-			echo 'nameserver 127.0.0.1' > /etc/resolv.conf
-			rc-update add dnsmasq default
-			rc-service dnsmasq start
-
+				echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
+				echo 'nameserver 127.0.0.1' > /etc/resolv.conf
+				rc-update add dnsmasq default || :
+				rc-service dnsmasq restart || :
 			else
-			mkdir -p /etc/systemd/resolved.conf.d
-			cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
+				mkdir -p /etc/systemd/resolved.conf.d
+				cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
 			[Resolve]
 			DNS=\(dnsIP):\(ComposeDNS.internalBindPort)
 			Domains=~\(ComposeDNS.domainSuffix)
 			EOF
+				if command -v systemctl >/dev/null 2>&1; then
+					systemctl enable systemd-resolved || :
+					systemctl restart systemd-resolved || :
+				fi
 			fi
-
-			systemctl restart systemd-resolved
 
 			if [ -f /etc/selinux/config ]; then
 				sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config

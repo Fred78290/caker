@@ -25,7 +25,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		dhcpLease: Int32? = nil,
 		interfaceID: String = "en0",
 		nat66Prefix: String? = nil,
-		dns: Bool = true,
+		dns: Bool = false,
 		visible: Bool = true
 	) {
 		self.mode = mode

@@ -39,7 +39,7 @@ struct Dns: AsyncParsableCommand {
 				localized:
 					"Ignored when caked runs as root, since the resolver then binds the standard port 53 directly. Otherwise, a `pf` redirect (needs passwordless sudo configured for caked) makes port 53 on the gateway reach this port instead — resolvectl has no syntax for a non-standard port, so without that redirect this flag alone isn't enough for guests to actually reach the resolver."
 			)))
-	var internalPort: Int = ComposeDNSServer.internalBindPort
+	var internalPort: Int = ComposeDNS.internalBindPort
 
 	@Option(
 		name: [.customLong("poll-interval")],

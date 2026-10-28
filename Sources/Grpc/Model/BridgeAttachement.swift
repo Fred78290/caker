@@ -28,6 +28,10 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 
 public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable, Sendable {
 	public static var defaultNetworkName = "default"
+	/// Names the default shared network had before it was renamed to `defaultNetworkName`
+	/// (Apple's `VZNATNetworkDeviceAttachment` was called "nat"). Still found in existing
+	/// `config.json` files and scripts, so they are mapped to the new name instead of being dropped.
+	public static let legacyNetworkNames: Set<String> = ["nat", "NAT shared network"]
 	public static var defaultNetworkUUID = "E20D7252-ED0D-4FF0-83CE-DEB180EA6EE4"
 	public static var defaultNetworkDescription: String { String(localized: "Default shared network") }
 	public static var defaultNetworkGateway: String {
@@ -72,8 +76,24 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		self.description
 	}
 	
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.network = Self.normalized(try container.decode(String.self, forKey: .network))
+		self.mode = try container.decodeIfPresent(NetworkMode.self, forKey: .mode)
+		self.macAddress = try container.decodeIfPresent(String.self, forKey: .macAddress)
+	}
+
+	private enum CodingKeys: String, CodingKey {
+		case network, mode, macAddress
+	}
+
+	private static func normalized(_ network: String) -> String {
+		Self.legacyNetworkNames.contains(network) ? Self.defaultNetworkName : network
+	}
+
 	public init(network: String, mode: NetworkMode? = nil, macAddress: String? = nil) {
-		self.network = network
+		self.network = Self.normalized(network)
 		self.mode = mode
 		self.macAddress = macAddress
 	}
@@ -110,7 +130,9 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 			}
 		}
 		
-		if macAddress == nil && network != BridgeAttachement.defaultNetworkName && network != BridgeAttachement.defaultNetworkName {
+		network = Self.normalized(network)
+
+		if macAddress == nil && network != BridgeAttachement.defaultNetworkName {
 			macAddress = VZMACAddress.randomLocallyAdministered()
 		}
 		
@@ -128,7 +150,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	}
 	
 	public func isNAT() -> Bool {
-		return self.network == BridgeAttachement.defaultNetworkName || self.network == BridgeAttachement.defaultNetworkName
+		return self.network == BridgeAttachement.defaultNetworkName
 	}
 	
 	public func isBridged() -> Bool {

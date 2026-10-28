@@ -852,9 +852,11 @@ extension VirtualMachineConfiguration {
 
 		return try networks.compactMap { inf in
 			let macAddress: VZMACAddress
-			if inf.isNAT(), let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
+			if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
 				macAddress = mac
-			} else if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
+			} else if inf.isNAT(), let mac = self.getMacAddress() {
+				// The default network's address must stay the VM's own: the DHCP lease (and so
+				// the DNS name) is looked up by `config.macAddress`; a random one changes every start.
 				macAddress = mac
 			} else {
 				macAddress = VZMACAddress.randomLocallyAdministered()

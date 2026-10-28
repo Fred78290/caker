@@ -353,9 +353,31 @@ final class ComposeDNSTests: XCTestCase {
 		XCTAssertThrowsError(try ComposeDNS.stopResolver(pidFile: pidFile))
 	}
 
+	// MARK: - Default network name
+
+	func testLegacyNatNamesMapToDefaultNetwork() throws {
+		XCTAssertEqual(BridgeAttachement(network: "nat").network, BridgeAttachement.defaultNetworkName)
+		XCTAssertTrue(BridgeAttachement(network: "NAT shared network").isNAT())
+		XCTAssertEqual(BridgeAttachement(argument: "nat")?.network, BridgeAttachement.defaultNetworkName)
+		XCTAssertNil(BridgeAttachement(argument: "nat")?.macAddress)
+
+		let decoded = try JSONDecoder().decode(BridgeAttachement.self, from: Data(#"{"network":"nat","mode":1}"#.utf8))
+
+		XCTAssertTrue(decoded.isNAT())
+		XCTAssertEqual(decoded.network, BridgeAttachement.defaultNetworkName)
+		XCTAssertFalse(BridgeAttachement(network: "en0").isNAT())
+	}
+
+	func testSharedNetworkDoesNotEnableDNSByDefault() {
+		let network = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "192.168.50.1", dhcpEnd: "192.168.50.254")
+
+		XCTAssertEqual(network.dns, false)
+		XCTAssertEqual(network.gateway, "192.168.50.1")
+	}
+
 	// MARK: - Cloud-init injection (ComposeFile.toBuildOptions)
 
-	func testToBuildOptions() throws {
+	func testToBuildOptionsKeepsPostCommandsAndInjectsNoResolvectl() throws {
 		let yaml = """
 			name: myapp
 			services:
@@ -370,6 +392,9 @@ final class ComposeDNSTests: XCTestCase {
 		let path = try XCTUnwrap(built.options.userData)
 		let userData = try String(contentsOfFile: path, encoding: .utf8)
 
-		XCTAssertFalse(userData.contains("run_an_user_command"))
+		XCTAssertTrue(userData.contains("run_an_user_command"))
+		// The split-DNS setup is done inside the guest (agent install script / provisioning
+		// templates), never injected into a compose service's own user-data.
+		XCTAssertFalse(userData.contains("resolvectl"))
 	}
 }

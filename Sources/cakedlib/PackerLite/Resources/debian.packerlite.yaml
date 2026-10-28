@@ -212,15 +212,12 @@ post_boot_command:
     - sudo systemctl enable cloud-config.service
     - sudo systemctl enable cloud-final.service
     - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"
+    - sudo apt install -y systemd-resolved || true
     - |
-      cat > /${var.username}/install-compose-dns.sh <<SHELL
-      #!/bin/sh
-      mkdir -p /etc/systemd/resolved.conf.d
-      cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
+      sudo sh -c 'mkdir -p /etc/systemd/resolved.conf.d && cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf' <<'EOF'
       [Resolve]
       DNS=${var.dnsIP}:${var.dnsPort}
       Domains=~${var.domain}
       EOF
-      SHELL
-      chmod 777 /${var.username}/install-compose-dns.sh
-      sudo /${var.username}/install-compose-dns.sh
+    - sudo systemctl enable systemd-resolved || true
+    - sudo systemctl restart systemd-resolved || true
