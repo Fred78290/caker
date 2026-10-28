@@ -334,7 +334,7 @@ struct Networks: ParsableCommand {
 			try vzvmnet.vmnet.start { network in
 				if let dns = network.dns, dns {
 					coordinatorTask = Task {
-						let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNSServer.internalBindPort, usePID: false)
+						let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort, usePID: false)
 
 						await withTaskCancellationHandler(
 							operation: {

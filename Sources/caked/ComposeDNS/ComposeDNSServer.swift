@@ -121,21 +121,19 @@ public final class ComposeDNSServer: Sendable {
 	private let registry: ComposeDNSRegistry
 	private let channelBox: Mutex<Channel?> = Mutex(nil)
 
-	public static let internalBindPort = 28053
 	public static let pollInterval: Double = 3
 
 	public let needsPFRedirect: Bool
 	public let internalPort: Int
 	public let bindAddress: String
 
-	public init(group: EventLoopGroup, registry: ComposeDNSRegistry, bindAddress: String, internalPort: Int = ComposeDNSServer.internalBindPort) {
-		let runningAsRoot = geteuid() == 0
+	public init(group: EventLoopGroup, registry: ComposeDNSRegistry, bindAddress: String, internalPort: Int = ComposeDNS.internalBindPort) {
 
 		self.group = group
 		self.registry = registry
 		self.bindAddress = bindAddress
-		self.internalPort = runningAsRoot ? 53 : internalPort
-		self.needsPFRedirect = runningAsRoot == false
+		self.internalPort = internalPort
+		self.needsPFRedirect = false
 	}
 
 	/// `true` if `address` is currently assigned to a live host network interface — checked

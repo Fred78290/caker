@@ -86,7 +86,7 @@ public struct ComposeHandler {
 					}
 				}
 
-				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks, composeDNSGateway: ComposeDNS.natGatewayAddress(runMode: runMode))
+				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks)
 
 				// Registered before `validate(remote:)` can throw: `toBuildOptions` has already written the
 				// cloud-init user-data file by now (which can carry `environment:` secrets), and a `defer`

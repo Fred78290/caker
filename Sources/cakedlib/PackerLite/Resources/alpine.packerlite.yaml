@@ -149,8 +149,35 @@ post_boot_command:
   use_ssh_key: false
   commands:
     - 'echo ${var.password} | sudo -S sh -c ''echo "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}'''
-    - sudo apk add cloud-init py3-netifaces util-linux e2fsprogs-extra
+    - sudo apk add cloud-init py3-netifaces util-linux e2fsprogs-extra dnsmask
     - sudo rc-update add cloud-init default
     - 'echo "datasource_list: [ NoCloud, None ]" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'
+
+    - |
+      cat > /home/${var.username}/install-compose-dns.sh <<SHELL
+      #!/bin/sh
+      mkdir -p /etc/dnsmasq.d/
+      cat > /etc/dnsmasq.d/compose-dns.conf <<'EOF'
+      server=/${var.domain}/${var.dnsIP}#${var.dnsPort}
+      server=${var.dnsIP}
+      server=1.1.1.1
+      server=9.9.9.9
+      server=8.8.8.8
+      no-resolv
+      listen-address=127.0.0.1
+      strict-order
+      EOF
+      
+      mkdir -p /etc/udhcpc
+      echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
+
+      echo 'nameserver 127.0.0.1' > /etc/resolv.conf
+      rc-update add dnsmasq default
+      rc-service dnsmasq start
+
+      SHELL
+      chmod 777 /${var.username}/install-compose-dns.sh
+      sudo /${var.username}/install-compose-dns.sh
+
     - sync
     - sync

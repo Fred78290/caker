@@ -72,7 +72,7 @@ public actor ComposeDNSCoordinator {
 	private let bindAddress: String
 	private let usePID: Bool
 
-	public init(group: EventLoopGroup, runMode: Utils.RunMode, bindAddress: String, internalPort: Int = ComposeDNSServer.internalBindPort, usePID: Bool) {
+	public init(group: EventLoopGroup, runMode: Utils.RunMode, bindAddress: String, internalPort: Int = ComposeDNS.internalBindPort, usePID: Bool) {
 		self.group = group
 		self.runMode = runMode
 		self.bindAddress = bindAddress
@@ -265,6 +265,7 @@ public actor ComposeDNSCoordinator {
 
 				self.logger.info("Compose DNS server started at \(self.bindAddress):\(server.internalPort)")
 
+				// Will be never applied
 				if server.needsPFRedirect {
 					await self.enableRedirect(gateway: self.bindAddress, internalPort: server.internalPort)
 				}

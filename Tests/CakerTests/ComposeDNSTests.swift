@@ -355,14 +355,14 @@ final class ComposeDNSTests: XCTestCase {
 
 	// MARK: - Cloud-init injection (ComposeFile.toBuildOptions)
 
-	func testToBuildOptionsWithNoGatewayInjectsNoSplitDNSSetup() throws {
+	func testToBuildOptions() throws {
 		let yaml = """
 			name: myapp
 			services:
 			  mariadb:
 			    image: ubuntu:24.04
 			    post_commands:
-			      - echo hi
+			      - run_an_user_command
 			"""
 		let file = try YAMLDecoder().decode(ComposeFile.self, from: yaml)
 		let svc = try XCTUnwrap(file.services["mariadb"])
@@ -370,31 +370,6 @@ final class ComposeDNSTests: XCTestCase {
 		let path = try XCTUnwrap(built.options.userData)
 		let userData = try String(contentsOfFile: path, encoding: .utf8)
 
-		XCTAssertFalse(userData.contains("resolvectl"))
-	}
-
-	func testToBuildOptionsWithGatewayPrependsSplitDNSBeforePostCommands() throws {
-		let yaml = """
-			name: myapp
-			services:
-			  mariadb:
-			    image: ubuntu:24.04
-			    post_commands:
-			      - echo hi
-			"""
-		let file = try YAMLDecoder().decode(ComposeFile.self, from: yaml)
-		let svc = try XCTUnwrap(file.services["mariadb"])
-		let built = try svc.toBuildOptions(name: "compose-myapp-mariadb", composeNetworks: nil, composeDNSGateway: "192.168.64.1")
-		let path = try XCTUnwrap(built.options.userData)
-		let userData = try String(contentsOfFile: path, encoding: .utf8)
-
-		XCTAssertTrue(userData.contains("resolvectl dns"))
-		XCTAssertTrue(userData.contains("~compose.internal"))
-		XCTAssertTrue(userData.contains("192.168.64.1"))
-
-		let dnsLineRange = try XCTUnwrap(userData.range(of: "resolvectl dns"))
-		let postCommandRange = try XCTUnwrap(userData.range(of: "echo hi"))
-
-		XCTAssertLessThan(dnsLineRange.lowerBound, postCommandRange.lowerBound, "split-DNS setup must run before the user's own post_commands")
+		XCTAssertFalse(userData.contains("run_an_user_command"))
 	}
 }

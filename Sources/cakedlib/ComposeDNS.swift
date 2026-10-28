@@ -28,6 +28,8 @@ import GRPCLib
 /// `VZNATNetworkDeviceAttachment` genuinely allows VM-to-VM packets, not just VM-to-host/internet
 /// — everything here is consistent with that, but nobody in this codebase relied on it before).
 public enum ComposeDNS {
+	public static let internalBindPort = 28053
+
 	/// The built-in domain suffix, used whenever `CakedKeyConfig.composeDnsDomain` has no valid
 	/// value configured — the fallback `domainSuffix` itself resolves to, and what every bundled
 	/// compose template/doc reference assumes unless the operator has changed it in Advanced
@@ -44,11 +46,6 @@ public enum ComposeDNS {
 	/// which validates before saving, but always possible via a hand-edited defaults plist)
 	/// silently falls back to `defaultDomainSuffix` rather than ever breaking the resolver —
 	/// see `normalizeDomainSuffix(_:)`.
-	///
-	/// Changing this only affects virtual machines *built* afterward: the guest-side split-DNS
-	/// `resolvectl domain '~...'` setup (`ComposeFile.toBuildOptions`) bakes in whatever this
-	/// resolved to at build time, into the VM's own cloud-init — an already-provisioned VM keeps
-	/// pointing at its old domain until rebuilt.
 	public static var domainSuffix: String {
 		guard let stored = CakedKeyConfig.composeDnsDomain.string(), let normalized = Self.normalizeDomainSuffix(stored) else {
 			return Self.defaultDomainSuffix

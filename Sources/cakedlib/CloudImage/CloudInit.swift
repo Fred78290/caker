@@ -1031,10 +1031,53 @@ class CloudInit {
 	}
 
 	private func installCakeAgentScript(config: CakeConfig) -> String {
+		let dnsIP = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
 		let install_cakeagent: String =
 			"""
 			#!/bin/sh
+			if [ grep /etc/os-release -q 'ID=Alpine' ]; then
+			apk add dnsmasq
+			
+			mkdir -p /etc/dnsmasq.d/
+			cat > /etc/dnsmasq.d/compose-dns.conf <<'EOF'
+			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
+			server=\(dnsIP)
+			server=1.1.1.1
+			server=9.9.9.9
+			server=8.8.8.8
+			no-resolv
+			listen-address=127.0.0.1
+			strict-order
+			EOF
+
+			mkdir -p /etc/udhcpc
+			echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
+
+			chmod 777 /usr/local/bin/install-compose-dns.sh
+			/usr/local/bin/install-compose-dns.sh
+
+			echo 'nameserver 127.0.0.1' > /etc/resolv.conf
+			rc-update add dnsmasq default
+			rc-service dnsmasq start
+
+			else
+			mkdir -p /etc/systemd/resolved.conf.d
+			cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
+			[Resolve]
+			DNS=\(dnsIP):\(ComposeDNS.internalBindPort)
+			Domains=~\(ComposeDNS.domainSuffix)
+			EOF
+			fi
+
+			systemctl restart systemd-resolved
+
+			if [ -f /etc/selinux/config ]; then
+				sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
+				setenforce 0 || :
+			fi
+
 			CIDATA=$(blkid -L CIDATA || :)
+
 			if [ -n \"$CIDATA\" ]; then
 				MOUNT=$(mktemp -d)
 				mount -L CIDATA $MOUNT || exit 1
@@ -1050,8 +1093,8 @@ class CloudInit {
 					--tls-cert=/etc/cakeagent/ssl/server.pem \\
 					--tls-key=/etc/cakeagent/ssl/server.key \(config.linuxMounts)
 			else
-			  echo \"CIDATA not found\"
-			  exit 1
+				echo \"CIDATA not found\"
+				exit 1
 			fi
 			"""
 
