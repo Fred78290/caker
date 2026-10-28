@@ -188,7 +188,7 @@ struct NetworkConfig: Codable {
 
 			if network.network == BridgeAttachement.defaultNetworkName {
 				let macAddress = config.macAddress ?? network.macAddress
-				let ns = NameServer(search: ["home"], addresses: [BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")])
+				let ns = NameServer(search: [ComposeDNS.domainSuffix], addresses: [BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")])
 
 				self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress), setName: name, nameservers: ns, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
 			} else if network.mode == nil || network.mode == .auto {
