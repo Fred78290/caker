@@ -27,10 +27,20 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 }
 
 public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable, Sendable {
-	public static let defaultNetworkGateway = "192.168.32.1/24"
 	public static var defaultNetworkName = "default"
 	public static var defaultNetworkUUID = "E20D7252-ED0D-4FF0-83CE-DEB180EA6EE4"
 	public static var defaultNetworkDescription: String { String(localized: "Default shared network") }
+	public static var defaultNetworkGateway: String {
+		let defaultNetwork = {
+			guard let defaultNetwork = CakedKeyConfig.defaultNetwork.string() else {
+				return CakedKeyConfig.defaultNatNetwork
+			}
+			
+			return defaultNetwork
+		}()
+
+		return defaultNetwork.stringBeforeLast(before: ".") + ".1/\(defaultNetwork.stringAfter(after: "/"))"
+	}
 
 	public var network: String
 	public var mode: NetworkMode?
