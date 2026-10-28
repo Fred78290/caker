@@ -1078,7 +1078,11 @@ class CloudInit {
 			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
 			EOF
 				systemctl restart NetworkManager || :
+				SEARCH="\(ComposeDNS.domainSuffix)"
 			else
+				# With systemd-resolved a link's search domain also routes its lookups to that link's DNS
+				# (the gateway, port 53): keep it off the link so the global DNS=<ip>:<port> serves the domain.
+				SEARCH=""
 				mkdir -p /etc/systemd/resolved.conf.d
 				cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
 			[Resolve]
@@ -1110,7 +1114,7 @@ class CloudInit {
 			  IFACE=$(ip route get "$G" 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
 			  CON=$(nmcli -g GENERAL.CONNECTION device show "$IFACE" 2>/dev/null)
 			  if [ -n "$CON" ]; then
-			    nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "$G" ipv4.dns-search "$D" ipv6.ignore-auto-dns yes ipv6.dns-search "$D" || true
+			    nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "$G" ipv4.dns-search "$SEARCH" ipv6.ignore-auto-dns yes ipv6.dns-search "$SEARCH" || true
 			    nmcli device reapply "$IFACE" || true
 			  fi
 			fi
