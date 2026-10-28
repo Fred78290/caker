@@ -133,7 +133,7 @@ struct Root: ParsableCommand {
 				Convert.self,
 				Sandbox.self,
 				Compose.self,
-				Dns.self,
+				//Dns.self,
 				CakeHome.self,
 			])
 
