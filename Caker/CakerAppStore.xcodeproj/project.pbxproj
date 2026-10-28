@@ -29,7 +29,6 @@
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
-		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
 		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
@@ -1012,7 +1011,6 @@
 		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
-		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
@@ -2795,7 +2793,6 @@
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
 				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
-				300ABBDC01C9F611E451504D /* Dns.swift */,
 				9BDC05272FEADAF100802A3C /* Down.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BDC05282FEADAF100802A3C /* EnvInit.swift */,
@@ -4331,7 +4328,6 @@
 				9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */,
 				9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
-				52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */,
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
 				9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */,
