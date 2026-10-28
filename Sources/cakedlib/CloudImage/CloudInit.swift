@@ -1054,14 +1054,29 @@ class CloudInit {
 			EOF
 				# udhcpc and dhcpcd (the Alpine cloud images use dhcpcd) both rewrite /etc/resolv.conf.
 				echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
+				echo 'PEER_DNS="no"' >> /etc/udhcpc/udhcpc.conf
 				if [ -f /etc/dhcpcd.conf ] || command -v dhcpcd >/dev/null 2>&1; then
 					grep -q '^nohook resolv.conf' /etc/dhcpcd.conf 2>/dev/null || echo 'nohook resolv.conf' >> /etc/dhcpcd.conf
 				fi
+				# Those opt-outs are only read on a new lease and not every client honours them: whatever the
+				# client wrote, the post-lease hooks put the compose search domain and dnsmasq back.
+				mkdir -p /usr/local/sbin
+				cat > /usr/local/sbin/compose-resolv.sh <<'EOF'
+			#!/bin/sh
+			[ -x /usr/sbin/dnsmasq ] || exit 0
+			printf 'search %s\\nnameserver 127.0.0.1\\n' '\(ComposeDNS.domainSuffix)' > /etc/resolv.conf
+			EOF
+				chmod +x /usr/local/sbin/compose-resolv.sh
+				for ev in bound renew; do
+					mkdir -p /etc/udhcpc/post-$ev
+					ln -sf /usr/local/sbin/compose-resolv.sh /etc/udhcpc/post-$ev/10-compose-dns
+				done
+				grep -q compose-resolv /etc/dhcpcd.exit-hook 2>/dev/null || echo '/usr/local/sbin/compose-resolv.sh' >> /etc/dhcpcd.exit-hook
 				# Only point resolv.conf at dnsmasq when it is really installed, else the guest loses DNS.
 				if command -v dnsmasq >/dev/null 2>&1; then
 					rc-update add dnsmasq default || :
 					rc-service dnsmasq restart || :
-					printf 'search %s\\nnameserver 127.0.0.1\\n' '\(ComposeDNS.domainSuffix)' > /etc/resolv.conf
+					/usr/local/sbin/compose-resolv.sh
 				else
 					echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
 				fi
