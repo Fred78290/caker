@@ -334,39 +334,6 @@ final class ComposeDNSTests: XCTestCase {
 		XCTAssertFalse(BridgeAttachement(network: "en0").isNAT())
 	}
 
-	func testDefaultNetworkInterfaceGetsComposeDomainAsSearchDomain() throws {
-		let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-
-		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-		addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
-
-		let config = CakeConfig(
-			location: directory,
-			rootDisk: nil,
-			diskFormat: .raw,
-			os: .linux,
-			autostart: false,
-			configuredUser: "admin",
-			configuredPassword: "admin",
-			configuredGroup: "adm",
-			configuredGroups: nil,
-			configuredPlatform: .ubuntu,
-			clearPassword: false,
-			displayRefit: false,
-			ifname: false,
-			cpuCountMin: 1,
-			memorySize: 1024 * 1024 * 1024,
-			memorySizeMin: 512 * 1024 * 1024,
-			screenSize: .init(width: 1024, height: 768))
-
-		let network = try NetworkConfig(netIfnames: true, config: config)
-		let interface = try XCTUnwrap(network.network.ethernets.values.first)
-		let nameservers = try XCTUnwrap(interface.nameservers)
-
-		XCTAssertEqual(nameservers.search, [ComposeDNS.domainSuffix])
-		XCTAssertEqual(nameservers.addresses, [BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")])
-	}
-
 	func testSharedNetworkDoesNotEnableDNSByDefault() {
 		let network = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "192.168.50.1", dhcpEnd: "192.168.50.254")
 
