@@ -1036,7 +1036,11 @@ class CloudInit {
 			"""
 			#!/bin/sh
 			if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
-				apk add dnsmasq || :
+				# The network may not be up yet when cloud-init runs this: retry, with a fresh index.
+				for attempt in 1 2 3 4 5 6 7 8 9 10; do
+					apk update && apk add dnsmasq && break
+					sleep 3
+				done
 				mkdir -p /etc/dnsmasq.d /etc/udhcpc
 				cat > /etc/dnsmasq.d/compose-dns.conf <<'EOF'
 			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
@@ -1048,10 +1052,19 @@ class CloudInit {
 			listen-address=127.0.0.1
 			strict-order
 			EOF
+				# udhcpc and dhcpcd (the Alpine cloud images use dhcpcd) both rewrite /etc/resolv.conf.
 				echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
-				echo 'nameserver 127.0.0.1' > /etc/resolv.conf
-				rc-update add dnsmasq default || :
-				rc-service dnsmasq restart || :
+				if [ -f /etc/dhcpcd.conf ] || command -v dhcpcd >/dev/null 2>&1; then
+					grep -q '^nohook resolv.conf' /etc/dhcpcd.conf 2>/dev/null || echo 'nohook resolv.conf' >> /etc/dhcpcd.conf
+				fi
+				# Only point resolv.conf at dnsmasq when it is really installed, else the guest loses DNS.
+				if command -v dnsmasq >/dev/null 2>&1; then
+					rc-update add dnsmasq default || :
+					rc-service dnsmasq restart || :
+					echo 'nameserver 127.0.0.1' > /etc/resolv.conf
+				else
+					echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
+				fi
 			elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev/null; then
 				# EL has no systemd-resolved by default: NetworkManager owns /etc/resolv.conf, so let its
 				# dnsmasq plugin forward only the compose domain and leave every other lookup untouched.

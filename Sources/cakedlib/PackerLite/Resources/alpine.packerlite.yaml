@@ -151,7 +151,7 @@ post_boot_command:
     - 'echo ${var.password} | sudo -S sh -c ''echo "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}'''
     - sudo apk add cloud-init py3-netifaces util-linux e2fsprogs-extra dnsmasq
     - sudo rc-update add cloud-init default
-    - 'echo "datasource_list: [ NoCloud, None ]" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'
+    - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"
 
     - |
       sudo sh -c 'mkdir -p /etc/dnsmasq.d && cat > /etc/dnsmasq.d/compose-dns.conf' <<'EOF'
@@ -166,6 +166,8 @@ post_boot_command:
       EOF
     - |
       sudo sh -c 'mkdir -p /etc/udhcpc && echo "RESOLV_CONF=no" >> /etc/udhcpc/udhcpc.conf && echo "nameserver 127.0.0.1" > /etc/resolv.conf'
+    - |
+      sudo sh -c 'if [ -f /etc/dhcpcd.conf ] && ! grep -q "^nohook resolv.conf" /etc/dhcpcd.conf; then echo "nohook resolv.conf" >> /etc/dhcpcd.conf; fi'
     - sudo rc-update add dnsmasq default
     - sudo rc-service dnsmasq start
 
