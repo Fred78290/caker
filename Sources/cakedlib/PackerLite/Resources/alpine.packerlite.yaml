@@ -165,9 +165,14 @@ post_boot_command:
       strict-order
       EOF
     - |
-      sudo sh -c 'mkdir -p /etc/udhcpc && echo "RESOLV_CONF=no" >> /etc/udhcpc/udhcpc.conf && echo "nameserver 127.0.0.1" > /etc/resolv.conf'
+      sudo sh -c 'mkdir -p /etc/udhcpc && echo "RESOLV_CONF=no" >> /etc/udhcpc/udhcpc.conf'
     - |
       sudo sh -c 'if [ -f /etc/dhcpcd.conf ] && ! grep -q "^nohook resolv.conf" /etc/dhcpcd.conf; then echo "nohook resolv.conf" >> /etc/dhcpcd.conf; fi'
+    - |
+      sudo sh -c 'cat > /etc/resolv.conf' <<'EOF'
+      search ${var.domain}
+      nameserver 127.0.0.1
+      EOF
     - sudo rc-update add dnsmasq default
     - sudo rc-service dnsmasq start
 

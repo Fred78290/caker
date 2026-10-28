@@ -1061,7 +1061,7 @@ class CloudInit {
 				if command -v dnsmasq >/dev/null 2>&1; then
 					rc-update add dnsmasq default || :
 					rc-service dnsmasq restart || :
-					echo 'nameserver 127.0.0.1' > /etc/resolv.conf
+					printf 'search %s\\nnameserver 127.0.0.1\\n' '\(ComposeDNS.domainSuffix)' > /etc/resolv.conf
 				else
 					echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
 				fi
@@ -1083,12 +1083,40 @@ class CloudInit {
 				cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
 			[Resolve]
 			DNS=\(dnsIP):\(ComposeDNS.internalBindPort)
-			Domains=~\(ComposeDNS.domainSuffix)
+			Domains=\(ComposeDNS.domainSuffix)
 			EOF
 				if command -v systemctl >/dev/null 2>&1; then
 					systemctl enable systemd-resolved || :
 					systemctl restart systemd-resolved || :
 				fi
+			fi
+
+			if ! grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
+			D="\(ComposeDNS.domainSuffix)"
+			G="\(dnsIP)"
+			# vmnet's DHCP server announces the domain "guest": keep it out of the search list so the
+			# default domain is the compose one, whichever network stack the guest uses.
+			mkdir -p /etc/systemd/networkd.conf.d
+			cat > /etc/systemd/networkd.conf.d/10-compose-dns.conf <<'EOF'
+			[DHCPv4]
+			UseDomains=no
+			[DHCPv6]
+			UseDomains=no
+			EOF
+			if [ -f /etc/dhcp/dhclient.conf ] && ! grep -q 'compose-dns' /etc/dhcp/dhclient.conf; then
+			  printf '# compose-dns\nsupersede domain-name "%s";\nsupersede domain-search "%s";\n' "$D" "$D" >> /etc/dhcp/dhclient.conf
+			fi
+			if command -v nmcli >/dev/null 2>&1 && systemctl is-active NetworkManager >/dev/null 2>&1; then
+			  IFACE=$(ip route get "$G" 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
+			  CON=$(nmcli -g GENERAL.CONNECTION device show "$IFACE" 2>/dev/null)
+			  if [ -n "$CON" ]; then
+			    nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "$G" ipv4.dns-search "$D" ipv6.ignore-auto-dns yes ipv6.dns-search "$D" || true
+			    nmcli device reapply "$IFACE" || true
+			  fi
+			fi
+			if systemctl is-active systemd-networkd >/dev/null 2>&1; then
+			  systemctl restart systemd-networkd || true
+			fi
 			fi
 
 			if [ -f /etc/selinux/config ]; then
