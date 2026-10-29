@@ -225,9 +225,9 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 		if let network = networkConfig.sharedNetworks[self.networkName] {
 			try self.reconfigure(networkConfig: network)
+		} else {
+			try self.reconfigure(networkConfig: self.networkConfig)
 		}
-
-		try self.reconfigure(networkConfig: self.networkConfig)
 	}
 }
 
