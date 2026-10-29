@@ -240,9 +240,15 @@ struct AdvancedSettingsView: View {
 	private func saveDefaultNatNetwork() {
 		let trimmed = defaultNatNetwork.trimmingCharacters(in: .whitespacesAndNewlines)
 
-		guard trimmed.isEmpty == false && validNatNetwork(trimmed) else {
+		guard trimmed.isEmpty == false else {
 			CakedKeyConfig.defaultNetwork.removeObject()
 			defaultNatNetwork = CakedKeyConfig.defaultNatNetwork
+			return
+		}
+
+		guard validNatNetwork(trimmed) else {
+			errorMessage = String(localized: "\"\(trimmed)\" is not a valid network. Use the CIDR form, for example 192.168.32.0/24.")
+			defaultNatNetwork = CakedKeyConfig.defaultNetwork.string() ?? CakedKeyConfig.defaultNatNetwork
 			return
 		}
 
