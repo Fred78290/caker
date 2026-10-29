@@ -1142,9 +1142,11 @@ class CloudInit {
 			fi
 			fi
 
-			if [ -f /etc/selinux/config ]; then
-				sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
-				setenforce 0 || :
+			if grep -qE '^ID="?(centos|rhel)"?$' /etc/os-release 2>/dev/null; then
+				if [ -f /etc/selinux/config ]; then
+					sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+					setenforce 0 || :
+				fi
 			fi
 
 			CIDATA=$(blkid -L CIDATA || :)
