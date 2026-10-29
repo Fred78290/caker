@@ -4085,7 +4085,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réseau par défaut pour les machines virtuelles, s'appliquera lors du prochain redémarrage. Interface réseau hôte utilisée lorsqu'une machine virtuelle est attachée à un réseau bridé."
+            "value" : "Réseau par défaut pour les machines virtuelles, s'appliquera lors du prochain redémarrage. Interface réseau hôte utilisée lorsqu'une machine virtuelle est attachée à un réseau ponté."
           }
         }
       }
