@@ -1149,6 +1149,24 @@ class CloudInit {
 				fi
 			fi
 
+			# The agent labels itself with semanage/restorecon when SELinux is on, and a minimal cloud image
+			# (openSUSE) does not ship semanage: install it before the agent does its own setup.
+			if [ -f /etc/selinux/config ] && grep -qiE '^SELINUX=(enforcing|permissive)' /etc/selinux/config && ! command -v semanage >/dev/null 2>&1; then
+				for attempt in 1 2 3 4 5; do
+					if command -v zypper >/dev/null 2>&1; then
+						zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils && break
+					elif command -v dnf >/dev/null 2>&1; then
+						dnf install -y policycoreutils-python-utils && break
+					elif command -v yum >/dev/null 2>&1; then
+						yum install -y policycoreutils-python-utils && break
+					else
+						break
+					fi
+					sleep 5
+				done
+				command -v semanage >/dev/null 2>&1 || echo 'semanage could not be installed, the agent cannot label itself for SELinux' >&2
+			fi
+
 			CIDATA=$(blkid -L CIDATA || :)
 
 			if [ -n \"$CIDATA\" ]; then
