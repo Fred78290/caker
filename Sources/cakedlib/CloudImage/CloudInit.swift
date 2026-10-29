@@ -1154,6 +1154,15 @@ class CloudInit {
 			# and a minimal cloud image does not always ship it: install it before the agent does its setup.
 			# The package name differs between distros and releases, so fall back to the file it provides.
 			if [ -f /etc/selinux/config ] && ! command -v semanage >/dev/null 2>&1; then
+				if command -v zypper >/dev/null 2>&1 && ! grep -qs '^enabled=1' /etc/zypp/repos.d/*.repo; then
+					# The Leap Minimal-VM cloud images ship no repository definition (no openSUSE-repos package), so
+					# zypper cannot find any package: add the official oss repository of the running release.
+					REPO=$(. /etc/os-release; if [ "$ID" = opensuse-leap ]; then echo "https://download.opensuse.org/distribution/leap/$VERSION_ID/repo/oss/"; elif [ "$ID" = opensuse-tumbleweed ]; then echo "https://download.opensuse.org/tumbleweed/repo/oss/"; fi)
+					if [ -n "$REPO" ]; then
+						zypper --non-interactive addrepo --refresh "$REPO" repo-oss || :
+						zypper --non-interactive --gpg-auto-import-keys refresh || :
+					fi
+				fi
 				for attempt in 1 2 3 4 5; do
 					if command -v zypper >/dev/null 2>&1; then
 						zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage
