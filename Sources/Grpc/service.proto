@@ -1216,6 +1216,7 @@ message Caked {
         bool   running     = 10;
         bool   managed     = 11;
         bool   dns         = 12;
+        int32  active      = 13;
       }
 
       message NetworkInfoReply {

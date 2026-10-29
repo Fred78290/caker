@@ -11,15 +11,15 @@ import UniformTypeIdentifiers
 import Virtualization
 import vmnet
 
-public typealias ReferencedNetworks = [String: Int]
+public typealias ReferencedNetworks = [String: BridgedNetwork.NetworkUsage]
 
 extension ReferencedNetworks {
-	public func usage(name: String) -> Int {
+	public func usage(name: String) -> BridgedNetwork.NetworkUsage {
 		if let count = self[name] {
 			return count
 		}
 
-		return 0
+		return BridgedNetwork.NetworkUsage(used: 0, active: 0)
 	}
 }
 
@@ -1048,6 +1048,32 @@ public struct NetworksHandler {
 		return defaultNatNetwork
 	}
 
+	public static func referencedNetwork(networkName: String, runMode: Utils.RunMode) -> BridgedNetwork.NetworkUsage {
+		var usage = BridgedNetwork.NetworkUsage(used: 0, active: 0)
+
+		guard let list = try? StorageLocation(runMode: runMode).list() else {
+			return usage
+		}
+
+		list.values.forEach { location in
+			let running = location.status.isRunning
+
+			if let config = try? location.config() {
+				config.qualifiedNetworks.forEach { network in
+					if networkName == network.network {
+						usage.used += 1
+
+						if running {
+							usage.active += 1
+						}
+					}
+				}
+			}
+		}
+
+		return usage
+	}
+	
 	public static func referencedNetworks(runMode: Utils.RunMode) -> ReferencedNetworks {
 		var usedNetworks: ReferencedNetworks = ReferencedNetworks()
 
@@ -1056,14 +1082,22 @@ public struct NetworksHandler {
 		}
 
 		list.values.forEach { location in
+			let running = location.status.isRunning
+
 			if let config = try? location.config() {
 				config.qualifiedNetworks.forEach { network in
 					let name = network.network
+
 					if var count = usedNetworks[name] {
-						count += 1
+						count.used += 1
+
+						if running {
+							count.active += 1
+						}
+
 						usedNetworks[name] = count
 					} else {
-						usedNetworks[name] = 1
+						usedNetworks[name] = BridgedNetwork.NetworkUsage(used: 1, active: running ? 1 : 0)
 					}
 				}
 			}

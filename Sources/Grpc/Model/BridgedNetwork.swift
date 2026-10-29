@@ -15,6 +15,16 @@ public enum BridgedNetworkMode: String, Codable, CaseIterable {
 }
 
 public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
+	public struct NetworkUsage: Codable, Hashable {
+		public var used: Int
+		public var active: Int
+		
+		public init(used: Int, active: Int) {
+			self.used = used
+			self.active = active
+		}
+	}
+
 	public static func < (lhs: BridgedNetwork, rhs: BridgedNetwork) -> Bool {
 		return lhs.id < rhs.id
 	}
@@ -32,7 +42,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 	public var running: Bool = false
 	public var managed: Bool = false
 	public var dns: Bool = false
-	public var usedBy: Int = 0
+	public var usedBy: BridgedNetwork.NetworkUsage = BridgedNetwork.NetworkUsage(used: 0, active: 0)
 
 	public var id: String {
 		"\(self.mode).\(self.name)"
@@ -69,7 +79,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		running: Bool,
 		managed: Bool,
 		dns: Bool,
-		usedBy: Int
+		usedBy: BridgedNetwork.NetworkUsage
 	) {
 		self.name = name
 		self.mode = mode
@@ -115,7 +125,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			running: false,
 			managed: true,
 			dns: false,
-			usedBy: 0
+			usedBy: BridgedNetwork.NetworkUsage(used: 0, active: 0)
 		)
 	}
 
@@ -127,7 +137,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.dhcpEnd = from.dhcpEnd
 		self.interfaceID = from.interfaceID
 		self.endpoint = from.endpoint
-		self.usedBy = Int(from.used)
+		self.usedBy = BridgedNetwork.NetworkUsage(used: Int(from.used), active: Int(from.active))
 		self.running = from.running
 		self.managed = from.managed
 		self.dns = from.dns
@@ -142,10 +152,11 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			$0.dhcpEnd = self.dhcpEnd
 			$0.interfaceID = self.interfaceID
 			$0.endpoint = self.endpoint
-			$0.used = Int32(self.usedBy)
+			$0.used = Int32(self.usedBy.used)
 			$0.running = self.running
 			$0.managed = self.managed
 			$0.dns = self.dns
+			$0.active = Int32(self.usedBy.active)
 		}
 	}
 }

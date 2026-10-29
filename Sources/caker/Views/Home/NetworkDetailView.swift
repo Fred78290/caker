@@ -40,7 +40,7 @@ struct NetworkDetailView: View {
 	}
 
 	private var allowNetworkManagement: Bool {
-		return currentItem.mode != .nat && currentItem.managed
+		return currentItem.managed
 	}
 
 	var body: some View {
@@ -165,8 +165,11 @@ struct NetworkDetailView: View {
 						}
 
 						if forEditing == false {
+							LabeledContent("Referenced by") {
+								Text("\(currentItem.usedBy.used) instances")
+							}
 							LabeledContent("Used by") {
-								Text("\(currentItem.usedBy) instances")
+								Text("\(currentItem.usedBy.active) instances")
 							}
 						}
 					}
@@ -203,7 +206,7 @@ struct NetworkDetailView: View {
 						}
 						.disabled(networkActionRunning)
 						.withButtonStyle(.bordered)
-					} else {
+					} else if currentItem.usedBy.active == 0 {
 						AsyncButton("Stop network") { done in
 							let name = currentItem.name
 
@@ -252,6 +255,6 @@ struct NetworkDetailView: View {
 				running: false,
 				managed: true,
 				dns: true,
-				usedBy: 0)),
+				usedBy: BridgedNetwork.NetworkUsage(used: 0, active: 0))),
 		reloadNetwork: .constant(false), forEditing: true)
 }

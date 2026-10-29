@@ -13480,6 +13480,16 @@
         }
       }
     },
+    "Referenced by" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Référencé par"
+          }
+        }
+      }
+    },
     "Refit display" : {
       "localizations" : {
         "fr" : {
