@@ -226,6 +226,12 @@ struct AdvancedSettingsView: View {
 	}
 
 	private func validNatNetwork(_ value: String) -> Bool {
+		let parts = value.split(separator: "/", omittingEmptySubsequences: false)
+
+		guard parts.count == 2, let cidr = Int(parts[1]), (8...30).contains(cidr) else {
+			return false
+		}
+
 		let network = value.toIPV4()
 
 		return network.address != nil && network.netmask != nil
