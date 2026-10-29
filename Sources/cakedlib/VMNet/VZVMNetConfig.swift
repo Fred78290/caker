@@ -41,7 +41,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.mode == rhs.mode && lhs.netmask == rhs.netmask && lhs.dhcpStart == rhs.dhcpStart && lhs.dhcpEnd == rhs.dhcpEnd && lhs.dhcpLease == rhs.dhcpLease && lhs.interfaceID == rhs.interfaceID && lhs.nat66Prefix == rhs.nat66Prefix
-			&& lhs.dns == rhs.dns && lhs.visible == rhs.visible
+			&& (lhs.dns ?? false) == (rhs.dns ?? false) && lhs.visible == rhs.visible
 	}
 
 	public static func != (lhs: Self, rhs: Self) -> Bool {
