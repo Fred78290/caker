@@ -1084,6 +1084,7 @@ class CloudInit {
 				# EL has no systemd-resolved by default: NetworkManager owns /etc/resolv.conf, so let its
 				# dnsmasq plugin forward only the compose domain and leave every other lookup untouched.
 				(dnf install -y dnsmasq || yum install -y dnsmasq) || :
+				if command -v dnsmasq >/dev/null 2>&1; then
 				mkdir -p /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq.d
 				cat > /etc/NetworkManager/conf.d/00-compose-dns.conf <<'EOF'
 			[main]
@@ -1093,6 +1094,9 @@ class CloudInit {
 			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
 			EOF
 				systemctl restart NetworkManager || :
+				else
+					echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
+				fi
 				SEARCH="\(ComposeDNS.domainSuffix)"
 			else
 				# With systemd-resolved a link's search domain also routes its lookups to that link's DNS
