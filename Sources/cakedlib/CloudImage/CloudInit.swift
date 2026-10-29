@@ -1142,9 +1142,15 @@ class CloudInit {
 			fi
 			fi
 
-			if grep -qE '^ID="?(centos|rhel)"?$' /etc/os-release 2>/dev/null; then
-				if [ -f /etc/selinux/config ]; then
+			# SELinux is turned off on every image that has it: permissive right now (setenforce), disabled from
+			# the next boot (the config file; the running kernel keeps SELinux until then).
+			if [ -f /etc/selinux/config ]; then
+				if grep -q '^SELINUX=' /etc/selinux/config; then
 					sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+				else
+					echo 'SELINUX=disabled' >> /etc/selinux/config
+				fi
+				if command -v setenforce >/dev/null 2>&1; then
 					setenforce 0 || :
 				fi
 			fi
