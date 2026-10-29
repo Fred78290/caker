@@ -9924,7 +9924,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le réseau %1$@est actuellement utilisé par une ou plusieurs machines virtuelles."
+            "value" : "Le réseau %1$@ est actuellement utilisé par une ou plusieurs machines virtuelles"
           }
         }
       }
