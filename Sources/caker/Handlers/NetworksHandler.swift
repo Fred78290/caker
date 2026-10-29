@@ -85,7 +85,7 @@ extension NetworksHandler {
 	
 	public static func stop(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StoppedNetworkReply {
 		guard let client = client else {
-			return self.stop(networkName: networkName, runMode: runMode)
+			return self.stop(networkName: networkName, checkIfUsed: true, runMode: runMode)
 		}
 		
 		do {

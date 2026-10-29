@@ -9918,6 +9918,17 @@
         }
       }
     },
+    "Network %@ is currently in use by one or more virtual machines" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau %1$@est actuellement utilisé par une ou plusieurs machines virtuelles."
+          }
+        }
+      }
+    },
     "Network %@ is default nated, please use a different network" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16145,6 +16156,7 @@
       }
     },
     "Start caked DNS" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -16448,6 +16460,7 @@
       }
     },
     "Stop caked DNS" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

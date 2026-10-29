@@ -951,9 +951,9 @@ public struct NetworksHandler {
 		}
 	}
 
-	public static func stop(networkName: String, runMode: Utils.RunMode) -> StoppedNetworkReply {
+	public static func stop(networkName: String, checkIfUsed: Bool, runMode: Utils.RunMode) -> StoppedNetworkReply {
 		do {
-			return StoppedNetworkReply(name: networkName, stopped: true, reason: try stopNetwork(networkName: networkName, runMode: runMode))
+			return StoppedNetworkReply(name: networkName, stopped: true, reason: try stopNetwork(networkName: networkName, checkIfUsed: checkIfUsed, runMode: runMode))
 		} catch {
 			return StoppedNetworkReply(name: networkName, stopped: false, reason: error.reason)
 		}
@@ -963,17 +963,29 @@ public struct NetworksHandler {
 		let networks = NetworksHandler.networks(all: true, runMode: runMode)
 
 		if networks.success {
-			return networks.networks.filter { $0.running }.map { network in
-				stop(networkName: network.name, runMode: runMode)
+			return networks.networks.filter {
+				$0.running
+			}.map { network in
+				if network.usedBy.active == 0 {
+					return stop(networkName: network.name, checkIfUsed: false, runMode: runMode)
+				} else {
+					return StoppedNetworkReply(name: network.name, stopped: false, reason: String(localized: "Network \(network.name) is currently in use by one or more virtual machines"))
+				}
 			}
 		} else {
 			return [StoppedNetworkReply(name: "<all>", stopped: false, reason: networks.reason)]
 		}
 	}
 
-	public static func stopNetwork(networkName: String, runMode: Utils.RunMode) throws -> String {
+	private static func stopNetwork(networkName: String, checkIfUsed: Bool, runMode: Utils.RunMode) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		let vmnet = CakedLib.NetworksHandler.vmnetNative
+
+		if checkIfUsed {
+			guard CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode).active == 0 else {
+				throw ServiceError(String(localized: "Network \(networkName) is currently in use by one or more virtual machines"))
+			}
+		}
 
 		if geteuid() == 0 || vmnet || CakedLib.NetworksHandler.hasVMNetEntitlement {
 			let pidURL = socketURL.pidFile
@@ -1225,7 +1237,7 @@ public struct NetworksHandler {
 						running: false,
 						managed: false,
 						dns: false,
-						usedBy: 0),
+						usedBy: BridgedNetwork.NetworkUsage(used: 0, active: 0)),
 					success: false,
 					reason: String(localized: "Unable to get the list of networks"))
 			}
@@ -1243,7 +1255,7 @@ public struct NetworksHandler {
 						running: false,
 						managed: false,
 						dns: false,
-						usedBy: 0),
+						usedBy: BridgedNetwork.NetworkUsage(used: 0, active: 0)),
 					success: false,
 					reason: String(localized: "Network \(networkName) doesn't exists"))
 			}
@@ -1297,7 +1309,7 @@ public struct NetworksHandler {
 					running: false,
 					managed: managed,
 					dns: false,
-					usedBy: 0),
+					usedBy: BridgedNetwork.NetworkUsage(used: 0, active: 0)),
 				success: false,
 				reason: error.reason)
 		}

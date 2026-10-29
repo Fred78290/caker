@@ -96,16 +96,25 @@ public actor ComposeDNSCoordinator {
 	}
 
 	public func shutdown() async {
-		self.pollTask?.cancel()
-		self.pollTask = nil
+		self.logger.info("Will shutdown Compose DNS server")
 
-		self.startTask?.cancel()
-		_ = await self.startTask?.result
-		self.startTask = nil
+		if let pollTask {
+			self.pollTask = nil
+
+			pollTask.cancel()
+		}
+
+		if let startTask {
+			self.startTask = nil
+
+			startTask.cancel()
+			_ = await startTask.result
+		}
 
 		if let server = self.server {
-			await server.shutdown()
 			self.server = nil
+
+			await server.shutdown()
 
 			self.logger.info("Compose DNS server stopped")
 		}
@@ -125,19 +134,20 @@ public actor ComposeDNSCoordinator {
 				self.logger.info("Compose DNS server started at \(self.bindAddress):\(server.internalPort)")
 			} catch is CancellationError {
 				// Torn down before it managed to start; nothing to log.
+				self.logger.debug("Compose DNS server cancelled before it could start")
 			} catch let error as ComposeDNSServerError {
 				// Expected and transient: the gateway interface isn't up yet. The next poll
 				// tick calls `ensureServerRunning()` again.
 				self.logger.debug("Compose DNS server not started yet: \(error)")
 
 				self.server = nil
-				self.startTask = nil
 			} catch {
 				self.logger.warn("Compose DNS server could not start: \(error)")
 
 				self.server = nil
-				self.startTask = nil
 			}
+
+			self.startTask = nil
 		}
 	}
 }

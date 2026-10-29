@@ -184,10 +184,6 @@ struct Networks: ParsableCommand {
 			guard let vmfd = self.vmfd else {
 				let socketURL = try vmnetEndpoint(runMode: runMode)
 
-				if let dhcpLease = self.dhcpLease, Bundle.isApplicationSandboxed == false {
-					_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
-				}
-
 				if CakedLib.NetworksHandler.vmnetNative {
 					let vzvmnet = VZVMNetNative(
 						on: Utilities.group.next(),
@@ -263,7 +259,7 @@ struct Networks: ParsableCommand {
 		return conf
 	}
 
-	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws {
+	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws -> BridgedNetwork.NetworkUsage {
 		// Validate the network name
 		if CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) == false {
 			let home: Home = try Home(runMode: runMode)
@@ -273,10 +269,13 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Network \(networkName) does not exist"))
 			}
 		}
+
+		return CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode)
 	}
 
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
+		let logger = Logger(self)
 
 		try pidFile.deleteIfFileExists()
 		try socket.deleteIfFileExists()
@@ -284,67 +283,89 @@ struct Networks: ParsableCommand {
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinatorTask: Task<Void, Never>? = nil
+		var coordinator: ComposeDNSCoordinator? = nil
 
 		defer {
 			try? pidFile.deleteIfFileExists()
 			try? socket.deleteIfFileExists()
 		}
 
+		let signals = [SIGINT, SIGTERM, SIGQUIT].map { sig in
+			signal(sig, SIG_IGN)
+
+			let sig = DispatchSource.makeSignalSource(signal: sig)
+
+			sig.setEventHandler {
+				logger.info("Will stop network: \(options.networkName)")
+
+				vzvmnet.vmnet.stop()
+
+				sig.setEventHandler {
+					Foundation.exit(128)
+				}
+
+				sig.activate()
+			}
+
+			return sig
+		}.map { sig in
+			sig.activate()
+
+			return sig
+		}
+
 		if isPhysicalInterface == false {
-			let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
+			let sigReconfigure = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
 			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false {
 				_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 			}
 
-			Logger(self).info("Allow reconfigure network: \(options.networkName)")
+			logger.info("Allow reconfigure network: \(options.networkName)")
 
 			signal(SIGUSR2, SIG_IGN)
 
-			sig.setEventHandler {
-				Logger(self).info("Will reconfigure network: \(options.networkName)")
+			sigReconfigure.setEventHandler {
+				logger.info("Will reconfigure network: \(options.networkName)")
 
 				do {
-					let home: Home = try Home(runMode: runMode)
-					let networkConfig = try home.sharedNetworks()
-
-					if let network = networkConfig.sharedNetworks[options.networkName] {
-						try? vzvmnet.vmnet.reconfigure(networkConfig: network)
-					}
+					try vzvmnet.vmnet.restart()
 				} catch {
 					Logger(self).error("Failed to reconfigure network: \(error)")
-					Foundation.exit(1)
 				}
 			}
 
-			sig.activate()
-			signalReconfigure = sig
+			sigReconfigure.activate()
+			signalReconfigure = sigReconfigure
 		}
 
 		defer {
 			if let sig = signalReconfigure {
 				sig.cancel()
 			}
-			
-			coordinatorTask?.cancel()
+
+			if let coordinator {
+				Task.sync {
+					await coordinator.shutdown()
+				}
+			}
+
+			signals.forEach { sig in
+				sig.cancel()
+			}
 		}
 
 		do {
 			try vzvmnet.vmnet.start { network in
 				if let dns = network.dns, dns {
-					coordinatorTask = Task {
-						let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
+					coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
 
-						await withTaskCancellationHandler(
-							operation: {
-								await coordinator.startPollingSync()
-								coordinatorTask = nil
-							},
-							onCancel: {
-								Task.sync {
-									await coordinator.shutdown()
-								}
-							})
+					coordinatorTask = Task {
+						defer {
+							coordinatorTask = nil
+						}
+
+						await coordinator?.startPollingSync()
 					}
 				}
 			}
@@ -468,7 +489,7 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
+			_ = try validateNetwork(networkName: self.name, runMode: self.common.runMode)
 		}
 
 		func run() throws {
@@ -527,7 +548,7 @@ struct Networks: ParsableCommand {
 			}
 
 			if let name {
-				try validateNetwork(networkName: name, runMode: self.common.runMode)
+				_ = try validateNetwork(networkName: name, runMode: self.common.runMode)
 
 				let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
@@ -562,7 +583,9 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
+			guard try validateNetwork(networkName: self.name, runMode: self.common.runMode).active == 0 else {
+				throw ValidationError(String(localized: "Network \(self.name) is currently in use by one or more virtual machines"))
+			}
 
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
@@ -820,7 +843,9 @@ struct Networks: ParsableCommand {
 
 			if all == false {
 				if let networkName {
-					try Networks.validateNetwork(networkName: networkName, runMode: self.common.runMode)
+					guard try validateNetwork(networkName: networkName, runMode: self.common.runMode).active == 0 else {
+						throw ValidationError(String(localized: "Network \(networkName) is currently in use by one or more virtual machines"))
+					}
 				} else if let pidFile {
 					if !FileManager.default.fileExists(atPath: pidFile) {
 						throw ValidationError(String(localized: "PID file \(pidFile) does not exist"))
@@ -835,7 +860,7 @@ struct Networks: ParsableCommand {
 			} else if let pidFile {
 				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
-				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))
+				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, checkIfUsed: false, runMode: self.common.runMode)))
 			} else {
 				throw ValidationError(String(localized: "No network name provided"))
 			}
