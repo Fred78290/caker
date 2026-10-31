@@ -8,6 +8,43 @@ import Yams
 
 public let CAKEAGENT_SNAPSHOT = "e0dbef5c"
 
+/// `Bundle.module` only exists in `swift build`/`swift test` builds; the Xcode projects compile `CakedLib` as a
+/// plain native target, so the lookup branches on the build system (same pattern as `VMImageCatalog.swift`).
+private final class CloudInitResourceBundleMarker {}
+
+private let cloudInitResourceBundle: Bundle = {
+	#if SWIFT_PACKAGE
+		return Bundle.module
+	#else
+		let containingBundle = Bundle(for: CloudInitResourceBundleMarker.self)
+
+		for candidate in ["Caker_CakedLib.bundle", "CakedLib_CakedLib.bundle"] {
+			if let url = containingBundle.resourceURL?.appendingPathComponent(candidate), let bundle = Bundle(url: url) {
+				return bundle
+			}
+		}
+
+		return containingBundle
+	#endif
+}()
+
+/// Loads a shell script template bundled with CakedLib. A `<CAKE_HOME>/<name>.sh` file overrides it, else the resource is
+/// looked up in `Bundle.main` (flat `.app` layout) and then in the CakedLib resource bundle.
+func loadBundledShellScript(named scriptName: String, runMode: Utils.RunMode) throws -> String {
+	let home = try Utils.getHome(runMode: runMode, createItIfNotExists: false)
+	let overrideURL = home.appendingPathComponent("\(scriptName).sh", isDirectory: false)
+
+	if FileManager.default.fileExists(atPath: overrideURL.path(percentEncoded: false)) {
+		return try String(contentsOf: overrideURL, encoding: .utf8)
+	}
+
+	guard let url = Bundle.main.url(forResource: scriptName, withExtension: "sh") ?? cloudInitResourceBundle.url(forResource: scriptName, withExtension: "sh") else {
+		throw CloudInitGenerateError("\(scriptName).sh resource not found in the app bundle")
+	}
+
+	return try String(contentsOf: url, encoding: .utf8)
+}
+
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
 extension Multipart {
@@ -186,12 +223,11 @@ struct NetworkConfig: Codable {
 
 			index += 1
 
-			if network.network == "nat" {
-				if let macAddress = config.macAddress {
-					self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-				} else {
-					self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-				}
+			if network.network == BridgeAttachement.defaultNetworkName {
+				let macAddress = config.macAddress ?? network.macAddress
+				let ns = NameServer(search: nil, addresses: [BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")])
+
+				self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress), setName: name, nameservers: ns, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
 			} else if network.mode == nil || network.mode == .auto {
 				self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
 			}
@@ -1031,32 +1067,20 @@ class CloudInit {
 		return localAgent
 	}
 
-	private func installCakeAgentScript(config: CakeConfig) -> String {
-		let install_cakeagent: String =
-			"""
-			#!/bin/sh
-			CIDATA=$(blkid -L CIDATA || :)
-			if [ -n \"$CIDATA\" ]; then
-				MOUNT=$(mktemp -d)
-				mount -L CIDATA $MOUNT || exit 1
-				cp $MOUNT/cakeagent /usr/local/bin/cakeagent
-				umount $MOUNT
-				mkdir -p /etc/sysconfig
-				echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
-				chmod 644 /etc/sysconfig/cakeagent
-				chmod +x /usr/local/bin/cakeagent
-				/usr/local/bin/cakeagent service install \\
-					--listen=vsock://any:\(VMLocation.defaultAgentListenPort) \\
-					--ca-cert=/etc/cakeagent/ssl/ca.pem \\
-					--tls-cert=/etc/cakeagent/ssl/server.pem \\
-					--tls-key=/etc/cakeagent/ssl/server.key \(config.linuxMounts)
-			else
-			  echo \"CIDATA not found\"
-			  exit 1
-			fi
-			"""
+	/// Load order, as for `VMImages.json`: a `<CAKE_HOME>/cloudinit-install-cakeagent.sh` override, if present, else the
+	/// bundled resource (`Bundle.main` first, for the flat `.app` layout, then the CakedLib resource bundle).
+	/// The result is a `String(format:)` template, see `installCakeAgentScript(config:caCert:serverKey:serverPem:)`.
+	private func loadCakeAgentScript() throws -> String {
+		try loadBundledShellScript(named: "cloudinit-install-cakeagent", runMode: self.runMode)
+	}
 
-		return install_cakeagent
+	private func installCakeAgentScript(config: CakeConfig, caCert: String? = nil, serverKey: String? = nil, serverPem: String? = nil) throws -> String {
+		let caCert = caCert ?? ""
+		let serverKey = serverKey ?? ""
+		let serverPem = serverPem ?? ""
+		let dnsIP = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
+		
+		return try String(format: loadCakeAgentScript(), ComposeDNS.domainSuffix, dnsIP, "\(ComposeDNS.internalBindPort)", "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, caCert, serverKey, serverPem)
 	}
 
 	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel
@@ -1089,11 +1113,11 @@ class CloudInit {
 	}
 
 	private func buildVendorData(config: CakeConfig, runMode: Utils.RunMode) throws -> CloudConfigData {
-		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
+		let installCakeagent = try installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
 		let merge: [Merging] = [
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
@@ -1102,7 +1126,7 @@ class CloudInit {
 			"/usr/local/bin/install-cakeagent.sh"
 		]
 		var writeFiles: [WriteFile] = [
-			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0700", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
@@ -1200,7 +1224,7 @@ class CloudInit {
 		scripts.append("d-i preseed/late_command string chown root:\(self.mainGroup) /target/usr/local/bin/install-cakeagent.sh")
 		scripts.append("d-i preseed/late_command string chown root:\(self.mainGroup) /target/etc/cakeagent/ssl/*")
 
-		scripts.append("d-i preseed/late_command string chmod 755 /target/usr/local/bin/install-cakeagent.sh")
+		scripts.append("d-i preseed/late_command string chmod 700 /target/usr/local/bin/install-cakeagent.sh")
 		scripts.append("d-i preseed/late_command string chmod 600 /target/etc/cakeagent/ssl/*")
 
 		scripts.append("d-i preseed/late_command string sh -c \"echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)\"")
@@ -1283,15 +1307,17 @@ class CloudInit {
 			}
 		}
 
+		let installAgentScript = try self.installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem)
+
 		scripts.append("%post --interpreter=/bin/bash")
 
 		scripts.append("echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)")
 
 		scripts.append("echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg")
 
-		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<EOF\n\(self.installCakeAgentScript(config:config))\nEOF\n")
+		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<'INSTALLAGENT'\n\(installAgentScript)\nINSTALLAGENT\n")
 		scripts.append("chown root:\(self.mainGroup) /usr/local/bin/install-cakeagent.sh")
-		scripts.append("chmod 755 /usr/local/bin/install-cakeagent.sh")
+		scripts.append("chmod 700 /usr/local/bin/install-cakeagent.sh")
 
 		scripts.append("cat > /etc/cakeagent/ssl/server.key <<EOF\n\(serverKey)\nEOF\n")
 		scripts.append("chown root:\(self.mainGroup) /etc/cakeagent/ssl/server.key")
@@ -1313,16 +1339,16 @@ class CloudInit {
 	}
 
 	private func createAutoInstallData(config: CakeConfig) throws -> Data {
-		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
+		let installCakeagent = try installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
 		var runCommand = [
 			"/usr/local/bin/install-cakeagent.sh"
 		]
 		var writeFiles: [WriteFile] = [
-			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0700", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),

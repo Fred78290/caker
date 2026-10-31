@@ -79,6 +79,8 @@ public struct VMBuilder {
 		var attachedDisks = options.attachedDisks
 		var password = options.password
 		var virtualizedOS: VirtualizedOS = .linux
+		var netIfnames = options.netIfnames
+		var mainGroup = options.mainGroup
 
 		defer {
 			location.removePID()
@@ -160,6 +162,15 @@ public struct VMBuilder {
 				let imageNameLowercased = options.image.lowercased()
 				let plateform = SupportedPlatform(rawValue: imageNameLowercased)
 
+				// By default openSUSE keep eth0X for interfaces, but we want to use the default VZVirtualMachineNetworkDeviceAttachment interface name (enX) for consistency with other distros. adm group is not available on openSUSE, so we need to use root group instead.
+				// This is a temporary workaround until we have a better solution for openSUSE.
+				if plateform == .openSUSE {
+					netIfnames = false
+					if mainGroup == "adm" {
+						mainGroup = "root"
+					}
+				}
+
 				// Create NVRAM
 				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 
@@ -184,12 +195,12 @@ public struct VMBuilder {
 					autostart: options.autostart,
 					configuredUser: options.user,
 					configuredPassword: password,
-					configuredGroup: options.mainGroup,
+					configuredGroup: mainGroup,
 					configuredGroups: options.otherGroup,
 					configuredPlatform: SupportedPlatform(rawValue: options.image),
 					clearPassword: options.clearPassword,
 					displayRefit: options.displayRefit,
-					ifname: options.netIfnames,
+					ifname: netIfnames,
 					cpuCountMin: options.cpu,
 					memorySize: options.memory * MoB,
 					memorySizeMin: Self.memoryMinSize,
@@ -216,7 +227,7 @@ public struct VMBuilder {
 				if virtualizedOS == .darwin {
 					try location.expandDisk(options.diskSize, format: config.diskFormat)
 				} else {
-					try location.resizeDisk(options.diskSize, format: config.diskFormat)
+					try location.resizeDisk(options.diskSize, format: config.diskFormat, ignoreSmaller: true)
 				}
 			}
 
@@ -237,14 +248,14 @@ public struct VMBuilder {
 					plateform: SupportedPlatform(rawValue: options.image),
 					userName: options.user,
 					password: password,
-					mainGroup: options.mainGroup,
+					mainGroup: mainGroup,
 					otherGroups: options.otherGroup,
 					clearPassword: options.clearPassword,
 					sshAuthorizedKeyPath: options.sshAuthorizedKey,
 					vendorDataPath: options.vendorData,
 					userDataPath: options.userData,
 					networkConfigPath: options.networkConfig,
-					netIfnames: options.netIfnames,
+					netIfnames: netIfnames,
 					runMode: runMode)
 
 				try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL))

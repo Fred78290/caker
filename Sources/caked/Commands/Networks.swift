@@ -56,6 +56,9 @@ struct Networks: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "socket path")))
 		public var socketPath: String? = nil
 
+		@Flag(name: [.customLong("dns")], help: ArgumentHelp(String(localized: "Enable DNS")))
+		public var dns: Bool = false
+
 		public init() {
 
 		}
@@ -83,15 +86,14 @@ struct Networks: ParsableCommand {
 				self.subnetMask = "255.255.255.0"
 				self.interfaceID = UUID().uuidString
 				self.nat66Prefix = nil
+				self.dns = false
+
 			} else {
 				let home: Home = try Home(runMode: runMode)
 				let networkConfig = try home.sharedNetworks()
 
 				guard let network = networkConfig.sharedNetworks[networkName] else {
 					throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
-				}
-				guard network.mode != .nat else {
-					throw ServiceError(String(localized: "Network \(networkName) is default nated, please use a different network"))
 				}
 
 				self.mode = network.mode
@@ -101,6 +103,7 @@ struct Networks: ParsableCommand {
 				self.subnetMask = network.netmask
 				self.interfaceID = network.interfaceID
 				self.nat66Prefix = network.nat66Prefix
+				self.dns = network.dns ?? false
 			}
 		}
 
@@ -165,13 +168,13 @@ struct Networks: ParsableCommand {
 			}
 		}
 
-		func createVZVMNet(runMode: Utils.RunMode) throws -> (URL, VZVMNet) {
+		func createVZVMNet(runMode: Utils.RunMode) throws -> (socketURL: URL, vmnet: VZVMNet) {
 			let network: VZSharedNetwork
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.networkName) {
-				network = VZSharedNetwork(mode: self.mode, netmask: String.empty, dhcpStart: String.empty, dhcpEnd: String.empty, dhcpLease: nil, interfaceID: self.interfaceID, nat66Prefix: nil)
+				network = VZSharedNetwork(mode: self.mode, netmask: String.empty, dhcpStart: String.empty, dhcpEnd: String.empty, dhcpLease: nil, interfaceID: self.interfaceID, nat66Prefix: nil, dns: false)
 			} else {
-				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix)
+				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix, dns: self.dns)
 			}
 
 			guard let grp = getgrnam(self.socketGroup) else {
@@ -180,10 +183,6 @@ struct Networks: ParsableCommand {
 
 			guard let vmfd = self.vmfd else {
 				let socketURL = try vmnetEndpoint(runMode: runMode)
-
-				if let dhcpLease = self.dhcpLease, Bundle.isApplicationSandboxed == false {
-					_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
-				}
 
 				if CakedLib.NetworksHandler.vmnetNative {
 					let vzvmnet = VZVMNetNative(
@@ -240,7 +239,6 @@ struct Networks: ParsableCommand {
 		var conf = CommandConfiguration(
 			abstract: String(localized: "Manage host network devices"),
 			subcommands: [
-				Networks.NatInfos.self,
 				Networks.Infos.self,
 				Networks.List.self,
 				Networks.Create.self,
@@ -256,13 +254,12 @@ struct Networks: ParsableCommand {
 
 		#if !APPSTORE
 			conf.subcommands.append(Networks.ImdsRedirect.self)
-			conf.subcommands.append(Networks.ComposeDNSRedirect.self)
 		#endif
 
 		return conf
 	}
 
-	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws {
+	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws -> BridgedNetwork.NetworkUsage {
 		// Validate the network name
 		if CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) == false {
 			let home: Home = try Home(runMode: runMode)
@@ -272,61 +269,119 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Network \(networkName) does not exist"))
 			}
 		}
+
+		return CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode)
 	}
 
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
+		let logger = Logger(self)
 
 		try pidFile.deleteIfFileExists()
 		try socket.deleteIfFileExists()
 
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
+		var coordinator: ComposeDNSCoordinator? = nil
+
+		// Starts or stops the compose DNS resolver so it follows the network's `dns` setting.
+		let syncDNSCoordinator: (VZSharedNetwork) -> Void = { network in
+			if network.dns == true {
+				guard coordinator == nil else {
+					return
+				}
+
+				let started = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
+
+				coordinator = started
+
+				Task {
+					await started.startPollingSync()
+				}
+			} else if let stopped = coordinator {
+				coordinator = nil
+
+				Task {
+					await stopped.shutdown()
+				}
+			}
+		}
 
 		defer {
 			try? pidFile.deleteIfFileExists()
 			try? socket.deleteIfFileExists()
 		}
 
+		let signals = [SIGINT, SIGTERM, SIGQUIT].map { sig in
+			signal(sig, SIG_IGN)
+
+			let sig = DispatchSource.makeSignalSource(signal: sig)
+
+			sig.setEventHandler {
+				logger.info("Will stop network: \(options.networkName)")
+
+				vzvmnet.vmnet.stop()
+
+				sig.setEventHandler {
+					Foundation.exit(128)
+				}
+
+				sig.activate()
+			}
+
+			return sig
+		}.map { sig in
+			sig.activate()
+
+			return sig
+		}
+
 		if isPhysicalInterface == false {
-			let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
+			let sigReconfigure = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
 			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false {
 				_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 			}
 
-			Logger(self).info("Allow reconfigure network: \(options.networkName)")
+			logger.info("Allow reconfigure network: \(options.networkName)")
 
 			signal(SIGUSR2, SIG_IGN)
 
-			sig.setEventHandler {
-				Logger(self).info("Will reconfigure network: \(options.networkName)")
+			sigReconfigure.setEventHandler {
+				logger.info("Will reconfigure network: \(options.networkName)")
 
 				do {
-					let home: Home = try Home(runMode: runMode)
-					let networkConfig = try home.sharedNetworks()
-
-					if let network = networkConfig.sharedNetworks[options.networkName] {
-						try? vzvmnet.1.reconfigure(networkConfig: network)
-					}
+					try vzvmnet.vmnet.restart()
+					syncDNSCoordinator(vzvmnet.vmnet.networkConfig)
 				} catch {
 					Logger(self).error("Failed to reconfigure network: \(error)")
-					Foundation.exit(1)
 				}
 			}
 
-			sig.activate()
-			signalReconfigure = sig
+			sigReconfigure.activate()
+			signalReconfigure = sigReconfigure
 		}
 
 		defer {
 			if let sig = signalReconfigure {
 				sig.cancel()
 			}
+
+			if let coordinator {
+				Task.sync {
+					await coordinator.shutdown()
+				}
+			}
+
+			signals.forEach { sig in
+				sig.cancel()
+			}
 		}
 
 		do {
-			try vzvmnet.1.start()
+			try vzvmnet.vmnet.start { network in
+				syncDNSCoordinator(network)
+			}
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")
 
@@ -435,31 +490,6 @@ struct Networks: ParsableCommand {
 		}
 	}
 
-	struct NatInfos: ParsableCommand {
-		static let configuration = CommandConfiguration(
-			commandName: "nat-infos",
-			abstract: String(localized: "default nat network address"),
-			discussion: String(localized: "This command is used retrieve the default nat network address"),
-			shouldDisplay: false)
-
-		@OptionGroup(title: String(localized: "Global options"))
-		var common: CommonOptions
-
-		func validate() throws {
-			Logger.setLevel(self.common.logLevel)
-
-			if #unavailable(macOS 26) {
-				if geteuid() != 0 {
-					throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
-				}
-			}
-		}
-
-		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.natNetworkInfos()))
-		}
-	}
-
 	struct Infos: ParsableCommand {
 		static let configuration = NetworkInfoOptions.configuration
 
@@ -472,7 +502,7 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
+			_ = try validateNetwork(networkName: self.name, runMode: self.common.runMode)
 		}
 
 		func run() throws {
@@ -531,7 +561,7 @@ struct Networks: ParsableCommand {
 			}
 
 			if let name {
-				try validateNetwork(networkName: name, runMode: self.common.runMode)
+				_ = try validateNetwork(networkName: name, runMode: self.common.runMode)
 
 				let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
@@ -566,7 +596,9 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
+			guard try validateNetwork(networkName: self.name, runMode: self.common.runMode).active == 0 else {
+				throw ValidationError(String(localized: "Network \(self.name) is currently in use by one or more virtual machines"))
+			}
 
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
@@ -597,6 +629,10 @@ struct Networks: ParsableCommand {
 			let home: Home = try Home(runMode: self.common.runMode)
 			let networkConfig = try home.sharedNetworks()
 
+			if self.options.name == BridgeAttachement.defaultNetworkName || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
+				throw ValidationError(String(localized: "Network \(self.options.name) is a reserved default network and cannot be used"))
+			}
+
 			if networkConfig.sharedNetworks[self.options.name] != nil {
 				throw ValidationError(String(localized: "Network \(self.options.name) already exist"))
 			}
@@ -612,7 +648,8 @@ struct Networks: ParsableCommand {
 				dhcpEnd: self.options.dhcpEnd,
 				dhcpLease: self.options.dhcpLease,
 				interfaceID: self.options.interfaceID,
-				nat66Prefix: self.options.nat66Prefix
+				nat66Prefix: self.options.nat66Prefix,
+				dns: self.options.dns
 			)
 
 			try network.validate(runMode: common.runMode)
@@ -645,7 +682,7 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Unable to configure physical network \(self.options.name)"))
 			}
 
-			if self.options.name == "nat" || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
+			if self.options.name == BridgeAttachement.defaultNetworkName || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
 				throw ValidationError(String(localized: "Network \(self.options.name) is a reserved default network and cannot be configured"))
 			}
 
@@ -660,7 +697,8 @@ struct Networks: ParsableCommand {
 				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
 				dhcpLease: self.options.dhcpLease ?? existing.dhcpLease,
 				interfaceID: self.options.interfaceID ?? existing.interfaceID,
-				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix
+				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix,
+				dns: self.options.dns ?? existing.dns ?? false
 			)
 
 			if existing != changed {
@@ -697,6 +735,10 @@ struct Networks: ParsableCommand {
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.name) {
 				throw ValidationError(String(localized: "Unable to delete physical network \(self.name)"))
+			}
+
+			if self.name == BridgeAttachement.defaultNetworkName || self.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
+				throw ValidationError(String(localized: "Network \(self.name) is a reserved default network and cannot be deleted"))
 			}
 
 			if networkConfig.sharedNetworks[self.name] == nil {
@@ -786,42 +828,6 @@ struct Networks: ParsableCommand {
 		}
 	}
 
-	struct ComposeDNSRedirect: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the compose DNS pf port redirect"), shouldDisplay: false)
-
-		@OptionGroup(title: String(localized: "Global options"))
-		var common: CommonOptions
-
-		@Flag(help: .hidden)
-		var disable: Bool = false
-
-		@Option(name: [.customLong("gateway-address")], help: .hidden)
-		var gatewayAddress: String = String.empty
-
-		@Option(name: [.customLong("internal-port")], help: .hidden)
-		var internalPort: Int = 0
-
-		func validate() throws {
-			Logger.setLevel(self.common.logLevel)
-
-			if geteuid() != 0 {
-				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
-			}
-
-			if self.disable == false && (self.internalPort == 0 || self.gatewayAddress.isEmpty) {
-				throw ValidationError(String(localized: "--gateway-address and --internal-port are required"))
-			}
-		}
-
-		func run() throws {
-			if self.disable {
-				try PFRedirect.disableComposeDNSRedirect()
-			} else {
-				try PFRedirect.enableComposeDNSRedirect(gatewayAddress: self.gatewayAddress, internalPort: self.internalPort)
-			}
-		}
-	}
-
 	struct Stop: ParsableCommand {
 		static let configuration = NetworkStopOptions.configuration
 
@@ -850,7 +856,9 @@ struct Networks: ParsableCommand {
 
 			if all == false {
 				if let networkName {
-					try Networks.validateNetwork(networkName: networkName, runMode: self.common.runMode)
+					guard try validateNetwork(networkName: networkName, runMode: self.common.runMode).active == 0 else {
+						throw ValidationError(String(localized: "Network \(networkName) is currently in use by one or more virtual machines"))
+					}
 				} else if let pidFile {
 					if !FileManager.default.fileExists(atPath: pidFile) {
 						throw ValidationError(String(localized: "PID file \(pidFile) does not exist"))
@@ -865,7 +873,7 @@ struct Networks: ParsableCommand {
 			} else if let pidFile {
 				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
-				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))
+				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, checkIfUsed: false, runMode: self.common.runMode)))
 			} else {
 				throw ValidationError(String(localized: "No network name provided"))
 			}

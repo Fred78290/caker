@@ -915,11 +915,13 @@ final class ComposeTest: XCTestCase {
 		// resolution added for `driver: bridge` entries.
 		var svc = ComposeService()
 		svc.image = "ubuntu:24.04"
+		// "nat" is the legacy spelling of caker's default shared network; "default" can't be used
+		// here: in a compose file it is the implicit network and maps to the default bridged interface.
 		svc.networks = ["nat"]
 
 		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
 
-		XCTAssertEqual(built.options.networks.map { $0.network }, ["nat"])
+		XCTAssertEqual(built.options.networks.map { $0.network }, [BridgeAttachement.defaultNetworkName])
 	}
 
 	func testHandlerUpFailsFastForUnresolvableCustomBridgeNetwork() async throws {

@@ -33,7 +33,6 @@
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1276B7682990108E5C70CEB6 /* CachedImageKind.swift */; };
 		50B325E5494C4C8396E606DB /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
-		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		6C35D6F42A709BA2C8E7C99E /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
@@ -398,6 +397,12 @@
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
+		9B9ADA673095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */; };
+		A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
+		9B9ADA683095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */; };
+		A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
+		9B9ADA693095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */; };
+		A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */; };
 		9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */; };
 		9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */; };
@@ -1000,7 +1005,6 @@
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
 		2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
-		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
@@ -1352,6 +1356,8 @@
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
+		9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "cloudinit-install-cakeagent.sh"; sourceTree = "<group>"; };
+		A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksView.swift; sourceTree = "<group>"; };
 		9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotesView.swift; sourceTree = "<group>"; };
 		9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarView.swift; sourceTree = "<group>"; };
@@ -1914,6 +1920,8 @@
 		61D20D54533FC5B65DAD0E65 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */,
+				A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */,
 				22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */,
 				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
@@ -2783,7 +2791,6 @@
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
 				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
-				300ABBDC01C9F611E451504D /* Dns.swift */,
 				9BDC05952FEADB5800802A3C /* Down.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BDC05962FEADB5800802A3C /* EnvInit.swift */,
@@ -3706,6 +3713,8 @@
 				9BE7F1B630309FA00006F53F /* macos27.packerlite.yaml in Resources */,
 				9B32F97B3025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
 				9B2D376F30471A3D00204614 /* ubuntu-server.packerlite.yaml in Resources */,
+				9B9ADA693095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
+				A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */,
 				9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
 				D43FC446B6C30CD981F6FA33 /* fedora-server.packerlite.yaml in Resources */,
 				9B32F97C3025C31F0099D3A5 /* centos.packerlite.yaml in Resources */,
@@ -3734,6 +3743,8 @@
 				9B56126C301350FB00E9FA7D /* almalinux.png in Resources */,
 				9B56126D301350FB00E9FA7D /* alpine.png in Resources */,
 				9B2D377030471A3E00204614 /* ubuntu-server.packerlite.yaml in Resources */,
+				9B9ADA683095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
+				A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */,
 				9B56126E301350FB00E9FA7D /* arch-linux.png in Resources */,
 				9B56126F301350FB00E9FA7D /* backtrack.png in Resources */,
 				9B561270301350FB00E9FA7D /* centos.png in Resources */,
@@ -3786,6 +3797,8 @@
 				9BD69DF62FCEE912005E24AF /* VM.icns in Resources */,
 				9BD69DF72FCEE912005E24AF /* VM.png in Resources */,
 				9BFB8906303F5052007AFA2A /* VMImages.json in Resources */,
+				9B9ADA673095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
+				A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */,
 				98EBC5DEAAE746B3A32CD787 /* compose-template.yml in Resources */,
 			);
 		};
@@ -4311,7 +4324,6 @@
 				9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */,
 				9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
-				52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */,
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
 				9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */,

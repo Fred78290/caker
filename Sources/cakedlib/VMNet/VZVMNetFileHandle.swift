@@ -34,7 +34,7 @@ public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 		}
 	}
 
-	public override func start() throws {
+	public override func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws {
 		try startInterface()
 
 		defer {
@@ -74,7 +74,7 @@ public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 			self.logger.debug("Started pipe channel with fd=\(self.fileDescriptor)")
 		}
 
-		try super.start()
+		try super.start(startedHandler)
 
 		try promise.futureResult.wait()
 	}

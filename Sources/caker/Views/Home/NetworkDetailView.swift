@@ -40,7 +40,7 @@ struct NetworkDetailView: View {
 	}
 
 	private var allowNetworkManagement: Bool {
-		return currentItem.mode != .nat && currentItem.managed
+		return currentItem.managed
 	}
 
 	var body: some View {
@@ -86,6 +86,9 @@ struct NetworkDetailView: View {
 								.allowsHitTesting(forEditing)
 								.labelsHidden()
 
+								Spacer()
+								Toggle("Enable DNS", isOn: $currentItem.dns)
+									.allowsHitTesting(forEditing)
 								Spacer()
 							}
 						}
@@ -162,8 +165,11 @@ struct NetworkDetailView: View {
 						}
 
 						if forEditing == false {
+							LabeledContent("Referenced by") {
+								Text("\(currentItem.usedBy.used) instances")
+							}
 							LabeledContent("Used by") {
-								Text("\(currentItem.usedBy) instances")
+								Text("\(currentItem.usedBy.active) instances")
 							}
 						}
 					}
@@ -200,7 +206,7 @@ struct NetworkDetailView: View {
 						}
 						.disabled(networkActionRunning)
 						.withButtonStyle(.bordered)
-					} else {
+					} else if currentItem.usedBy.active == 0 {
 						AsyncButton("Stop network") { done in
 							let name = currentItem.name
 
@@ -208,13 +214,13 @@ struct NetworkDetailView: View {
 
 							Task.detached {
 								let result = AppState.shared.stopNetwork(networkName: name)
-								
+
 								await MainActor.run {
 									defer {
 										networkActionRunning = false
 										done()
 									}
-									
+
 									if result.stopped == false {
 										alertError(String(localized: "Stop network failed"), result.reason)
 									} else {
@@ -237,6 +243,18 @@ struct NetworkDetailView: View {
 #Preview {
 	NetworkDetailView(
 		.constant(
-			BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, managed: false, usedBy: 0)),
+			BridgedNetwork(
+				name: BridgeAttachement.defaultNetworkName,
+				mode: .nat,
+				description: BridgeAttachement.defaultNetworkDescription,
+				gateway: BridgeAttachement.defaultNetworkGateway,
+				dhcpEnd: String.empty,
+				dhcpLease: String.empty,
+				interfaceID: BridgeAttachement.defaultNetworkUUID,
+				endpoint: String.empty,
+				running: false,
+				managed: true,
+				dns: true,
+				usedBy: BridgedNetwork.NetworkUsage(used: 0, active: 0))),
 		reloadNetwork: .constant(false), forEditing: true)
 }

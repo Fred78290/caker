@@ -431,6 +431,9 @@ public struct ProvisionHandler {
 		varsDict["username"] = config.configuredUser
 		varsDict["password"] = config.configuredPassword ?? "admin"
 		varsDict["hostname"] = location.name
+		varsDict["domain"] = ComposeDNS.domainSuffix
+		varsDict["dnsIP"] = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
+		varsDict["dnsPort"] = "\(ComposeDNS.internalBindPort)"
 
 		if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode) {
 			varsDict["ssh_authorized_key"] = keys.joined(separator: "\n")

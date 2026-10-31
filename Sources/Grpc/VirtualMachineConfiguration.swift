@@ -218,6 +218,17 @@ public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 	case redhat
 	case openSUSE
 	case alpine
+	case almalinux
+	case gentoo
+	case archlinux
+	case knopix
+	case mandriva
+	case slackware
+	case backtrack
+	case elementary_os
+	case pop_os
+	case webos
+	case rocky
 	case unknown
 
 	public init(rawValue: String) {
@@ -228,10 +239,12 @@ public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 		// RHEL's official ISO filenames use "rhel", not "redhat" (e.g. "rhel-9.4-x86_64-dvd.iso"), so
 		// .redhat needs that as an additional alias. Microsoft's own Windows ISO filenames never contain the
 		// word "windows" either (e.g. "Win11_25H2_English_Arm64_v2.iso"), so .windows matches "win10"/"win11".
+		let newValue = rawValue.replacing("-", with: "_").lowercased()
 		let value = Self.allCases.first {
-			rawValue.contains($0.rawValue.lowercased())
-				|| ($0 == .redhat && rawValue.contains("rhel"))
-				|| ($0 == .windows && (rawValue.contains("windows11") || rawValue.contains("win11") || rawValue.contains("win10")))
+			newValue.contains($0.rawValue.lowercased())
+				|| ($0 == .redhat && newValue.contains("rhel"))
+				|| ($0 == .windows && (newValue.contains("windows11") || newValue.contains("win11") || newValue.contains("win10"))
+				|| ($0 == .openSUSE && newValue.contains("suse")))
 		}
 
 		if let value = value {
@@ -350,8 +363,30 @@ extension Caked.Configuration.SupportedPlatform {
 			self = .openSuse
 		case .alpine:
 			self = .alpine
+		case .almalinux:
+			self = .almalinux
 		case .unknown:
 			self = .undefined
+		case .gentoo:
+			self = .gentoo
+		case .archlinux:
+			self = .archlinux
+		case .knopix:
+			self = .knopix
+		case .mandriva:
+			self = .mandriva
+		case .slackware:
+			self = .slackware
+		case .backtrack:
+			self = .backtrack
+		case .elementary_os:
+			self = .elementary
+		case .pop_os:
+			self = .popOs
+		case .webos:
+			self = .webos
+		case .rocky:
+			self = .rocky
 		}
 	}
 }

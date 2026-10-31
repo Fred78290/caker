@@ -66,6 +66,9 @@ extension BuildOptions {
 
 		variables["username"] = config.configuredUser
 		variables["password"] = config.configuredPassword ?? "admin"
+		variables["domain"] = ComposeDNS.domainSuffix
+		variables["dnsIP"] = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
+		variables["dnsPort"] = "\(ComposeDNS.internalBindPort)"
 
 		if variables["hostname"] == nil {
 			variables["hostname"] = self.name

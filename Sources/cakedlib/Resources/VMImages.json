@@ -50,7 +50,13 @@
 			{ "id": "fedora44", "label": "Fedora 44", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "fedora43", "label": "Fedora 43", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-43-1.6.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/download/repositories/openSUSE:/Leap:/16.0:/Images/images/Leap-16.0-Minimal-VM.aarch64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.aarch64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "almalinux10", "label": "AlmaLinux 10", "url": "https://repo.almalinux.org/almalinux/10/cloud/aarch64/images/AlmaLinux-10-GenericCloud-latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261025T234555Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "rocky10", "label": "Rocky 10", "url": "https://dl.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "rocky9", "label": "Rocky 9", "url": "https://dl.rockylinux.org/pub/rocky/9/images/aarch64/Rocky-9-GenericCloud-Base.latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 }
@@ -99,7 +105,13 @@
 			{ "id": "fedora44", "label": "Fedora 44", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "fedora43", "label": "Fedora 43", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/download/repositories/openSUSE:/Leap:/16.0:/Images/images/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "almalinux10", "label": "AlmaLinux 10", "url": "https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261025T170057Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "rocky10", "label": "Rocky 10", "url": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "rocky9", "label": "Rocky 9", "url": "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 }

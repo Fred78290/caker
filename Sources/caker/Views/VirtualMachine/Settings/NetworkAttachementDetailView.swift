@@ -133,5 +133,5 @@ struct NetworkAttachementDetailView: View {
 }
 
 #Preview {
-	NetworkAttachementDetailView(currentItem: .constant(.init(network: "nat", mode: .auto)))
+	NetworkAttachementDetailView(currentItem: .constant(.init(network: BridgeAttachement.defaultNetworkName, mode: .auto)))
 }

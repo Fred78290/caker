@@ -11,10 +11,11 @@ import vmnet
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
 public protocol VZVMNet {
+	var networkConfig: VZSharedNetwork { get }
 	func reconfigure(networkConfig: VZSharedNetwork) throws
-	func start() throws
+	func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws
 	func stop()
-	func restart()
+	func restart() throws
 }
 
 extension vmnet_return_t {
@@ -125,11 +126,9 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 	private var grpcServer: Server? = nil
 	private let semaphore = AsyncSemaphore(value: 0)
-	private let sigcaught: [Int32: DispatchSourceSignal]
 
 	internal let eventLoop: EventLoop
 	internal let networkName: String
-	internal var networkConfig: VZSharedNetwork
 	internal let logger = Logger("VZVMNetImpl")
 	internal let socketPath: URL
 	internal let pidFile: URL
@@ -139,20 +138,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 	internal let trace: Bool
 	internal let socketGroup: gid_t
 
-	private func setupSignals() {
-		sigcaught.forEach { sig in
-			sig.value.setEventHandler {
-				if sig.key == SIGUSR2 {
-					self.logger.info("Signal caught restarting VMNet")
-					self.restart()
-				} else {
-					self.logger.info("Signal caught [\(sig.key)], stopping VMNet")
-					self.stop()
-				}
-			}
-			sig.value.activate()
-		}
-	}
+	public var networkConfig: VZSharedNetwork
 
 	public init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
 		self.eventLoop = on
@@ -163,24 +149,16 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		self.runMode = runMode
 		self.trace = Logger.Level() >= Logger.LogLevel.trace
 		self.socketGroup = socketGroup
-
-		self.sigcaught = Dictionary(
-			uniqueKeysWithValues: [SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGUSR2].map { sig in
-				signal(sig, SIG_IGN)
-				return (sig, DispatchSource.makeSignalSource(signal: sig))
-			})
 	}
 
 	public func reconfigure(networkConfig: VZSharedNetwork) throws {
 		self.networkConfig = networkConfig
 	}
 
-	public func start() throws {
+	public func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws {
 		guard self.grpcServer == nil else {
 			throw ServiceError(String(localized: "VMNet \(self.networkName) is already running"))
 		}
-
-		setupSignals()
 
 		let serviceProvider = GRPCVMNetService(owner: self)
 		let socketFile = socketPath.deletingLastPathComponent().appendingPathComponent("ctrl").path(percentEncoded: false)
@@ -210,6 +188,8 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 			try self.pidFile.writePID()
 
 			do {
+				startedHandler(self.networkConfig)
+
 				try await self.semaphore.waitUnlessCancelled()
 			} catch {
 				Logger(self).error("Error: \(error)")
@@ -240,8 +220,15 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		try? pidFile.delete()
 	}
 
-	public func restart() {
-		try? self.reconfigure(networkConfig: self.networkConfig)
+	public func restart() throws {
+		let home: Home = try Home(runMode: runMode)
+		let networkConfig = try home.sharedNetworks()
+
+		if let network = networkConfig.sharedNetworks[self.networkName] {
+			try self.reconfigure(networkConfig: network)
+		} else {
+			try self.reconfigure(networkConfig: self.networkConfig)
+		}
 	}
 }
 

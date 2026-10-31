@@ -137,15 +137,18 @@ post_boot_command:
       ${var.ssh_authorized_key}
       EOF
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
-    - sudo semanage fcontext -a -t initrc_exec_t '/usr/bin/cakeagent'
-    - sudo restorecon -v /usr/local/bin/cakeagent
+    # semanage (policycoreutils-python-utils) is not installed on a minimal openSUSE image, and a failing
+    # step would abort the whole post_boot_command. Label only when it is there; -a fails once the rule
+    # exists, hence the -m fallback.
+    - |
+      sudo sh -c 'if command -v semanage >/dev/null 2>&1; then semanage fcontext -a -t initrc_exec_t /usr/bin/cakeagent || semanage fcontext -m -t initrc_exec_t /usr/bin/cakeagent; restorecon -v /usr/local/bin/cakeagent || true; fi'
     - sudo systemctl restart cakeagent
     - sudo zypper addrepo https://download.opensuse.org/repositories/Cloud:Tools/16.0/Cloud:Tools.repo
     - sudo zypper --gpg-auto-import-keys refresh
     - sudo zypper update -y
     - sudo zypper clean -a
-    - sudo semanage fcontext -a -t initrc_exec_t '/usr/bin/cakeagent'
-    - sudo restorecon -v /usr/local/bin/cakeagent
+    - |
+      sudo sh -c 'if command -v semanage >/dev/null 2>&1; then semanage fcontext -a -t initrc_exec_t /usr/bin/cakeagent || semanage fcontext -m -t initrc_exec_t /usr/bin/cakeagent; restorecon -v /usr/local/bin/cakeagent || true; fi'
     - sudo zypper install -y cloud-init
     - sudo systemctl enable cloud-init-local.service
     - sudo systemctl enable cloud-init.service

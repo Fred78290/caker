@@ -144,4 +144,3 @@ post_boot_command:
     - sudo dnf upgrade -y --refresh
     - sudo dnf install -y cloud-init cloud-utils-growpart
     - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"
-
