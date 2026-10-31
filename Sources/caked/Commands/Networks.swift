@@ -282,7 +282,6 @@ struct Networks: ParsableCommand {
 
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
-		var coordinatorTask: Task<Void, Never>? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
 
 		defer {
@@ -360,11 +359,7 @@ struct Networks: ParsableCommand {
 				if let dns = network.dns, dns {
 					coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
 
-					coordinatorTask = Task {
-						defer {
-							coordinatorTask = nil
-						}
-
+					Task {
 						await coordinator?.startPollingSync()
 					}
 				}
