@@ -8,6 +8,26 @@ import Yams
 
 public let CAKEAGENT_SNAPSHOT = "e0dbef5c"
 
+/// `Bundle.module` only exists in `swift build`/`swift test` builds; the Xcode projects compile `CakedLib` as a
+/// plain native target, so the lookup branches on the build system (same pattern as `VMImageCatalog.swift`).
+private final class CloudInitResourceBundleMarker {}
+
+private let cloudInitResourceBundle: Bundle = {
+	#if SWIFT_PACKAGE
+		return Bundle.module
+	#else
+		let containingBundle = Bundle(for: CloudInitResourceBundleMarker.self)
+
+		for candidate in ["Caker_CakedLib.bundle", "CakedLib_CakedLib.bundle"] {
+			if let url = containingBundle.resourceURL?.appendingPathComponent(candidate), let bundle = Bundle(url: url) {
+				return bundle
+			}
+		}
+
+		return containingBundle
+	#endif
+}()
+
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
 extension Multipart {
@@ -1030,184 +1050,32 @@ class CloudInit {
 		return localAgent
 	}
 
-	private func installCakeAgentScript(config: CakeConfig) -> String {
+	/// Load order, as for `VMImages.json`: a `<CAKE_HOME>/install-cakeagent.sh` override, if present, else the
+	/// bundled resource (`Bundle.main` first, for the flat `.app` layout, then the CakedLib resource bundle).
+	/// The result is a `String(format:)` template, see `installCakeAgentScript(config:caCert:serverKey:serverPem:)`.
+	private func loadCakeAgentScript() throws -> String {
+		let scriptName = "cloudinit-install-cakeagent"
+		let home = try Utils.getHome(runMode: self.runMode, createItIfNotExists: false)
+		let overrideURL = home.appendingPathComponent("\(scriptName).sh", isDirectory: false)
+
+		if FileManager.default.fileExists(atPath: overrideURL.path(percentEncoded: false)) {
+			return try String(contentsOf: overrideURL, encoding: .utf8)
+		}
+
+		guard let url = Bundle.main.url(forResource: scriptName, withExtension: "sh") ?? cloudInitResourceBundle.url(forResource: scriptName, withExtension: "sh") else {
+			throw CloudInitGenerateError("\(scriptName).sh resource not found in the app bundle")
+		}
+
+		return try String(contentsOf: url, encoding: .utf8)
+	}
+
+	private func installCakeAgentScript(config: CakeConfig, caCert: String? = nil, serverKey: String? = nil, serverPem: String? = nil) throws -> String {
+		let caCert = caCert ?? ""
+		let serverKey = serverKey ?? ""
+		let serverPem = serverPem ?? ""
 		let dnsIP = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
-		let install_cakeagent: String =
-			"""
-			#!/bin/sh
-			if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
-				# The network may not be up yet when cloud-init runs this: retry, with a fresh index.
-				for attempt in 1 2 3 4 5 6 7 8 9 10; do
-					apk update && apk add dnsmasq && break
-					sleep 3
-				done
-				mkdir -p /etc/dnsmasq.d /etc/udhcpc
-				cat > /etc/dnsmasq.d/compose-dns.conf <<'EOF'
-			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
-			server=\(dnsIP)
-			server=1.1.1.1
-			server=9.9.9.9
-			server=8.8.8.8
-			no-resolv
-			listen-address=127.0.0.1
-			strict-order
-			EOF
-				# udhcpc and dhcpcd (the Alpine cloud images use dhcpcd) both rewrite /etc/resolv.conf.
-				echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
-				echo 'PEER_DNS="no"' >> /etc/udhcpc/udhcpc.conf
-				if [ -f /etc/dhcpcd.conf ] || command -v dhcpcd >/dev/null 2>&1; then
-					grep -q '^nohook resolv.conf' /etc/dhcpcd.conf 2>/dev/null || echo 'nohook resolv.conf' >> /etc/dhcpcd.conf
-				fi
-				# Those opt-outs are only read on a new lease and not every client honours them: whatever the
-				# client wrote, the post-lease hooks put the compose search domain and dnsmasq back.
-				mkdir -p /usr/local/sbin
-				cat > /usr/local/sbin/compose-resolv.sh <<'EOF'
-			#!/bin/sh
-			[ -x /usr/sbin/dnsmasq ] || exit 0
-			printf 'search %s\\nnameserver 127.0.0.1\\n' '\(ComposeDNS.domainSuffix)' > /etc/resolv.conf
-			EOF
-				chmod +x /usr/local/sbin/compose-resolv.sh
-				for ev in bound renew; do
-					mkdir -p /etc/udhcpc/post-$ev
-					ln -sf /usr/local/sbin/compose-resolv.sh /etc/udhcpc/post-$ev/10-compose-dns
-				done
-				grep -q compose-resolv /etc/dhcpcd.exit-hook 2>/dev/null || echo '/usr/local/sbin/compose-resolv.sh' >> /etc/dhcpcd.exit-hook
-				# Only point resolv.conf at dnsmasq when it is really installed, else the guest loses DNS.
-				if command -v dnsmasq >/dev/null 2>&1; then
-					rc-update add dnsmasq default || :
-					rc-service dnsmasq restart || :
-					/usr/local/sbin/compose-resolv.sh
-				else
-					echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
-				fi
-			elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev/null; then
-				# EL has no systemd-resolved by default: NetworkManager owns /etc/resolv.conf, so let its
-				# dnsmasq plugin forward only the compose domain and leave every other lookup untouched.
-				(dnf install -y dnsmasq || yum install -y dnsmasq) || :
-				if command -v dnsmasq >/dev/null 2>&1; then
-				mkdir -p /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq.d
-				cat > /etc/NetworkManager/conf.d/00-compose-dns.conf <<'EOF'
-			[main]
-			dns=dnsmasq
-			EOF
-				cat > /etc/NetworkManager/dnsmasq.d/compose-dns.conf <<'EOF'
-			server=/\(ComposeDNS.domainSuffix)/\(dnsIP)#\(ComposeDNS.internalBindPort)
-			EOF
-				systemctl restart NetworkManager || :
-				else
-					echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
-				fi
-				SEARCH="\(ComposeDNS.domainSuffix)"
-			else
-				# With systemd-resolved a link's search domain also routes its lookups to that link's DNS
-				# (the gateway, port 53): keep it off the link so the global DNS=<ip>:<port> serves the domain.
-				SEARCH=""
-				mkdir -p /etc/systemd/resolved.conf.d
-				cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<'EOF'
-			[Resolve]
-			DNS=\(dnsIP):\(ComposeDNS.internalBindPort)
-			Domains=\(ComposeDNS.domainSuffix)
-			EOF
-				if command -v systemctl >/dev/null 2>&1; then
-					systemctl enable systemd-resolved || :
-					systemctl restart systemd-resolved || :
-				fi
-			fi
-
-			if ! grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
-			D="\(ComposeDNS.domainSuffix)"
-			G="\(dnsIP)"
-			# vmnet's DHCP server announces the domain "guest": keep it out of the search list so the
-			# default domain is the compose one, whichever network stack the guest uses.
-			mkdir -p /etc/systemd/networkd.conf.d
-			cat > /etc/systemd/networkd.conf.d/10-compose-dns.conf <<'EOF'
-			[DHCPv4]
-			UseDomains=no
-			[DHCPv6]
-			UseDomains=no
-			EOF
-			if [ -f /etc/dhcp/dhclient.conf ] && ! grep -q 'compose-dns' /etc/dhcp/dhclient.conf; then
-			  printf '# compose-dns\nsupersede domain-name "%s";\nsupersede domain-search "%s";\n' "$D" "$D" >> /etc/dhcp/dhclient.conf
-			fi
-			if command -v nmcli >/dev/null 2>&1 && systemctl is-active NetworkManager >/dev/null 2>&1; then
-			  IFACE=$(ip route get "$G" 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
-			  CON=$(nmcli -g GENERAL.CONNECTION device show "$IFACE" 2>/dev/null)
-			  if [ -n "$CON" ]; then
-			    nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "$G" ipv4.dns-search "$SEARCH" ipv6.ignore-auto-dns yes ipv6.dns-search "$SEARCH" || true
-			    nmcli device reapply "$IFACE" || true
-			  fi
-			fi
-			if systemctl is-active systemd-networkd >/dev/null 2>&1; then
-			  systemctl restart systemd-networkd || true
-			fi
-			fi
-
-			# SELinux is turned off on every image that has it: permissive right now (setenforce), disabled from
-			# the next boot (the config file; the running kernel keeps SELinux until then).
-			if [ -f /etc/selinux/config ]; then
-				if grep -q '^SELINUX=' /etc/selinux/config; then
-					sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
-				else
-					echo 'SELINUX=disabled' >> /etc/selinux/config
-				fi
-				if command -v setenforce >/dev/null 2>&1; then
-					setenforce 0 || :
-				fi
-			fi
-
-			# The agent labels itself with semanage/restorecon whenever the image has an SELinux policy,
-			# whatever its mode (CentOS/RHEL are switched to disabled above, the agent still needs semanage),
-			# and a minimal cloud image does not always ship it: install it before the agent does its setup.
-			# The package name differs between distros and releases, so fall back to the file it provides.
-			if [ -f /etc/selinux/config ] && ! command -v semanage >/dev/null 2>&1; then
-				if command -v zypper >/dev/null 2>&1 && ! grep -qs '^enabled=1' /etc/zypp/repos.d/*.repo; then
-					# The Leap Minimal-VM cloud images ship no repository definition (no openSUSE-repos package), so
-					# zypper cannot find any package: add the official oss repository of the running release.
-					REPO=$(. /etc/os-release; if [ "$ID" = opensuse-leap ]; then echo "https://download.opensuse.org/distribution/leap/$VERSION_ID/repo/oss/"; elif [ "$ID" = opensuse-tumbleweed ]; then echo "https://download.opensuse.org/tumbleweed/repo/oss/"; fi)
-					if [ -n "$REPO" ]; then
-						zypper --non-interactive addrepo --refresh "$REPO" repo-oss || :
-						zypper --non-interactive --gpg-auto-import-keys refresh || :
-					fi
-				fi
-				for attempt in 1 2 3 4 5; do
-					if command -v zypper >/dev/null 2>&1; then
-						zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage
-					elif command -v dnf >/dev/null 2>&1; then
-						dnf install -y policycoreutils-python-utils || dnf install -y /usr/sbin/semanage || dnf install -y /usr/bin/semanage
-					elif command -v yum >/dev/null 2>&1; then
-						yum install -y policycoreutils-python-utils || yum install -y /usr/sbin/semanage
-					else
-						break
-					fi
-					command -v semanage >/dev/null 2>&1 && break
-					sleep 5
-				done
-				command -v semanage >/dev/null 2>&1 || echo 'semanage could not be installed, the agent cannot label itself for SELinux' >&2
-			fi
-
-			CIDATA=$(blkid -L CIDATA || :)
-
-			if [ -n \"$CIDATA\" ]; then
-				MOUNT=$(mktemp -d)
-				mount -L CIDATA $MOUNT || exit 1
-				cp $MOUNT/cakeagent /usr/local/bin/cakeagent
-				umount $MOUNT
-				mkdir -p /etc/sysconfig
-				echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
-				chmod 644 /etc/sysconfig/cakeagent
-				chmod +x /usr/local/bin/cakeagent
-				/usr/local/bin/cakeagent service install \\
-					--listen=vsock://any:\(VMLocation.defaultAgentListenPort) \\
-					--ca-cert=/etc/cakeagent/ssl/ca.pem \\
-					--tls-cert=/etc/cakeagent/ssl/server.pem \\
-					--tls-key=/etc/cakeagent/ssl/server.key \(config.linuxMounts)
-			else
-				echo \"CIDATA not found\"
-				exit 1
-			fi
-			"""
-
-		return install_cakeagent
+		
+		return try String(format: loadCakeAgentScript(), ComposeDNS.domainSuffix, dnsIP, "\(ComposeDNS.internalBindPort)", "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, caCert, serverKey, serverPem)
 	}
 
 	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel
@@ -1240,11 +1108,11 @@ class CloudInit {
 	}
 
 	private func buildVendorData(config: CakeConfig, runMode: Utils.RunMode) throws -> CloudConfigData {
-		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
+		let installCakeagent = try installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
 		let merge: [Merging] = [
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
@@ -1434,13 +1302,15 @@ class CloudInit {
 			}
 		}
 
+		let installAgentScript = try self.installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem)
+
 		scripts.append("%post --interpreter=/bin/bash")
 
 		scripts.append("echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)")
 
 		scripts.append("echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg")
 
-		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<EOF\n\(self.installCakeAgentScript(config:config))\nEOF\n")
+		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<INSTALLAGENT\n\(installAgentScript)\nINSTALLAGENT\n")
 		scripts.append("chown root:\(self.mainGroup) /usr/local/bin/install-cakeagent.sh")
 		scripts.append("chmod 755 /usr/local/bin/install-cakeagent.sh")
 
@@ -1464,11 +1334,11 @@ class CloudInit {
 	}
 
 	private func createAutoInstallData(config: CakeConfig) throws -> Data {
-		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
+		let installCakeagent = try installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
 		var runCommand = [
 			"/usr/local/bin/install-cakeagent.sh"
 		]
