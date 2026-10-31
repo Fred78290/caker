@@ -227,7 +227,7 @@ public struct VMBuilder {
 				if virtualizedOS == .darwin {
 					try location.expandDisk(options.diskSize, format: config.diskFormat)
 				} else {
-					try location.resizeDisk(options.diskSize, format: config.diskFormat)
+					try location.resizeDisk(options.diskSize, format: config.diskFormat, ignoreSmaller: true)
 				}
 			}
 

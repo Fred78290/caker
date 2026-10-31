@@ -514,7 +514,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		}
 	}
 
-	public func resizeDisk(_ sizeGB: UInt64, format: SupportedDiskFormat) throws {
+	public func resizeDisk(_ sizeGB: UInt64, format: SupportedDiskFormat, ignoreSmaller: Bool = false) throws {
 		if format == .raw {
 			let wantedFileSize = sizeGB * GiB
 
@@ -535,9 +535,15 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			let curFileSize = try diskFileHandle.seekToEnd()
 
 			if wantedFileSize < curFileSize {
+				guard ignoreSmaller == false else {
+					return
+				}
+
 				let curFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(curFileSize))
 				let wantedFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(wantedFileSize))
+
 				throw ServiceError(String(localized: "the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)"))
+
 			} else if wantedFileSize > curFileSize {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
