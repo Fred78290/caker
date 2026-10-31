@@ -377,6 +377,10 @@ public struct NetworksHandler {
 			if let nat66Prefix = networkConfig.nat66Prefix {
 				arguments.append("--nat66-prefix=\(nat66Prefix)")
 			}
+
+			if phUseLimaVMNet == false, networkConfig.dns == true {
+				arguments.append("--dns")
+			}
 		}
 
 		var fd = fileDescriptor
@@ -537,6 +541,10 @@ public struct NetworksHandler {
 				if let nat66Prefix = networkConfig.nat66Prefix {
 					arguments.append("--nat66-prefix=\(nat66Prefix)")
 				}
+
+				if networkConfig.dns == true {
+					arguments.append("--dns")
+				}
 			}
 
 			arguments.append("--pidfile=\(socketURL.pidFile.path(percentEncoded: false))")
@@ -634,6 +642,7 @@ public struct NetworksHandler {
 			}
 
 			networkConfig.userNetworks[networkName] = network
+			try home.setSharedNetworks(networkConfig)
 
 			do {
 				return ConfiguredNetworkReply(name: networkName, configured: true, reason: try self.restartNetworkService(networkName: networkName, runMode: runMode))
@@ -669,7 +678,8 @@ public struct NetworksHandler {
 				dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
 				dhcpLease: network.dhcpLease ?? exisiting.dhcpLease,
 				interfaceID: network.interfaceID ?? exisiting.interfaceID,
-				nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
+				nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix,
+				dns: network.dns ?? exisiting.dns ?? false
 			)
 
 			if changed != exisiting {

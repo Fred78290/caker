@@ -181,14 +181,14 @@ public enum ComposeDNS {
 			}
 
 			// dhcpcd (Alpine, Gentoo) sends a DUID as client identifier: the lease is not keyed by the MAC.
-			if let name, let address = parser.address(forHostname: name) {
+			if let name, let address = parser.address(forHostname: name, in: BridgeAttachement.defaultNetworkGateway) {
 				return address
 			}
 		}
 
 		// Same fallback as `VMLocation.waitIPWithLease`.
-		if let mac = config.macAddress, mac.isEmpty == false, let arp = try? ARPParser() {
-			return arp[mac]
+		if let mac = config.macAddress, mac.isEmpty == false, let arp = try? ARPParser(), let address = arp[mac] {
+			return address
 		}
 
 		// Return last known runningIP

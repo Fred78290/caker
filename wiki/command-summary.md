@@ -41,7 +41,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 ### Réseaux
 
 - groupe `networks` : `infos`, `list`, `create`, `configure`, `delete`, `start`, `stop`.
-- Le réseau `default` (anciennement `nat` / `NAT shared network`, ces noms restent acceptés) est un réseau partagé géré par caked, sans isolation entre VM. Il est réservé : `create`, `configure` et `delete` le refusent. Son CIDR se règle dans Réglages > Avancé (`local.default-network`, pris en compte au redémarrage suivant).
+- Le réseau `default` (anciennement `nat` / `NAT shared network`; ces anciens noms ne sont normalisés en `default` que dans les attachements réseau des VM) est un réseau partagé géré par caked, sans isolation entre VM. Il est réservé : `create`, `configure` et `delete` le refusent. Son CIDR se règle dans Réglages > Avancé (`local.default-network`, pris en compte au redémarrage suivant).
 - `create`/`configure` acceptent `--dns` : le processus qui exécute le réseau démarre alors le résolveur DNS de compose sur la passerelle du réseau (port 28053), voir [Compose](compose). Activé par défaut sur `default`.
 - `stop` refuse d'arrêter un réseau qu'au moins une VM en cours d'exécution utilise (`infos`/`list` distinguent les instances qui le référencent de celles qui l'utilisent activement).
 
@@ -461,7 +461,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 ### Networks
 
 - `networks` group: `infos`, `list`, `create`, `configure`, `delete`, `start`, `stop`.
-- The `default` network (formerly `nat` / `NAT shared network`, those names are still accepted) is a caked-managed shared network without isolation between VMs. It is reserved: `create`, `configure` and `delete` reject it. Its CIDR is set in Settings > Advanced (`local.default-network`, applied at the next restart).
+- The `default` network (formerly `nat` / `NAT shared network`; the old names are only normalized to `default` in a VM's network attachments) is a caked-managed shared network without isolation between VMs. It is reserved: `create`, `configure` and `delete` reject it. Its CIDR is set in Settings > Advanced (`local.default-network`, applied at the next restart).
 - `create`/`configure` accept `--dns`: the process running the network then starts the compose DNS resolver on the network's gateway (port 28053), see [Compose](compose). On by default for `default`.
 - `stop` refuses to stop a network that at least one running VM is using (`infos`/`list` distinguish instances that reference it from instances that actively use it).
 

@@ -11,6 +11,9 @@ SSH_PUBLIC_KEYS='%5$@'
 CA_CERT="%6$@"
 SERVER_CERT="%7$@"
 SERVER_KEY="%8$@"
+COMPOSEDONS_DOMAIN_SUFFIX="%9$@"
+COMPOSEDONS_DNS_IP="%10$@"
+COMPOSEDONS_DNS_PORT="%11$@"
 
 case $(uname -m) in
 	x86_64)
@@ -223,7 +226,7 @@ else
 		SEARCH="${COMPOSEDONS_DOMAIN_SUFFIX}"
 
 		# Configure systemd-resolved for compose DNS if the config file exists
-	elif [ -f /etc/systemd/resolved.conf.d/10-compose-dns.conf ]; then
+	elif [ ! -f /etc/systemd/resolved.conf.d/10-compose-dns.conf ]; then
 		# With systemd-resolved a link's search domain also routes its lookups to that link's DNS
 		# (the gateway, port 53): keep it off the link so the global DNS=<ip>:<port> serves the domain.
 		SEARCH=""
@@ -264,7 +267,7 @@ else
 
 		if command -v nmcli >/dev/null 2>&1 && systemctl is-active NetworkManager >/dev/null 2>&1; then
 			IFACE=$(ip route get "${COMPOSEDONS_DNS_IP}" 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
-			CON=$(nmcli -g GENERAL.CONNECTION device show "$IFACE" 2>/dev/null)
+			CON=$(nmcli -g GENERAL.CONNECTION device show "$IFACE" 2>/dev/null || :)
 
 			if [ -n "$CON" ]; then
 				nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "${COMPOSEDONS_DNS_IP}" ipv4.dns-search "$SEARCH" ipv6.ignore-auto-dns yes ipv6.dns-search "$SEARCH" || true
@@ -287,11 +290,11 @@ else
 		if ! command -v semanage >/dev/null 2>&1; then
 			for attempt in 1 2 3 4 5; do
 				if command -v zypper >/dev/null 2>&1; then
-					zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage
+					zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage || :
 				elif command -v dnf >/dev/null 2>&1; then
-					dnf install -y policycoreutils-python-utils || dnf install -y /usr/sbin/semanage || dnf install -y /usr/bin/semanage
+					dnf install -y policycoreutils-python-utils || dnf install -y /usr/sbin/semanage || dnf install -y /usr/bin/semanage || :
 				elif command -v yum >/dev/null 2>&1; then
-					yum install -y policycoreutils-python-utils || yum install -y /usr/sbin/semanage
+					yum install -y policycoreutils-python-utils || yum install -y /usr/sbin/semanage || :
 				else
 					break
 				fi

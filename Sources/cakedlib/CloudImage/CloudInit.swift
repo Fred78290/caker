@@ -1126,7 +1126,7 @@ class CloudInit {
 			"/usr/local/bin/install-cakeagent.sh"
 		]
 		var writeFiles: [WriteFile] = [
-			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0700", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
@@ -1224,7 +1224,7 @@ class CloudInit {
 		scripts.append("d-i preseed/late_command string chown root:\(self.mainGroup) /target/usr/local/bin/install-cakeagent.sh")
 		scripts.append("d-i preseed/late_command string chown root:\(self.mainGroup) /target/etc/cakeagent/ssl/*")
 
-		scripts.append("d-i preseed/late_command string chmod 755 /target/usr/local/bin/install-cakeagent.sh")
+		scripts.append("d-i preseed/late_command string chmod 700 /target/usr/local/bin/install-cakeagent.sh")
 		scripts.append("d-i preseed/late_command string chmod 600 /target/etc/cakeagent/ssl/*")
 
 		scripts.append("d-i preseed/late_command string sh -c \"echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)\"")
@@ -1315,9 +1315,9 @@ class CloudInit {
 
 		scripts.append("echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg")
 
-		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<INSTALLAGENT\n\(installAgentScript)\nINSTALLAGENT\n")
+		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<'INSTALLAGENT'\n\(installAgentScript)\nINSTALLAGENT\n")
 		scripts.append("chown root:\(self.mainGroup) /usr/local/bin/install-cakeagent.sh")
-		scripts.append("chmod 755 /usr/local/bin/install-cakeagent.sh")
+		scripts.append("chmod 700 /usr/local/bin/install-cakeagent.sh")
 
 		scripts.append("cat > /etc/cakeagent/ssl/server.key <<EOF\n\(serverKey)\nEOF\n")
 		scripts.append("chown root:\(self.mainGroup) /etc/cakeagent/ssl/server.key")
@@ -1348,7 +1348,7 @@ class CloudInit {
 			"/usr/local/bin/install-cakeagent.sh"
 		]
 		var writeFiles: [WriteFile] = [
-			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0700", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),

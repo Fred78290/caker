@@ -34,6 +34,24 @@ final class DHCPLeaseHostnameTests: XCTestCase {
 		XCTAssertEqual(parser.address(forHostname: "suse"), "192.168.32.40")
 	}
 
+	func testHostnameLookupCanBeRestrictedToANetwork() {
+		let content =
+			lease(name: "alpine", ip: "192.168.64.7", hw: "ff,c7:6a:f3:46:0:1:0:1:32:78:bc:df:12:cf:c7:6a:f3:46", expires: far)
+			+ lease(name: "alpine", ip: "192.168.32.44", hw: "ff,c7:6a:f3:46:0:1:0:1:32:78:bc:df:12:cf:c7:6a:f3:47", expires: "0x7ffffff0")
+		let parser = DHCPLeaseParser(content: content)
+
+		XCTAssertEqual(parser.address(forHostname: "alpine"), "192.168.64.7")
+		XCTAssertEqual(parser.address(forHostname: "alpine", in: "192.168.32.1/24"), "192.168.32.44")
+		XCTAssertNil(parser.address(forHostname: "alpine", in: "10.0.0.1/24"))
+	}
+
+	func testExpiredDuidLeaseIsNotReturnedByTheSubscript() {
+		let duid = "ff,c7:6a:f3:46:0:1:0:1:32:78:bc:df:12:cf:c7:6a:f3:46"
+		let parser = DHCPLeaseParser(content: lease(name: "alpine", ip: "192.168.32.44", hw: duid, expires: past))
+
+		XCTAssertNil(parser["c7:6a:f3:46:0:1:0:1:32:78:bc:df:12:cf:c7:6a:f3:46"])
+	}
+
 	func testHostnameLookupIgnoresExpiredLeasesAndUnknownNames() {
 		let parser = DHCPLeaseParser(content: lease(name: "gento", ip: "192.168.32.42", hw: "ff,f1:f5:dd:7f:0:2:0:0:ab:11:c3:6e:91:30:65:ee:c0:ff", expires: past))
 

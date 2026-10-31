@@ -284,6 +284,29 @@ struct Networks: ParsableCommand {
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
 
+		// Starts or stops the compose DNS resolver so it follows the network's `dns` setting.
+		let syncDNSCoordinator: (VZSharedNetwork) -> Void = { network in
+			if network.dns == true {
+				guard coordinator == nil else {
+					return
+				}
+
+				let started = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
+
+				coordinator = started
+
+				Task {
+					await started.startPollingSync()
+				}
+			} else if let stopped = coordinator {
+				coordinator = nil
+
+				Task {
+					await stopped.shutdown()
+				}
+			}
+		}
+
 		defer {
 			try? pidFile.deleteIfFileExists()
 			try? socket.deleteIfFileExists()
@@ -329,6 +352,7 @@ struct Networks: ParsableCommand {
 
 				do {
 					try vzvmnet.vmnet.restart()
+					syncDNSCoordinator(vzvmnet.vmnet.networkConfig)
 				} catch {
 					Logger(self).error("Failed to reconfigure network: \(error)")
 				}
@@ -356,13 +380,7 @@ struct Networks: ParsableCommand {
 
 		do {
 			try vzvmnet.vmnet.start { network in
-				if let dns = network.dns, dns {
-					coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
-
-					Task {
-						await coordinator?.startPollingSync()
-					}
-				}
+				syncDNSCoordinator(network)
 			}
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")

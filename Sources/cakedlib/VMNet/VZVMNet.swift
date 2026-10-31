@@ -11,6 +11,7 @@ import vmnet
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
 public protocol VZVMNet {
+	var networkConfig: VZSharedNetwork { get }
 	func reconfigure(networkConfig: VZSharedNetwork) throws
 	func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws
 	func stop()

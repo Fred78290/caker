@@ -243,7 +243,7 @@ extension SupportedPlatform {
 		case .gentoo:
 			self = .gentoo
 		case .archlinux:
-			self = .gentoo
+			self = .archlinux
 		case .knopix:
 			self = .knopix
 		case .mandriva:
