@@ -980,6 +980,17 @@ public nonisolated struct Caked_Caked: Sendable {
       case redhat // = 7
       case openSuse // = 8
       case alpine // = 9
+      case almalinux // = 10
+      case gentoo // = 11
+      case archlinux // = 12
+      case knopix // = 13
+      case mandriva // = 14
+      case slackware // = 15
+      case backtrack // = 16
+      case elementary // = 17
+      case popOs // = 18
+      case webos // = 19
+      case rocky // = 20
       case UNRECOGNIZED(Int)
 
       public init() {
@@ -998,6 +1009,17 @@ public nonisolated struct Caked_Caked: Sendable {
         case 7: self = .redhat
         case 8: self = .openSuse
         case 9: self = .alpine
+        case 10: self = .almalinux
+        case 11: self = .gentoo
+        case 12: self = .archlinux
+        case 13: self = .knopix
+        case 14: self = .mandriva
+        case 15: self = .slackware
+        case 16: self = .backtrack
+        case 17: self = .elementary
+        case 18: self = .popOs
+        case 19: self = .webos
+        case 20: self = .rocky
         default: self = .UNRECOGNIZED(rawValue)
         }
       }
@@ -1014,6 +1036,17 @@ public nonisolated struct Caked_Caked: Sendable {
         case .redhat: return 7
         case .openSuse: return 8
         case .alpine: return 9
+        case .almalinux: return 10
+        case .gentoo: return 11
+        case .archlinux: return 12
+        case .knopix: return 13
+        case .mandriva: return 14
+        case .slackware: return 15
+        case .backtrack: return 16
+        case .elementary: return 17
+        case .popOs: return 18
+        case .webos: return 19
+        case .rocky: return 20
         case .UNRECOGNIZED(let i): return i
         }
       }
@@ -1030,6 +1063,17 @@ public nonisolated struct Caked_Caked: Sendable {
         .redhat,
         .openSuse,
         .alpine,
+        .almalinux,
+        .gentoo,
+        .archlinux,
+        .knopix,
+        .mandriva,
+        .slackware,
+        .backtrack,
+        .elementary,
+        .popOs,
+        .webos,
+        .rocky,
       ]
 
     }
@@ -8332,7 +8376,7 @@ nonisolated extension Caked_Caked.Configuration.Architecture: SwiftProtobuf._Pro
 }
 
 nonisolated extension Caked_Caked.Configuration.SupportedPlatform: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0undefined\0\u{1}ubuntu\0\u{1}centos\0\u{1}macos\0\u{1}windows\0\u{1}debian\0\u{1}fedora\0\u{1}redhat\0\u{1}openSUSE\0\u{1}alpine\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0undefined\0\u{1}ubuntu\0\u{1}centos\0\u{1}macos\0\u{1}windows\0\u{1}debian\0\u{1}fedora\0\u{1}redhat\0\u{1}openSUSE\0\u{1}alpine\0\u{1}almalinux\0\u{1}gentoo\0\u{1}archlinux\0\u{1}knopix\0\u{1}mandriva\0\u{1}slackware\0\u{1}backtrack\0\u{1}elementary\0\u{1}pop_os\0\u{1}webos\0\u{1}rocky\0")
 }
 
 nonisolated extension Caked_Caked.Configuration.ImageSource: SwiftProtobuf._ProtoNameProviding {

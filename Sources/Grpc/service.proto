@@ -281,16 +281,27 @@ message Caked {
 
 // SupportedPlatform represents the configured platform
     enum SupportedPlatform {
-      undefined = 0;
-      ubuntu    = 1;
-      centos    = 2;
-      macos     = 3;
-      windows   = 4;
-      debian    = 5;
-      fedora    = 6;
-      redhat    = 7;
-      openSUSE  = 8;
-      alpine    = 9;
+      undefined  = 0;
+      ubuntu     = 1;
+      centos     = 2;
+      macos      = 3;
+      windows    = 4;
+      debian     = 5;
+      fedora     = 6;
+      redhat     = 7;
+      openSUSE   = 8;
+      alpine     = 9;
+      almalinux  = 10;
+      gentoo     = 11;
+      archlinux  = 12;
+      knopix     = 13;
+      mandriva   = 14;
+      slackware  = 15;
+      backtrack  = 16;
+      elementary = 17;
+      pop_os     = 18;
+      webos      = 19;
+      rocky      = 20;
     }
 
 // ImageSource represents the source of the VM image

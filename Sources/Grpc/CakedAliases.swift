@@ -236,7 +236,31 @@ extension SupportedPlatform {
 			self = .openSUSE
 		case .alpine:
 			self = .alpine
-		default:
+		case .undefined:
+			self = .unknown
+		case .almalinux:
+			self = .almalinux
+		case .gentoo:
+			self = .gentoo
+		case .archlinux:
+			self = .gentoo
+		case .knopix:
+			self = .knopix
+		case .mandriva:
+			self = .mandriva
+		case .slackware:
+			self = .slackware
+		case .backtrack:
+			self = .backtrack
+		case .elementary:
+			self = .elementary_os
+		case .popOs:
+			self = .pop_os
+		case .webos:
+			self = .webos
+		case .rocky:
+			self = .rocky
+		case .UNRECOGNIZED(_):
 			self = .unknown
 		}
 	}
@@ -453,7 +477,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.configuredPassword = from.configuredPassword
 		self.configuredGroup = from.configuredGroup
 		self.configuredGroups = from.configuredGroups
-		self.configuredPlatform = .init(from.configuredPlatform)
+		self.configuredPlatform = SupportedPlatform(from.configuredPlatform)
 		self.clearPassword = from.clearPassword_p
 		self.ifname = from.ifname
 		self.autostart = from.autostart
