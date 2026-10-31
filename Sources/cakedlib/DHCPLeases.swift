@@ -48,21 +48,43 @@ protocol DHCPLeaseProvider {
 
 class DHCPLeaseParser: DHCPLeaseProvider {
 	private let leases: [String: DHCPLease]
+	private let allLeases: [DHCPLease]
 
 	init() throws {
-		self.leases = try Self.parseLeases("/var/db/dhcpd_leases")
+		let content = try String(contentsOfFile: "/var/db/dhcpd_leases", encoding: .ascii)
+
+		self.allLeases = Self.parseLeases(content: content)
+		self.leases = Self.newestByAddress(self.allLeases)
+	}
+
+	/// Builds a parser from the text of a `dhcpd_leases` file, for tests.
+	init(content: String) {
+		self.allLeases = Self.parseLeases(content: content)
+		self.leases = Self.newestByAddress(self.allLeases)
+	}
+
+	/// The address of the newest unexpired lease the guest asked for under `hostname` (the `name=` field).
+	/// A DHCP client that identifies itself with a DUID (dhcpcd on Alpine and Gentoo) has a lease whose
+	/// key is that DUID, not the VM's MAC address, so the MAC lookup never finds it.
+	func address(forHostname hostname: String, now: Date = Date()) -> String? {
+		let name = hostname.lowercased()
+
+		return self.allLeases
+			.filter { $0.hostname?.lowercased() == name && $0.expireAt > now }
+			.max { $0.expireAt < $1.expireAt }?
+			.ipAddress
 	}
 
 	subscript(macAddress: String) -> String? {
 		if let mac = String(macAddress: macAddress) {
 			return leases[mac]?.ipAddress
 		} else {
-			return nil
+			// A DUID client identifier (`DHCPLease` keeps it lowercased, as vmnet writes it).
+			return leases[macAddress.lowercased()]?.ipAddress
 		}
 	}
 
-	private static func parseLeases(_ filePath: String) throws -> [String: DHCPLease] {
-		let content = try String(contentsOfFile: filePath, encoding: .ascii)
+	private static func parseLeases(content: String) -> [DHCPLease] {
 		var leases = [DHCPLease]()
 		let lines = content.split(separator: "\n")
 
@@ -92,7 +114,11 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 			}
 		}
 
-		return leases.reduce(into: [:]) { result, lease in
+		return leases
+	}
+
+	private static func newestByAddress(_ leases: [DHCPLease]) -> [String: DHCPLease] {
+		leases.reduce(into: [:]) { result, lease in
 			if result[lease.hwAddressAddress] == nil || result[lease.hwAddressAddress]!.expireAt < lease.expireAt {
 				result[lease.hwAddressAddress] = lease
 			}
@@ -115,7 +141,8 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 			return nil
 		}
 
-		guard let hwAddressProto = UInt8(hwAddressSplits[0]), hwAddressProto == ARPHRD_ETHER || hwAddressProto == 255 else {
+		// The type is written in hex by vmnet: "1" for Ethernet, "ff" for a DUID client identifier.
+		guard let hwAddressProto = UInt8(hwAddressSplits[0], radix: 16), hwAddressProto == ARPHRD_ETHER || hwAddressProto == 255 else {
 			return nil
 		}
 

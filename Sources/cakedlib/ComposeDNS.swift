@@ -172,14 +172,26 @@ public enum ComposeDNS {
 	/// `config.macAddress` specifically — so this same lookup works for a `driver: bridge`
 	/// compose service too, not only a NAT-primary one. `nil` if the lease table has nothing for
 	/// this VM yet (not yet DHCP-assigned) or the parser itself couldn't be read.
-	public static func natAddress(for config: CakeConfig) -> String? {
-		guard let parser = try? DHCPLeaseParser() else { return nil }
-
+	public static func natAddress(for config: CakeConfig, name: String? = nil) -> String? {
 		let clientID = config.dhcpClientID ?? config.macAddress ?? ""
 
-		guard clientID.isEmpty == false else { return nil }
+		if clientID.isEmpty == false, let parser = try? DHCPLeaseParser() {
+			if let address = parser[clientID] {
+				return address
+			}
 
-		return parser[clientID]
+			// dhcpcd (Alpine, Gentoo) sends a DUID as client identifier: the lease is not keyed by the MAC.
+			if let name, let address = parser.address(forHostname: name) {
+				return address
+			}
+		}
+
+		// Same fallback as `VMLocation.waitIPWithLease`.
+		if let mac = config.macAddress, mac.isEmpty == false, let arp = try? ARPParser() {
+			return arp[mac]
+		}
+
+		return nil
 	}
 
 }

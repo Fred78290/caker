@@ -81,7 +81,7 @@ public actor ComposeDNSCoordinator {
 		for (_, location) in vms {
 			guard case .running = location.status else { continue }
 			guard let config = try? location.config() else { continue }
-			guard let address = ComposeDNS.natAddress(for: config) else { continue }
+			guard let address = ComposeDNS.natAddress(for: config, name: location.name) else { continue }
 
 			vmNames.append((name: location.name, ip: address))
 
