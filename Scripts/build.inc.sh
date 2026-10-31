@@ -110,6 +110,7 @@ cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKER_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKER_APP}/Resources/compose-template.yml"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKER_APP}/Resources/cloudinit-install-cakeagent.sh"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKER_APP}/Resources/ssh-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKER_APP}/Resources/"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKED_APP}/Resources/VM.icns"
@@ -118,6 +119,7 @@ cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKED_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKED_APP}/Resources/compose-template.yml"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKED_APP}/Resources/cloudinit-install-cakeagent.sh"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKED_APP}/Resources/ssh-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKED_APP}/Resources/"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKECTL_APP}/Resources/VM.icns"
@@ -126,6 +128,7 @@ cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKECTL_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKECTL_APP}/Resources/compose-template.yml"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKECTL_APP}/Resources/cloudinit-install-cakeagent.sh"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKECTL_APP}/Resources/ssh-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
 if [ $APPSTORE -eq 0 ]; then

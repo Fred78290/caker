@@ -447,8 +447,11 @@
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA4A2F2307839DC005EEA30 /* ComposeDNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */; };
 		9BA60F0A30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
+		A5E11EA33732CD288C94C810 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		9BA60F0B30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
+		A5E1E00811513A1CE91AE10A /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		9BA60F0C30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
+		A5E1553A68783A018C527152 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */; };
 		9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */; };
 		9BA941172F3C891100B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941162F3C890C00B51543 /* PingHandler.swift */; };
@@ -1397,6 +1400,7 @@
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSTests.swift; sourceTree = "<group>"; };
 		9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "cloudinit-install-cakeagent.sh"; sourceTree = "<group>"; };
+		A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
 		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
@@ -1922,6 +1926,7 @@
 			isa = PBXGroup;
 			children = (
 				9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */,
+				A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */,
 				22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */,
 				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
@@ -3725,6 +3730,7 @@
 				99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */,
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
 				9BA60F0B30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */,
+				A5E1E00811513A1CE91AE10A /* ssh-install-cakeagent.sh in Resources */,
 				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
 			);
 		};
@@ -3732,6 +3738,7 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				9BA60F0C30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */,
+				A5E1553A68783A018C527152 /* ssh-install-cakeagent.sh in Resources */,
 				FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */,
 				E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */,
 				9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */,
@@ -3796,6 +3803,7 @@
 				9BA9CBD32FCD7BB400CEBFC0 /* VM.icns in Resources */,
 				9BFB890B303F55B8007AFA2A /* VMImages.json in Resources */,
 				9BA60F0A30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */,
+				A5E11EA33732CD288C94C810 /* ssh-install-cakeagent.sh in Resources */,
 				062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */,
 			);
 		};

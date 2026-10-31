@@ -28,6 +28,23 @@ private let cloudInitResourceBundle: Bundle = {
 	#endif
 }()
 
+/// Loads a shell script template bundled with CakedLib. A `<CAKE_HOME>/<name>.sh` file overrides it, else the resource is
+/// looked up in `Bundle.main` (flat `.app` layout) and then in the CakedLib resource bundle.
+func loadBundledShellScript(named scriptName: String, runMode: Utils.RunMode) throws -> String {
+	let home = try Utils.getHome(runMode: runMode, createItIfNotExists: false)
+	let overrideURL = home.appendingPathComponent("\(scriptName).sh", isDirectory: false)
+
+	if FileManager.default.fileExists(atPath: overrideURL.path(percentEncoded: false)) {
+		return try String(contentsOf: overrideURL, encoding: .utf8)
+	}
+
+	guard let url = Bundle.main.url(forResource: scriptName, withExtension: "sh") ?? cloudInitResourceBundle.url(forResource: scriptName, withExtension: "sh") else {
+		throw CloudInitGenerateError("\(scriptName).sh resource not found in the app bundle")
+	}
+
+	return try String(contentsOf: url, encoding: .utf8)
+}
+
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
 extension Multipart {
@@ -1054,19 +1071,7 @@ class CloudInit {
 	/// bundled resource (`Bundle.main` first, for the flat `.app` layout, then the CakedLib resource bundle).
 	/// The result is a `String(format:)` template, see `installCakeAgentScript(config:caCert:serverKey:serverPem:)`.
 	private func loadCakeAgentScript() throws -> String {
-		let scriptName = "cloudinit-install-cakeagent"
-		let home = try Utils.getHome(runMode: self.runMode, createItIfNotExists: false)
-		let overrideURL = home.appendingPathComponent("\(scriptName).sh", isDirectory: false)
-
-		if FileManager.default.fileExists(atPath: overrideURL.path(percentEncoded: false)) {
-			return try String(contentsOf: overrideURL, encoding: .utf8)
-		}
-
-		guard let url = Bundle.main.url(forResource: scriptName, withExtension: "sh") ?? cloudInitResourceBundle.url(forResource: scriptName, withExtension: "sh") else {
-			throw CloudInitGenerateError("\(scriptName).sh resource not found in the app bundle")
-		}
-
-		return try String(contentsOf: url, encoding: .utf8)
+		try loadBundledShellScript(named: "cloudinit-install-cakeagent", runMode: self.runMode)
 	}
 
 	private func installCakeAgentScript(config: CakeConfig, caCert: String? = nil, serverKey: String? = nil, serverPem: String? = nil) throws -> String {

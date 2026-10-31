@@ -178,6 +178,7 @@ let package = Package(
 			.copy("Resources/VMImages.json"),
 			.copy("Resources/compose-template.yml"),
 			.copy("Resources/cloudinit-install-cakeagent.sh"),
+			.copy("Resources/ssh-install-cakeagent.sh"),
 			.copy("PackerLite/Resources/ubuntu-server.packerlite.yaml"),
 			.copy("PackerLite/Resources/macos27.packerlite.yaml"),
 			.copy("PackerLite/Resources/macos13.packerlite.yaml"),
