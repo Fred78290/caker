@@ -32,16 +32,16 @@ if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
 	done
 
 	mkdir -p /etc/dnsmasq.d /etc/udhcpc
-	cat > /etc/dnsmasq.d/compose-dns.conf <<EOF
-server=/${COMPOSEDONS_DOMAIN_SUFFIX}/${COMPOSEDONS_DNS_IP}#${COMPOSEDONS_DNS_PORT}
-server=${COMPOSEDONS_DNS_IP}
-server=1.1.1.1
-server=9.9.9.9
-server=8.8.8.8
-no-resolv
-listen-address=127.0.0.1
-strict-order
-EOF
+	cat > /etc/dnsmasq.d/compose-dns.conf <<-EOF
+		server=/${COMPOSEDONS_DOMAIN_SUFFIX}/${COMPOSEDONS_DNS_IP}#${COMPOSEDONS_DNS_PORT}
+		server=${COMPOSEDONS_DNS_IP}
+		server=1.1.1.1
+		server=9.9.9.9
+		server=8.8.8.8
+		no-resolv
+		listen-address=127.0.0.1
+		strict-order
+	EOF
 
 	# udhcpc and dhcpcd (the Alpine cloud images use dhcpcd) both rewrite /etc/resolv.conf.
 	echo 'RESOLV_CONF="no"' >> /etc/udhcpc/udhcpc.conf
@@ -54,17 +54,18 @@ EOF
 	# Those opt-outs are only read on a new lease and not every client honours them: whatever the
 	# client wrote, the post-lease hooks put the compose search domain and dnsmasq back.
 	mkdir -p /usr/local/sbin
-	cat > /usr/local/sbin/compose-resolv.sh <<EOF
-#!/bin/sh
+	cat > /usr/local/sbin/compose-resolv.sh <<-EOF
+		#!/bin/sh
 
-[ -x /usr/sbin/dnsmasq ] || exit 0
-cat > /etc/resolv.conf <<SHELL
-search ${COMPOSEDONS_DOMAIN_SUFFIX}
-nameserver 127.0.0.1
-SHELL
-
-EOF
+		[ -x /usr/sbin/dnsmasq ] || exit 0
+		cat > /etc/resolv.conf <<SHELL
+		search ${COMPOSEDONS_DOMAIN_SUFFIX}
+		nameserver 127.0.0.1
+		SHELL
+	EOF
+	
 	chmod +x /usr/local/sbin/compose-resolv.sh
+	
 	for ev in bound renew; do
 		mkdir -p /etc/udhcpc/post-$ev
 		ln -sf /usr/local/sbin/compose-resolv.sh /etc/udhcpc/post-$ev/10-compose-dns
@@ -92,10 +93,11 @@ elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev
 
 	if command -v dnsmasq >/dev/null 2>&1; then
 		mkdir -p /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq.d
-		cat > /etc/NetworkManager/conf.d/00-compose-dns.conf <<'EOF'
-[main]
-dns=dnsmasq
-EOF
+
+		cat > /etc/NetworkManager/conf.d/00-compose-dns.conf <<-EOF
+			[main]
+			dns=dnsmasq
+		EOF
 
 		echo "server=/${COMPOSEDONS_DOMAIN_SUFFIX}/${COMPOSEDONS_DNS_IP}#${COMPOSEDONS_DNS_PORT}" > /etc/NetworkManager/dnsmasq.d/compose-dns.conf
 		systemctl restart NetworkManager || :
@@ -109,11 +111,11 @@ else
 	# (the gateway, port 53): keep it off the link so the global DNS=<ip>:<port> serves the domain.
 	SEARCH=""
 	mkdir -p /etc/systemd/resolved.conf.d
-	cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<EOF
-[Resolve]
-DNS=${COMPOSEDONS_DNS_IP}:${COMPOSEDONS_DNS_PORT}
-Domains=${COMPOSEDONS_DOMAIN_SUFFIX}
-EOF
+	cat > /etc/systemd/resolved.conf.d/10-compose-dns.conf <<-EOF
+	[Resolve]
+	DNS=${COMPOSEDONS_DNS_IP}:${COMPOSEDONS_DNS_PORT}
+	Domains=${COMPOSEDONS_DOMAIN_SUFFIX}
+	EOF
 
 	if command -v systemctl >/dev/null 2>&1; then
 		systemctl enable systemd-resolved || :
@@ -125,19 +127,19 @@ if ! grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
 	# vmnet's DHCP server announces the domain "guest": keep it out of the search list so the
 	# default domain is the compose one, whichever network stack the guest uses.
 	mkdir -p /etc/systemd/networkd.conf.d
-	cat > /etc/systemd/networkd.conf.d/10-compose-dns.conf <<'EOF'
-[DHCPv4]
-UseDomains=no
-[DHCPv6]
-UseDomains=no
-EOF
+	cat > /etc/systemd/networkd.conf.d/10-compose-dns.conf <<-EOF
+		[DHCPv4]
+		UseDomains=no
+		[DHCPv6]
+		UseDomains=no
+	EOF
 
 	if [ -f /etc/dhcp/dhclient.conf ] && ! grep -q 'compose-dns' /etc/dhcp/dhclient.conf; then
-		cat > /etc/dhcp/dhclient.conf <<EOF
-# compose-dns
-supersede domain-name "${COMPOSEDONS_DOMAIN_SUFFIX}";
-supersede domain-search "${COMPOSEDONS_DOMAIN_SUFFIX}";
-EOF
+		cat > /etc/dhcp/dhclient.conf <<-EOF
+			# compose-dns
+			supersede domain-name "${COMPOSEDONS_DOMAIN_SUFFIX}";
+			supersede domain-search "${COMPOSEDONS_DOMAIN_SUFFIX}";
+		EOF
 	fi
 
 	if command -v nmcli >/dev/null 2>&1 && systemctl is-active NetworkManager >/dev/null 2>&1; then
