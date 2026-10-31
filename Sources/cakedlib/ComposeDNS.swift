@@ -191,7 +191,8 @@ public enum ComposeDNS {
 			return arp[mac]
 		}
 
-		return nil
+		// Return last known runningIP
+		return config.runningIP
 	}
 
 }
