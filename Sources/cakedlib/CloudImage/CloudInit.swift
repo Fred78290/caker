@@ -1050,7 +1050,7 @@ class CloudInit {
 		return localAgent
 	}
 
-	/// Load order, as for `VMImages.json`: a `<CAKE_HOME>/install-cakeagent.sh` override, if present, else the
+	/// Load order, as for `VMImages.json`: a `<CAKE_HOME>/cloudinit-install-cakeagent.sh` override, if present, else the
 	/// bundled resource (`Bundle.main` first, for the flat `.app` layout, then the CakedLib resource bundle).
 	/// The result is a `String(format:)` template, see `installCakeAgentScript(config:caCert:serverKey:serverPem:)`.
 	private func loadCakeAgentScript() throws -> String {

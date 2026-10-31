@@ -117,7 +117,7 @@ cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKED_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKED_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKED_APP}/Resources/compose-template.yml"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKED_APP}/Resources/install-cakeagent.sh"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKED_APP}/Resources/cloudinit-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKED_APP}/Resources/"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKECTL_APP}/Resources/VM.icns"
