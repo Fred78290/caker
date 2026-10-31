@@ -122,9 +122,6 @@ EOF
 fi
 
 if ! grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
-	D="${COMPOSEDONS_DOMAIN_SUFFIX}"
-	G="${COMPOSEDONS_DNS_IP}"
-
 	# vmnet's DHCP server announces the domain "guest": keep it out of the search list so the
 	# default domain is the compose one, whichever network stack the guest uses.
 	mkdir -p /etc/systemd/networkd.conf.d
@@ -144,11 +141,11 @@ EOF
 	fi
 
 	if command -v nmcli >/dev/null 2>&1 && systemctl is-active NetworkManager >/dev/null 2>&1; then
-		IFACE=$(ip route get "$G" 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
+		IFACE=$(ip route get "${COMPOSEDONS_DNS_IP}" 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
 		CON=$(nmcli -g GENERAL.CONNECTION device show "$IFACE" 2>/dev/null)
 
 		if [ -n "$CON" ]; then
-			nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "$G" ipv4.dns-search "$SEARCH" ipv6.ignore-auto-dns yes ipv6.dns-search "$SEARCH" || true
+			nmcli connection modify "$CON" ipv4.ignore-auto-dns yes ipv4.dns "${COMPOSEDONS_DNS_IP}" ipv4.dns-search "$SEARCH" ipv6.ignore-auto-dns yes ipv6.dns-search "$SEARCH" || true
 			nmcli device reapply "$IFACE" || true
 		fi
 	fi
@@ -161,6 +158,28 @@ fi
 # SELinux is turned off on every image that has it: permissive right now (setenforce), disabled from
 # the next boot (the config file; the running kernel keeps SELinux until then).
 if [ -f /etc/selinux/config ]; then
+	# The agent labels itself with semanage/restorecon whenever the image has an SELinux policy,
+	# whatever its mode (CentOS/RHEL are switched to disabled above, the agent still needs semanage),
+	# and a minimal cloud image does not always ship it: install it before the agent does its setup.
+	# The package name differs between distros and releases, so fall back to the file it provides.
+	if ! command -v semanage >/dev/null 2>&1; then
+		for attempt in 1 2 3 4 5; do
+			if command -v zypper >/dev/null 2>&1; then
+				zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage
+			elif command -v dnf >/dev/null 2>&1; then
+				dnf install -y policycoreutils-python-utils || dnf install -y /usr/sbin/semanage || dnf install -y /usr/bin/semanage
+			elif command -v yum >/dev/null 2>&1; then
+				yum install -y policycoreutils-python-utils || yum install -y /usr/sbin/semanage
+			else
+				break
+			fi
+
+			command -v semanage >/dev/null 2>&1 && break
+			sleep 5
+		done
+		command -v semanage >/dev/null 2>&1 || echo 'semanage could not be installed, the agent cannot label itself for SELinux' >&2
+	fi
+
 	if grep -q '^SELINUX=' /etc/selinux/config; then
 		sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
 	else
@@ -172,28 +191,6 @@ if [ -f /etc/selinux/config ]; then
 	elif [ -w /sys/fs/selinux/enforce ]; then
 		echo -n 0 > /sys/fs/selinux/enforce
 	fi
-fi
-
-# The agent labels itself with semanage/restorecon whenever the image has an SELinux policy,
-# whatever its mode (CentOS/RHEL are switched to disabled above, the agent still needs semanage),
-# and a minimal cloud image does not always ship it: install it before the agent does its setup.
-# The package name differs between distros and releases, so fall back to the file it provides.
-if [ -f /etc/selinux/config ] && ! command -v semanage >/dev/null 2>&1; then
-	for attempt in 1 2 3 4 5; do
-		if command -v zypper >/dev/null 2>&1; then
-			zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage
-		elif command -v dnf >/dev/null 2>&1; then
-			dnf install -y policycoreutils-python-utils || dnf install -y /usr/sbin/semanage || dnf install -y /usr/bin/semanage
-		elif command -v yum >/dev/null 2>&1; then
-			yum install -y policycoreutils-python-utils || yum install -y /usr/sbin/semanage
-		else
-			break
-		fi
-
-		command -v semanage >/dev/null 2>&1 && break
-		sleep 5
-	done
-	command -v semanage >/dev/null 2>&1 || echo 'semanage could not be installed, the agent cannot label itself for SELinux' >&2
 fi
 
 # On openSUSE, Write file to /etc/cakeagent/ssl/server.key fails if the parent directory does not exist.
