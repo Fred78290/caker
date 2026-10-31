@@ -224,5 +224,3 @@ else
 	echo "CIDATA not found"
 	exit 1
 fi
-
-${CA_CERT_PATH} ${TLS_CERT_PATH} ${TLS_KEY_PATH} ${LINUX_MOUNTS}
