@@ -13,6 +13,17 @@ CA_CERT_PATH=/etc/cakeagent/ssl/ca.pem
 TLS_CERT_PATH=/etc/cakeagent/ssl/server.pem
 TLS_KEY_PATH=/etc/cakeagent/ssl/server.key
 
+# The Leap Minimal-VM cloud images ship no repository definition (no openSUSE-repos package), so zypper
+# finds no package at all (dnsmasq for the compose DNS, semanage for the agent): add the official oss
+# repository of the running release before anything is installed.
+if command -v zypper >/dev/null 2>&1 && ! grep -qs '^enabled=1' /etc/zypp/repos.d/*.repo; then
+	REPO=$(. /etc/os-release; if [ "$ID" = opensuse-leap ]; then echo "https://download.opensuse.org/distribution/leap/$VERSION_ID/repo/oss/"; elif [ "$ID" = opensuse-tumbleweed ]; then echo "https://download.opensuse.org/tumbleweed/repo/oss/"; fi)
+	if [ -n "$REPO" ]; then
+		zypper --non-interactive addrepo --refresh "$REPO" repo-oss || :
+		zypper --non-interactive --gpg-auto-import-keys refresh || :
+	fi
+fi
+
 if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
 	# The network may not be up yet when cloud-init runs this: retry, with a fresh index.
 	for attempt in 1 2 3 4 5 6 7 8 9 10; do
@@ -67,10 +78,17 @@ EOF
 	else
 		echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
 	fi
-elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev/null; then
-	# EL has no systemd-resolved by default: NetworkManager owns /etc/resolv.conf, so let its
+elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev/null || { grep -qE '^ID="?(opensuse-leap|opensuse-tumbleweed|sles)"?$' /etc/os-release 2>/dev/null && systemctl is-active -q NetworkManager; }; then
+	# EL has no systemd-resolved by default, nor has openSUSE (Leap 16 runs NetworkManager, the Minimal-VM
+	# image has no resolved to receive a drop-in): NetworkManager owns /etc/resolv.conf, so let its
 	# dnsmasq plugin forward only the compose domain and leave every other lookup untouched.
-	(dnf install -y dnsmasq || yum install -y dnsmasq) || :
+	if command -v zypper >/dev/null 2>&1; then
+		zypper --non-interactive --gpg-auto-import-keys install -y dnsmasq || :
+	elif command -v dnf >/dev/null 2>&1; then
+		dnf install -y dnsmasq || :
+	else
+		yum install -y dnsmasq || :
+	fi
 
 	if command -v dnsmasq >/dev/null 2>&1; then
 		mkdir -p /etc/NetworkManager/conf.d /etc/NetworkManager/dnsmasq.d
@@ -161,16 +179,6 @@ fi
 # and a minimal cloud image does not always ship it: install it before the agent does its setup.
 # The package name differs between distros and releases, so fall back to the file it provides.
 if [ -f /etc/selinux/config ] && ! command -v semanage >/dev/null 2>&1; then
-	if command -v zypper >/dev/null 2>&1 && ! grep -qs '^enabled=1' /etc/zypp/repos.d/*.repo; then
-		# The Leap Minimal-VM cloud images ship no repository definition (no openSUSE-repos package), so
-		# zypper cannot find any package: add the official oss repository of the running release.
-		REPO=$(. /etc/os-release; if [ "$ID" = opensuse-leap ]; then echo "https://download.opensuse.org/distribution/leap/$VERSION_ID/repo/oss/"; elif [ "$ID" = opensuse-tumbleweed ]; then echo "https://download.opensuse.org/tumbleweed/repo/oss/"; fi)
-		if [ -n "$REPO" ]; then
-			zypper --non-interactive addrepo --refresh "$REPO" repo-oss || :
-			zypper --non-interactive --gpg-auto-import-keys refresh || :
-		fi
-	fi
-
 	for attempt in 1 2 3 4 5; do
 		if command -v zypper >/dev/null 2>&1; then
 			zypper --non-interactive --gpg-auto-import-keys install -y policycoreutils-python-utils || zypper --non-interactive --gpg-auto-import-keys install -y /usr/sbin/semanage
