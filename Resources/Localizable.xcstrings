@@ -9885,6 +9885,28 @@
         }
       }
     },
+    "Network %@ is a reserved default network and cannot be deleted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau %@ est un réseau par défaut réservé et ne peut pas être supprimé"
+          }
+        }
+      }
+    },
+    "Network %@ is a reserved default network and cannot be used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau %@ est un réseau par défaut réservé et ne peut pas être utilisé"
+          }
+        }
+      }
+    },
     "Network %@ is already running with PID=%@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19020,6 +19042,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Argument inattendu ‘%@’"
+          }
+        }
+      }
+    },
+    "Unexpected command %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commande inattendue %lld"
           }
         }
       }
