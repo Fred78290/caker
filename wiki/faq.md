@@ -126,7 +126,7 @@ Oui, le service de métadonnées d'instance (IMDS) pour les VM Linux fonctionne 
 
 ### La résolution DNS de Compose est-elle disponible dans la version App Store ?
 
-Non. Le résolveur DNS de Compose (joindre une VM par son nom, par exemple `mariadb.myapp.compose.internal`) a besoin d'une redirection `pf` du port 53, installée par un petit assistant root via `sudo` — ce que l'App Sandbox de macOS ne permet pas. Dans la version sandboxée, le résolveur tourne mais reste injoignable depuis les VM : la résolution par nom ne fonctionne donc pas, sans message d'erreur, et les éléments « Démarrer/Arrêter caked DNS » du menu Service de Caker.app n'y sont pas proposés. Pour contourner, joignez les VM par leur adresse IP (`cakectl infos <vm>`) ou utilisez la version en téléchargement direct. Voir [Compose](compose) et [Sandbox](sandbox).
+Pas de façon fiable. La version à télécharger fait tourner son propre serveur DHCP par réseau (root, BPF) et annonce le résolveur DNS de Compose sur le port 53 via le DHCP, en transmettant les autres noms aux résolveurs de l'hôte. La version App Store, sandboxée, ne peut pas : elle garde le DHCP de vmnet, donc le résolveur n'écoute que sur le port non privilégié 28053 et chaque invité y est dirigé de l'intérieur par le script d'installation de l'agent (`systemd-resolved`, ou `dnsmasq` sous Alpine). Ce repli n'a pas été vérifié dans la sandbox et ne s'applique qu'aux invités construits après son installation. Pour contourner, joignez les VM par leur adresse IP (`cakectl infos <vm>`) ou utilisez la version à télécharger. Voir [Compose](compose) et [Sandbox](sandbox).
 
 ### Windows 11 est-il disponible dans la version App Store ?
 
@@ -331,7 +331,7 @@ Yes, the instance metadata service (IMDS) for Linux VMs works in the sandboxed v
 
 ### Is Compose DNS resolution available in the App Store version?
 
-No. The Compose DNS resolver (reaching a VM by name, for example `mariadb.myapp.compose.internal`) needs a `pf` redirect of port 53, installed by a small root helper through `sudo` — which the macOS App Sandbox doesn't allow. In the sandboxed version the resolver runs but stays unreachable from any VM, so name resolution doesn't work, with no error message, and the "Start/Stop caked DNS" items in Caker.app's Service menu aren't offered there. To work around it, reach VMs by IP address (`cakectl infos <vm>`) or use the direct-download build. See [Compose](compose) and [Sandbox](sandbox).
+Not reliably. The direct-download build runs its own DHCP server per network (root, BPF) and advertises the Compose DNS resolver on port 53 through DHCP, forwarding other names to the host's resolvers. The sandboxed App Store build can't do that: it keeps vmnet's DHCP, so the resolver only listens on the unprivileged port 28053 and each guest is pointed at it from the inside by the agent install script (`systemd-resolved`, or `dnsmasq` on Alpine). That fallback has not been verified inside the sandbox and only applies to guests built after it was installed. To work around it, reach VMs by IP address (`cakectl infos <vm>`) or use the direct-download build. See [Compose](compose) and [Sandbox](sandbox).
 
 ### Is Windows 11 available in the App Store version?
 

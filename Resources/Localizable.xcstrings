@@ -17398,13 +17398,13 @@
         }
       }
     },
-    "The Compose DNS resolver (reaching VMs by name, e.g. mariadb.myapp.compose.internal) is unavailable — it needs a port redirect the sandbox blocks" : {
+    "The Compose DNS resolver (reaching VMs by name, e.g. mariadb.myapp.compose.internal) is not reliable — the sandbox can't run the DHCP server that advertises it" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le résolveur DNS de Compose (joindre les VM par leur nom, par exemple mariadb.myapp.compose.internal) n'est pas disponible — il nécessite une redirection de port que le bac à sable bloque"
+            "value" : "Le résolveur DNS de Compose (joindre les VM par leur nom, par exemple mariadb.myapp.compose.internal) n'est pas fiable — le bac à sable ne peut pas faire tourner le serveur DHCP qui l'annonce"
           }
         }
       }
