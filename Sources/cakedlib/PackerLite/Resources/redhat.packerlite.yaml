@@ -178,11 +178,6 @@ post_boot_command:
       ${var.ssh_authorized_key}
       EOF
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
-    - sudo semanage fcontext -a -t bin_t '/usr/local/bin/cakeagent'
-    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
-    - sudo ausearch -c '(cakeagent)' --raw | audit2allow -M my-cakeagent
-    - sudo semodule -i my-cakeagent.pp || true
-    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
     - sudo yum update -y
     - sudo yum install -y cloud-init
     - sudo systemctl enable cloud-init-local.service
