@@ -260,7 +260,7 @@ struct MultipassInstance: Codable, Sendable {
 	var networkAttachments: (VZMACAddress?, [BridgeAttachement]) {
 		var attachements: [BridgeAttachement] = []
 
-		attachements.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: nil))  // Default NAT network
+		attachements.append(BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil))  // Default NAT network
 
 		for extraInterface in self.extraInterfaces {
 			attachements.append(BridgeAttachement(network: extraInterface.id, mode: extraInterface.autoMode ? .auto : .manual, macAddress: extraInterface.macAddress))

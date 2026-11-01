@@ -122,7 +122,7 @@ struct VirtualBuddyImporter: Importer {
 				macAddress = VZMACAddress(string: mac)
 			}
 
-			return GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)
+			return GRPCLib.BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil)
 		}
 
 		let diskFormat: SupportedDiskFormat = bootDiskURL.asifDisk ? .asif : .raw
@@ -150,7 +150,7 @@ struct VirtualBuddyImporter: Importer {
 		config.useCloudInit = false
 		config.agent = false
 		config.nested = os == .linux && Utils.isNestedVirtualizationSupported()
-		config.networks = networkAttachments.isEmpty ? [GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)] : networkAttachments
+		config.networks = networkAttachments.isEmpty ? [GRPCLib.BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil)] : networkAttachments
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase
 		config.firstLaunch = true

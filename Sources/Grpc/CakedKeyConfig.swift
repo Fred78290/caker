@@ -17,6 +17,7 @@ public enum CakedKeyConfig: String, CaseIterable {
 	public static let defaultPrimaryName = "primary"
 	/// Default of `composeDnsDomain`: the domain the compose DNS resolver answers for.
 	public static let defaultComposeDnsDomain = "compose.internal"
+	public static let defaultNatNetwork = "192.168.32.0/24"
 
 	case bridgedNetwork = "local.bridged-network"
 	case driver = "local.driver"
@@ -27,6 +28,7 @@ public enum CakedKeyConfig: String, CaseIterable {
 	case imdsEnabled = "client.imds-enabled"
 	case cakeHome = "local.cake-home"
 	case composeDnsDomain = "local.compose-dns-domain"
+	case defaultNetwork = "local.default-network"
 
 	/// The value a key has while it was never set: the default its readers apply, and what
 	/// `get` prints. `nil` when "unset" has its own meaning (`bridgedNetwork`: no default bridged
@@ -40,6 +42,8 @@ public enum CakedKeyConfig: String, CaseIterable {
 			return Self.defaultPrimaryName
 		case .composeDnsDomain:
 			return Self.defaultComposeDnsDomain
+		case .defaultNetwork:
+			return Self.defaultNatNetwork
 		case .bridgedNetwork, .driver, .imageMirror, .passphrase, .privilegedMounts, .cakeHome:
 			return nil
 		}

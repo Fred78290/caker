@@ -10,7 +10,12 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public let dhcpLease: Int32?
 	public let interfaceID: String
 	public let nat66Prefix: String?
+	public var dns: Bool? = false
 	public var visible: Bool = true
+
+	public var gateway: String {
+		return dhcpStart.stringBeforeLast(before: ".") + ".1"
+	}
 
 	public init(
 		mode: VMNetMode = .bridged,
@@ -20,6 +25,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		dhcpLease: Int32? = nil,
 		interfaceID: String = "en0",
 		nat66Prefix: String? = nil,
+		dns: Bool = false,
 		visible: Bool = true
 	) {
 		self.mode = mode
@@ -29,11 +35,13 @@ public struct VZSharedNetwork: Codable, Equatable {
 		self.dhcpLease = dhcpLease
 		self.interfaceID = interfaceID
 		self.nat66Prefix = nat66Prefix
+		self.dns = dns
 		self.visible = visible
 	}
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.mode == rhs.mode && lhs.netmask == rhs.netmask && lhs.dhcpStart == rhs.dhcpStart && lhs.dhcpEnd == rhs.dhcpEnd && lhs.dhcpLease == rhs.dhcpLease && lhs.interfaceID == rhs.interfaceID && lhs.nat66Prefix == rhs.nat66Prefix
+			&& (lhs.dns ?? false) == (rhs.dns ?? false) && lhs.visible == rhs.visible
 	}
 
 	public static func != (lhs: Self, rhs: Self) -> Bool {
@@ -48,6 +56,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		case dhcpLease = "dhcp-lease"
 		case interfaceID = "interfaceID"
 		case nat66Prefix = "nat66-prefix"
+		case dns = "dns"
 	}
 
 	public func validate(runMode: Utils.RunMode) throws {
@@ -89,17 +98,27 @@ public struct VZSharedNetwork: Codable, Equatable {
 		let dhcpStart = network.gateway.toIPV4()
 		let dhcpEnd = network.dhcpEnd.toIPV4()
 
-		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: String.empty)
+		return VZSharedNetwork(
+			mode: .nat,
+			netmask: dhcpStart.netmask!.description,
+			dhcpStart: dhcpStart.address!.description,
+			dhcpEnd: dhcpEnd.address!.description,
+			dhcpLease: Int32(network.dhcpLease) ?? 0,
+			interfaceID: network.interfaceID,
+			dns: network.dns,
+			visible: true)
 	}
 
 	public static var defaultImdsNetwork: VZSharedNetwork {
-		return VZSharedNetwork(mode: .host,
-							   netmask: IMDSNetworkInterface.imdsNetmask,
-							   dhcpStart: IMDSNetworkInterface.imdsGateway,
-							   dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
-							   dhcpLease: try? NetworksHandler.getDHCPLease(),
-							   interfaceID: IMDSNetworkInterface.imdsNetworkName,
-							   visible: false)
+		return VZSharedNetwork(
+			mode: .host,
+			netmask: IMDSNetworkInterface.imdsNetmask,
+			dhcpStart: IMDSNetworkInterface.imdsGateway,
+			dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
+			dhcpLease: try? NetworksHandler.getDHCPLease(),
+			interfaceID: IMDSNetworkInterface.imdsNetworkName,
+			dns: false,
+			visible: false)
 	}
 
 	public static func addresses() -> [String: String] {
@@ -206,7 +225,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public static func createNetwork(mode: VMNetMode, baseAddress: String, cidr: Int, runMode: Utils.RunMode) throws -> VZSharedNetwork {
 		let (gateway, dhcpEnd) = try freeIP(baseAddress, includeSharedNetworks: false, runMode: runMode)
 
-		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, interfaceID: UUID().uuidString, nat66Prefix: nil, dns: false, visible: true)
 	}
 }
 
@@ -317,7 +336,7 @@ public struct VZVMNetConfig: Codable {
 			result[key] = value
 		}
 
-		result["nat"] = self.defaultNatNetwork
+		result[BridgeAttachement.defaultNetworkName] = self.defaultNatNetwork
 		if let network = self.defaultImdsNetwork {
 			result[IMDSNetworkInterface.imdsNetworkName] = network
 		}
@@ -328,7 +347,7 @@ public struct VZVMNetConfig: Codable {
 	public var sharedNetworkNames: [String] {
 		var result: [String] = Array(userNetworks.keys)
 
-		result.append("nat")
+		result.append(BridgeAttachement.defaultNetworkName)
 
 		return result
 	}

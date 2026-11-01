@@ -26,7 +26,7 @@ interface OperationLogItem {
   description: string
 }
 
-const DEFAULT_NAT_NETWORK_NAME = 'nat'
+const DEFAULT_NAT_NETWORK_NAME = 'default'
 const IMDS_NETWORK_NAME = 'imds'
 const IMDS_GATEWAY = '192.168.169.1'
 const IMDS_AWS_COMPAT_ADDRESS = '169.254.169.254'

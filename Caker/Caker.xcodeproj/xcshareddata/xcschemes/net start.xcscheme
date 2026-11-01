@@ -70,7 +70,19 @@
       </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "dns"
+            argument = "net"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "start"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "default"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--fork"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

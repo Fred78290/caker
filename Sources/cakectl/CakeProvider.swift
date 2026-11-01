@@ -328,6 +328,7 @@ extension Caked_NetworkRequest {
 			if let nat66Prefix = command.networkOptions.nat66Prefix {
 				$0.nat66Prefix = nat66Prefix
 			}
+			$0.dns = command.networkOptions.dns
 		}
 	}
 
@@ -356,6 +357,10 @@ extension Caked_NetworkRequest {
 
 			if let nat66Prefix = command.networkOptions.nat66Prefix {
 				$0.nat66Prefix = nat66Prefix
+			}
+
+			if let dns = command.networkOptions.dns {
+				$0.dns = dns
 			}
 		}
 	}

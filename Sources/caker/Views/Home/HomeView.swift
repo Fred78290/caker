@@ -40,7 +40,7 @@ struct HomeView: View {
 				return true
 			}
 
-			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
+			return network.usedBy.used != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
 			return navigationModel.selectedRemote == nil
 		case .cache:

@@ -41,6 +41,9 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 ### Réseaux
 
 - groupe `networks` : `infos`, `list`, `create`, `configure`, `delete`, `start`, `stop`.
+- Le réseau `default` (anciennement `nat` / `NAT shared network`; ces anciens noms ne sont normalisés en `default` que dans les attachements réseau des VM) est un réseau partagé géré par caked, sans isolation entre VM. Il est réservé : `create`, `configure` et `delete` le refusent. Son CIDR se règle dans Réglages > Avancé (`local.default-network`, pris en compte au redémarrage suivant).
+- `create`/`configure` acceptent `--dns` : le processus qui exécute le réseau démarre alors le résolveur DNS de compose sur la passerelle du réseau (port 28053), voir [Compose](compose). Activé par défaut sur `default`.
+- `stop` refuse d'arrêter un réseau qu'au moins une VM en cours d'exécution utilise (`infos`/`list` distinguent les instances qui le référencent de celles qui l'utilisent activement).
 
 ### Compose
 
@@ -86,7 +89,6 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 - `import` — importe une VM externe (Multipass ou VMware Fusion) depuis un fichier/URL.
 - `relocate <chemin>` — déplace le répertoire cake home (`CAKE_HOME` : VM, images, caches) vers un autre dossier ou volume et le mémorise pour les exécutions suivantes. Refusé tant que le démon `caked`, une VM ou un réseau est en cours d'exécution. Équivalent dans Caker.app : Réglages > Avancé > Stockage > Déplace…. **Indisponible dans la version App Store**, dont le cake home est toujours le conteneur App Group — voir [Sandbox](sandbox).
 - sous-commandes internes/admin supplémentaires de `networks` :
-  - `nat-infos`
   - `set-dhcp-lease`
   - `restart`
   - `run` (interne)
@@ -459,6 +461,9 @@ This page summarizes the `ArgumentParser` commands implemented in:
 ### Networks
 
 - `networks` group: `infos`, `list`, `create`, `configure`, `delete`, `start`, `stop`.
+- The `default` network (formerly `nat` / `NAT shared network`; the old names are only normalized to `default` in a VM's network attachments) is a caked-managed shared network without isolation between VMs. It is reserved: `create`, `configure` and `delete` reject it. Its CIDR is set in Settings > Advanced (`local.default-network`, applied at the next restart).
+- `create`/`configure` accept `--dns`: the process running the network then starts the compose DNS resolver on the network's gateway (port 28053), see [Compose](compose). On by default for `default`.
+- `stop` refuses to stop a network that at least one running VM is using (`infos`/`list` distinguish instances that reference it from instances that actively use it).
 
 ### Compose
 
@@ -504,7 +509,6 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `import` — import external VM (Multipass or VMware Fusion) from file/URL.
 - `relocate <path>` — move the cake home directory (`CAKE_HOME`: VMs, images, caches) to another folder or volume and remember it for later runs. Refused while the `caked` daemon, a VM or a network is running. Caker.app equivalent: Settings > Advanced > Storage > Relocate…. **Not available in the App Store build**, whose cake home is always its App Group container — see [Sandbox](sandbox).
 - `networks` extra internal/admin subcommands:
-  - `nat-infos`
   - `set-dhcp-lease`
   - `restart`
   - `run` (internal)

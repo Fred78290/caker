@@ -17,6 +17,7 @@ struct AdvancedSettingsView: View {
 	@AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = CakedKeyConfig.defaultImdsEnabled
 
 	@State private var bridgedNetwork: String
+	@State private var defaultNatNetwork: String
 	@State private var primaryName: String
 	@State private var passphrase: String
 	@State private var showPassphrase: Bool = false
@@ -30,6 +31,7 @@ struct AdvancedSettingsView: View {
 	}
 
 	init() {
+		defaultNatNetwork = CakedKeyConfig.defaultNetwork.string() ?? CakedKeyConfig.defaultNatNetwork
 		bridgedNetwork = CakedKeyConfig.bridgedNetwork.string() ?? Self.noneNetwork
 		// Raw value: an unset name shows the "primary" placeholder rather than the default as text.
 		primaryName = (CakedKeyConfig.primaryName.get() as String?) ?? String.empty
@@ -41,6 +43,14 @@ struct AdvancedSettingsView: View {
 	var body: some View {
 		Form {
 			Section {
+				LabeledContent("Default network") {
+					TextField(CakedKeyConfig.defaultNatNetwork, text: $defaultNatNetwork)
+						.rounded(.leading)
+						.onSubmit {
+							saveDefaultNatNetwork()
+						}
+						.foregroundColor(validNatNetwork(defaultNatNetwork) ? .primary : .red)
+				}
 				LabeledContent("Bridged network") {
 					HStack {
 						Spacer()
@@ -51,7 +61,7 @@ struct AdvancedSettingsView: View {
 							}
 						}
 						.labelsHidden()
-					}.frame(width: 220)
+					}  //.frame(width: 220)
 				}
 				.onChange(of: bridgedNetwork) { _, newValue in
 					save(.bridgedNetwork, newValue == Self.noneNetwork ? nil : newValue)
@@ -59,7 +69,7 @@ struct AdvancedSettingsView: View {
 			} header: {
 				Label("Networking", systemImage: "network")
 			} footer: {
-				Text("Host network interface used when a virtual machine is attached to a bridged network.")
+				Text("Default network for virtual machines, will apply next restart. Host network interface used when a virtual machine is attached to a bridged network.")
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
@@ -75,9 +85,11 @@ struct AdvancedSettingsView: View {
 			} header: {
 				Label("Compose", systemImage: "square.stack.3d.up")
 			} footer: {
-				Text("Domain suffix used to resolve virtual machines and compose services by name, e.g. myvm.\(composeDnsDomain) or mariadb.myapp.\(composeDnsDomain). Only affects virtual machines built after this is changed — an already-built VM keeps using the domain it was built with until rebuilt.")
-					.font(.caption)
-					.foregroundStyle(.secondary)
+				Text(
+					"Domain suffix used to resolve virtual machines and compose services by name, e.g. myvm.\(composeDnsDomain) or mariadb.myapp.\(composeDnsDomain). Only affects virtual machines built after this is changed — an already-built VM keeps using the domain it was built with until rebuilt."
+				)
+				.font(.caption)
+				.foregroundStyle(.secondary)
 			}
 
 			Section {
@@ -134,10 +146,6 @@ struct AdvancedSettingsView: View {
 							.textSelection(.enabled)
 							.lineLimit(1)
 							.truncationMode(.middle)
-					}
-
-					HStack {
-						Spacer()
 						Button {
 							relocateCakeHome()
 						} label: {
@@ -147,7 +155,9 @@ struct AdvancedSettingsView: View {
 								Label("Relocate…", systemImage: "externaldrive")
 							}
 						}
+						.withButtonStyle(.bordered)
 						.disabled(isRelocating)
+						.help("Relocate…")
 					}
 				} header: {
 					Label("Storage", systemImage: "internaldrive")
@@ -171,13 +181,15 @@ struct AdvancedSettingsView: View {
 				if Bundle.isApplicationSandboxed {
 					Spacer()
 					VStack(alignment: .leading, spacing: 4) {
-						Text("""
+						Text(
+							"""
 							To allow access from VM to IMDSv2 metadata service via http://169.254.169.254/latest/meta-data/, you must add somes rules in firewall, else meta data will be accessible only via http://192.168.169.1:28080/latest/meta-data/ .
 
 							Run the following command in Terminal to add the firewall rules:
-							""")
-							.font(.caption)
-							.foregroundStyle(.secondary)
+							"""
+						)
+						.font(.caption)
+						.foregroundStyle(.secondary)
 						HStack {
 							Text(Self.imdsFirewallCommand)
 								.font(.caption.monospaced())
@@ -211,6 +223,36 @@ struct AdvancedSettingsView: View {
 
 	private func save(_ key: CakedKeyConfig, _ value: String?) {
 		key.set(value)
+	}
+
+	private func validNatNetwork(_ value: String) -> Bool {
+		let parts = value.split(separator: "/", omittingEmptySubsequences: false)
+
+		guard parts.count == 2, let cidr = Int(parts[1]), (8...30).contains(cidr) else {
+			return false
+		}
+
+		let network = value.toIPV4()
+
+		return network.address != nil && network.netmask != nil
+	}
+
+	private func saveDefaultNatNetwork() {
+		let trimmed = defaultNatNetwork.trimmingCharacters(in: .whitespacesAndNewlines)
+
+		guard trimmed.isEmpty == false else {
+			CakedKeyConfig.defaultNetwork.removeObject()
+			defaultNatNetwork = CakedKeyConfig.defaultNatNetwork
+			return
+		}
+
+		guard validNatNetwork(trimmed) else {
+			errorMessage = String(localized: "\"\(trimmed)\" is not a valid network. Use the CIDR form, for example 192.168.32.0/24.")
+			defaultNatNetwork = CakedKeyConfig.defaultNetwork.string() ?? CakedKeyConfig.defaultNatNetwork
+			return
+		}
+
+		CakedKeyConfig.defaultNetwork.set(trimmed)
 	}
 
 	/// Validates `composeDnsDomain` via the same `ComposeDNS.normalizeDomainSuffix(_:)` the

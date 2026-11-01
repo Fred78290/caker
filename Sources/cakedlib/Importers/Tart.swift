@@ -103,7 +103,7 @@ struct TartImporter: Importer {
 		config.useCloudInit = false
 		config.agent = false
 		config.nested = os == .linux && Utils.isNestedVirtualizationSupported()
-		config.networks = [GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)]
+		config.networks = [GRPCLib.BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil)]
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase
 		config.firstLaunch = true

@@ -40,7 +40,7 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 		self.network_ref = nil
 	}
 
-	public override func start() throws {
+	public override func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws {
 		if #available(macOS 26.0, *) {
 			let (ref, serial) = try createVMNetwork()
 
@@ -49,7 +49,7 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 				self.serialization = serial
 			}
 
-			try super.start()
+			try super.start(startedHandler)
 		} else {
 			throw ServiceError(String(localized: "VMNet network is only available on macOS 26.0 and later"))
 		}
@@ -67,7 +67,7 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 		var mask = in_addr(s_addr: in_addr_t(netmask.storage))
 		var status: vmnet_return_t = .VMNET_SUCCESS
 
-		guard let network_configuration = vmnet_network_configuration_create(networkConfig.mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, &status) else {
+		guard let network_configuration = vmnet_network_configuration_create(networkConfig.mode == .host ? .VMNET_HOST_MODE : .VMNET_SHARED_MODE, &status) else {
 			throw ServiceError(String(localized: "Can't create vmnet configuration: \(status.description)"))
 		}
 

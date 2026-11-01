@@ -49,6 +49,34 @@ public struct VMImageArchCatalog: Codable, Sendable {
 		#endif
 	}
 
+	#if arch(arm64)
+		init(iso: [VMImageEntry], cloud: [VMImageEntry], ipsw: [VMImageEntry]) {
+			self.iso = iso
+			self.cloud = cloud
+			self.ipsw = ipsw
+		}
+	#else
+		init(iso: [VMImageEntry], cloud: [VMImageEntry]) {
+			self.iso = iso
+			self.cloud = cloud
+		}
+	#endif
+
+	/// A copy whose cloud entry `id` points at `url`; `self` when there is no such entry.
+	func replacingCloudURL(id: String, with url: String) -> VMImageArchCatalog {
+		guard let entry = cloud.first(where: { $0.id == id }), entry.url != url else {
+			return self
+		}
+
+		let cloud = self.cloud.map { $0.id == id ? VMImageEntry(id: $0.id, label: $0.label, url: url, minCPU: $0.minCPU, minMemoryMiB: $0.minMemoryMiB) : $0 }
+
+		#if arch(arm64)
+			return VMImageArchCatalog(iso: iso, cloud: cloud, ipsw: ipsw)
+		#else
+			return VMImageArchCatalog(iso: iso, cloud: cloud)
+		#endif
+	}
+
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -102,7 +130,7 @@ public struct VMImageCatalog: Codable, Sendable {
 	private static let storage: Mutex<Loaded> = Mutex(load())
 
 	public static var shared: VMImageCatalog {
-		storage.withLock { $0.catalog }
+		storage.withLock { $0.catalog }.applyingLatestImages()
 	}
 
 	/// `shared`, re-read first when `<CAKE_HOME>/VMImages.json` was added, changed or removed since it
@@ -123,7 +151,7 @@ public struct VMImageCatalog: Codable, Sendable {
 			}
 
 			return loaded.catalog
-		}
+		}.applyingLatestImages()
 	}
 
 	/// Raw JSON on the `main` branch — kept in sync with `Sources/cakedlib/Resources/VMImages.json`.
@@ -419,5 +447,128 @@ extension VMImageArchCatalog {
 extension CakeAgentLib.Format {
 	public func render(_ data: [VMImageAliasEntry]) -> String {
 		self.renderList(data)
+	}
+}
+
+// MARK: - Images published under a dated name
+
+extension VMImageCatalog {
+	/// Gentoo republishes its cloud image under a new dated name (`di-amd64-cloudinit-20261025T170057Z.qcow2`)
+	/// and only keeps a `latest-di-<arch>-cloudinit.txt` manifest pointing at the current one, so the URL
+	/// pinned in `VMImages.json` goes stale. The catalog entry `id` is kept as is; its URL is replaced by
+	/// the one the manifest names once `refreshLatestImages()` has read it.
+	struct LatestImageSource: Sendable {
+		let id: String
+		let arch: String
+		let manifest: URL
+	}
+
+	static let latestImageSources: [LatestImageSource] = [
+		LatestImageSource(id: "gentoo", arch: "amd64", manifest: URL(string: "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/latest-di-amd64-cloudinit.txt")!),
+		LatestImageSource(id: "gentoo", arch: "arm64", manifest: URL(string: "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/latest-di-arm64-cloudinit.txt")!),
+	]
+
+	/// How long a successful manifest read is trusted before `refreshLatestImages()` reads it again.
+	private static let latestImagesTTL: TimeInterval = 600
+
+	private struct LatestImages {
+		/// architecture -> resolved image URL
+		var urls: [String: String] = [:]
+		var refreshedAt: Date? = nil
+	}
+
+	private static let latestImages = Mutex(LatestImages())
+
+	/// Forgets what the manifests named, so tests don't leak it into each other.
+	static func resetLatestImages() {
+		latestImages.withLock { $0 = LatestImages() }
+	}
+
+	/// The image name a manifest lists: its first `*.qcow2` line, ignoring the PGP clear-sign armour and the
+	/// `#` comments. The name is checked to be a bare file name so a manifest can't point outside its directory.
+	static func latestImageName(manifest: String) -> String? {
+		for line in manifest.split(whereSeparator: \.isNewline) {
+			guard let name = line.split(separator: " ").first.map(String.init), name.hasSuffix(".qcow2"), name.hasPrefix("di-"), name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "." || $0 == "_" }), name.contains("..") == false else {
+				continue
+			}
+
+			return name
+		}
+
+		return nil
+	}
+
+	/// `self` with the cloud entries of `latestImageSources` pointing at the images the manifests last named.
+	func applyingLatestImages() -> VMImageCatalog {
+		let urls = Self.latestImages.withLock { $0.urls }
+
+		guard urls.isEmpty == false else {
+			return self
+		}
+
+		var arm64 = self.arm64
+		var amd64 = self.amd64
+
+		for source in Self.latestImageSources {
+			guard let url = urls[source.arch] else {
+				continue
+			}
+
+			if source.arch == "arm64" {
+				arm64 = arm64.replacingCloudURL(id: source.id, with: url)
+			} else {
+				amd64 = amd64.replacingCloudURL(id: source.id, with: url)
+			}
+		}
+
+		return VMImageCatalog(arm64: arm64, amd64: amd64)
+	}
+
+	/// Reads the `latest-*.txt` manifests and remembers the image they name, so that `shared`,
+	/// `reloadIfChanged()` and `--alias` hand out the current one. Best effort: a manifest that can't be
+	/// read keeps the URL of the catalog and is retried on the next call. Skipped for `latestImagesTTL` after
+	/// a successful read.
+	public static func refreshLatestImages(session: URLSession = .shared) async {
+		let due = latestImages.withLock { state -> Bool in
+			guard let refreshedAt = state.refreshedAt, Date().timeIntervalSince(refreshedAt) < latestImagesTTL else {
+				return true
+			}
+
+			return false
+		}
+
+		guard due else {
+			return
+		}
+
+		// The manifests of the other architecture are not read: it is not offered on this host.
+		#if arch(arm64)
+			let arch = "arm64"
+		#else
+			let arch = "amd64"
+		#endif
+
+		var urls: [String: String] = [:]
+
+		for source in latestImageSources where source.arch == arch {
+			var request = URLRequest(url: source.manifest)
+
+			request.timeoutInterval = 10
+
+			guard let (data, response) = try? await session.data(for: request), let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode), let text = String(data: data, encoding: .utf8), let name = latestImageName(manifest: text) else {
+				Logger("VMImageCatalog").warn("Unable to resolve the latest image of \(source.id) from \(source.manifest.absoluteString)")
+				continue
+			}
+
+			urls[source.arch] = source.manifest.deletingLastPathComponent().appendingPathComponent(name).absoluteString
+		}
+
+		latestImages.withLock { state in
+			state.urls.merge(urls) { _, new in new }
+			// An unreachable manifest must not hold off the next attempt for the whole TTL.
+			if urls.isEmpty == false {
+				state.refreshedAt = Date()
+			}
+		}
 	}
 }

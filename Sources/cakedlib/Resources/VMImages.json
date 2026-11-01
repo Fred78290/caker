@@ -23,8 +23,7 @@
 			{ "id": "alpine323-iso", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
-			{ "id": "macos272", "label": "macOS 27.2 beta3", "url": "https://updates.cdn-apple.com/2026FallSeed/be28b1ac-a2ec-40db-a9ad-29bef37820f8/UniversalMac_27.2_26B5101f_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
-			{ "id": "macos27", "label": "macOS 27.0.1", "url": "https://updates.cdn-apple.com/2026FallFCS/59241290-5d51-4ca8-9df4-31624b9a4eac/UniversalMac_27.0.1_26A434_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
+			{ "id": "macos27", "label": "macOS 27.2", "url": "https://updates.cdn-apple.com/2026FallFCS/c9671975-52db-4fb5-9af2-00217169ba8d/UniversalMac_27.2_26B123_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos26", "label": "macOS 26.6.2", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos15", "label": "macOS 15.6.1", "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
 			{ "id": "macos14", "label": "macOS 14.6.1", "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
@@ -50,7 +49,13 @@
 			{ "id": "fedora44", "label": "Fedora 44", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "fedora43", "label": "Fedora 43", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-43-1.6.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/download/repositories/openSUSE:/Leap:/16.0:/Images/images/Leap-16.0-Minimal-VM.aarch64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.aarch64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "almalinux10", "label": "AlmaLinux 10", "url": "https://repo.almalinux.org/almalinux/10/cloud/aarch64/images/AlmaLinux-10-GenericCloud-latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261025T234555Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "rocky10", "label": "Rocky 10", "url": "https://dl.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "rocky9", "label": "Rocky 9", "url": "https://dl.rockylinux.org/pub/rocky/9/images/aarch64/Rocky-9-GenericCloud-Base.latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 }
@@ -99,7 +104,13 @@
 			{ "id": "fedora44", "label": "Fedora 44", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "fedora43", "label": "Fedora 43", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/download/repositories/openSUSE:/Leap:/16.0:/Images/images/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "almalinux10", "label": "AlmaLinux 10", "url": "https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261025T170057Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "rocky10", "label": "Rocky 10", "url": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "rocky9", "label": "Rocky 9", "url": "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 }

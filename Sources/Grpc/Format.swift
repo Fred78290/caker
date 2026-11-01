@@ -10,6 +10,38 @@ extension Data {
 	}
 }
 
+public struct FlatBridgedNetwork: Codable {
+	public let name: String
+	public let mode: BridgedNetworkMode
+	public let description: String
+	public let gateway: String
+	public let dhcpEnd: String
+	public let dhcpLease: String
+	public let interfaceID: String
+	public let endpoint: String
+	public let running: Bool
+	public let managed: Bool
+	public let dns: Bool
+	public let usedBy: Int
+	public let active: Int
+
+	public init(_ from :BridgedNetwork) {
+		self.name = from.name
+		self.mode = from.mode
+		self.description = from.description
+		self.gateway = from.gateway
+		self.dhcpEnd = from.dhcpEnd
+		self.dhcpLease = from.dhcpLease
+		self.interfaceID = from.interfaceID
+		self.endpoint = from.endpoint
+		self.running = from.running
+		self.managed = from.managed
+		self.dns = from.dns
+		self.usedBy = from.usedBy.used
+		self.active = from.usedBy.active
+	}
+}
+
 public struct ShortInfoReply: Sendable, Codable {
 	public let name: String
 	public let ipaddresses: String
@@ -526,19 +558,19 @@ extension CakeAgentLib.Format {
 	}
 	
 	public func render(_ data: BridgedNetwork) -> String {
-		return self.renderSingle(data)
+		return self.renderSingle(FlatBridgedNetwork(data))
 	}
 	
 	public func render(_ data: Caked_NetworkInfo) -> String {
-		return self.renderSingle(BridgedNetwork(data))
+		return self.render(BridgedNetwork(data))
 	}
 	
 	public func render(_ data: [BridgedNetwork]) -> String {
-		return self.renderList(data)
+		return self.renderList(data.map { FlatBridgedNetwork($0) })
 	}
 	
 	public func render(_ data: [Caked_NetworkInfo]) -> String {
-		return self.renderList(data.map { BridgedNetwork($0) })
+		return self.render(data.map { BridgedNetwork($0) })
 	}
 	
 	public func render(_ data: CreatedNetworkReply) -> String {

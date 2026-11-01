@@ -548,13 +548,17 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	/// changed since caked started) — the one `build`/`launch --alias` are resolved against here, so
 	/// `cakectl aliases` and Caker.app's wizard show what this caked offers rather than their local copy.
 	func aliases(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		VMImageCatalog.reloadIfChanged().aliasesReply
+		await VMImageCatalog.refreshLatestImages()
+
+		return VMImageCatalog.reloadIfChanged().aliasesReply
 	}
 
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		guard let taskID = UUID(uuidString: request.taskID) else {
 			throw ServiceError(String(format: String(localized: "'%@' is not a valid task id"), request.taskID))
 		}
+
+		await VMImageCatalog.refreshLatestImages()
 
 		_ = try await self.executeCancellable(
 			command: BuildHandler(provider: self, options: request.options.buildOptions(taskID: taskID), responseStream: responseStream, context: context) {

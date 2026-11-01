@@ -32,7 +32,7 @@ struct NetworkAttachementNewItemView: View {
 	init(_ networks: Binding<[BridgeAttachement]>, editItem: BridgeAttachement.ID? = nil) {
 		self._networks = networks
 		self.editItem = editItem
-		self.newItem = networks.wrappedValue.editItem(editItem, name: Self.names.first ?? "nat")
+		self.newItem = networks.wrappedValue.editItem(editItem, name: Self.names.first ?? BridgeAttachement.defaultNetworkName)
 	}
 
 	var body: some View {
@@ -45,7 +45,7 @@ struct NetworkAttachementNewItemView: View {
 				return (false, String(localized: "Network already exists"))
 			}
 
-			if item.network.isEmpty || item.network == "nat" {
+			if item.network.isEmpty || item.network == BridgeAttachement.defaultNetworkName {
 				return (false, String(localized: "Please select a network"))
 			}
 

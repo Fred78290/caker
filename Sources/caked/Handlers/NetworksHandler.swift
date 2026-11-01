@@ -1,8 +1,8 @@
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Foundation
 import GRPCLib
-import CakeAgentLib
 import NIOCore
 import NIOPosix
 import SystemConfiguration
@@ -55,47 +55,82 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
-		let networkReply: Caked_NetworksReply
-
-		switch self.request.command {
-		case .infos:
-			networkReply = Caked_NetworksReply.with {
+	private func networks(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
 				$0.list = CakedLib.NetworksHandler.networks(runMode: runMode).caked
 			}
+		}
+	}
 
-		case .status:
-			networkReply = Caked_NetworksReply.with {
+	private func status(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
 				$0.status = CakedLib.NetworksHandler.status(networkName: self.request.name, runMode: runMode).caked
 			}
+		}
+	}
 
-		case .new:
-			networkReply = Caked_NetworksReply.with {
+	private func create(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
 				$0.created = CakedLib.NetworksHandler.create(networkName: self.request.create.name, network: self.request.create.toVZSharedNetwork(), runMode: runMode).caked
 			}
+		}
+	}
 
-		case .remove:
-			networkReply = Caked_NetworksReply.with {
-				$0.delete = CakedLib.NetworksHandler.delete(networkName: self.request.name, runMode: runMode).caked
+	private func stop(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
+				$0.stopped = CakedLib.NetworksHandler.stop(networkName: self.request.name, checkIfUsed: true, runMode: runMode).caked
 			}
-		case .start:
-			networkReply = Caked_NetworksReply.with {
+		}
+	}
+
+	private func start(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
 				$0.started = CakedLib.NetworksHandler.start(networkName: self.request.name, runMode: runMode).caked
 			}
-		case .shutdown:
-			networkReply = Caked_NetworksReply.with {
-				$0.stopped = CakedLib.NetworksHandler.stop(networkName: self.request.name, runMode: runMode).caked
+		}
+	}
+
+	private func delete(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
+				$0.delete = CakedLib.NetworksHandler.delete(networkName: self.request.name, runMode: runMode).caked
 			}
-		case .set:
-			networkReply = Caked_NetworksReply.with {
+		}
+	}
+
+	private func configure(runMode: Utils.RunMode) -> Caked_Reply {
+		Caked_Reply.with {
+			$0.networks = Caked_NetworksReply.with {
 				$0.configured = CakedLib.NetworksHandler.configure(network: self.request.configure.toUsedNetworkConfig(), runMode: runMode).caked
 			}
-		default:
-			fatalError("Unknown command")
 		}
+	}
 
-		return Caked_Reply.with {
-			$0.networks = networkReply
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+		switch self.request.command {
+		case .infos:
+			return self.networks(runMode: runMode)
+		case .status:
+			return self.status(runMode: runMode)
+		case .new:
+			return self.create(runMode: runMode)
+		case .remove:
+			return self.delete(runMode: runMode)
+		case .start:
+			return self.start(runMode: runMode)
+		case .shutdown:
+			return self.stop(runMode: runMode)
+		case .set:
+			return self.configure(runMode: runMode)
+		case .UNRECOGNIZED(let value):
+			return Caked_Reply.with {
+				$0.unexpected = String(localized: "Unexpected command \(value)")
+			}
 		}
 	}
 }

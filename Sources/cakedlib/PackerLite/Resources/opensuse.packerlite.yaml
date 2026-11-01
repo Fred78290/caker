@@ -107,6 +107,7 @@ boot_command:
       - <locate text="Installation complete" timeout=1800>
       - <tab repeat=5> # 642,396
       - <spacebar>
+      - <locate text="Loading initial ramdisk" timeout=30>
 
   - title: Installation complete, log in and enable SSH
     commands:
@@ -137,15 +138,6 @@ post_boot_command:
       ${var.ssh_authorized_key}
       EOF
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
-    - sudo semanage fcontext -a -t initrc_exec_t '/usr/bin/cakeagent'
-    - sudo restorecon -v /usr/local/bin/cakeagent
-    - sudo systemctl restart cakeagent
-    - sudo zypper addrepo https://download.opensuse.org/repositories/Cloud:Tools/16.0/Cloud:Tools.repo
-    - sudo zypper --gpg-auto-import-keys refresh
-    - sudo zypper update -y
-    - sudo zypper clean -a
-    - sudo semanage fcontext -a -t initrc_exec_t '/usr/bin/cakeagent'
-    - sudo restorecon -v /usr/local/bin/cakeagent
     - sudo zypper install -y cloud-init
     - sudo systemctl enable cloud-init-local.service
     - sudo systemctl enable cloud-init.service

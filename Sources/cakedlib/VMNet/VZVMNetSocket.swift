@@ -54,7 +54,7 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 		}
 	}
 
-	public override func start() throws {
+	public override func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws {
 		try startInterface()
 
 		defer {
@@ -107,7 +107,7 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 		let serverChannel = try binder.wait()
 		self.serverChannel = serverChannel
 		
-		try super.start()
+		try super.start(startedHandler)
 
 		try serverChannel.closeFuture.wait()
 	}

@@ -43,6 +43,9 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	@Option(name: [.customLong("interface-id")], help: ArgumentHelp(String(localized: "VMNET interface ID"), discussion: String(localized: "randomly generated if not specified"), valueName: "uuid"))
 	public var interfaceID = UUID().uuidString
 
+	@Flag(name: [.customLong("dns")], help: ArgumentHelp(String(localized: "Enable DNS")))
+	public var dns: Bool = false
+
 	@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp(String(localized: "The IPv6 prefix to use with shared mode"), valueName: "prefix"))
 	public var nat66Prefix: String? = nil
 
@@ -76,6 +79,9 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 
 	@Option(name: [.customLong("interface-id")], help: ArgumentHelp(String(localized: "VMNET interface ID"), discussion: String(localized: "randomly generated if not specified"), valueName: "uuid"))
 	public var interfaceID: String? = nil
+
+	@Option(name: [.customLong("dns")], help: ArgumentHelp(String(localized: "Enable DNS")))
+	public var dns: Bool? = nil
 
 	@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp(String(localized: "The IPv6 prefix to use with shared mode"), valueName: "prefix"))
 	public var nat66Prefix: String? = nil

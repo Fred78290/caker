@@ -319,50 +319,38 @@ final class ComposeDNSTests: XCTestCase {
 		XCTAssertEqual(registry.address(for: .vm("fresh-vm")), "192.168.64.2")
 	}
 
-	// MARK: - Start/stop (Service menu)
+	// MARK: - Default network name
 
-	private func makeTemporaryPIDFile(_ contents: String?) throws -> URL {
-		let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ComposeDNSTests-\(UUID().uuidString)", isDirectory: true)
+	func testLegacyNatNamesMapToDefaultNetwork() throws {
+		XCTAssertEqual(BridgeAttachement(network: "nat").network, BridgeAttachement.defaultNetworkName)
+		XCTAssertTrue(BridgeAttachement(network: "NAT shared network").isNAT())
+		XCTAssertEqual(BridgeAttachement(argument: "nat")?.network, BridgeAttachement.defaultNetworkName)
+		XCTAssertNil(BridgeAttachement(argument: "nat")?.macAddress)
 
-		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-		addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+		let decoded = try JSONDecoder().decode(BridgeAttachement.self, from: Data(#"{"network":"nat","mode":1}"#.utf8))
 
-		let pidFile = directory.appendingPathComponent("composedns.pid", isDirectory: false)
-
-		if let contents {
-			try contents.write(to: pidFile, atomically: true, encoding: .ascii)
-		}
-
-		return pidFile
+		XCTAssertTrue(decoded.isNAT())
+		XCTAssertEqual(decoded.network, BridgeAttachement.defaultNetworkName)
+		XCTAssertFalse(BridgeAttachement(network: "en0").isNAT())
 	}
 
-	func testResolverIsNotRunningWithoutAPIDFile() throws {
-		let pidFile = try self.makeTemporaryPIDFile(nil)
+	func testSharedNetworkDoesNotEnableDNSByDefault() {
+		let network = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "192.168.50.1", dhcpEnd: "192.168.50.254")
 
-		XCTAssertFalse(ComposeDNS.isResolverRunning(pidFile: pidFile))
-		XCTAssertThrowsError(try ComposeDNS.stopResolver(pidFile: pidFile))
-	}
-
-	func testStopResolverNeverSignalsAProcessThatIsNotCaked() throws {
-		// A stale composedns.pid whose PID was reused by an unrelated process — here, this very
-		// test process, which is certainly alive and certainly not named `caked`. It must read as
-		// "not running" and must not be sent SIGINT (which would end the test run).
-		let pidFile = try self.makeTemporaryPIDFile("\(getpid())")
-
-		XCTAssertFalse(ComposeDNS.isResolverRunning(pidFile: pidFile))
-		XCTAssertThrowsError(try ComposeDNS.stopResolver(pidFile: pidFile))
+		XCTAssertEqual(network.dns, false)
+		XCTAssertEqual(network.gateway, "192.168.50.1")
 	}
 
 	// MARK: - Cloud-init injection (ComposeFile.toBuildOptions)
 
-	func testToBuildOptionsWithNoGatewayInjectsNoSplitDNSSetup() throws {
+	func testToBuildOptionsKeepsPostCommandsAndInjectsNoResolvectl() throws {
 		let yaml = """
 			name: myapp
 			services:
 			  mariadb:
 			    image: ubuntu:24.04
 			    post_commands:
-			      - echo hi
+			      - run_an_user_command
 			"""
 		let file = try YAMLDecoder().decode(ComposeFile.self, from: yaml)
 		let svc = try XCTUnwrap(file.services["mariadb"])
@@ -370,31 +358,9 @@ final class ComposeDNSTests: XCTestCase {
 		let path = try XCTUnwrap(built.options.userData)
 		let userData = try String(contentsOfFile: path, encoding: .utf8)
 
+		XCTAssertTrue(userData.contains("run_an_user_command"))
+		// The split-DNS setup is done inside the guest (agent install script / provisioning
+		// templates), never injected into a compose service's own user-data.
 		XCTAssertFalse(userData.contains("resolvectl"))
-	}
-
-	func testToBuildOptionsWithGatewayPrependsSplitDNSBeforePostCommands() throws {
-		let yaml = """
-			name: myapp
-			services:
-			  mariadb:
-			    image: ubuntu:24.04
-			    post_commands:
-			      - echo hi
-			"""
-		let file = try YAMLDecoder().decode(ComposeFile.self, from: yaml)
-		let svc = try XCTUnwrap(file.services["mariadb"])
-		let built = try svc.toBuildOptions(name: "compose-myapp-mariadb", composeNetworks: nil, composeDNSGateway: "192.168.64.1")
-		let path = try XCTUnwrap(built.options.userData)
-		let userData = try String(contentsOfFile: path, encoding: .utf8)
-
-		XCTAssertTrue(userData.contains("resolvectl dns"))
-		XCTAssertTrue(userData.contains("~compose.internal"))
-		XCTAssertTrue(userData.contains("192.168.64.1"))
-
-		let dnsLineRange = try XCTUnwrap(userData.range(of: "resolvectl dns"))
-		let postCommandRange = try XCTUnwrap(userData.range(of: "echo hi"))
-
-		XCTAssertLessThan(dnsLineRange.lowerBound, postCommandRange.lowerBound, "split-DNS setup must run before the user's own post_commands")
 	}
 }

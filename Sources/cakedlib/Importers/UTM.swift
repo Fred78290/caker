@@ -132,7 +132,7 @@ struct UTMImporter: Importer {
 			let mac = network["MacAddress"] as? String
 
 			if mode == "Bridged" {
-				let bridgeInterface = network["BridgeInterface"] as? String ?? "nat"
+				let bridgeInterface = network["BridgeInterface"] as? String ?? BridgeAttachement.defaultNetworkName
 
 				return GRPCLib.BridgeAttachement(network: bridgeInterface, mode: .auto, macAddress: mac)
 			}
@@ -141,7 +141,7 @@ struct UTMImporter: Importer {
 				macAddress = VZMACAddress(string: mac)
 			}
 
-			return GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)
+			return GRPCLib.BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil)
 		}
 
 		let config = CakeConfig(
@@ -168,7 +168,7 @@ struct UTMImporter: Importer {
 		config.useCloudInit = false
 		config.agent = false
 		config.nested = os == .linux && Utils.isNestedVirtualizationSupported()
-		config.networks = networkAttachments.isEmpty ? [GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)] : networkAttachments
+		config.networks = networkAttachments.isEmpty ? [GRPCLib.BridgeAttachement(network: BridgeAttachement.defaultNetworkName, mode: .auto, macAddress: nil)] : networkAttachments
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase
 		config.firstLaunch = true

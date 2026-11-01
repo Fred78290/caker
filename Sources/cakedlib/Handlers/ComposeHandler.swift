@@ -27,13 +27,6 @@ public struct ComposeHandler {
 		let storage = StorageLocation(runMode: runMode)
 		var warning: [String] = []
 
-		// Best-effort, never blocks/fails `up` on its own — see the function's own doc comment.
-		// Makes the resolver available regardless of which of `up`'s three entry points (`caked
-		// compose up`'s one-shot process, `cakectl compose up` via `caked service listen`, or
-		// `caker`'s `.app` mode) is the one actually calling this, without requiring the operator
-		// to separately know to run `caked dns`.
-		ComposeDNS.ensureResolverRunning(runMode: runMode)
-
 		do {
 			try provisionNetworks(compose: compose.composeFile, runMode: runMode)
 
@@ -86,7 +79,7 @@ public struct ComposeHandler {
 					}
 				}
 
-				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks, composeDNSGateway: ComposeDNS.natGatewayAddress(runMode: runMode))
+				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks)
 
 				// Registered before `validate(remote:)` can throw: `toBuildOptions` has already written the
 				// cloud-init user-data file by now (which can carry `environment:` secrets), and a `defer`

@@ -257,49 +257,49 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "fedora44",
         "label": "Fedora 44",
-        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/aarch64/images/Fedora-Server-Guest-Generic-44-1.7.aarch64.qcow2",
+        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-44-1.7.aarch64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "fedora43",
         "label": "Fedora 43",
-        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Server/aarch64/images/Fedora-Server-Guest-Generic-43-1.6.aarch64.qcow2",
+        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-43-1.6.aarch64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora42",
-        "label": "Fedora 42",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/aarch64/images/Fedora-Server-Guest-Generic-42-1.1.aarch64.qcow2",
+        "id": "openSUSE160",
+        "label": "OpenSUSE Leap 16.0",
+        "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.aarch64-Cloud.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora41",
-        "label": "Fedora 41",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/aarch64/images/Fedora-Server-KVM-41-1.4.aarch64.qcow2",
+        "id": "almalinux10",
+        "label": "AlmaLinux 10",
+        "url": "https://repo.almalinux.org/almalinux/10/cloud/aarch64/images/AlmaLinux-10-GenericCloud-latest.aarch64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora40",
-        "label": "Fedora 40",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/aarch64/images/Fedora-Server-KVM-40-1.14.aarch64.qcow2",
+        "id": "Gentoo",
+        "label": "Gentoo",
+        "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261025T234555Z.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE156",
-        "label": "OpenSUSE Leap 15.6",
-        "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.aarch64-NoCloud.qcow2",
+        "id": "rocky10",
+        "label": "Rocky 10",
+        "url": "https://dl.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE155",
-        "label": "OpenSUSE Leap 15.5",
-        "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.aarch64-NoCloud.qcow2",
+        "id": "rocky9",
+        "label": "Rocky 9",
+        "url": "https://dl.rockylinux.org/pub/rocky/9/images/aarch64/Rocky-9-GenericCloud-Base.latest.aarch64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -314,27 +314,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "id": "alpine323",
         "label": "Alpine 3.23",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-aarch64-uefi-cloudinit-r0.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "alpine322",
-        "label": "Alpine 3.22",
-        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-aarch64-uefi-cloudinit-r0.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "alpine321",
-        "label": "Alpine 3.21",
-        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "alpine320",
-        "label": "Alpine 3.20",
-        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-aarch64-uefi-cloudinit-r0.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       }
@@ -541,65 +520,51 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "centos9",
-        "label": "CentOS 9",
-        "url": "https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "fedora44",
         "label": "Fedora 44",
-        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/images/Fedora-Server-Guest-Generic-44-1.7.x86_64.qcow2",
+        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "fedora43",
         "label": "Fedora 43",
-        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Server/x86_64/images/Fedora-Server-Guest-Generic-43-1.6.x86_64.qcow2",
+        "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora42",
-        "label": "Fedora 42",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/x86_64/images/Fedora-Server-Guest-Generic-42-1.1.x86_64.qcow2",
+        "id": "openSUSE160",
+        "label": "OpenSUSE Leap 16.0",
+        "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora41",
-        "label": "Fedora 41",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/x86_64/images/Fedora-Server-KVM-41-1.4.x86_64.qcow2",
+        "id": "almalinux10",
+        "label": "AlmaLinux 10",
+        "url": "https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora40",
-        "label": "Fedora 40",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/x86_64/images/Fedora-Server-KVM-40-1.14.x86_64.qcow2",
+        "id": "Gentoo",
+        "label": "Gentoo",
+        "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261025T170057Z.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE156",
-        "label": "OpenSUSE Leap 15.6",
-        "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.x86_64-NoCloud.qcow2",
+        "id": "rocky10",
+        "label": "Rocky 10",
+        "url": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE155",
-        "label": "OpenSUSE Leap 15.5",
-        "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.x86_64-NoCloud.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "openSUSE154",
-        "label": "OpenSUSE Leap 15.4",
-        "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.x86_64-NoCloud.qcow2",
+        "id": "rocky9",
+        "label": "Rocky 9",
+        "url": "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -614,27 +579,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "id": "alpine323",
         "label": "Alpine 3.23",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-x86_64-uefi-cloudinit-r0.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "alpine322",
-        "label": "Alpine 3.22",
-        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-x86_64-uefi-cloudinit-r0.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "alpine321",
-        "label": "Alpine 3.21",
-        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-x86_64-uefi-cloudinit-r0.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "alpine320",
-        "label": "Alpine 3.20",
-        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-x86_64-uefi-cloudinit-r0.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       }

@@ -210,7 +210,8 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		XCTAssertEqual(attachments.count, 2)
 		XCTAssertEqual(attachments[0].network, "br0")
 		XCTAssertEqual(attachments[0].mode, .auto)
-		XCTAssertEqual(attachments[1].network, "nat")
+		// legacy "nat" is the default shared network now
+		XCTAssertEqual(attachments[1].network, "default")
 		XCTAssertEqual(attachments[1].macAddress, "aa:bb:cc:dd:ee:ff")
 	}
 }
