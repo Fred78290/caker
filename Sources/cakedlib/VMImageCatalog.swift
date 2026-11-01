@@ -526,8 +526,8 @@ extension VMImageCatalog {
 
 	/// Reads the `latest-*.txt` manifests and remembers the image they name, so that `shared`,
 	/// `reloadIfChanged()` and `--alias` hand out the current one. Best effort: a manifest that can't be
-	/// read keeps the URL of the catalog, and a failure is not retried before the next call. Skipped for
-	/// `latestImagesTTL` after a read.
+	/// read keeps the URL of the catalog and is retried on the next call. Skipped for `latestImagesTTL` after
+	/// a successful read.
 	public static func refreshLatestImages(session: URLSession = .shared) async {
 		let due = latestImages.withLock { state -> Bool in
 			guard let refreshedAt = state.refreshedAt, Date().timeIntervalSince(refreshedAt) < latestImagesTTL else {
@@ -565,7 +565,10 @@ extension VMImageCatalog {
 
 		latestImages.withLock { state in
 			state.urls.merge(urls) { _, new in new }
-			state.refreshedAt = Date()
+			// An unreachable manifest must not hold off the next attempt for the whole TTL.
+			if urls.isEmpty == false {
+				state.refreshedAt = Date()
+			}
 		}
 	}
 }

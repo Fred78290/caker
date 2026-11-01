@@ -983,7 +983,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case almalinux // = 10
       case gentoo // = 11
       case archlinux // = 12
-      case knopix // = 13
+      case knoppix // = 13
       case mandriva // = 14
       case slackware // = 15
       case backtrack // = 16
@@ -1012,7 +1012,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case 10: self = .almalinux
         case 11: self = .gentoo
         case 12: self = .archlinux
-        case 13: self = .knopix
+        case 13: self = .knoppix
         case 14: self = .mandriva
         case 15: self = .slackware
         case 16: self = .backtrack
@@ -1039,7 +1039,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case .almalinux: return 10
         case .gentoo: return 11
         case .archlinux: return 12
-        case .knopix: return 13
+        case .knoppix: return 13
         case .mandriva: return 14
         case .slackware: return 15
         case .backtrack: return 16
@@ -1066,7 +1066,7 @@ public nonisolated struct Caked_Caked: Sendable {
         .almalinux,
         .gentoo,
         .archlinux,
-        .knopix,
+        .knoppix,
         .mandriva,
         .slackware,
         .backtrack,
@@ -8376,7 +8376,7 @@ nonisolated extension Caked_Caked.Configuration.Architecture: SwiftProtobuf._Pro
 }
 
 nonisolated extension Caked_Caked.Configuration.SupportedPlatform: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0undefined\0\u{1}ubuntu\0\u{1}centos\0\u{1}macos\0\u{1}windows\0\u{1}debian\0\u{1}fedora\0\u{1}redhat\0\u{1}openSUSE\0\u{1}alpine\0\u{1}almalinux\0\u{1}gentoo\0\u{1}archlinux\0\u{1}knopix\0\u{1}mandriva\0\u{1}slackware\0\u{1}backtrack\0\u{1}elementary\0\u{1}pop_os\0\u{1}webos\0\u{1}rocky\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0undefined\0\u{1}ubuntu\0\u{1}centos\0\u{1}macos\0\u{1}windows\0\u{1}debian\0\u{1}fedora\0\u{1}redhat\0\u{1}openSUSE\0\u{1}alpine\0\u{1}almalinux\0\u{1}gentoo\0\u{1}archlinux\0\u{1}knoppix\0\u{1}mandriva\0\u{1}slackware\0\u{1}backtrack\0\u{1}elementary\0\u{1}pop_os\0\u{1}webos\0\u{1}rocky\0")
 }
 
 nonisolated extension Caked_Caked.Configuration.ImageSource: SwiftProtobuf._ProtoNameProviding {

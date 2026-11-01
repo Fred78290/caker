@@ -294,7 +294,7 @@ message Caked {
       almalinux  = 10;
       gentoo     = 11;
       archlinux  = 12;
-      knopix     = 13;
+      knoppix    = 13;
       mandriva   = 14;
       slackware  = 15;
       backtrack  = 16;

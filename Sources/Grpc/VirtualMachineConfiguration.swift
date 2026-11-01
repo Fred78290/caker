@@ -221,7 +221,7 @@ public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 	case almalinux
 	case gentoo
 	case archlinux
-	case knopix
+	case knoppix
 	case mandriva
 	case slackware
 	case backtrack
@@ -371,8 +371,8 @@ extension Caked.Configuration.SupportedPlatform {
 			self = .gentoo
 		case .archlinux:
 			self = .archlinux
-		case .knopix:
-			self = .knopix
+		case .knoppix:
+			self = .knoppix
 		case .mandriva:
 			self = .mandriva
 		case .slackware:

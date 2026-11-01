@@ -1307,7 +1307,12 @@ class CloudInit {
 			}
 		}
 
-		let installAgentScript = try self.installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem)
+		// The script decodes these as gzip+base64, unlike the raw PEM written by the Kickstart heredocs below.
+		let installAgentScript = try self.installCakeAgentScript(
+			config: config,
+			caCert: try Compression.compressEncoded(contentOf: certificates.caCertURL),
+			serverKey: try Compression.compressEncoded(contentOf: certificates.serverKeyURL),
+			serverPem: try Compression.compressEncoded(contentOf: certificates.serverCertURL))
 
 		scripts.append("%post --interpreter=/bin/bash")
 

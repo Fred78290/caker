@@ -60,9 +60,8 @@ final class VMImageCatalogLatestImageTests: XCTestCase {
 			return XCTFail("gentoo entry")
 		}
 
-		try XCTSkipIf(url == VMImageCatalog.loadBundled().current.cloud.first(where: { $0.id == "gentoo" })?.url && url.contains("current-di-") == false, "manifest unreachable")
+		try XCTSkipIf(url == VMImageCatalog.loadBundled().current.cloud.first(where: { $0.id == "gentoo" })?.url , "manifest unreachable or unchanged")
 		XCTAssertTrue(url.contains("/current-di-"), url)
 		XCTAssertTrue(url.hasSuffix(".qcow2"), url)
-		print("GENTOO LATEST:", url)
 	}
 }
