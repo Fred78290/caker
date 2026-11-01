@@ -94,9 +94,9 @@ final class NetworkConfigTests: XCTestCase {
 	}
 
 	func testReconfiguringANetworkIgnoresItsOwnAddress() throws {
-		guard let first = interfaces.first else {
-			XCTFail("No network interfaces found")
-			return
+		// x.y.z.1 and x.y.z.254 must both belong to the interface's block, so it needs a prefix of 24 bits or fewer.
+		guard let first = interfaces.first(where: { (8...24).contains($0.value.bits) }) else {
+			throw XCTSkip("No network interface with a prefix between 8 and 24 bits")
 		}
 
 		let gateway: String = withUnsafeBytes(of: first.value.base.storage) {
