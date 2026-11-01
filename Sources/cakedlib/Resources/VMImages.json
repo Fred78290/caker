@@ -23,8 +23,7 @@
 			{ "id": "alpine323-iso", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
-			{ "id": "macos272", "label": "macOS 27.2 beta3", "url": "https://updates.cdn-apple.com/2026FallSeed/be28b1ac-a2ec-40db-a9ad-29bef37820f8/UniversalMac_27.2_26B5101f_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
-			{ "id": "macos27", "label": "macOS 27.0.1", "url": "https://updates.cdn-apple.com/2026FallFCS/59241290-5d51-4ca8-9df4-31624b9a4eac/UniversalMac_27.0.1_26A434_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
+			{ "id": "macos27", "label": "macOS 27.2", "url": "https://updates.cdn-apple.com/2026FallFCS/c9671975-52db-4fb5-9af2-00217169ba8d/UniversalMac_27.2_26B123_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos26", "label": "macOS 26.6.2", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos15", "label": "macOS 15.6.1", "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
 			{ "id": "macos14", "label": "macOS 14.6.1", "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
