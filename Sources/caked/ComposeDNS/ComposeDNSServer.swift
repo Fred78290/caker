@@ -10,20 +10,23 @@ import Synchronization
 /// rather than IMDS's own (isolated) side channel.
 ///
 /// Answers `<service>.<project>.<domain>` and `<vmname>.<domain>` A queries (see
-/// `ComposeDNS.QueryName`), from `registry` — `REFUSED` for anything outside that domain (never
-/// an open resolver on the shared NAT subnet), and `NXDOMAIN` for a name inside it that isn't
+/// `ComposeDNS.QueryName`) from `registry`, `NXDOMAIN` for a name inside that domain that isn't
 /// currently registered (unknown project/service/VM, or registered but not currently running).
-/// No recursion, no other record types, no TCP fallback (every answer here is one A record —
-/// small enough to never need one).
+/// This is the network's **main** DNS server (it is what the network's DHCP server hands out): a
+/// name outside the domain is forwarded to the next resolver (`forwarder`) and its answer relayed.
+/// Without a forwarder it is `REFUSED`, never an open resolver on the shared subnet.
+/// No TCP fallback (every local answer is one A record — small enough to never need one).
 final class ComposeDNSInboundHandler: ChannelInboundHandler {
 	typealias InboundIn = AddressedEnvelope<ByteBuffer>
 	typealias OutboundOut = AddressedEnvelope<ByteBuffer>
 
 	private let registry: ComposeDNSRegistry
+	private let forwarder: DNSForwarder?
 	private let logger = Logger("ComposeDNSServer")
 
-	init(registry: ComposeDNSRegistry) {
+	init(registry: ComposeDNSRegistry, forwarder: DNSForwarder?) {
 		self.registry = registry
+		self.forwarder = forwarder
 	}
 
 	func channelRead(context: ChannelHandlerContext, data: NIOAny) {
@@ -59,6 +62,26 @@ final class ComposeDNSInboundHandler: ChannelInboundHandler {
 			// AAAA, which this resolver never has an answer for) — a clean "no data" is more
 			// correct than REFUSED, since the name itself is legitimately ours to answer for.
 			responseData = DNSMessage.encodeResponse(to: query, addresses: [])
+		} else if let forwarder = self.forwarder {
+			// Not ours: ask the next resolver and relay its answer verbatim.
+			let box = NIOLoopBound(context, eventLoop: context.eventLoop)
+			let remote = envelope.remoteAddress
+			let rawQuery = bytes
+			let fallback = [UInt8](DNSMessage.encodeError(to: query, rcode: .serverFailure))
+
+			Task {
+				let answer = await forwarder.forward(rawQuery) ?? fallback
+
+				box.value.eventLoop.execute {
+					let context = box.value
+					var buffer = context.channel.allocator.buffer(capacity: answer.count)
+
+					buffer.writeBytes(answer)
+					context.writeAndFlush(self.wrapOutboundOut(AddressedEnvelope(remoteAddress: remote, data: buffer)), promise: nil)
+				}
+			}
+
+			return
 		} else {
 			// Outside the synthetic domain entirely — refuse rather than silently ignore, so
 			// a client sees a clear, fast failure instead of waiting out its own timeout.
@@ -111,19 +134,24 @@ public final class ComposeDNSServer: Sendable {
 	// `start()` from these plain, genuinely `Sendable` values instead.
 	private let group: EventLoopGroup
 	private let registry: ComposeDNSRegistry
-	private let channelBox: Mutex<Channel?> = Mutex(nil)
+	private let forwarder: DNSForwarder?
+	private let channelBox: Mutex<[Channel]> = Mutex([])
 
 	public static let pollInterval: Double = 3
 
 	public let internalPort: Int
+	/// The standard DNS port (53) the network's DHCP server advertises, bound next to `internalPort` (which
+	/// guests wired by an earlier version still query). `nil` when this process can't bind it.
+	public let standardPort: Int?
 	public let bindAddress: String
 
-	public init(group: EventLoopGroup, registry: ComposeDNSRegistry, bindAddress: String, internalPort: Int = ComposeDNS.internalBindPort) {
-
+	public init(group: EventLoopGroup, registry: ComposeDNSRegistry, bindAddress: String, internalPort: Int = ComposeDNS.internalBindPort, standardPort: Int? = nil, forwarder: DNSForwarder? = nil) {
 		self.group = group
 		self.registry = registry
 		self.bindAddress = bindAddress
 		self.internalPort = internalPort
+		self.standardPort = standardPort
+		self.forwarder = forwarder
 	}
 
 	/// `true` if `address` is currently assigned to a live host network interface — checked
@@ -143,15 +171,26 @@ public final class ComposeDNSServer: Sendable {
 		}
 
 		let registry = self.registry
+		let forwarder = self.forwarder
 		let bootstrap = DatagramBootstrap(group: self.group)
 			.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
 			.channelInitializer { channel in
-				channel.pipeline.addHandler(ComposeDNSInboundHandler(registry: registry))
+				channel.pipeline.addHandler(ComposeDNSInboundHandler(registry: registry, forwarder: forwarder))
 			}
 
-		let channel = try bootstrap.bind(host: self.bindAddress, port: self.internalPort).wait()
+		var channels: [Channel] = []
 
-		self.channelBox.withLock { $0 = channel }
+		do {
+			for port in [self.internalPort] + (self.standardPort.map { [$0] } ?? []) {
+				channels.append(try bootstrap.bind(host: self.bindAddress, port: port).wait())
+			}
+		} catch {
+			// All or nothing: a retry must not find the first port still held.
+			channels.forEach { $0.close(promise: nil) }
+			throw error
+		}
+
+		self.channelBox.withLock { $0 = channels }
 	}
 
 	/// Retries `start()` with a fixed delay until it succeeds or `maxAttempts` is reached —
@@ -185,8 +224,13 @@ public final class ComposeDNSServer: Sendable {
 	}
 
 	public func shutdown() async {
-		let channel = self.channelBox.withLock { $0 }
+		let channels = self.channelBox.withLock { value -> [Channel] in
+			defer { value = [] }
+			return value
+		}
 
-		try? await channel?.close()
+		for channel in channels {
+			try? await channel.close()
+		}
 	}
 }

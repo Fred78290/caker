@@ -273,6 +273,31 @@ struct Networks: ParsableCommand {
 		return CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode)
 	}
 
+	/// `a.b.c.d/nn` of the subnet `network` lives in.
+	static func subnet(of network: VZSharedNetwork) -> String {
+		let mask = DHCPAddress.parse(network.netmask) ?? 0xffff_ff00
+		let base = (DHCPAddress.parse(network.gateway) ?? 0) & mask
+
+		return "\(DHCPAddress.string(base))/\(network.netmask.netmaskToCidr())"
+	}
+
+	/// The DHCP server of `network`: pool from the first address after the gateway up to `dhcp-end`, leases kept in
+	/// the network's own table.
+	static func makeDHCPServer(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> DHCPServer {
+		guard let gateway = DHCPAddress.parse(network.gateway), let netmask = DHCPAddress.parse(network.netmask), let end = DHCPAddress.parse(network.dhcpEnd) else {
+			throw ServiceError(String(localized: "Bad network configuration \(networkName)"))
+		}
+
+		let start = max(DHCPAddress.parse(network.dhcpStart) ?? 0, gateway + 1)
+		let store = DHCPLeaseStore(
+			gateway: gateway, poolStart: start, poolEnd: end, leaseDuration: TimeInterval(network.dhcpLease ?? 86400),
+			fileURL: try CakedLib.NetworksHandler.dhcpLeaseFile(networkName: networkName, runMode: runMode))
+		// The gateway is the DNS server: the compose resolver when `dns` is on, vmnet's proxy otherwise.
+		let responder = DHCPResponder(configuration: .init(gateway: gateway, netmask: netmask, dnsServers: [gateway], domainName: network.dns == true ? ComposeDNS.domainSuffix : nil), store: store)
+
+		return DHCPServer(group: Utilities.group, responder: responder, bindAddress: network.gateway)
+	}
+
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
 		let logger = Logger(self)
@@ -283,15 +308,43 @@ struct Networks: ParsableCommand {
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
+		var dhcpServer: DHCPServer? = nil
 
-		// Starts or stops the compose DNS resolver so it follows the network's `dns` setting.
-		let syncDNSCoordinator: (VZSharedNetwork) -> Void = { network in
+		// Starts or stops the network's own services so they follow its configuration: caked's DHCP server
+		// (replaces vmnet's, see `NetworksHandler.usesCakerDHCP`) and the compose DNS resolver (`dns`).
+		let syncServices: (VZSharedNetwork) -> Void = { network in
+			let ownsDHCP = CakedLib.NetworksHandler.usesCakerDHCP(network)
+
+			if ownsDHCP, dhcpServer == nil {
+				do {
+					dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
+
+					if let server = dhcpServer {
+						Task {
+							do {
+								try await server.startWithRetry()
+							} catch is CancellationError {
+							} catch {
+								logger.error("DHCP server of network \(options.networkName) failed: \(error)")
+							}
+						}
+					}
+				} catch {
+					logger.error("Unable to start the DHCP server of network \(options.networkName): \(error)")
+				}
+			}
+
 			if network.dns == true {
 				guard coordinator == nil else {
 					return
 				}
 
-				let started = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
+				// As the network's DHCP server hands the gateway out as DNS server, the resolver must answer on port 53
+				// and pass what isn't its own on to the host's resolvers.
+				let forwarder = ownsDHCP ? DNSForwarder(group: Utilities.group, upstreams: { DNSForwarder.systemResolvers(excluding: [network.gateway]) }) : nil
+				let started = ComposeDNSCoordinator(
+					group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort,
+					standardPort: ownsDHCP ? 53 : nil, forwarder: forwarder, networkName: ownsDHCP ? options.networkName : nil, subnet: ownsDHCP ? Self.subnet(of: network) : nil)
 
 				coordinator = started
 
@@ -305,6 +358,20 @@ struct Networks: ParsableCommand {
 					await stopped.shutdown()
 				}
 			}
+		}
+
+		// Stops everything `syncServices` started.
+		let stopServices: () async -> Void = {
+			if let coordinator {
+				await coordinator.shutdown()
+			}
+
+			if let dhcpServer {
+				await dhcpServer.shutdown()
+			}
+
+			coordinator = nil
+			dhcpServer = nil
 		}
 
 		defer {
@@ -339,7 +406,8 @@ struct Networks: ParsableCommand {
 		if isPhysicalInterface == false {
 			let sigReconfigure = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
-			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false {
+			// With caked's own DHCP server the lease time is the network's `dhcpLease`, not a host-wide bootpd setting.
+			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false, CakedLib.NetworksHandler.usesCakerDHCP(mode: options.mode) == false {
 				_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 			}
 
@@ -352,14 +420,10 @@ struct Networks: ParsableCommand {
 
 				Task {
 					do {
-						// Coodinator must be stopped before if the network's `dns` setting changes.
-						if let coordinator {
-							await coordinator.shutdown()
-						}
+						// The services must be stopped first: the network's `dns`/range may have changed.
+						await stopServices()
 
-						coordinator = nil
-
-						try syncDNSCoordinator(vzvmnet.vmnet.restart())
+						try syncServices(vzvmnet.vmnet.restart())
 					} catch {
 						Logger(self).error("Failed to reconfigure network: \(error)")
 					}
@@ -375,10 +439,8 @@ struct Networks: ParsableCommand {
 				sig.cancel()
 			}
 
-			if let coordinator {
-				Task.sync {
-					await coordinator.shutdown()
-				}
+			Task.sync {
+				await stopServices()
 			}
 
 			signals.forEach { sig in
@@ -388,7 +450,7 @@ struct Networks: ParsableCommand {
 
 		do {
 			try vzvmnet.vmnet.start { network in
-				syncDNSCoordinator(network)
+				syncServices(network)
 			}
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")

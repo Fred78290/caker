@@ -836,7 +836,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 					return runningIP
 				}
 			} else {
-				leases = try DHCPLeaseParser()
+				leases = try DHCPLeaseParser(runMode: runMode)
 
 				if let runningIP = leases[clientID] {
 					return runningIP

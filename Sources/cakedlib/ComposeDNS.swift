@@ -172,16 +172,19 @@ public enum ComposeDNS {
 	/// `config.macAddress` specifically — so this same lookup works for a `driver: bridge`
 	/// compose service too, not only a NAT-primary one. `nil` if the lease table has nothing for
 	/// this VM yet (not yet DHCP-assigned) or the parser itself couldn't be read.
-	public static func natAddress(for config: CakeConfig, name: String? = nil) -> String? {
+	///
+	/// `network` restricts the lookup to the lease table of that network (each network served by caked's DHCP
+	/// server has its own); `nil` reads every table. `runMode` locates those tables.
+	public static func natAddress(for config: CakeConfig, name: String? = nil, runMode: Utils.RunMode = .current, network: String? = nil, subnet: String? = nil) -> String? {
 		let clientID = config.dhcpClientID ?? config.macAddress ?? ""
 
-		if clientID.isEmpty == false, let parser = try? DHCPLeaseParser() {
+		if clientID.isEmpty == false, let parser = try? DHCPLeaseParser(runMode: runMode, network: network) {
 			if let address = parser[clientID] {
 				return address
 			}
 
 			// dhcpcd (Alpine, Gentoo) sends a DUID as client identifier: the lease is not keyed by the MAC.
-			if let name, let address = parser.address(forHostname: name, in: BridgeAttachement.defaultNetworkGateway) {
+			if let name, let address = parser.address(forHostname: name, in: subnet ?? BridgeAttachement.defaultNetworkGateway) {
 				return address
 			}
 		}
@@ -216,6 +219,7 @@ public enum DNSMessage {
 	public enum ResponseCode: UInt8 {
 		case noError = 0
 		case formatError = 1
+		case serverFailure = 2
 		case nxDomain = 3
 		case refused = 5
 	}

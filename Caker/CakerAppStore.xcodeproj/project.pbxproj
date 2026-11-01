@@ -805,6 +805,10 @@
 		EC403890050087209287101F /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
 		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
 		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		D7890B709043A7CC5E20D816 /* DHCPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0095811305FA3D99E63F5ED2 /* DHCPMessage.swift */; };
+		22F6EDA571A731E22BEEE937 /* DHCPLeaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47C858CBDAC83D62A6C7281 /* DHCPLeaseStore.swift */; };
+		F34FDFA323B0C695347A8DB7 /* DHCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6EDF80D6EDF73999A640B1 /* DHCPServer.swift */; };
+		C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1726,6 +1730,10 @@
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
 		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
 		FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordHandler.swift; sourceTree = "<group>"; };
+		0095811305FA3D99E63F5ED2 /* DHCPMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPMessage.swift; sourceTree = "<group>"; };
+		F47C858CBDAC83D62A6C7281 /* DHCPLeaseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeaseStore.swift; sourceTree = "<group>"; };
+		6F6EDF80D6EDF73999A640B1 /* DHCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPServer.swift; sourceTree = "<group>"; };
+		92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSForwarder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3055,6 +3063,10 @@
 				9BDC05242FEADADE00802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
+				92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */,
+				6F6EDF80D6EDF73999A640B1 /* DHCPServer.swift */,
+				F47C858CBDAC83D62A6C7281 /* DHCPLeaseStore.swift */,
+				0095811305FA3D99E63F5ED2 /* DHCPMessage.swift */,
 				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -4409,6 +4421,10 @@
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
+				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
+				F34FDFA323B0C695347A8DB7 /* DHCPServer.swift in Sources */,
+				22F6EDA571A731E22BEEE937 /* DHCPLeaseStore.swift in Sources */,
+				D7890B709043A7CC5E20D816 /* DHCPMessage.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */,
