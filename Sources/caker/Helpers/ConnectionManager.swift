@@ -209,7 +209,15 @@ final class ConnectionManager: Equatable {
 	}
 
 	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
-		NetworksHandler.configure(client: self.serviceClient, network: network, runMode: self.connectionMode.runMode)
+		let client = self.serviceClient
+
+		// Without a client only `.app` mode may configure locally; otherwise a failed connection would silently
+		// reconfigure a same-named local network instead of the one that was edited.
+		if client == nil && self.connectionMode != .app {
+			return ConfiguredNetworkReply(name: network.name, configured: false, reason: String(localized: "Unable to connect to the service"))
+		}
+
+		return NetworksHandler.configure(client: client, network: network, runMode: self.connectionMode.runMode)
 	}
 
 	func startNetwork(networkName: String) -> StartedNetworkReply {

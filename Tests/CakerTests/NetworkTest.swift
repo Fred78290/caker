@@ -93,4 +93,58 @@ final class NetworkConfigTests: XCTestCase {
 		}
 	}
 
+	func testReconfiguringANetworkIgnoresItsOwnAddress() throws {
+		guard let first = interfaces.first else {
+			XCTFail("No network interfaces found")
+			return
+		}
+
+		let gateway: String = withUnsafeBytes(of: first.value.base.storage) {
+			"\($0[0]).\($0[1]).\($0[2]).1"
+		}
+
+		let dhcpEnd: String = withUnsafeBytes(of: first.value.base.storage) {
+			"\($0[0]).\($0[1]).\($0[2]).254"
+		}
+
+		let vz = VZSharedNetwork(mode: .shared, netmask: "\(first.value.bits)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+
+		// Same address as an existing network: refused for a new network, accepted when it is that network being reconfigured.
+		XCTAssertThrowsError(try vz.validate(runMode: .user))
+		XCTAssertNoThrow(try vz.validate(runMode: .user, excluding: first.key))
+	}
+
+	func testWidenedSubnetSwallowingAnotherNetworkIsRejected() throws {
+		guard let first = interfaces.first(where: { $0.value.bits >= 9 }) else {
+			throw XCTSkip("No network interface with a prefix of at least 9 bits")
+		}
+
+		// Same first octet, second octet flipped so the gateway is outside the interface's own block,
+		// but a /8 around it still contains that block.
+		let gateway: String = withUnsafeBytes(of: first.value.base.storage) {
+			"\($0[0]).\($0[1] ^ 0x80).\($0[2]).1"
+		}
+
+		let dhcpEnd: String = withUnsafeBytes(of: first.value.base.storage) {
+			"\($0[0]).\($0[1] ^ 0x80).\($0[2]).254"
+		}
+
+		let vz = VZSharedNetwork(mode: .shared, netmask: "255.0.0.0", dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+
+		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
+			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "Gateway \(gateway) is already in use")))
+		}
+	}
+
+	func testDhcpEndMustFollowDhcpStart() throws {
+		let reversed = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.250.250.200", dhcpEnd: "10.250.250.100", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+
+		XCTAssertThrowsError(try reversed.validate(runMode: .user)) { error in
+			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "dhcp end 10.250.250.100 must be after dhcp start 10.250.250.200")))
+		}
+
+		let same = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.250.250.100", dhcpEnd: "10.250.250.100", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+
+		XCTAssertThrowsError(try same.validate(runMode: .user))
+	}
 }

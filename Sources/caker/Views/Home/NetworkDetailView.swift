@@ -334,6 +334,10 @@ struct EditableNetworkDetailView: View {
 			return String(localized: "dhcp end \(String(dhcpEnd)) is not in the range of the network \(draft.gateway)")
 		}
 
+		if let start = VZSharedNetwork.ipv4Value(draft.dhcpStart), let end = VZSharedNetwork.ipv4Value(dhcpEnd.description), end <= start {
+			return String(localized: "dhcp end \(dhcpEnd.description) must be after dhcp start \(draft.dhcpStart)")
+		}
+
 		if draft.dhcpLease.isEmpty == false, NetworkDetailViewModel.dhcpLeaseRange.inRange(Int(draft.dhcpLease) ?? 0) == false {
 			return String(localized: "Invalid dhcp lease \(draft.dhcpLease)")
 		}

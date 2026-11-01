@@ -79,8 +79,14 @@ public struct VZSharedNetwork: Codable, Equatable {
 			throw ServiceError(String(localized: "dhcp end \(dhcpEnd) is not in the range of the network \(network.description)"))
 		}
 
+		if let start = Self.ipv4Value(dhcpStart), let last = Self.ipv4Value(dhcpEnd), last <= start {
+			throw ServiceError(String(localized: "dhcp end \(dhcpEnd) must be after dhcp start \(dhcpStart)"))
+		}
+
+		// Two CIDR blocks overlap when one contains the other's network address, so a widened subnet that swallows
+		// another network is caught even when that network doesn't contain this gateway.
 		let matches = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).compactMap {
-			$0.key != excluding && $0.value.network.contains(gateway) ? $0.value.network : nil
+			$0.key != excluding && ($0.value.network.contains(gateway) || network.contains($0.value.network.base) || $0.value.network.contains(network.base)) ? $0.value.network : nil
 		}
 
 		guard matches.isEmpty else {
@@ -94,20 +100,21 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 	}
 
+	/// The 32-bit value of a dotted IPv4 address, nil when it isn't one.
+	public static func ipv4Value(_ value: String) -> UInt32? {
+		let parts = value.split(separator: ".").map { UInt8($0) }
+
+		guard parts.count == 4, parts.allSatisfy({ $0 != nil }) else {
+			return nil
+		}
+
+		return parts.reduce(0) { ($0 << 8) | UInt32($1!) }
+	}
+
 	/// Default end of the DHCP range for a network starting at `dhcpStart`: the last usable host address of its
 	/// subnet (broadcast - 1, so `.254` on a /24). Nil when the addresses are invalid or no address follows `dhcpStart`.
 	public static func defaultDhcpEnd(dhcpStart: String, netmask: String) -> String? {
-		func octets(_ value: String) -> UInt32? {
-			let parts = value.split(separator: ".").compactMap { UInt8($0) }
-
-			guard parts.count == 4 else {
-				return nil
-			}
-
-			return parts.reduce(0) { ($0 << 8) | UInt32($1) }
-		}
-
-		guard let address = octets(dhcpStart), let mask = octets(netmask), mask != 0xFFFF_FFFF else {
+		guard let address = ipv4Value(dhcpStart), let mask = ipv4Value(netmask), mask != 0xFFFF_FFFF else {
 			return nil
 		}
 
