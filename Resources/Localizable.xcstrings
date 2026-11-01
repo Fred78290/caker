@@ -3188,6 +3188,16 @@
         }
       }
     },
+    "defaults to the last address of the network when only --gateway is specified" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "par défaut la dernière adresse du réseau quand seul --gateway est spécifié"
+          }
+        }
+      }
+    },
     "Configure automatically the system" : {
       "localizations" : {
         "fr" : {

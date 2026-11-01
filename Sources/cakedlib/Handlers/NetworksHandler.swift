@@ -671,11 +671,15 @@ public struct NetworksHandler {
 				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) doesn't exists"))
 			}
 
+			let netmask = network.netmask ?? exisiting.netmask
+			// A new start address without an end: default the end to the last address of the network.
+			let dhcpEnd = network.dhcpEnd ?? (network.dhcpStart.flatMap { VZSharedNetwork.defaultDhcpEnd(dhcpStart: $0, netmask: netmask) } ?? exisiting.dhcpEnd)
+
 			let changed = VZSharedNetwork(
 				mode: exisiting.mode,
-				netmask: network.netmask ?? exisiting.netmask,
+				netmask: netmask,
 				dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
-				dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
+				dhcpEnd: dhcpEnd,
 				dhcpLease: network.dhcpLease ?? exisiting.dhcpLease,
 				interfaceID: network.interfaceID ?? exisiting.interfaceID,
 				nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix,

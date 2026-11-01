@@ -94,6 +94,32 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 	}
 
+	/// Default end of the DHCP range for a network starting at `dhcpStart`: the last usable host address of its
+	/// subnet (broadcast - 1, so `.254` on a /24). Nil when the addresses are invalid or no address follows `dhcpStart`.
+	public static func defaultDhcpEnd(dhcpStart: String, netmask: String) -> String? {
+		func octets(_ value: String) -> UInt32? {
+			let parts = value.split(separator: ".").compactMap { UInt8($0) }
+
+			guard parts.count == 4 else {
+				return nil
+			}
+
+			return parts.reduce(0) { ($0 << 8) | UInt32($1) }
+		}
+
+		guard let address = octets(dhcpStart), let mask = octets(netmask), mask != 0xFFFF_FFFF else {
+			return nil
+		}
+
+		let end = ((address & mask) | ~mask) - 1
+
+		guard end > address else {
+			return nil
+		}
+
+		return "\(end >> 24 & 0xFF).\(end >> 16 & 0xFF).\(end >> 8 & 0xFF).\(end & 0xFF)"
+	}
+
 	public static var defaultNatNetwork: VZSharedNetwork {
 		let network = NetworksHandler.defaultNatNetwork(runMode: geteuid() == 0 ? .system : .user)
 		let dhcpStart = network.gateway.toIPV4()

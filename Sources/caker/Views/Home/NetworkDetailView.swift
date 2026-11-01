@@ -17,29 +17,8 @@ import SwiftUI
 	var netmask: TextFieldStore<String, RegexParseableFormatStyle>
 	var dhcpLease: TextFieldStore<Int, RangeIntegerStyle>
 
-	/// Last usable host address (broadcast - 1) of the network containing `start`, or nil when it would not follow `start`.
 	static func defaultDhcpEnd(start: String, netmask: String) -> String? {
-		func octets(_ value: String) -> UInt32? {
-			let parts = value.split(separator: ".").compactMap { UInt8($0) }
-
-			guard parts.count == 4 else {
-				return nil
-			}
-
-			return parts.reduce(0) { ($0 << 8) | UInt32($1) }
-		}
-
-		guard let address = octets(start), let mask = octets(netmask), mask != 0xFFFF_FFFF else {
-			return nil
-		}
-
-		let end = ((address & mask) | ~mask) - 1
-
-		guard end > address else {
-			return nil
-		}
-
-		return "\(end >> 24 & 0xFF).\(end >> 16 & 0xFF).\(end >> 8 & 0xFF).\(end & 0xFF)"
+		VZSharedNetwork.defaultDhcpEnd(dhcpStart: start, netmask: netmask)
 	}
 
 	init(network: BridgedNetwork) {
