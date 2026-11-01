@@ -492,6 +492,10 @@ public struct VMBuilder {
 	}
 
 	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
+		if options.imageId != nil {
+			await VMImageCatalog.refreshLatestImages()
+		}
+
 		var resolvedOptions = try options.resolveImageId()
 
 		if resolvedOptions.imageSource == .iso {

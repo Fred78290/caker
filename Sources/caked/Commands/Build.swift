@@ -42,6 +42,8 @@ struct Build: AsyncParsableCommand {
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
 
 		let task = Task {
+			await VMImageCatalog.refreshLatestImages()
+
 			try await Logger.appendNewLine(self.common.format.render(CakedLib.BuildHandler.build(options: self.options.resolveImageId(), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
 		}
 

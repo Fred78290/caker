@@ -45,6 +45,8 @@ struct LXDVMImagesController: RouteCollection {
 
 	@Sendable
 	func getCatalog(req: Request) async throws -> Response {
+		await VMImageCatalog.refreshLatestImages()
+
 		let catalog = VMImageCatalog.reloadIfChanged().current
 
 		#if arch(arm64)
