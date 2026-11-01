@@ -9,6 +9,8 @@
 //    sudo env CAKER_DHCP_VMNET_TEST=1 swift test --skip-build --filter DHCPVmnetIntegrationTests
 //
 
+#if !APPSTORE
+
 import Darwin
 import Foundation
 import NIOCore
@@ -339,3 +341,5 @@ final class DHCPVmnetIntegrationTests: XCTestCase {
 		try? group.syncShutdownGracefully()
 	}
 }
+
+#endif

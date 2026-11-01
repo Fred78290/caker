@@ -809,6 +809,7 @@
 		22F6EDA571A731E22BEEE937 /* DHCPLeaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47C858CBDAC83D62A6C7281 /* DHCPLeaseStore.swift */; };
 		F34FDFA323B0C695347A8DB7 /* DHCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6EDF80D6EDF73999A640B1 /* DHCPServer.swift */; };
 		C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */; };
+		2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1734,6 +1735,7 @@
 		F47C858CBDAC83D62A6C7281 /* DHCPLeaseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeaseStore.swift; sourceTree = "<group>"; };
 		6F6EDF80D6EDF73999A640B1 /* DHCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPServer.swift; sourceTree = "<group>"; };
 		92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSForwarder.swift; sourceTree = "<group>"; };
+		7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreGuestDNS.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2914,6 +2916,7 @@
 				9BEBC7102DF440720092B196 /* Certificate.swift */,
 				9BEBC7112DF440720092B196 /* CloudImageConverter.swift */,
 				9BEBC7122DF440720092B196 /* CloudInit.swift */,
+				7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */,
 				9BEBC7132DF440720092B196 /* ImageCache.swift */,
 				9BEBC7142DF440720092B196 /* SimpleStreams.swift */,
 			);
@@ -4459,6 +4462,7 @@
 				9B48B6673033687600B18C35 /* SplashScreenView.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
+				2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,

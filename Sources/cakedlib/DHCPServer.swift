@@ -114,6 +114,8 @@ public final class DHCPResponder: Sendable {
 	}
 }
 
+#if !APPSTORE
+
 public enum DHCPServerError: Error, CustomStringConvertible {
 	case interfaceNotFound(String)
 	case bpf(String)
@@ -410,3 +412,5 @@ public final class DHCPServer: Sendable {
 		running?.source.cancel()
 	}
 }
+
+#endif

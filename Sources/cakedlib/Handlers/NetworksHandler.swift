@@ -158,7 +158,7 @@ public struct NetworksHandler {
 		}
 	}
 
-	/// Whether caked serves DHCP (and, when `dns` is on, DNS on port 53) for this network instead of vmnet.
+	/// Whether caked serves DHCP (and, when `dns` is on, DNS on port 53) for this network instead of vmnet. **Full build only**: always false in the App Store build.
 	///
 	/// Only networks created through `vmnet_network_ref` (macOS 26+) can have vmnet's DHCP switched off, binding the
 	/// privileged ports 67/53 needs root, and a sandboxed build can't do either. Everywhere else vmnet keeps serving
@@ -168,12 +168,23 @@ public struct NetworksHandler {
 	}
 
 	public static func usesCakerDHCP(mode: VMNetMode) -> Bool {
-		guard mode != .bridged, vmnetNative, Bundle.isApplicationSandboxed == false, geteuid() == 0 else {
+		// The App Store build is sandboxed (no root, no /dev/bpf): vmnet keeps serving DHCP and DNS there.
+		#if APPSTORE
 			return false
-		}
-
-		return ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+		#else
+			return Self.usesCakerDHCPOnThisHost(mode: mode)
+		#endif
 	}
+
+	#if !APPSTORE
+		private static func usesCakerDHCPOnThisHost(mode: VMNetMode) -> Bool {
+			guard mode != .bridged, vmnetNative, Bundle.isApplicationSandboxed == false, geteuid() == 0 else {
+				return false
+			}
+
+			return ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+		}
+	#endif
 
 	/// `<CAKE_HOME>/net/<name>/dhcpd_leases`: the lease table of the DHCP server of that network.
 	public static func dhcpLeaseFile(networkName: String, runMode: Utils.RunMode) throws -> URL {

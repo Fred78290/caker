@@ -21,6 +21,7 @@ if command -v zypper >/dev/null 2>&1 && ! grep -qs '^enabled=1' /etc/zypp/repos.
 	fi
 fi
 
+%@
 # SELinux is turned off on every image that has it: permissive right now (setenforce), disabled from
 # the next boot (the config file; the running kernel keeps SELinux until then).
 if [ -f /etc/selinux/config ]; then

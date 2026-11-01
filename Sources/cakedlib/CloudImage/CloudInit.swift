@@ -1079,7 +1079,10 @@ class CloudInit {
 		let serverKey = serverKey ?? ""
 		let serverPem = serverPem ?? ""
 
-		return try String(format: loadCakeAgentScript(), "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, caCert, serverKey, serverPem)
+		let dnsIP = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
+		let guestDNS = AppStoreGuestDNS.cloudInitFragment(domain: ComposeDNS.domainSuffix, ip: dnsIP, port: "\(ComposeDNS.internalBindPort)")
+
+		return try String(format: loadCakeAgentScript(), "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, caCert, serverKey, serverPem, guestDNS)
 	}
 
 	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel

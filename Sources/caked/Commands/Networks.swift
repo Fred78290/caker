@@ -281,6 +281,7 @@ struct Networks: ParsableCommand {
 		return "\(DHCPAddress.string(base))/\(network.netmask.netmaskToCidr())"
 	}
 
+	#if !APPSTORE
 	/// The DHCP server of `network`: pool from the first address after the gateway up to `dhcp-end`, leases kept in
 	/// the network's own table.
 	static func makeDHCPServer(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> DHCPServer {
@@ -297,6 +298,7 @@ struct Networks: ParsableCommand {
 
 		return DHCPServer(group: Utilities.group, responder: responder, bindAddress: network.gateway)
 	}
+	#endif
 
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
@@ -308,13 +310,16 @@ struct Networks: ParsableCommand {
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
-		var dhcpServer: DHCPServer? = nil
+		#if !APPSTORE
+			var dhcpServer: DHCPServer? = nil
+		#endif
 
 		// Starts or stops the network's own services so they follow its configuration: caked's DHCP server
 		// (replaces vmnet's, see `NetworksHandler.usesCakerDHCP`) and the compose DNS resolver (`dns`).
 		let syncServices: (VZSharedNetwork) -> Void = { network in
 			let ownsDHCP = CakedLib.NetworksHandler.usesCakerDHCP(network)
 
+			#if !APPSTORE
 			if ownsDHCP, dhcpServer == nil {
 				do {
 					dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
@@ -333,6 +338,7 @@ struct Networks: ParsableCommand {
 					logger.error("Unable to start the DHCP server of network \(options.networkName): \(error)")
 				}
 			}
+			#endif
 
 			if network.dns == true {
 				guard coordinator == nil else {
@@ -366,12 +372,15 @@ struct Networks: ParsableCommand {
 				await coordinator.shutdown()
 			}
 
-			if let dhcpServer {
-				await dhcpServer.shutdown()
-			}
+			#if !APPSTORE
+				if let dhcpServer {
+					await dhcpServer.shutdown()
+				}
+
+				dhcpServer = nil
+			#endif
 
 			coordinator = nil
-			dhcpServer = nil
 		}
 
 		defer {
