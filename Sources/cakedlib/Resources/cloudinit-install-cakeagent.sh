@@ -182,6 +182,8 @@ if [ -f /etc/selinux/config ]; then
 		command -v semanage >/dev/null 2>&1 || echo 'semanage could not be installed, the agent cannot label itself for SELinux' >&2
 	fi
 
+	echo 'NOTICE: SELinux is disabled on this guest (permissive now, disabled from the next boot): caker turns it off on every distro, cloud image or ISO.'
+
 	if grep -q '^SELINUX=' /etc/selinux/config; then
 		sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
 	else

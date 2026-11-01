@@ -115,6 +115,10 @@ Particularités :
 
 Certains templates Linux (`{centos,debian,fedora,opensuse,redhat}.packerlite.yaml`) déclarent désormais aussi un `pre_boot_command:` optionnel, exécuté juste après le démarrage de la VM — avant qu'une IP soit disponible — pour envoyer les frappes de navigation du menu GRUB au tout début du boot, réduisant l'attente aveugle initiale à 5s (au lieu d'environ 30s).
 
+### SELinux désactivé sur toutes les distributions
+
+Que la VM vienne d'une image cloud ou d'une ISO provisionnée avec `--autoinstall`, le script d'installation de l'agent désactive SELinux sur toute distribution qui en a un (`/etc/selinux/config` présent) : `SELINUX=disabled` est écrit dans la configuration et `setenforce 0` passe le noyau en mode permissif immédiatement. SELinux ne disparaît vraiment qu'au redémarrage suivant, et le script affiche `NOTICE: SELinux is disabled on this guest …` dans son journal (`~/install-agent.log` côté ISO, journal cloud-init côté image cloud). Si vous avez besoin de SELinux en mode `enforcing`, réactivez-le dans la VM après le provisioning.
+
 ### Format du template et vocabulaire de tokens
 
 Un template est un YAML minimal avec une liste `boot_command` d'entrées `title`/`commands` (`commands` est une **liste** de fragments de tokens/texte, concaténés bout à bout — pas une seule chaîne — ce qui permet de mettre un token par ligne pour la lisibilité), plus `variables:` et `boot_timeout`. Le `title` de chaque entrée est affiché comme sous-étape de progression et dans les logs — utile pour repérer où un provisioning s'est arrêté. `${var.username}`/`${var.password}` sont toujours injectées par `caked` ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
@@ -390,6 +394,10 @@ Specifics:
 - **Minimum sizing**: 2 CPUs, 4 GiB of memory, 64 GB of disk (a warning is logged below that).
 
 Several Linux templates (`{centos,debian,fedora,opensuse,redhat}.packerlite.yaml`) now also declare an optional `pre_boot_command:`, run immediately after the VM starts — before an IP is available — to send GRUB boot-menu keystrokes right at the start of boot, cutting the initial blind wait down to 5s (from roughly 30s).
+
+### SELinux is disabled on every distro
+
+Whether the VM comes from a cloud image or from an ISO provisioned with `--autoinstall`, the agent install script turns SELinux off on any distro that has it (`/etc/selinux/config` present): `SELINUX=disabled` is written to the configuration and `setenforce 0` makes the kernel permissive right away. SELinux only really goes away at the next boot, and the script prints `NOTICE: SELinux is disabled on this guest …` in its log (`~/install-agent.log` for ISO builds, the cloud-init log for cloud images). If you need SELinux enforcing, re-enable it inside the VM after provisioning.
 
 ### Template format and token vocabulary
 
