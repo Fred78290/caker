@@ -471,6 +471,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.reloadNetworks()
 	}
 
+	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
+		self.connectionManager.configureNetwork(network: network)
+	}
+
 	func startNetwork(networkName: String) -> StartedNetworkReply {
 		self.connectionManager.startNetwork(networkName: networkName)
 	}

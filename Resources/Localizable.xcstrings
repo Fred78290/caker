@@ -3209,6 +3209,16 @@
         }
       }
     },
+    "Configure network failed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la configuration du réseau"
+          }
+        }
+      }
+    },
     "Configure network options" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14635,6 +14645,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limitations du bac à sable…"
+          }
+        }
+      }
+    },
+    "Revert" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir"
           }
         }
       }

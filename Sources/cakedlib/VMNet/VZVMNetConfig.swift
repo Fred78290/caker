@@ -59,7 +59,8 @@ public struct VZSharedNetwork: Codable, Equatable {
 		case dns = "dns"
 	}
 
-	public func validate(runMode: Utils.RunMode) throws {
+	/// - Parameter excluding: name of an existing network being reconfigured, so its own current address isn't reported as "already in use".
+	public func validate(runMode: Utils.RunMode, excluding: String? = nil) throws {
 		guard netmask.isValidNetmask() else {
 			throw ServiceError(String(localized: "Invalid netmask \(netmask)"))
 		}
@@ -79,7 +80,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 
 		let matches = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).compactMap {
-			$0.value.network.contains(gateway) ? $0.value.network : nil
+			$0.key != excluding && $0.value.network.contains(gateway) ? $0.value.network : nil
 		}
 
 		guard matches.isEmpty else {

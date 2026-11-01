@@ -26,6 +26,42 @@ extension NetworksHandler {
 		}).response.wait().networks.created)
 	}
 	
+	public static func configure(client: CakedServiceClient?, network: BridgedNetwork, runMode: Utils.RunMode) -> ConfiguredNetworkReply {
+		let config = UsedNetworkConfig(
+			mode: network.mode == .shared ? .shared : .host,
+			networkName: network.name,
+			netmask: network.netmask,
+			dhcpStart: network.dhcpStart,
+			dhcpEnd: network.dhcpEnd.stringBefore(before: "/"),
+			dhcpLease: Int32(network.dhcpLease),
+			interfaceID: network.interfaceID,
+			dns: network.dns
+		)
+
+		guard let client = client else {
+			return self.configure(network: config, runMode: runMode)
+		}
+
+		do {
+			return try ConfiguredNetworkReply(client.networks(.with {
+				$0.command = .set
+				$0.configure = Caked_ConfigureNetworkRequest.with {
+					$0.name = config.networkName
+					$0.gateway = network.dhcpStart
+					$0.dhcpEnd = config.dhcpEnd ?? String.empty
+					$0.netmask = network.netmask
+					$0.uuid = network.interfaceID
+					if let dhcpLease = config.dhcpLease {
+						$0.dhcpLease = dhcpLease
+					}
+					$0.dns = network.dns
+				}
+			}).response.wait().networks.configured)
+		} catch {
+			return ConfiguredNetworkReply(name: network.name, configured: false, reason: error.reason)
+		}
+	}
+
 	public static func networks(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListNetworksReply {
 		guard let client = client else {
 			return self.networks(runMode: runMode)

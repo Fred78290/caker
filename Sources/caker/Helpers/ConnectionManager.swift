@@ -208,6 +208,10 @@ final class ConnectionManager: Equatable {
 		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.connectionMode.runMode)
 	}
 
+	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
+		NetworksHandler.configure(client: self.serviceClient, network: network, runMode: self.connectionMode.runMode)
+	}
+
 	func startNetwork(networkName: String) -> StartedNetworkReply {
 		NetworksHandler.start(client: self.serviceClient, networkName: networkName, runMode: self.connectionMode.runMode)
 	}
@@ -444,6 +448,8 @@ extension ConnectionManager {
 					if fileURL.lastPathComponent == Home.remoteFilename {
 						await self.reloadRemotes()
 					} else if fileURL.lastPathComponent == Home.networksFilename && rootChanged == networks {
+						await reloadNetworks()
+					} else if fileURL.lastPathComponent == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 						await reloadNetworks()
 					} else if fileURL.lastPathComponent == "vmnet.pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 						await AppState.shared.updateNetworkStatus(rootChanged, running: fileURL.isPIDRunning().running)

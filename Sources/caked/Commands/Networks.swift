@@ -710,7 +710,7 @@ struct Networks: ParsableCommand {
 			)
 
 			if existing != changed {
-				try changed.validate(runMode: common.runMode)
+				try changed.validate(runMode: common.runMode, excluding: self.options.name)
 			}
 
 			self.changedNetwork = changed

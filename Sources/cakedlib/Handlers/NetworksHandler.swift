@@ -683,7 +683,7 @@ public struct NetworksHandler {
 			)
 
 			if changed != exisiting {
-				try changed.validate(runMode: runMode)
+				try changed.validate(runMode: runMode, excluding: network.networkName)
 				networkConfig.userNetworks[network.networkName] = changed
 				try home.setSharedNetworks(networkConfig)
 
@@ -1196,8 +1196,9 @@ public struct NetworksHandler {
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 				let uuid = $1.value.interfaceID
 				let dns = $1.value.dns ?? false
+				let networkLease = $1.value.dhcpLease.map { "\($0)" } ?? dhcpLease
 
-				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease, dns))
+				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, networkLease, dns))
 			}.sorted {
 				$0 < $1
 			}
