@@ -64,7 +64,8 @@ final class ComposeDNSInboundHandler: ChannelInboundHandler {
 			responseData = DNSMessage.encodeResponse(to: query, addresses: [])
 		} else if let forwarder = self.forwarder {
 			// Not ours: ask the next resolver and relay its answer verbatim.
-			let box = NIOLoopBound(context, eventLoop: context.eventLoop)
+			let eventLoop = context.eventLoop
+			let box = NIOLoopBound(context, eventLoop: eventLoop)
 			let remote = envelope.remoteAddress
 			let rawQuery = bytes
 			let fallback = [UInt8](DNSMessage.encodeError(to: query, rcode: .serverFailure))
@@ -72,7 +73,7 @@ final class ComposeDNSInboundHandler: ChannelInboundHandler {
 			Task {
 				let answer = await forwarder.forward(rawQuery) ?? fallback
 
-				box.value.eventLoop.execute {
+				eventLoop.execute {
 					let context = box.value
 					var buffer = context.channel.allocator.buffer(capacity: answer.count)
 

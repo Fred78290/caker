@@ -996,8 +996,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = String(
 			format: try loadBundledShellScript(named: "ssh-install-cakeagent", runMode: runMode),
-			config.configuredUser, CAKEAGENT_SNAPSHOT, "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, sshPublicKeys, caCert, serverPem, serverKey,
-			ComposeDNS.domainSuffix, BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"), "\(ComposeDNS.internalBindPort)")
+			config.configuredUser, CAKEAGENT_SNAPSHOT, "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, sshPublicKeys, caCert, serverPem, serverKey)
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
