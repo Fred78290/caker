@@ -106,6 +106,39 @@ elif grep -qE '^ID="?(centos|rhel|rocky|almalinux|ol)"?$' /etc/os-release 2>/dev
 	fi
 
 	SEARCH="${COMPOSEDONS_DOMAIN_SUFFIX}"
+elif grep -qE '^ID="?(opensuse-leap|opensuse-tumbleweed|sles)"?$' /etc/os-release 2>/dev/null && command -v netconfig >/dev/null 2>&1 && systemctl is-active -q wicked; then
+	# openSUSE/SLES with wicked (NetworkManager is not running): netconfig owns /etc/resolv.conf and
+	# ignores a systemd-resolved drop-in. Let netconfig run dnsmasq as its DNS forwarder, and add a rule
+	# that sends only the compose domain to the compose DNS server (the other lookups keep going to the
+	# servers wicked learned from DHCP).
+	if command -v zypper >/dev/null 2>&1; then
+		zypper --non-interactive --gpg-auto-import-keys install -y dnsmasq || :
+	fi
+
+	if command -v dnsmasq >/dev/null 2>&1; then
+		mkdir -p /etc/dnsmasq.d
+		echo "server=/${COMPOSEDONS_DOMAIN_SUFFIX}/${COMPOSEDONS_DNS_IP}#${COMPOSEDONS_DNS_PORT}" > /etc/dnsmasq.d/compose-dns.conf
+		grep -qE '^conf-dir=.*dnsmasq\.d' /etc/dnsmasq.conf 2>/dev/null || echo 'conf-dir=/etc/dnsmasq.d,*.conf' >> /etc/dnsmasq.conf
+
+		# The compose domain is the default search domain (the DHCP one, "guest", stays after it).
+		for setting in 'NETCONFIG_DNS_FORWARDER="dnsmasq"' "NETCONFIG_DNS_STATIC_SEARCHLIST=\"${COMPOSEDONS_DOMAIN_SUFFIX}\""; do
+			key=$(echo "${setting}" | cut -d= -f1)
+
+			if grep -q "^${key}=" /etc/sysconfig/network/config 2>/dev/null; then
+				sed -i "s|^${key}=.*|${setting}|" /etc/sysconfig/network/config
+			else
+				echo "${setting}" >> /etc/sysconfig/network/config
+			fi
+		done
+
+		systemctl enable dnsmasq || :
+		systemctl restart dnsmasq || :
+		netconfig update -f || :
+	else
+		echo 'dnsmasq could not be installed, compose DNS is not configured' >&2
+	fi
+
+	SEARCH="${COMPOSEDONS_DOMAIN_SUFFIX}"
 else
 	# With systemd-resolved a link's search domain also routes its lookups to that link's DNS
 	# (the gateway, port 53): keep it off the link so the global DNS=<ip>:<port> serves the domain.
