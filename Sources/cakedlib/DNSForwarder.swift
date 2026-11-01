@@ -2,6 +2,7 @@ import CakeAgentLib
 import Foundation
 import NIOCore
 import NIOPosix
+import Synchronization
 
 /// Forwards a raw DNS query to the next resolver and hands back its raw answer, for the names the compose
 /// resolver of a network is not authoritative for. Plain UDP, one short-lived socket per query, first answer wins;
@@ -36,18 +37,24 @@ public final class DNSForwarder: Sendable {
 	private let provider: @Sendable () -> [String]
 	public let timeout: TimeAmount
 	private let port: Int
+	/// Queries being forwarded right now. Each one holds a UDP socket until it is answered or times out, and any guest
+	/// can send as many as it likes: past `maxInFlight` the forwarder answers nothing at once (the caller replies SERVFAIL)
+	/// instead of exhausting the file descriptors of the process, which also runs the DHCP server and vmnet.
+	private let inFlight = Mutex(0)
+	public let maxInFlight: Int
 
 	/// - Parameter upstreams: IPv4 addresses of the resolvers to ask, in order. Evaluated for each query, so a
 	///   change of the host's resolvers (VPN, network switch) is followed without restarting the network.
-	public init(group: EventLoopGroup, timeout: TimeAmount = .seconds(2), port: Int = 53, upstreams: @escaping @Sendable () -> [String]) {
+	public init(group: EventLoopGroup, timeout: TimeAmount = .seconds(2), port: Int = 53, maxInFlight: Int = 64, upstreams: @escaping @Sendable () -> [String]) {
 		self.group = group
 		self.port = port
+		self.maxInFlight = maxInFlight
 		self.provider = upstreams
 		self.timeout = timeout
 	}
 
-	public convenience init(group: EventLoopGroup, upstreams: [String], timeout: TimeAmount = .seconds(2), port: Int = 53) {
-		self.init(group: group, timeout: timeout, port: port) { upstreams }
+	public convenience init(group: EventLoopGroup, upstreams: [String], timeout: TimeAmount = .seconds(2), port: Int = 53, maxInFlight: Int = 64) {
+		self.init(group: group, timeout: timeout, port: port, maxInFlight: maxInFlight) { upstreams }
 	}
 
 	public var upstreams: [String] {
@@ -78,6 +85,18 @@ public final class DNSForwarder: Sendable {
 	/// The upstream's answer to `query`, `nil` when none of the upstreams answered in time.
 	public func forward(_ query: [UInt8]) async -> [UInt8]? {
 		guard query.count >= 12 else { return nil }
+
+		let admitted = self.inFlight.withLock { count -> Bool in
+			guard count < self.maxInFlight else { return false }
+
+			count += 1
+
+			return true
+		}
+
+		guard admitted else { return nil }
+
+		defer { self.inFlight.withLock { $0 -= 1 } }
 
 		for upstream in self.upstreams {
 			if let answer = try? await self.ask(upstream, query) {

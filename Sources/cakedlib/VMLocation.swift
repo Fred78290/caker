@@ -836,10 +836,13 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 					return runningIP
 				}
 			} else {
-				leases = try DHCPLeaseParser(runMode: runMode)
-
-				if let runningIP = leases[clientID] {
-					return runningIP
+				// No lease table yet (a fresh host, or caked's DHCP server hasn't granted a lease): keep waiting.
+				if let parser = try? DHCPLeaseParser(runMode: runMode) {
+					if let runningIP = parser[clientID] {
+						return runningIP
+					}
+				} else {
+					Thread.sleep(forTimeInterval: 0.25)
 				}
 			}
 

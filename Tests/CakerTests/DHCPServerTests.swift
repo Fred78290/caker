@@ -293,4 +293,62 @@ final class DHCPServerTests: XCTestCase {
 
 		XCTAssertNil(none)
 	}
+
+	// MARK: - Review findings
+
+	func testHostnameWithANewlineCannotForgeAnotherLease() throws {
+		let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+		let file = directory.appendingPathComponent(DHCPLeaseStore.leaseFilename)
+
+		defer { try? FileManager.default.removeItem(at: directory) }
+
+		let responder = makeResponder(file: file)
+		let hostile = "x\n}\n{\nip_address=192.168.50.9\nhw_address=1,aa:bb:cc:dd:ee:99\nlease=0x7fffffff"
+		let offer = try XCTUnwrap(responder.respond(to: request(.discover, mac: 1)))
+
+		_ = responder.respond(to: request(.request, mac: 1, requested: DHCPAddress.string(offer.yiaddr), server: gateway, hostname: hostile))
+
+		let table = try String(contentsOf: file, encoding: .utf8)
+
+		XCTAssertFalse(table.contains("192.168.50.9"), table)
+		XCTAssertFalse(table.contains("name=x"), table)
+		XCTAssertEqual(DHCPLeaseParser(content: table)["AA:BB:CC:DD:EE:99"], nil)
+		XCTAssertEqual(makeResponder(file: file).store.activeLeases.count, 1, "reloading finds the one real lease")
+
+		XCTAssertTrue(DHCPLeaseStore.isValidHostname("web-1.local_x"))
+		XCTAssertFalse(DHCPLeaseStore.isValidHostname(""))
+		XCTAssertFalse(DHCPLeaseStore.isValidHostname("a b"))
+		XCTAssertFalse(DHCPLeaseStore.isValidHostname(String(repeating: "a", count: 64)))
+	}
+
+	func testForwarderRefusesPastTheInFlightLimit() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer { Task { try? await group.shutdownGracefully() } }
+
+		var query = [UInt8](repeating: 0, count: 12)
+
+		query[1] = 1
+
+		// Nobody answers on that port, so the first query stays in flight until its timeout.
+		let forwarder = DNSForwarder(group: group, upstreams: ["127.0.0.1"], timeout: .milliseconds(800), port: 9, maxInFlight: 1)
+		let first = Task { await forwarder.forward(query) }
+
+		try await Task.sleep(nanoseconds: 200_000_000)
+
+		let started = Date()
+		let second = await forwarder.forward(query)
+
+		XCTAssertNil(second)
+		XCTAssertLessThan(Date().timeIntervalSince(started), 0.3, "answered at once, did not wait for a socket")
+
+		_ = await first.value
+
+		// The slot was released: the next query is admitted again (and times out on its own).
+		let third = Date()
+
+		_ = await forwarder.forward(query)
+
+		XCTAssertGreaterThan(Date().timeIntervalSince(third), 0.3, "was admitted and waited for the upstream")
+	}
 }

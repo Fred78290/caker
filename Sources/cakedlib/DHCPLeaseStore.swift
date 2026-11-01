@@ -118,7 +118,7 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 			}
 
 			state.offers[hwAddress] = nil
-			state.leases[hwAddress] = Lease(hwAddress: hwAddress, address: address, hostname: hostname ?? state.leases[hwAddress]?.hostname, expiresAt: current.addingTimeInterval(self.leaseDuration))
+			state.leases[hwAddress] = Lease(hwAddress: hwAddress, address: address, hostname: Self.isValidHostname(hostname) ? hostname : state.leases[hwAddress]?.hostname, expiresAt: current.addingTimeInterval(self.leaseDuration))
 
 			return true
 		}
@@ -189,6 +189,15 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 
 	// MARK: - Persistence
 
+	/// The hostname comes from the client (option 12) and ends up in a line-based file read back by `load()` and by
+	/// `DHCPLeaseParser`: a name holding a newline would forge extra entries (a lease for another client, or a pool
+	/// address nobody can get). Only the characters of a host name, at most 63 bytes, are accepted; anything else is dropped.
+	static func isValidHostname(_ name: String?) -> Bool {
+		guard let name, name.isEmpty == false, name.utf8.count <= 63 else { return false }
+
+		return name.utf8.allSatisfy { ($0 >= 0x30 && $0 <= 0x39) || ($0 >= 0x41 && $0 <= 0x5a) || ($0 >= 0x61 && $0 <= 0x7a) || $0 == 0x2d || $0 == 0x2e || $0 == 0x5f }
+	}
+
 	func render(at current: Date) -> String {
 		self.state.withLock { state in
 			state.leases.values
@@ -197,7 +206,7 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 				.map { lease in
 					var lines = ["{"]
 
-					if let name = lease.hostname, name.isEmpty == false {
+					if let name = lease.hostname, Self.isValidHostname(name) {
 						lines.append("\tname=\(name)")
 					}
 

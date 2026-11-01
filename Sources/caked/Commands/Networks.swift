@@ -312,6 +312,7 @@ struct Networks: ParsableCommand {
 		var coordinator: ComposeDNSCoordinator? = nil
 		#if !APPSTORE
 			var dhcpServer: DHCPServer? = nil
+			var dhcpStartTask: Task<Void, Never>? = nil
 		#endif
 
 		// Starts or stops the network's own services so they follow its configuration: caked's DHCP server
@@ -325,7 +326,9 @@ struct Networks: ParsableCommand {
 					dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
 
 					if let server = dhcpServer {
-						Task {
+						// Kept so `stopServices` can cancel it: the retry loop waits for a bridge that only exists once a guest
+						// attaches, and must not start a server after the services were stopped or replaced.
+						dhcpStartTask = Task {
 							do {
 								try await server.startWithRetry()
 							} catch is CancellationError {
@@ -373,6 +376,9 @@ struct Networks: ParsableCommand {
 			}
 
 			#if !APPSTORE
+				dhcpStartTask?.cancel()
+				dhcpStartTask = nil
+
 				if let dhcpServer {
 					await dhcpServer.shutdown()
 				}
