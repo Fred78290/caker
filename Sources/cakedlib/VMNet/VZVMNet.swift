@@ -11,11 +11,10 @@ import vmnet
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
 public protocol VZVMNet {
-	var networkConfig: VZSharedNetwork { get }
 	func reconfigure(networkConfig: VZSharedNetwork) throws
 	func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws
 	func stop()
-	func restart() throws
+	func restart() throws -> VZSharedNetwork
 }
 
 extension vmnet_return_t {
@@ -137,8 +136,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 	internal let runMode: Utils.RunMode
 	internal let trace: Bool
 	internal let socketGroup: gid_t
-
-	public var networkConfig: VZSharedNetwork
+	internal var networkConfig: VZSharedNetwork
 
 	public init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
 		self.eventLoop = on
@@ -220,15 +218,17 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		try? pidFile.delete()
 	}
 
-	public func restart() throws {
+	public func restart() throws -> VZSharedNetwork {
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 
-		if let network = networkConfig.sharedNetworks[self.networkName] {
-			try self.reconfigure(networkConfig: network)
-		} else {
-			try self.reconfigure(networkConfig: self.networkConfig)
+		guard let network = networkConfig.sharedNetworks[self.networkName] else {
+			throw ServiceError(String(localized: "VMNet \(self.networkName) not found in configuration"))
 		}
+
+		try self.reconfigure(networkConfig: network)
+
+		return network
 	}
 }
 

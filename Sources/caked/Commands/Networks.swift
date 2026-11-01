@@ -350,11 +350,19 @@ struct Networks: ParsableCommand {
 			sigReconfigure.setEventHandler {
 				logger.info("Will reconfigure network: \(options.networkName)")
 
-				do {
-					try vzvmnet.vmnet.restart()
-					syncDNSCoordinator(vzvmnet.vmnet.networkConfig)
-				} catch {
-					Logger(self).error("Failed to reconfigure network: \(error)")
+				Task {
+					do {
+						// Coodinator must be stopped before if the network's `dns` setting changes.
+						if let coordinator {
+							await coordinator.shutdown()
+						}
+
+						coordinator = nil
+
+						try syncDNSCoordinator(vzvmnet.vmnet.restart())
+					} catch {
+						Logger(self).error("Failed to reconfigure network: \(error)")
+					}
 				}
 			}
 
