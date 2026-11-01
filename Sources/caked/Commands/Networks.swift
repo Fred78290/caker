@@ -698,11 +698,15 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Network \(self.options.name) does not exist"))
 			}
 
+			let netmask = self.options.subnetMask ?? existing.netmask
+			// Only --gateway given: default the DHCP end to the last address of the network.
+			let dhcpEnd = self.options.dhcpEnd ?? (self.options.gateway.flatMap { VZSharedNetwork.defaultDhcpEnd(dhcpStart: $0, netmask: netmask) } ?? existing.dhcpEnd)
+
 			let changed = VZSharedNetwork(
 				mode: existing.mode,
-				netmask: self.options.subnetMask ?? existing.netmask,
+				netmask: netmask,
 				dhcpStart: self.options.gateway ?? existing.dhcpStart,
-				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
+				dhcpEnd: dhcpEnd,
 				dhcpLease: self.options.dhcpLease ?? existing.dhcpLease,
 				interfaceID: self.options.interfaceID ?? existing.interfaceID,
 				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix,
@@ -710,7 +714,7 @@ struct Networks: ParsableCommand {
 			)
 
 			if existing != changed {
-				try changed.validate(runMode: common.runMode)
+				try changed.validate(runMode: common.runMode, excluding: self.options.name)
 			}
 
 			self.changedNetwork = changed

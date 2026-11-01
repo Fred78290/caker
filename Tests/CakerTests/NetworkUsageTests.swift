@@ -77,4 +77,16 @@ final class NetworkUsageTests: XCTestCase {
 
 		XCTAssertEqual(network.dns, false)
 	}
+
+	func testDefaultDhcpEndIsTheLastUsableAddressOfTheNetwork() {
+		XCTAssertEqual(VZSharedNetwork.defaultDhcpEnd(dhcpStart: "192.168.105.1", netmask: "255.255.255.0"), "192.168.105.254")
+		XCTAssertEqual(VZSharedNetwork.defaultDhcpEnd(dhcpStart: "10.1.2.10", netmask: "255.255.0.0"), "10.1.255.254")
+		XCTAssertEqual(VZSharedNetwork.defaultDhcpEnd(dhcpStart: "192.168.5.65", netmask: "255.255.255.192"), "192.168.5.126")
+	}
+
+	func testDefaultDhcpEndRejectsAddressesWithoutARange() {
+		XCTAssertNil(VZSharedNetwork.defaultDhcpEnd(dhcpStart: "192.168.105.254", netmask: "255.255.255.0"))
+		XCTAssertNil(VZSharedNetwork.defaultDhcpEnd(dhcpStart: "192.168.105.1", netmask: "255.255.255.255"))
+		XCTAssertNil(VZSharedNetwork.defaultDhcpEnd(dhcpStart: "not-an-ip", netmask: "255.255.255.0"))
+	}
 }

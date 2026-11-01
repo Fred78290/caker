@@ -671,11 +671,15 @@ public struct NetworksHandler {
 				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) doesn't exists"))
 			}
 
+			let netmask = network.netmask ?? exisiting.netmask
+			// A new start address without an end: default the end to the last address of the network.
+			let dhcpEnd = network.dhcpEnd ?? (network.dhcpStart.flatMap { VZSharedNetwork.defaultDhcpEnd(dhcpStart: $0, netmask: netmask) } ?? exisiting.dhcpEnd)
+
 			let changed = VZSharedNetwork(
 				mode: exisiting.mode,
-				netmask: network.netmask ?? exisiting.netmask,
+				netmask: netmask,
 				dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
-				dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
+				dhcpEnd: dhcpEnd,
 				dhcpLease: network.dhcpLease ?? exisiting.dhcpLease,
 				interfaceID: network.interfaceID ?? exisiting.interfaceID,
 				nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix,
@@ -683,7 +687,7 @@ public struct NetworksHandler {
 			)
 
 			if changed != exisiting {
-				try changed.validate(runMode: runMode)
+				try changed.validate(runMode: runMode, excluding: network.networkName)
 				networkConfig.userNetworks[network.networkName] = changed
 				try home.setSharedNetworks(networkConfig)
 
@@ -1196,8 +1200,9 @@ public struct NetworksHandler {
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 				let uuid = $1.value.interfaceID
 				let dns = $1.value.dns ?? false
+				let networkLease = $1.value.dhcpLease.map { "\($0)" } ?? dhcpLease
 
-				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease, dns))
+				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, networkLease, dns))
 			}.sorted {
 				$0 < $1
 			}

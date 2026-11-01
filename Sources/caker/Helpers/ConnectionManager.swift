@@ -208,6 +208,18 @@ final class ConnectionManager: Equatable {
 		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.connectionMode.runMode)
 	}
 
+	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
+		let client = self.serviceClient
+
+		// Without a client only `.app` mode may configure locally; otherwise a failed connection would silently
+		// reconfigure a same-named local network instead of the one that was edited.
+		if client == nil && self.connectionMode != .app {
+			return ConfiguredNetworkReply(name: network.name, configured: false, reason: String(localized: "Unable to connect to the service"))
+		}
+
+		return NetworksHandler.configure(client: client, network: network, runMode: self.connectionMode.runMode)
+	}
+
 	func startNetwork(networkName: String) -> StartedNetworkReply {
 		NetworksHandler.start(client: self.serviceClient, networkName: networkName, runMode: self.connectionMode.runMode)
 	}
@@ -444,6 +456,8 @@ extension ConnectionManager {
 					if fileURL.lastPathComponent == Home.remoteFilename {
 						await self.reloadRemotes()
 					} else if fileURL.lastPathComponent == Home.networksFilename && rootChanged == networks {
+						await reloadNetworks()
+					} else if fileURL.lastPathComponent == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 						await reloadNetworks()
 					} else if fileURL.lastPathComponent == "vmnet.pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 						await AppState.shared.updateNetworkStatus(rootChanged, running: fileURL.isPIDRunning().running)

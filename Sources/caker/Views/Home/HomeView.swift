@@ -123,8 +123,15 @@ struct HomeView: View {
 					navigationModel.selectedVirtualMachine = nil
 				}
 			}.onChange(of: self.appState.networks) {
-				if let selectedNetwork = navigationModel.selectedNetwork, self.appState.networkExists(name: selectedNetwork.name) == false {
-					navigationModel.selectedNetwork = nil
+				if let selectedNetwork = navigationModel.selectedNetwork {
+					// The selection is a copy: refresh it so the detail pane follows state changes (running, usage, ...).
+					if let current = self.appState.networks.first(where: { $0.name == selectedNetwork.name }) {
+						if current != selectedNetwork {
+							navigationModel.selectedNetwork = current
+						}
+					} else {
+						navigationModel.selectedNetwork = nil
+					}
 				}
 			}.onChange(of: self.appState.templates) {
 				if let selectedTemplate = navigationModel.selectedTemplate, self.appState.templateExists(name: selectedTemplate.name) == false {
@@ -418,18 +425,8 @@ struct HomeView: View {
 				}
 			case .networks:
 				if let selectedNetwork = navigationModel.selectedNetwork {
-					// The outgoing view can still read/write the binding after the selection is cleared.
-					NetworkDetailView(
-						Binding<BridgedNetwork>(
-							get: {
-								navigationModel.selectedNetwork ?? selectedNetwork
-							},
-							set: { newValue in
-								if navigationModel.selectedNetwork != nil {
-									navigationModel.selectedNetwork = newValue
-								}
-							}
-						),
+					EditableNetworkDetailView(
+						network: selectedNetwork,
 						reloadNetwork: Binding<Bool>(
 							get: {
 								false
@@ -450,7 +447,9 @@ struct HomeView: View {
 								}
 							}
 						)
-					).background(Color(NSColor.tertiarySystemFill))
+					)
+					.id(selectedNetwork.configurationRevision)
+					.background(Color(NSColor.tertiarySystemFill))
 				} else {
 					EmptyView()
 				}

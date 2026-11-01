@@ -174,7 +174,7 @@ struct MainApp: App {
 		Self.app = self
 
 		Task(priority: .background) {
-			try? await VMImageCatalog.refreshFromGitHub()
+			_ = try? await VMImageCatalog.refreshFromGitHub()
 			await VMImageCatalog.refreshLatestImages()
 		}
 	}

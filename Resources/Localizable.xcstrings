@@ -3188,6 +3188,26 @@
         }
       }
     },
+    "dhcp end %@ must be after dhcp start %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la fin DHCP %@ doit être postérieure au début DHCP %@"
+          }
+        }
+      }
+    },
+    "Unable to connect to the service" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de se connecter au service"
+          }
+        }
+      }
+    },
     "Configure automatically the system" : {
       "localizations" : {
         "fr" : {
@@ -3205,6 +3225,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configurer le réseau partagé nommé"
+          }
+        }
+      }
+    },
+    "Configure network failed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la configuration du réseau"
           }
         }
       }
@@ -4143,6 +4173,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Par défaut, record.packerlite.yaml dans le répertoire de stockage propre à la VM"
+          }
+        }
+      }
+    },
+    "defaults to the last address of the network when only --gateway is specified" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "par défaut la dernière adresse du réseau quand seul --gateway est spécifié"
           }
         }
       }
@@ -14380,6 +14421,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retourne le chemin des certificats"
+          }
+        }
+      }
+    },
+    "Revert" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rétablir"
           }
         }
       }
