@@ -465,7 +465,7 @@ extension VMImageCatalog {
 
 	static let latestImageSources: [LatestImageSource] = [
 		LatestImageSource(id: "gentoo", arch: "amd64", manifest: URL(string: "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/latest-di-amd64-cloudinit.txt")!),
-		LatestImageSource(id: "gentoo", arch: "arm64", manifest: URL(string: "https://distfiles-cdn-origin.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/latest-di-arm64-cloudinit.txt")!),
+		LatestImageSource(id: "gentoo", arch: "arm64", manifest: URL(string: "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/latest-di-arm64-cloudinit.txt")!),
 	]
 
 	/// How long a successful manifest read is trusted before `refreshLatestImages()` reads it again.
