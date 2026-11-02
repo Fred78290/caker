@@ -25,7 +25,7 @@ popd > /dev/null
 
 popd > /dev/null
 
-sudo --non-interactive rm -Rf "${PKGDIR}" || true
+rm -Rf "${PKGDIR}" || sudo --non-interactive rm -Rf "${PKGDIR}" || true
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/MacOS" \
 	"${CAKER_APP}/Resources" \
