@@ -1278,9 +1278,13 @@ public struct NetworksHandler {
 			gateway = "\(network.dhcpStart)/\(cidr)"
 			dhcpEnd = "\(network.dhcpEnd)/\(cidr)"
 			managed = mode != .nat
-			if let value = try? Self.getDHCPLease() {
-				dhcpLease = "\(value)"
-			}
+			#if !USE_DHCP_SERVER
+				if let value = try? Self.getDHCPLease() {
+					dhcpLease = "\(value)"
+				}
+			#else
+				dhcpLease = network.dhcpLease.map { "\($0)" } ?? String.empty
+			#endif
 		}
 
 		do {

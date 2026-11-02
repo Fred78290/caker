@@ -617,6 +617,9 @@ struct Networks: ParsableCommand {
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
+
+			// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+			SudoCaked.becomeRootIfRequested()
 		}
 
 		func run() throws {
@@ -648,6 +651,15 @@ struct Networks: ParsableCommand {
 
 			if name == nil && all == false {
 				throw ValidationError("You must specify one of <name> or --all")
+			}
+
+			if self.fork && self.all {
+				throw ValidationError("You cannot specify --fork with --all")
+			}
+
+			if self.fork {
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+				SudoCaked.becomeRootIfRequested()
 			}
 
 			if let name {
@@ -903,6 +915,9 @@ struct Networks: ParsableCommand {
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
+
+			// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+			SudoCaked.becomeRootIfRequested()
 
 			if geteuid() != 0 {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))

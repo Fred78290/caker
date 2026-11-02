@@ -33,9 +33,6 @@ struct CommonOptions: ParsableArguments {
 	}
 
 	func validate() throws {
-		// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
-		SudoCaked.becomeRootIfRequested()
-
 		Logger.setLevel(self.logLevel)
 
 		Utils.RunMode.current = self.runMode
