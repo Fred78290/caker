@@ -775,7 +775,7 @@ public struct NetworksHandler {
 			canManageNetworkWithoutRoot = CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: VMNetMode.bridged)
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		} else {
-			guard let network = sharedNetworks[networkName] != nil else {
+			guard let network = sharedNetworks[networkName] else {
 				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
 
