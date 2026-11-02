@@ -88,6 +88,21 @@ extension NetworksHandler {
 		}
 	}
 
+	public static func status(client: CakedServiceClient?, network: BridgedNetwork, runMode: Utils.RunMode) -> NetworkInfoReply {
+		guard let client = client else {
+			return self.status(networkName: network.name, runMode: runMode)
+		}
+
+		do {
+			return try NetworkInfoReply(client.networks(.with {
+				$0.command = .status
+				$0.name = network.name
+			}).response.wait().networks.status)
+		} catch {
+			return NetworkInfoReply(info: network, success: false, reason: error.reason)
+		}
+	}
+
 	private static func startSandboxed(networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
 		do {
 			let socketURL = try vmnetEndpoint(networkName: networkName, runMode: runMode)

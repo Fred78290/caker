@@ -279,8 +279,8 @@ extension BridgedNetwork {
 
 /// Detail of an existing network: editable (with Save/Revert) while no active VM uses it.
 struct EditableNetworkDetailView: View {
-	private let network: BridgedNetwork
 	@Binding private var reloadNetwork: Bool
+	@State private var network: BridgedNetwork
 	@State private var draft: BridgedNetwork
 	@State private var saving = false
 	@State private var resetToken = UUID()
@@ -351,6 +351,16 @@ struct EditableNetworkDetailView: View {
 		VStack(spacing: 0) {
 			NetworkDetailView(self.binding, reloadNetwork: self.$reloadNetwork, allowEdit: self.canEdit)
 				.id(self.resetToken)
+				.task {
+					let status = AppState.shared.statusNetwork(network: self.network)
+
+					if status.success {
+						self.network = status.info
+						self.draft.running = status.info.running
+						self.draft.endpoint = status.info.endpoint
+						self.draft.usedBy = status.info.usedBy
+					}
+				}
 
 			if self.canEdit && self.dirty {
 				Divider()

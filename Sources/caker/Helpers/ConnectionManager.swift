@@ -208,6 +208,10 @@ final class ConnectionManager: Equatable {
 		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.connectionMode.runMode)
 	}
 
+	func statusNetwork(network: BridgedNetwork) -> NetworkInfoReply {
+		NetworksHandler.status(client: self.serviceClient, network: network, runMode: self.connectionMode.runMode)
+	}
+
 	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
 		let client = self.serviceClient
 
