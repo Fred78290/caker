@@ -823,6 +823,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get MAC address for VM \(self.name)"), message: String(localized: "Any mac address or client ID is not configured"))
 		}
 
+		// Only the VM's own networks: a lease left on a network it no longer uses must not win.
+		let networkNames = config.qualifiedNetworks.map(\.network)
+
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
@@ -837,7 +840,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				}
 			} else {
 				// No lease table yet (a fresh host, or caked's DHCP server hasn't granted a lease): keep waiting.
-				if let parser = try? DHCPLeaseParser(runMode: runMode), let runningIP = parser[clientID] {
+				if let parser = try? DHCPLeaseParser(runMode: runMode, networks: networkNames), let runningIP = parser[clientID] {
 					return runningIP
 				}
 

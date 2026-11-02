@@ -62,11 +62,17 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 	/// DHCP) plus the table of each network served by caked's DHCP server (`<CAKE_HOME>/net/<name>/dhcpd_leases`).
 	/// With `network` only that network's table is read. When a client appears in several tables, the lease that
 	/// expires last wins.
-	init(runMode: Utils.RunMode, network: String? = nil) throws {
+	///
+	/// With `networks` the lookup is restricted to the tables of those networks plus the system table (vmnet's own DHCP),
+	/// so a stale lease left on a network the VM no longer uses can't be returned.
+	init(runMode: Utils.RunMode, network: String? = nil, networks: [String]? = nil) throws {
 		var files: [URL] = []
 
 		if let network {
 			files.append(try Self.leaseFile(network: network, runMode: runMode))
+		} else if let networks {
+			files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
+			files.append(contentsOf: try networks.map { try Self.leaseFile(network: $0, runMode: runMode) })
 		} else {
 			files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
 			files.append(contentsOf: Self.networkLeaseFiles(runMode: runMode))

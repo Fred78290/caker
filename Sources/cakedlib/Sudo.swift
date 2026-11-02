@@ -229,6 +229,46 @@ public final class SudoCaked {
 		return PrivilegedLaunch(executableURL: sudoURL, arguments: arguments, environment: environment, viaSudo: true)
 	}
 
+	/// Whether the real user `uid` belongs to the `admin` group (what `sudo` requires on macOS).
+	static func isAdministrator(uid: uid_t) -> Bool {
+		guard uid != 0 else {
+			return true
+		}
+
+		guard let user = getpwuid(uid), let admin = getgrnam("admin") else {
+			return false
+		}
+
+		let adminGID = Int32(bitPattern: admin.pointee.gr_gid)
+		var count: Int32 = 32
+		var groups = [Int32](repeating: 0, count: Int(count))
+
+		while getgrouplist(user.pointee.pw_name, Int32(bitPattern: user.pointee.pw_gid), &groups, &count) < 0 {
+			guard Int(count) > groups.count else {
+				return false
+			}
+
+			groups = [Int32](repeating: 0, count: Int(count))
+		}
+
+		return groups.prefix(Int(count)).contains(adminGID)
+	}
+
+	/// A setuid-root `caked` gets root for whoever executes it. Called first thing in `main`: when the real user isn't
+	/// an administrator, give the privileges back (`seteuid`) so the process runs as that user, as if it wasn't setuid.
+	public static func dropSetuidPrivilegesIfUnauthorized() {
+		let uid = getuid()
+
+		guard geteuid() == 0 && uid != 0 && isAdministrator(uid: uid) == false else {
+			return
+		}
+
+		if seteuid(uid) != 0 || setuid(uid) != 0 {
+			Logger("SUDO").error("Unable to drop setuid privileges: \(String(cString: strerror(errno)))")
+			exit(EXIT_FAILURE)
+		}
+	}
+
 	/// Called at startup by a setuid-root `caked` launched with `becomeRootEnvironmentKey`: switch the real (and saved) uid to root,
 	/// as `sudo` would have, then drop the variable so children don't inherit it. Does nothing when the key is absent or the process isn't root.
 	public static func becomeRootIfRequested() {

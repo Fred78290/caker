@@ -6,33 +6,43 @@ import Foundation
 /// always false there, see `DHCPServer`): the networks keep vmnet's DHCP and DNS proxy, which can't advertise the
 /// compose resolver (bound to the gateway on `ComposeDNS.internalBindPort`, not 53). So the guests are pointed at it
 /// from the inside, by the agent install scripts, exactly as before the per-network DHCP server existed. The full
-/// build gets the compose domain on port 53 straight from its DHCP server and needs none of this: there the
-/// fragments are empty.
+/// build gets the compose domain on port 53 straight from its DHCP server and needs none of this, unless the host
+/// leaves the networks on vmnet's DHCP (see `needsGuestWiring`): otherwise the fragments are empty.
 enum AppStoreGuestDNS {
 	/// Shell variables the fragments below read.
 	private static func variables(domain: String, ip: String, port: String) -> String {
 		"COMPOSEDONS_DOMAIN_SUFFIX=\"\(domain)\"\nCOMPOSEDONS_DNS_IP=\"\(ip)\"\nCOMPOSEDONS_DNS_PORT=\"\(port)\"\n"
 	}
 
+	/// Whether the guests must be wired from the inside: always in the App Store build, and in the full build on a host
+	/// where the networks keep vmnet's DHCP (macOS 15, `CAKED_VMNET_DHCP=vmnet`, sandboxed), which can't advertise the
+	/// resolver. Decided when the guest is built, from what decides it for the network service.
+	static var needsGuestWiring: Bool {
+		#if USE_DHCP_SERVER
+			return NetworksHandler.vmnetNative == false || NetworksHandler.dhcpServerNeedsRoot == false
+		#else
+			return true
+		#endif
+	}
+
 	/// For `cloudinit-install-cakeagent.sh` (cloud images).
 	static func cloudInitFragment(domain: String, ip: String, port: String) -> String {
-		#if !USE_DHCP_SERVER
-			return variables(domain: domain, ip: ip, port: port) + cloudInitScript
-		#else
+		guard needsGuestWiring else {
 			return ""
-		#endif
+		}
+
+		return variables(domain: domain, ip: ip, port: port) + cloudInitScript
 	}
 
 	/// For `ssh-install-cakeagent.sh` (PackerLite/ISO guests, already inside its `if` block, hence the indentation).
 	static func sshFragment(domain: String, ip: String, port: String) -> String {
-		#if !USE_DHCP_SERVER
-			return variables(domain: domain, ip: ip, port: port).split(separator: "\n").map { "\t" + $0 }.joined(separator: "\n") + "\n" + sshScript
-		#else
+		guard needsGuestWiring else {
 			return ""
-		#endif
+		}
+
+		return variables(domain: domain, ip: ip, port: port).split(separator: "\n").map { "\t" + $0 }.joined(separator: "\n") + "\n" + sshScript
 	}
 
-	#if !USE_DHCP_SERVER
 		private static let cloudInitScript = #"""
 if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
 	# The network may not be up yet when cloud-init runs this: retry, with a fresh index.
@@ -382,5 +392,4 @@ fi
 		fi
 	fi
 """#
-	#endif
 }
