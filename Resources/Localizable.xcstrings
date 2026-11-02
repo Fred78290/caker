@@ -3188,26 +3188,6 @@
         }
       }
     },
-    "dhcp end %@ must be after dhcp start %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "la fin DHCP %@ doit être postérieure au début DHCP %@"
-          }
-        }
-      }
-    },
-    "Unable to connect to the service" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de se connecter au service"
-          }
-        }
-      }
-    },
     "Configure automatically the system" : {
       "localizations" : {
         "fr" : {
@@ -4497,6 +4477,16 @@
         }
       }
     },
+    "dhcp end %@ must be after dhcp start %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la fin DHCP %@ doit être postérieure au début DHCP %@"
+          }
+        }
+      }
+    },
     "DHCP Lease" : {
       "localizations" : {
         "fr" : {
@@ -5402,6 +5392,7 @@
       }
     },
     "Explore" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -18627,6 +18618,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de se connecter à %@"
+          }
+        }
+      }
+    },
+    "Unable to connect to the service" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de se connecter au service"
           }
         }
       }
