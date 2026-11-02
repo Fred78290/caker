@@ -765,18 +765,21 @@ public struct NetworksHandler {
 		let sharedNetworks = try home.sharedNetworks().sharedNetworks
 		let socketURL: (socket: URL, pidFile: URL)
 		let isPhysicalInterface = Self.isPhysicalInterface(name: networkName)
+		let canManageNetworkWithoutRoot: Bool
 
 		if isPhysicalInterface {
 			if CakedLib.NetworksHandler.hasVMNetEntitlement {
 				throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
 			}
 
+			canManageNetworkWithoutRoot = CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: VMNetMode.bridged)
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		} else {
-			guard sharedNetworks[networkName] != nil else {
+			guard let network = sharedNetworks[networkName] != nil else {
 				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
 
+			canManageNetworkWithoutRoot = CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: network.mode)
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
 
@@ -815,7 +818,7 @@ public struct NetworksHandler {
 
 		var environment = try Utilities.environment(runMode: runMode)
 
-		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : sharedNetworks[networkName]?.mode) {
+		if canManageNetworkWithoutRoot {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
