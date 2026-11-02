@@ -132,6 +132,7 @@ cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${C
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
 if [ $APPSTORE -eq 0 ]; then
+	chmod u+s "${CAKED_APP}/MacOS/caked"
 	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
