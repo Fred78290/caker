@@ -16,7 +16,7 @@ import Synchronization
 /// name outside the domain is forwarded to the next resolver (`forwarder`) and its answer relayed.
 /// Without a forwarder it is `REFUSED`, never an open resolver on the shared subnet.
 /// No TCP fallback (every local answer is one A record — small enough to never need one).
-final class ComposeDNSInboundHandler: ChannelInboundHandler {
+final class ComposeDNSInboundHandler: Sendable, ChannelInboundHandler {
 	typealias InboundIn = AddressedEnvelope<ByteBuffer>
 	typealias OutboundOut = AddressedEnvelope<ByteBuffer>
 
