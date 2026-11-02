@@ -279,16 +279,45 @@ extension BridgedNetwork {
 
 /// Detail of an existing network: editable (with Save/Revert) while no active VM uses it.
 struct EditableNetworkDetailView: View {
+	/// Runtime state of a network, as opposed to its configuration.
+	private struct Runtime {
+		var running: Bool
+		var endpoint: String
+		var usedBy: BridgedNetwork.NetworkUsage
+
+		init(_ network: BridgedNetwork) {
+			self.running = network.running
+			self.endpoint = network.endpoint
+			self.usedBy = network.usedBy
+		}
+	}
+
 	@Binding private var reloadNetwork: Bool
-	@State private var network: BridgedNetwork
+	/// The network as the parent last refreshed it: it is a new value on every parent update, unlike a `@State` copy.
+	private let source: BridgedNetwork
 	@State private var draft: BridgedNetwork
+	/// Runtime state read from the service or written by the Start/Stop button, until the parent refreshes `source`.
+	@State private var runtime: Runtime?
 	@State private var saving = false
 	@State private var resetToken = UUID()
 
 	init(network: BridgedNetwork, reloadNetwork: Binding<Bool>) {
-		self.network = network
+		self.source = network
 		self._reloadNetwork = reloadNetwork
 		self._draft = State(initialValue: network)
+	}
+
+	/// The live network: the parent's, with the runtime state we know to be more recent.
+	private var network: BridgedNetwork {
+		var item = self.source
+
+		if let runtime = self.runtime {
+			item.running = runtime.running
+			item.endpoint = runtime.endpoint
+			item.usedBy = runtime.usedBy
+		}
+
+		return item
 	}
 
 	private var canEdit: Bool {
@@ -304,10 +333,11 @@ struct EditableNetworkDetailView: View {
 		Binding<BridgedNetwork>(
 			get: {
 				var item = self.draft
+				let live = self.network
 
-				item.running = self.network.running
-				item.endpoint = self.network.endpoint
-				item.usedBy = self.network.usedBy
+				item.running = live.running
+				item.endpoint = live.endpoint
+				item.usedBy = live.usedBy
 
 				return item
 			},
@@ -317,6 +347,13 @@ struct EditableNetworkDetailView: View {
 				self.draft.dhcpLease = newValue.dhcpLease
 				self.draft.interfaceID = newValue.interfaceID
 				self.draft.dns = newValue.dns
+
+				// Start/Stop writes the runtime state through the binding: keep it, or the button would not flip.
+				let written = Runtime(newValue)
+
+				if written.running != self.network.running || written.endpoint != self.network.endpoint {
+					self.runtime = written
+				}
 			}
 		)
 	}
@@ -351,15 +388,18 @@ struct EditableNetworkDetailView: View {
 		VStack(spacing: 0) {
 			NetworkDetailView(self.binding, reloadNetwork: self.$reloadNetwork, allowEdit: self.canEdit)
 				.id(self.resetToken)
-				.task {
-					let status = AppState.shared.statusNetwork(network: self.network)
+				.task(id: self.source.id) {
+					let network = self.source
+					// The request waits for the service's reply: keep it off the main actor.
+					let status = await Task.detached { AppState.shared.statusNetwork(network: network) }.value
 
+					// Only the runtime state: `info` carries the host's DHCP lease, not the one configured on this network.
 					if status.success {
-						self.network = status.info
-						self.draft.running = status.info.running
-						self.draft.endpoint = status.info.endpoint
-						self.draft.usedBy = status.info.usedBy
+						self.runtime = Runtime(status.info)
 					}
+				}
+				.onChange(of: self.source) {
+					self.runtime = nil
 				}
 
 			if self.canEdit && self.dirty {

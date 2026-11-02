@@ -172,7 +172,20 @@ public struct NetworksHandler {
 	/// vmnet networks created with `vmnet_network_ref` (macOS 26+) or with the vmnet entitlement don't need root, except
 	/// when caked serves DHCP: then the service must always be root, whoever starts it.
 	public static var canManageNetworkWithoutRoot: Bool {
-		geteuid() == 0 || ((vmnetNative || hasVMNetEntitlement) && dhcpServerNeedsRoot == false)
+		canManageNetworkWithoutRoot(mode: nil)
+	}
+
+	/// Same as `canManageNetworkWithoutRoot`, for a network of a known `mode` (`nil` when it isn't known).
+	/// A bridged network, or any network on a host without `vmnet_network_ref` (macOS 15), never uses caked's DHCP server
+	/// (see `usesCakerDHCP(mode:)`), so it keeps starting without root where the vmnet entitlement allows it.
+	public static func canManageNetworkWithoutRoot(mode: VMNetMode?) -> Bool {
+		if geteuid() == 0 {
+			return true
+		}
+
+		let servesDHCP = vmnetNative && mode != .bridged && dhcpServerNeedsRoot
+
+		return (vmnetNative || hasVMNetEntitlement) && servesDHCP == false
 	}
 
 	/// Whether caked serves DHCP (and, when `dns` is on, DNS on port 53) for this network instead of vmnet. **Full build only**: always false in the App Store build.
@@ -427,7 +440,7 @@ public struct NetworksHandler {
 		let logger = Logger(self)
 
 		var environment = try Utilities.environment(runMode: runMode)
-		let direct = NetworksHandler.canManageNetworkWithoutRoot
+		let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
 
 		if direct {
 			runningArguments = []
@@ -604,7 +617,7 @@ public struct NetworksHandler {
 
 		var environment = try Utilities.environment(runMode: runMode)
 
-		if NetworksHandler.canManageNetworkWithoutRoot {
+		if NetworksHandler.canManageNetworkWithoutRoot(mode: mode) {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {

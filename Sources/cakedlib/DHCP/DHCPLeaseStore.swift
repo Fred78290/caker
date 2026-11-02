@@ -118,7 +118,7 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 			}
 
 			state.offers[hwAddress] = nil
-			state.leases[hwAddress] = Lease(hwAddress: hwAddress, address: address, hostname: Self.isValidHostname(hostname) ? hostname : state.leases[hwAddress]?.hostname, expiresAt: current.addingTimeInterval(self.leaseDuration))
+			state.leases[hwAddress] = Lease(hwAddress: hwAddress, address: address, hostname: hostname == nil ? state.leases[hwAddress]?.hostname : (Self.isValidHostname(hostname) ? hostname : nil), expiresAt: current.addingTimeInterval(self.leaseDuration))
 
 			return true
 		}

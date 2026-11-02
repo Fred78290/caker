@@ -388,6 +388,8 @@ struct HomeView: View {
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
 			.onChange(of: self.selectedCategory) { oldValue, newValue in
+				// The Detail button only exists for the VM list: don't leave the other categories without details.
+				self.mustShowDetailView = true
 				self.selectedCategoryDidChanged(oldValue, newValue)
 			}
 			.windowAccessor($window) {

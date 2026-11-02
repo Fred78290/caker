@@ -25,7 +25,7 @@ popd > /dev/null
 
 popd > /dev/null
 
-rm -Rf "${PKGDIR}" || sudo --non-interactive rm -Rf "${PKGDIR}" || true
+rm -Rf "${PKGDIR}" 2>/dev/null || sudo --non-interactive rm -Rf "${PKGDIR}" || true
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/MacOS" \
 	"${CAKER_APP}/Resources" \
@@ -370,5 +370,5 @@ fi
 
 if [ "${APPSTORE}" -ne 1 ]; then
 	echo "Setting ownership and permissions for caked"
-	sudo --non-interactive -- sh -c "chown -R root:wheel '${PKGDIR}' && chmod -R u+s '${CAKED_APP}/MacOS/caked'" || true
+	sudo --non-interactive -- sh -c 'chown -R root:wheel "$1" && chmod u+s "$2"' sh "${PKGDIR}" "${CAKED_APP}/MacOS/caked" || true
 fi
