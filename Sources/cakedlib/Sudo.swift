@@ -259,7 +259,7 @@ public final class SudoCaked {
 	public static func dropSetuidPrivilegesIfUnauthorized() {
 		let uid = getuid()
 
-		guard geteuid() == 0 && uid != 0 && isAdministrator(uid: uid) == false else {
+		guard geteuid() == 0 && uid != 0 /*&& isAdministrator(uid: uid) == false*/ else {
 			return
 		}
 
@@ -278,7 +278,11 @@ public final class SudoCaked {
 
 		unsetenv(becomeRootEnvironmentKey)
 
-		if geteuid() == 0 && getuid() != 0 {
+		if getuid() != 0 {
+			/*if seteuid(0) != 0 {
+				Logger("SUDO").error("seteuid(0) failed: \(String(cString: strerror(errno)))")
+			}*/
+
 			if setuid(0) != 0 {
 				Logger("SUDO").error("setuid(0) failed: \(String(cString: strerror(errno)))")
 			}
