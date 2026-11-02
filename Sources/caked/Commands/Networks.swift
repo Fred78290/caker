@@ -538,7 +538,7 @@ struct Networks: ParsableCommand {
 				}
 			}
 
-			if geteuid() == 0 || CakedLib.NetworksHandler.vmnetNative || CakedLib.NetworksHandler.hasVMNetEntitlement {
+			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
 				try startForkedNetwork()
 			} else {
 				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName], runMode: runMode, log: log).run().terminationStatus != 0 {

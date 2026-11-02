@@ -158,6 +158,23 @@ public struct NetworksHandler {
 		}
 	}
 
+	/// Whether the DHCP server (`USE_DHCP_SERVER`) needs the network service to run as root: it reads `/dev/bpf*` and binds port 53.
+	/// `CAKED_VMNET_DHCP=vmnet` keeps vmnet's own DHCP, so nothing needs root then. A sandboxed process can't use sudo anyway.
+	static var dhcpServerNeedsRoot: Bool {
+		#if USE_DHCP_SERVER
+			return Bundle.isApplicationSandboxed == false && ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+		#else
+			return false
+		#endif
+	}
+
+	/// Whether this process can start, signal and stop a network service itself instead of going through `sudo caked`.
+	/// vmnet networks created with `vmnet_network_ref` (macOS 26+) or with the vmnet entitlement don't need root, except
+	/// when caked serves DHCP: then the service must always be root, whoever starts it.
+	public static var canManageNetworkWithoutRoot: Bool {
+		geteuid() == 0 || ((vmnetNative || hasVMNetEntitlement) && dhcpServerNeedsRoot == false)
+	}
+
 	/// Whether caked serves DHCP (and, when `dns` is on, DNS on port 53) for this network instead of vmnet. **Full build only**: always false in the App Store build.
 	///
 	/// Only networks created through `vmnet_network_ref` (macOS 26+) can have vmnet's DHCP switched off, binding the
@@ -283,7 +300,7 @@ public struct NetworksHandler {
 			}
 
 			_ = try client.restart(.init()).response.wait()
-		} else if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
+		} else if NetworksHandler.canManageNetworkWithoutRoot {
 			Logger(self).info("Restart network \(networkName)")
 
 			if pidURL.killPID(SIGUSR2) < 0 {
@@ -419,7 +436,7 @@ public struct NetworksHandler {
 		var fd = fileDescriptor
 		let logger = Logger(self)
 
-		if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
+		if NetworksHandler.canManageNetworkWithoutRoot {
 			runningArguments = []
 			process.executableURL = executableURL
 			process.standardInput = FileHandle.standardInput
@@ -594,7 +611,7 @@ public struct NetworksHandler {
 		var runningArguments: [String]
 		let logger = Logger(self)
 
-		if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
+		if NetworksHandler.canManageNetworkWithoutRoot {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
@@ -800,7 +817,7 @@ public struct NetworksHandler {
 
 		try? socketURL.socket.delete()
 
-		if geteuid() == 0 || CakedLib.NetworksHandler.vmnetNative || CakedLib.NetworksHandler.hasVMNetEntitlement {
+		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
@@ -977,7 +994,7 @@ public struct NetworksHandler {
 				}
 
 				_ = try client.stop(.init()).response.wait()
-			} else if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
+			} else if NetworksHandler.canManageNetworkWithoutRoot {
 				// We are running as root, so we can just kill the process
 				if pidURL.killPID(SIGTERM) < 0 {
 					throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
@@ -1034,7 +1051,7 @@ public struct NetworksHandler {
 			}
 		}
 
-		if geteuid() == 0 || vmnet || CakedLib.NetworksHandler.hasVMNetEntitlement {
+		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
 			let pidURL = socketURL.pidFile
 
 			guard pidURL.isCakedRunning() else {
