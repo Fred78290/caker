@@ -298,6 +298,8 @@ struct EditableNetworkDetailView: View {
 	@State private var draft: BridgedNetwork
 	/// Runtime state read from the service or written by the Start/Stop button, until the parent refreshes `source`.
 	@State private var runtime: Runtime?
+	/// Bumped whenever `runtime` changes behind a pending status request, so a late reply can't overwrite newer state.
+	@State private var runtimeGeneration = 0
 	@State private var saving = false
 	@State private var resetToken = UUID()
 
@@ -352,6 +354,7 @@ struct EditableNetworkDetailView: View {
 				let written = Runtime(newValue)
 
 				if written.running != self.network.running || written.endpoint != self.network.endpoint {
+					self.runtimeGeneration += 1
 					self.runtime = written
 				}
 			}
@@ -390,8 +393,14 @@ struct EditableNetworkDetailView: View {
 				.id(self.resetToken)
 				.task(id: self.source.id) {
 					let network = self.source
+					let generation = self.runtimeGeneration
 					// The request waits for the service's reply: keep it off the main actor.
 					let status = await Task.detached { AppState.shared.statusNetwork(network: network) }.value
+
+					// A newer runtime state (Start/Stop, or the parent's refresh) wins over a reply that was already in flight.
+					guard Task.isCancelled == false, generation == self.runtimeGeneration else {
+						return
+					}
 
 					// Only the runtime state: `info` carries the host's DHCP lease, not the one configured on this network.
 					if status.success {
@@ -399,6 +408,7 @@ struct EditableNetworkDetailView: View {
 					}
 				}
 				.onChange(of: self.source) {
+					self.runtimeGeneration += 1
 					self.runtime = nil
 				}
 

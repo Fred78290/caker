@@ -10,7 +10,9 @@ import vmnet
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
-public protocol VZVMNet {
+public protocol VZVMNet: AnyObject {
+	/// Applies the saved configuration to the running network (the `restart` RPC calls it).
+	var reconfigureHandler: (@Sendable () async throws -> Void)? { get set }
 	func reconfigure(networkConfig: VZSharedNetwork) throws
 	func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws
 	func stop()
@@ -80,6 +82,9 @@ extension vmnet_return_t {
 }
 
 public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
+	/// Set by the process running the network.
+	public var reconfigureHandler: (@Sendable () async throws -> Void)?
+
 	private class GRPCVMNetService: Vmnet_VMNetServiceAsyncProvider, @unchecked Sendable {
 		let owner: VZVMNetCommon
 
@@ -119,6 +124,10 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		}
 
 		func restart(request: Vmnet_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmnet_Empty {
+			// Apply the saved configuration: the owner stops its services, restarts vmnet and syncs the services again.
+			// Without a handler (a network that can't be reconfigured live) there is nothing to do.
+			try await self.owner.reconfigureHandler?()
+
 			return Vmnet_Empty()
 		}
 	}

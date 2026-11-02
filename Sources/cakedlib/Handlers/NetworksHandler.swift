@@ -815,7 +815,7 @@ public struct NetworksHandler {
 
 		var environment = try Utilities.environment(runMode: runMode)
 
-		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
+		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : sharedNetworks[networkName]?.mode) {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {

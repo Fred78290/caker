@@ -435,15 +435,22 @@ struct Networks: ParsableCommand {
 
 			signal(SIGUSR2, SIG_IGN)
 
-			sigReconfigure.setEventHandler {
+			@Sendable func reconfigureNetwork() async throws {
 				logger.info("Will reconfigure network: \(options.networkName)")
 
+				// The services must be stopped first: the network's `dns`/range may have changed.
+				await stopServices()
+
+				try syncServices(vzvmnet.vmnet.restart())
+			}
+
+			// The `restart` RPC (`networks configure` on a running network) runs the same sequence as SIGUSR2.
+			vzvmnet.vmnet.reconfigureHandler = reconfigureNetwork
+
+			sigReconfigure.setEventHandler {
 				Task {
 					do {
-						// The services must be stopped first: the network's `dns`/range may have changed.
-						await stopServices()
-
-						try syncServices(vzvmnet.vmnet.restart())
+						try await reconfigureNetwork()
 					} catch {
 						Logger(self).error("Failed to reconfigure network: \(error)")
 					}
@@ -543,7 +550,7 @@ struct Networks: ParsableCommand {
 				}
 			}
 
-			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
+			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (try? Home(runMode: runMode).sharedNetworks().sharedNetworks[networkName])?.mode) {
 				try startForkedNetwork()
 			} else {
 				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
