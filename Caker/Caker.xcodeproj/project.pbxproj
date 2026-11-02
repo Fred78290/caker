@@ -3595,7 +3595,7 @@
 				9B06995F2FB1A1E400FEAE13 /* Localization */,
 				9B773E4E2FE92DD500C69B33 /* Set version */,
 				9B001A083000034A0048894C /* LaunchAgent */,
-				9B001A10300025710048894C /* ShellScript */,
+				9B001A10300025710048894C /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -3833,11 +3833,12 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9B001A10300025710048894C /* ShellScript */ = {
+		9B001A10300025710048894C /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"${SOURCE_ROOT}/../Resources/caked.provisionprofile",
 			);
+			name = "Run Script";
 			outputPaths = (
 				"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
 			);
@@ -3845,7 +3846,9 @@
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"cp \"${SOURCE_ROOT}/../Resources/caked.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
-				"chmod u+s \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"",
+				"",
+				"CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"",
+				"sudo --non-interactive -- sh -c \"chown root '${CAKED_PATH}' && chmod u+s '${CAKED_PATH}'\"",
 				"",
 			);
 		};
@@ -3932,7 +3935,9 @@
 				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD 2>/dev/null || echo 0)}\"",
 				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
-				"chmod u+s \"${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/caked.app/Contents/MacOS/caked\"",
+				"",
+				"CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/caked.app/Contents/MacOS/caked\"",
+				"sudo --non-interactive -- sh -c \"chown root '${CAKED_PATH}' && chmod u+s '${CAKED_PATH}'\"",
 				"",
 			);
 		};

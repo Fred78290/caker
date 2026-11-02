@@ -25,7 +25,7 @@ popd > /dev/null
 
 popd > /dev/null
 
-rm -Rf "${PKGDIR}"
+sudo --non-interactive rm -Rf "${PKGDIR}" || true
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/MacOS" \
 	"${CAKER_APP}/Resources" \
@@ -132,7 +132,6 @@ cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${C
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
 if [ $APPSTORE -eq 0 ]; then
-	chmod u+s "${CAKED_APP}/MacOS/caked"
 	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
@@ -367,4 +366,9 @@ else
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/libswiftCompatibilitySpan.dylib"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/Sparkle.framework/Versions/Current"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/MacOS/Caker"
+fi
+
+if [ "${APPSTORE}" -ne 1 ]; then
+	echo "Setting ownership and permissions for caked"
+	sudo --non-interactive -- sh -c "chown -R root:wheel '${PKGDIR}' && chmod -R u+s '${CAKED_APP}/MacOS/caked'" || true
 fi
