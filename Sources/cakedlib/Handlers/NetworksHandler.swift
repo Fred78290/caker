@@ -292,25 +292,15 @@ public struct NetworksHandler {
 			return String(localized: "Network \(networkName) is not running")
 		}
 
-		if Bundle.isApplicationSandboxed {
-			let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
+		Logger(self).info("Restart network \(networkName)")
 
-			defer {
-				try? client.channel.close().wait()
-			}
+		let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
 
-			_ = try client.restart(.init()).response.wait()
-		} else if NetworksHandler.canManageNetworkWithoutRoot {
-			Logger(self).info("Restart network \(networkName)")
-
-			if pidURL.killPID(SIGUSR2) < 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
-			} else {
-				Logger(self).info("Network \(networkName) restarted")
-			}
-		} else if try SudoCaked(arguments: ["networks", "restart", networkName], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError(String(localized: "Failed to restart network \(networkName)"))
+		defer {
+			try? client.channel.close().wait()
 		}
+
+		_ = try client.restart(.init()).response.wait()
 
 		return String(localized: "Network \(networkName) restarted")
 	}
@@ -986,28 +976,13 @@ public struct NetworksHandler {
 				return "PID \(pidURL.path(percentEncoded: false)) is not running"
 			}
 
-			if Bundle.isApplicationSandboxed {
-				let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
+			let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
 
-				defer {
-					try? client.channel.close().wait()
-				}
-
-				_ = try client.stop(.init()).response.wait()
-			} else if NetworksHandler.canManageNetworkWithoutRoot {
-				// We are running as root, so we can just kill the process
-				if pidURL.killPID(SIGTERM) < 0 {
-					throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
-				} else {
-					#if DEBUG
-						Logger(self).debug("PID \(pidURL.path(percentEncoded: false)) stopped")
-					#endif
-				}
-			} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path(percentEncoded: false))"], runMode: runMode).runAndWait() != 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false))"))
-			} else {
-				try pidURL.waitStopped()
+			defer {
+				try? client.channel.close().wait()
 			}
+
+			_ = try client.stop(.init()).response.wait()
 
 			return "PID \(pidURL.path(percentEncoded: false)) stopped"
 		} catch {
@@ -1043,7 +1018,6 @@ public struct NetworksHandler {
 
 	private static func stopNetwork(networkName: String, checkIfUsed: Bool, runMode: Utils.RunMode) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
-		let vmnet = CakedLib.NetworksHandler.vmnetNative
 
 		if checkIfUsed {
 			guard CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode).active == 0 else {
@@ -1051,34 +1025,20 @@ public struct NetworksHandler {
 			}
 		}
 
-		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
-			let pidURL = socketURL.pidFile
+		let pidURL = socketURL.pidFile
 
-			guard pidURL.isCakedRunning() else {
-				Logger(self).info("Network \(networkName) is not running")
-				return "Network \(networkName) is not running"
-			}
-
-			// We are running as root, so we can just kill the process
-			if Bundle.isApplicationSandboxed {
-				let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
-
-				defer {
-					try? client.channel.close().wait()
-				}
-
-				_ = try client.stop(.init()).response.wait()
-			} else if pidURL.killPID(SIGTERM) < 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
-			} else {
-				Logger(self).info("Network \(networkName) stopped")
-			}
-		} else if try SudoCaked(arguments: ["networks", "stop", networkName], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError(String(localized: "Failed to kill network process \(networkName)"))
-		} else {
-			// Wait for the process to exit
-			try socketURL.pidFile.waitStopped()
+		guard pidURL.isCakedRunning() else {
+			Logger(self).info("Network \(networkName) is not running")
+			return "Network \(networkName) is not running"
 		}
+
+		let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
+
+		defer {
+			try? client.channel.close().wait()
+		}
+
+		_ = try client.stop(.init()).response.wait()
 
 		return "Network \(networkName) stopped"
 	}
@@ -1149,7 +1109,7 @@ public struct NetworksHandler {
 
 		return usage
 	}
-	
+
 	public static func referencedNetworks(runMode: Utils.RunMode) -> ReferencedNetworks {
 		var usedNetworks: ReferencedNetworks = ReferencedNetworks()
 
