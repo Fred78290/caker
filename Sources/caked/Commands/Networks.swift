@@ -329,13 +329,18 @@ struct Networks: ParsableCommand {
 						// Kept so `stopServices` can cancel it: the retry loop waits for a bridge that only exists once a guest
 						// attaches, and must not start a server after the services were stopped or replaced.
 						dhcpStartTask = Task {
+							logger.info("Starting the DHCP server of network \(options.networkName)")
+
 							do {
 								try await server.startWithRetry()
 							} catch is CancellationError {
+								logger.debug("DHCP server of network \(options.networkName) was cancelled")
 							} catch {
 								logger.error("DHCP server of network \(options.networkName) failed: \(error)")
 							}
 						}
+					} else {
+						logger.error("Failed to start the DHCP server of network \(options.networkName)")
 					}
 				} catch {
 					logger.error("Unable to start the DHCP server of network \(options.networkName): \(error)")

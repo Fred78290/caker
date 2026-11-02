@@ -406,6 +406,7 @@ public final class DHCPServer: Sendable {
 	}
 
 	public func shutdown() async {
+		self.logger.info("Stopping DHCP server for \(self.bindAddress)")
 		let running = self.running.withLock { value -> Running? in
 			defer { value = nil }
 			return value
