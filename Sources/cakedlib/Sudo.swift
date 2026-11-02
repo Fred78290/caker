@@ -205,7 +205,7 @@ public final class SudoCaked {
 		if canElevateDirectly(binary: binary) {
 			environment[becomeRootEnvironmentKey] = "1"
 
-			if runMode.isSystem {
+			if runMode.isSystem && binary.lastPathComponent == Home.cakedCommandName {
 				arguments.append("--system")
 			}
 
@@ -222,7 +222,7 @@ public final class SudoCaked {
 
 		arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path(percentEncoded: false)]
 
-		if runMode.isSystem {
+		if runMode.isSystem && binary.lastPathComponent == Home.cakedCommandName {
 			arguments.append("--system")
 		}
 
