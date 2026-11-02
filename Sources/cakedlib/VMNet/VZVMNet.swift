@@ -177,8 +177,12 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		let server = try Server.start(configuration: serverConfiguration).wait()
 		self.grpcServer = server
 
-		if chown(socketFile, getegid(), self.socketGroup) < 0 {
+		if chown(socketFile, geteuid(), self.socketGroup) < 0 {
 			self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
+		}
+
+		if chmod(socketFile, 0o660) < 0 {
+			self.logger.error("Failed to set permissions on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
 		}
 
 		let future = self.eventLoop.makeFutureWithTask {
