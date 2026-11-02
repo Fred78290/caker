@@ -281,7 +281,7 @@ struct Networks: ParsableCommand {
 		return "\(DHCPAddress.string(base))/\(network.netmask.netmaskToCidr())"
 	}
 
-	#if !APPSTORE
+	#if USE_DHCP_SERVER
 	/// The DHCP server of `network`: pool from the first address after the gateway up to `dhcp-end`, leases kept in
 	/// the network's own table.
 	static func makeDHCPServer(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> DHCPServer {
@@ -310,7 +310,7 @@ struct Networks: ParsableCommand {
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
-		#if !APPSTORE
+		#if USE_DHCP_SERVER
 			var dhcpServer: DHCPServer? = nil
 			var dhcpStartTask: Task<Void, Never>? = nil
 		#endif
@@ -320,7 +320,7 @@ struct Networks: ParsableCommand {
 		let syncServices: (VZSharedNetwork) -> Void = { network in
 			let ownsDHCP = CakedLib.NetworksHandler.usesCakerDHCP(network)
 
-			#if !APPSTORE
+			#if USE_DHCP_SERVER
 			if ownsDHCP, dhcpServer == nil {
 				do {
 					dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
@@ -375,7 +375,7 @@ struct Networks: ParsableCommand {
 				await coordinator.shutdown()
 			}
 
-			#if !APPSTORE
+			#if USE_DHCP_SERVER
 				dhcpStartTask?.cancel()
 				dhcpStartTask = nil
 

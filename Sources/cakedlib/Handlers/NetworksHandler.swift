@@ -169,14 +169,14 @@ public struct NetworksHandler {
 
 	public static func usesCakerDHCP(mode: VMNetMode) -> Bool {
 		// The App Store build is sandboxed (no root, no /dev/bpf): vmnet keeps serving DHCP and DNS there.
-		#if APPSTORE
+		#if !USE_DHCP_SERVER
 			return false
 		#else
 			return Self.usesCakerDHCPOnThisHost(mode: mode)
 		#endif
 	}
 
-	#if !APPSTORE
+	#if USE_DHCP_SERVER
 		private static func usesCakerDHCPOnThisHost(mode: VMNetMode) -> Bool {
 			guard mode != .bridged, vmnetNative, Bundle.isApplicationSandboxed == false, geteuid() == 0 else {
 				return false

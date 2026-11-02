@@ -114,7 +114,7 @@ public final class DHCPResponder: Sendable {
 	}
 }
 
-#if !APPSTORE
+#if USE_DHCP_SERVER
 
 public enum DHCPServerError: Error, CustomStringConvertible {
 	case interfaceNotFound(String)
@@ -264,7 +264,9 @@ public final class DHCPServer: Sendable {
 			_ = ioctl(fd, BPF.setBufferLength, &length)
 
 			withUnsafeMutableBytes(of: &request.ifr_name) { raw in
-				_ = name.utf8CString.withUnsafeBytes { raw.copyMemory(from: UnsafeRawBufferPointer(rebasing: $0.prefix(raw.count - 1))) }
+				name.utf8CString.withUnsafeBytes {
+					raw.copyMemory(from: UnsafeRawBufferPointer(rebasing: $0.prefix(raw.count - 1)))
+				}
 			}
 
 			guard ioctl(fd, BPF.setInterface, &request) == 0 else {

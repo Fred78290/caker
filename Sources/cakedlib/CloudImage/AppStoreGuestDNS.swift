@@ -16,7 +16,7 @@ enum AppStoreGuestDNS {
 
 	/// For `cloudinit-install-cakeagent.sh` (cloud images).
 	static func cloudInitFragment(domain: String, ip: String, port: String) -> String {
-		#if APPSTORE
+		#if !USE_DHCP_SERVER
 			return variables(domain: domain, ip: ip, port: port) + cloudInitScript
 		#else
 			return ""
@@ -25,14 +25,14 @@ enum AppStoreGuestDNS {
 
 	/// For `ssh-install-cakeagent.sh` (PackerLite/ISO guests, already inside its `if` block, hence the indentation).
 	static func sshFragment(domain: String, ip: String, port: String) -> String {
-		#if APPSTORE
+		#if !USE_DHCP_SERVER
 			return variables(domain: domain, ip: ip, port: port).split(separator: "\n").map { "\t" + $0 }.joined(separator: "\n") + "\n" + sshScript
 		#else
 			return ""
 		#endif
 	}
 
-	#if APPSTORE
+	#if !USE_DHCP_SERVER
 		private static let cloudInitScript = #"""
 if grep -q '^ID=.*alpine' /etc/os-release 2>/dev/null; then
 	# The network may not be up yet when cloud-init runs this: retry, with a fresh index.

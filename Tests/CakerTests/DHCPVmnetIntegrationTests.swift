@@ -9,7 +9,7 @@
 //    sudo env CAKER_DHCP_VMNET_TEST=1 swift test --skip-build --filter DHCPVmnetIntegrationTests
 //
 
-#if !APPSTORE
+#if USE_DHCP_SERVER
 
 import Darwin
 import Foundation

@@ -6,6 +6,11 @@ import Foundation
 // App Store builds must not depend on or link Sparkle.framework, since it is
 // excluded from the app bundle (Sparkle isn't permitted on the Mac App Store).
 let isAppStoreBuild = ProcessInfo.processInfo.environment["APPSTORE"] == "1"
+
+// The per-network DHCP server (and the DNS forwarding it relies on) is compiled in unless this is an App Store build.
+// `USE_DHCP_SERVER=1` forces it in (to try it in the sandboxed build), `USE_DHCP_SERVER=0` removes it from the code.
+let useDHCPServer = ProcessInfo.processInfo.environment["USE_DHCP_SERVER"].map { $0 == "1" } ?? !isAppStoreBuild
+let dhcpServerSettings: [SwiftSetting] = useDHCPServer ? [.define("USE_DHCP_SERVER")] : []
 let supportedVersions: [SupportedPlatform]
 let linkerSettings: [LinkerSetting]?
 
@@ -194,7 +199,8 @@ let package = Package(
 			.copy("PackerLite/Resources/fedora-server.packerlite.yaml"),
 			.copy("PackerLite/Resources/fedora.packerlite.yaml"),
 			.copy("PackerLite/Resources/macos12.packerlite.yaml"),
-		]),
+		],
+		swiftSettings: dhcpServerSettings),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "GRPCLib"),
 			.target(name: "CakedLib"),
@@ -232,6 +238,7 @@ let package = Package(
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "Vapor", package: "vapor"),
 		],
+		swiftSettings: dhcpServerSettings,
 		linkerSettings: linkerSettings),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
@@ -275,7 +282,7 @@ let package = Package(
 			"caker"
 		], exclude: [
 			"echo.py",
-		])
+		], swiftSettings: dhcpServerSettings)
 	],
 	swiftLanguageModes: [
 		.v5
