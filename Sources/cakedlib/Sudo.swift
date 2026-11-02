@@ -33,29 +33,21 @@ public final class SudoCaked {
 	}
 
 	public init(command: String, arguments: [String], runMode: Utils.RunMode, standardOutput: FileHandle? = nil, standardError: FileHandle? = nil) throws {
-		let (sudoable, sudoURL, executableURL) = try Self.checkIfSudoable(command: command)
-
-		guard sudoable else {
-			throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
+		guard let binary = URL.binary(command) else {
+			throw ServiceError(String(localized: "\(command) not found in path"))
 		}
 
+		let launch = try Self.privilegedLaunch(binary: binary, runMode: runMode)
 		let process = Process()
-
-		var runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-		if runMode.isSystem {
-			runningArguments.append("--system")
-		}
-
-		runningArguments.append(contentsOf: arguments)
+		let runningArguments = launch.arguments + arguments
 
 		#if DEBUG
-			Logger("SUDO").debug("SUDO: \(sudoURL) \(runningArguments.joined(separator: " "))")
+			Logger("SUDO").debug("SUDO: \(launch.executableURL) \(runningArguments.joined(separator: " "))")
 		#endif
 
-		process.executableURL = sudoURL
+		process.executableURL = launch.executableURL
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = launch.environment
 		process.standardInput = FileHandle.nullDevice
 
 		self.stdout = Data()
@@ -174,6 +166,83 @@ public final class SudoCaked {
 
 	public var terminationReason: Process.TerminationReason {
 		self.process.terminationReason
+	}
+
+	/// Environment variable telling a setuid-root `caked` it was launched to run privileged: it then calls `setuid(0)` (see `becomeRootIfRequested()`).
+	public static let becomeRootEnvironmentKey = "CAKED_BECOME_ROOT"
+
+	/// How to start `binary` with root privileges.
+	public struct PrivilegedLaunch {
+		/// What to execute: `binary` itself, or `sudo`.
+		public let executableURL: URL
+		/// Arguments to put before the command's own ones (empty for a direct launch).
+		public let arguments: [String]
+		public let environment: [String: String]
+		/// `true` when `sudo` is used, `false` when `binary` gets root by itself (already root, or setuid-root).
+		public let viaSudo: Bool
+	}
+
+	/// Whether `binary` gets root without `sudo`: the current process is root, or `binary` is owned by root with the setuid bit.
+	public static func canElevateDirectly(binary: URL) -> Bool {
+		if geteuid() == 0 {
+			return true
+		}
+
+		guard let info = try? FileManager.default.attributesOfItem(atPath: binary.path(percentEncoded: false)) as NSDictionary else {
+			return false
+		}
+
+		return info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0
+	}
+
+	/// Resolve how to start `binary` as root. A root-owned setuid `binary` (or a root caller) is executed directly, with
+	/// `becomeRootEnvironmentKey` set so it switches its real uid to root; otherwise it goes through `sudo --non-interactive`.
+	/// `--system` is added for the system run mode. Throws when neither is possible.
+	public static func privilegedLaunch(binary: URL, runMode: Utils.RunMode) throws -> PrivilegedLaunch {
+		var environment = try Utilities.environment(runMode: runMode)
+		var arguments: [String] = []
+
+		if canElevateDirectly(binary: binary) {
+			environment[becomeRootEnvironmentKey] = "1"
+
+			if runMode.isSystem {
+				arguments.append("--system")
+			}
+
+			return PrivilegedLaunch(executableURL: binary, arguments: arguments, environment: environment, viaSudo: false)
+		}
+
+		guard let sudoURL = URL.binary(SUDO) else {
+			throw ServiceError(String(localized: "sudo not found in path"))
+		}
+
+		guard try checkIfSudoable(sudoURL: sudoURL, binary: binary) else {
+			throw ServiceError(String(localized: "\(binary.lastPathComponent) is not sudoable"))
+		}
+
+		arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path(percentEncoded: false)]
+
+		if runMode.isSystem {
+			arguments.append("--system")
+		}
+
+		return PrivilegedLaunch(executableURL: sudoURL, arguments: arguments, environment: environment, viaSudo: true)
+	}
+
+	/// Called at startup by a setuid-root `caked` launched with `becomeRootEnvironmentKey`: switch the real (and saved) uid to root,
+	/// as `sudo` would have, then drop the variable so children don't inherit it. Does nothing when the key is absent or the process isn't root.
+	public static func becomeRootIfRequested() {
+		guard getenv(becomeRootEnvironmentKey) != nil else {
+			return
+		}
+
+		unsetenv(becomeRootEnvironmentKey)
+
+		if geteuid() == 0 && getuid() != 0 {
+			if setuid(0) != 0 {
+				Logger("SUDO").error("setuid(0) failed: \(String(cString: strerror(errno)))")
+			}
+		}
 	}
 
 	public static func checkIfSudoable(command: String) throws -> (Bool, URL, URL) {

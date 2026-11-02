@@ -426,28 +426,29 @@ public struct NetworksHandler {
 		var fd = fileDescriptor
 		let logger = Logger(self)
 
-		if NetworksHandler.canManageNetworkWithoutRoot {
+		var environment = try Utilities.environment(runMode: runMode)
+		let direct = NetworksHandler.canManageNetworkWithoutRoot
+
+		if direct {
 			runningArguments = []
 			process.executableURL = executableURL
 			process.standardInput = FileHandle.standardInput
 			process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 		} else {
-			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError(String(localized: "sudo not found in path"))
-			}
+			let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-			}
+			environment = launch.environment
+			runningArguments = launch.arguments
+			process.executableURL = launch.executableURL
 
-			fd = STDIN_FILENO
-			// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it and will block forever
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-			process.executableURL = sudoURL
-			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
-
-			if runMode.isSystem {
-				runningArguments.append("--system")
+			if launch.viaSudo {
+				fd = STDIN_FILENO
+				// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it and will block forever
+				process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
+			} else {
+				// setuid-root caked: no sudo in between, so the descriptor is inherited like for an unprivileged start
+				process.standardInput = FileHandle.standardInput
+				process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 			}
 		}
 
@@ -463,7 +464,7 @@ public struct NetworksHandler {
 		try? pidFile.delete()
 
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = environment
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
 		process.terminationHandler = { process in
@@ -601,25 +602,17 @@ public struct NetworksHandler {
 		var runningArguments: [String]
 		let logger = Logger(self)
 
+		var environment = try Utilities.environment(runMode: runMode)
+
 		if NetworksHandler.canManageNetworkWithoutRoot {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
-			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError(String(localized: "sudo not found in path"))
-			}
+			let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-			}
-
-			process.executableURL = sudoURL
-
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-			if runMode.isSystem {
-				runningArguments.append("--system")
-			}
+			environment = launch.environment
+			process.executableURL = launch.executableURL
+			runningArguments = launch.arguments
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -627,7 +620,7 @@ public struct NetworksHandler {
 		logger.debug("Running: \(process.executableURL!.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = environment
 		process.standardInput = FileHandle.nullDevice
 		process.terminationHandler = { process in
 			#if DEBUG
@@ -807,25 +800,17 @@ public struct NetworksHandler {
 
 		try? socketURL.socket.delete()
 
+		var environment = try Utilities.environment(runMode: runMode)
+
 		if CakedLib.NetworksHandler.canManageNetworkWithoutRoot {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
-			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError(String(localized: "sudo not found in path"))
-			}
+			let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-			}
-
-			process.executableURL = sudoURL
-
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-			if runMode.isSystem {
-				runningArguments.append("--system")
-			}
+			environment = launch.environment
+			process.executableURL = launch.executableURL
+			runningArguments = launch.arguments
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -835,7 +820,7 @@ public struct NetworksHandler {
 		#endif
 
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = environment
 		process.standardInput = FileHandle.nullDevice
 		process.terminationHandler = { process in
 			if process.terminationReason == .uncaughtSignal {
