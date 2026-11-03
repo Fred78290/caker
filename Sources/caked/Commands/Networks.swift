@@ -282,22 +282,22 @@ struct Networks: ParsableCommand {
 	}
 
 	#if USE_DHCP_SERVER
-	/// The DHCP server of `network`: pool from the first address after the gateway up to `dhcp-end`, leases kept in
-	/// the network's own table.
-	static func makeDHCPServer(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> DHCPServer {
-		guard let gateway = DHCPAddress.parse(network.gateway), let netmask = DHCPAddress.parse(network.netmask), let end = DHCPAddress.parse(network.dhcpEnd) else {
-			throw ServiceError(String(localized: "Bad network configuration \(networkName)"))
+		/// The DHCP server of `network`: pool from the first address after the gateway up to `dhcp-end`, leases kept in
+		/// the network's own table.
+		static func makeDHCPServer(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> DHCPServer {
+			guard let gateway = DHCPAddress.parse(network.gateway), let netmask = DHCPAddress.parse(network.netmask), let end = DHCPAddress.parse(network.dhcpEnd) else {
+				throw ServiceError(String(localized: "Bad network configuration \(networkName)"))
+			}
+
+			let start = max(DHCPAddress.parse(network.dhcpStart) ?? 0, gateway + 1)
+			let store = DHCPLeaseStore(
+				gateway: gateway, poolStart: start, poolEnd: end, leaseDuration: TimeInterval(network.dhcpLease ?? 86400),
+				fileURL: try CakedLib.NetworksHandler.dhcpLeaseFile(networkName: networkName, runMode: runMode))
+			// The gateway is the DNS server: the compose resolver when `dns` is on, vmnet's proxy otherwise.
+			let responder = DHCPResponder(configuration: .init(gateway: gateway, netmask: netmask, dnsServers: [gateway], domainName: network.dns == true ? ComposeDNS.domainSuffix : nil), store: store)
+
+			return DHCPServer(group: Utilities.group, responder: responder, bindAddress: network.gateway)
 		}
-
-		let start = max(DHCPAddress.parse(network.dhcpStart) ?? 0, gateway + 1)
-		let store = DHCPLeaseStore(
-			gateway: gateway, poolStart: start, poolEnd: end, leaseDuration: TimeInterval(network.dhcpLease ?? 86400),
-			fileURL: try CakedLib.NetworksHandler.dhcpLeaseFile(networkName: networkName, runMode: runMode))
-		// The gateway is the DNS server: the compose resolver when `dns` is on, vmnet's proxy otherwise.
-		let responder = DHCPResponder(configuration: .init(gateway: gateway, netmask: netmask, dnsServers: [gateway], domainName: network.dns == true ? ComposeDNS.domainSuffix : nil), store: store)
-
-		return DHCPServer(group: Utilities.group, responder: responder, bindAddress: network.gateway)
-	}
 	#endif
 
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
@@ -321,31 +321,31 @@ struct Networks: ParsableCommand {
 			let ownsDHCP = CakedLib.NetworksHandler.usesCakerDHCP(network)
 
 			#if USE_DHCP_SERVER
-			if ownsDHCP, dhcpServer == nil {
-				do {
-					dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
+				if ownsDHCP, dhcpServer == nil {
+					do {
+						dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
 
-					if let server = dhcpServer {
-						// Kept so `stopServices` can cancel it: the retry loop waits for a bridge that only exists once a guest
-						// attaches, and must not start a server after the services were stopped or replaced.
-						dhcpStartTask = Task {
-							logger.info("Starting the DHCP server of network \(options.networkName)")
+						if let server = dhcpServer {
+							// Kept so `stopServices` can cancel it: the retry loop waits for a bridge that only exists once a guest
+							// attaches, and must not start a server after the services were stopped or replaced.
+							dhcpStartTask = Task {
+								logger.info("Starting the DHCP server of network \(options.networkName)")
 
-							do {
-								try await server.startWithRetry()
-							} catch is CancellationError {
-								logger.debug("DHCP server of network \(options.networkName) was cancelled")
-							} catch {
-								logger.error("DHCP server of network \(options.networkName) failed: \(error)")
+								do {
+									try await server.startWithRetry()
+								} catch is CancellationError {
+									logger.debug("DHCP server of network \(options.networkName) was cancelled")
+								} catch {
+									logger.error("DHCP server of network \(options.networkName) failed: \(error)")
+								}
 							}
+						} else {
+							logger.error("Failed to start the DHCP server of network \(options.networkName)")
 						}
-					} else {
-						logger.error("Failed to start the DHCP server of network \(options.networkName)")
+					} catch {
+						logger.error("Unable to start the DHCP server of network \(options.networkName): \(error)")
 					}
-				} catch {
-					logger.error("Unable to start the DHCP server of network \(options.networkName): \(error)")
 				}
-			}
 			#endif
 
 			if network.dns == true {
@@ -625,8 +625,10 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
-			SudoCaked.becomeRootIfRequested()
+			#if USE_SETUID
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+				SudoCaked.becomeRootIfRequested()
+			#endif
 		}
 
 		func run() throws {
@@ -664,10 +666,12 @@ struct Networks: ParsableCommand {
 				throw ValidationError("You cannot specify --fork with --all")
 			}
 
-			if self.fork {
-				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
-				SudoCaked.becomeRootIfRequested()
-			}
+			#if USE_SETUID
+				if self.fork {
+					// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+					SudoCaked.becomeRootIfRequested()
+				}
+			#endif
 
 			if let name {
 				_ = try validateNetwork(networkName: name, runMode: self.common.runMode)
@@ -923,8 +927,10 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
-			SudoCaked.becomeRootIfRequested()
+			#if USE_SETUID
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+				SudoCaked.becomeRootIfRequested()
+			#endif
 
 			if geteuid() != 0 {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
