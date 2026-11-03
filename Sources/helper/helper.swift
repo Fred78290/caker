@@ -182,16 +182,21 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	}
 
 	/// Whether `url` is owned by root and can't be modified by anybody else.
-	private static func isRootOwnedAndProtected(_ url: URL) -> Bool {
+	private static func isRootOwnedAndProtected(_ url: URL, alsoOwnedBy uid: uid_t? = nil) -> Bool {
 		guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as NSDictionary else {
 			return false
 		}
 
-		return attributes.fileOwnerAccountID()?.uint32Value == 0 && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
+		let owner = attributes.fileOwnerAccountID()?.uint32Value
+
+		return (owner == 0 || (uid != nil && owner == uid)) && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
 	}
 
 	/// The `caked` shipped with the app the helper belongs to. It runs as root, so it must be root-owned and not writable by others.
-	private static func trustedCaked(in appURL: URL? = nil) throws -> URL {
+	///
+	/// DEBUG helper builds (Xcode development) also accept a `caked` owned by the caller, since a freshly built binary belongs to the developer.
+	/// A release helper never does: `alsoOwnedBy` is ignored.
+	private static func trustedCaked(in appURL: URL? = nil, alsoOwnedBy uid: uid_t? = nil) throws -> URL {
 		var candidates: [URL] = []
 
 		if let appURL {
@@ -210,7 +215,13 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			throw ServiceError("caked not found")
 		}
 
-		guard isRootOwnedAndProtected(caked) else {
+		#if DEBUG
+			let developer = uid
+		#else
+			let developer: uid_t? = nil
+		#endif
+
+		guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
 			throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
 		}
 
@@ -290,7 +301,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 			try Self.validateNetworkName(networkName)
 
-			let caked = try Self.trustedCaked()
+			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
 			let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
 
 			if pidFile.isCakedRunning() {
@@ -301,8 +312,16 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			let log = Self.logFile()
 			let process = Process()
 
-			process.executableURL = caked
-			process.arguments = ["networks", "start", "--fork", "--home", home.path, networkName]
+			let arguments = ["networks", "start", "--fork", "--home", home.path, networkName]
+
+			#if DEBUG
+				// Launched through the shell, as asked: the arguments are positional parameters, never part of the script text, so nothing is interpreted.
+				process.executableURL = URL(fileURLWithPath: "/bin/sh")
+				process.arguments = ["-c", "exec \"$0\" \"$@\"", caked.path] + arguments
+			#else
+				process.executableURL = caked
+				process.arguments = arguments
+			#endif
 			process.environment = Self.environment(home: home)
 			process.standardInput = FileHandle.nullDevice
 			process.standardOutput = log
@@ -376,8 +395,15 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				throw ServiceError("Argument \(argument) is not allowed")
 			}
 
-			let caked = try Self.trustedCaked()
-			let result = try Self.runAndCollect(caked, arguments: ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments, environment: Self.environment(home: home))
+			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
+			let importArguments = ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments
+
+			#if DEBUG
+				// Launched through the shell like the network start: positional parameters, nothing interpreted.
+				let result = try Self.runAndCollect(URL(fileURLWithPath: "/bin/sh"), arguments: ["-c", "exec \"$0\" \"$@\"", caked.path] + importArguments, environment: Self.environment(home: home))
+			#else
+				let result = try Self.runAndCollect(caked, arguments: importArguments, environment: Self.environment(home: home))
+			#endif
 
 			guard result.status == 0 else {
 				throw ServiceError(result.output.isEmpty ? "Import failed with status \(result.status)" : result.output)
