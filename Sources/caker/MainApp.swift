@@ -783,7 +783,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					// The helper installs the files once it is approved; the administrator prompt is the fallback.
 					Task {
 						await Self.installPrivilegedBootstrapFilesWithHelper()
-						await MainActor.run { Self.ensurePrivilegedBootstrapFiles() }
+
+						await MainActor.run {
+							Self.ensurePrivilegedBootstrapFiles()
+							Self.askUserToInstallCakedAgent()
+						}
 					}
 				}
 			} else {
@@ -791,9 +795,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 		#else
 			Self.ensurePrivilegedBootstrapFiles()
+			Self.askUserToInstallCakedAgent()
 		#endif
-
-		Self.askUserToInstallCakedAgent()
 
 		if isDockIconHidden {
 			NSApplication.shared.setActivationPolicy(.accessory)
