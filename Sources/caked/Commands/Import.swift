@@ -55,8 +55,10 @@ struct Import: ParsableCommand {
 	}
 
 	mutating func validate() throws {
-		// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
-		SudoCaked.becomeRootIfRequested()
+		#if USE_SETUID
+			// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+			SudoCaked.becomeRootIfRequested()
+		#endif
 
 		for argument in self.importerArguments {
 			guard let separator = argument.firstIndex(of: "="), separator != argument.startIndex else {

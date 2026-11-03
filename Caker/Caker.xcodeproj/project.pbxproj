@@ -3847,8 +3847,8 @@
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"cp \"${SOURCE_ROOT}/../Resources/caked.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
 				"",
-				"CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"",
-				"sudo --non-interactive -- sh -c 'chown root \"$1\" && chmod u+s \"$1\"' sh \"${CAKED_PATH}\" || echo \"warning: caked is not setuid root (no cached sudo authorization); run the chown/chmod by hand to use the DHCP server\"",
+				"#CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"",
+				"#sudo --non-interactive -- sh -c 'chown root \"$1\" && chmod u+s \"$1\"' sh \"${CAKED_PATH}\" || echo \"warning: caked is not setuid root (no cached sudo authorization); run the chown/chmod by hand to use the DHCP server\"",
 				"",
 			);
 		};
@@ -3936,8 +3936,8 @@
 				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"",
-				"CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/caked.app/Contents/MacOS/caked\"",
-				"sudo --non-interactive -- sh -c 'chown root \"$1\" && chmod u+s \"$1\"' sh \"${CAKED_PATH}\" || echo \"warning: caked is not setuid root (no cached sudo authorization); run the chown/chmod by hand to use the DHCP server\"",
+				"#CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/caked.app/Contents/MacOS/caked\"",
+				"#sudo --non-interactive -- sh -c 'chown root \"$1\" && chmod u+s \"$1\"' sh \"${CAKED_PATH}\" || echo \"warning: caked is not setuid root (no cached sudo authorization); run the chown/chmod by hand to use the DHCP server\"",
 				"",
 			);
 		};

@@ -368,7 +368,7 @@ else
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/MacOS/Caker"
 fi
 
-if [ "${APPSTORE}" -ne 1 ]; then
-	echo "Setting ownership and permissions for caked"
-	sudo --non-interactive -- sh -c 'chown -R root:wheel "$1" && chmod u+s "$2"' sh "${PKGDIR}" "${CAKED_APP}/MacOS/caked" || true
-fi
+#if [ "${APPSTORE}" -ne 1 ]; then
+#	echo "Setting ownership and permissions for caked"
+#	sudo --non-interactive -- sh -c 'chown -R root:wheel "$1" && chmod u+s "$2"' sh "${PKGDIR}" "${CAKED_APP}/MacOS/caked" || true
+#fi

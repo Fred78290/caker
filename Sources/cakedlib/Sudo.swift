@@ -202,15 +202,17 @@ public final class SudoCaked {
 		var environment = try Utilities.environment(runMode: runMode)
 		var arguments: [String] = []
 
-		if canElevateDirectly(binary: binary) {
-			environment[becomeRootEnvironmentKey] = "1"
+		#if USE_SETUID
+			if canElevateDirectly(binary: binary) {
+				environment[becomeRootEnvironmentKey] = "1"
 
-			if runMode.isSystem && binary.lastPathComponent == Home.cakedCommandName {
-				arguments.append("--system")
+				if runMode.isSystem && binary.lastPathComponent == Home.cakedCommandName {
+					arguments.append("--system")
+				}
+
+				return PrivilegedLaunch(executableURL: binary, arguments: arguments, environment: environment, viaSudo: false)
 			}
-
-			return PrivilegedLaunch(executableURL: binary, arguments: arguments, environment: environment, viaSudo: false)
-		}
+		#endif
 
 		guard let sudoURL = URL.binary(SUDO) else {
 			throw ServiceError(String(localized: "sudo not found in path"))
@@ -254,40 +256,42 @@ public final class SudoCaked {
 		return groups.prefix(Int(count)).contains(adminGID)
 	}
 
-	/// A setuid-root `caked` gets root for whoever executes it. Called first thing in `main`: when the real user isn't
-	/// an administrator, give the privileges back (`seteuid`) so the process runs as that user, as if it wasn't setuid.
-	public static func dropSetuidPrivilegesIfUnauthorized() {
-		let uid = getuid()
+	#if USE_SETUID
+		/// A setuid-root `caked` gets root for whoever executes it. Called first thing in `main`: when the real user isn't
+		/// an administrator, give the privileges back (`seteuid`) so the process runs as that user, as if it wasn't setuid.
+		public static func dropSetuidPrivilegesIfUnauthorized() {
+			let uid = getuid()
 
-		guard geteuid() == 0 && uid != 0 /*&& isAdministrator(uid: uid) == false*/ else {
-			return
-		}
+			guard geteuid() == 0 && uid != 0 /*&& isAdministrator(uid: uid) == false*/ else {
+				return
+			}
 
-		if seteuid(uid) != 0 || setuid(uid) != 0 {
-			Logger("SUDO").error("Unable to drop setuid privileges: \(String(cString: strerror(errno)))")
-			exit(EXIT_FAILURE)
-		}
-	}
-
-	/// Called at startup by a setuid-root `caked` launched with `becomeRootEnvironmentKey`: switch the real (and saved) uid to root,
-	/// as `sudo` would have, then drop the variable so children don't inherit it. Does nothing when the key is absent or the process isn't root.
-	public static func becomeRootIfRequested() {
-		guard getenv(becomeRootEnvironmentKey) != nil else {
-			return
-		}
-
-		unsetenv(becomeRootEnvironmentKey)
-
-		if getuid() != 0 {
-			/*if seteuid(0) != 0 {
-				Logger("SUDO").error("seteuid(0) failed: \(String(cString: strerror(errno)))")
-			}*/
-
-			if setuid(0) != 0 {
-				Logger("SUDO").error("setuid(0) failed: \(String(cString: strerror(errno)))")
+			if seteuid(uid) != 0 || setuid(uid) != 0 {
+				Logger("SUDO").error("Unable to drop setuid privileges: \(String(cString: strerror(errno)))")
+				exit(EXIT_FAILURE)
 			}
 		}
-	}
+
+		/// Called at startup by a setuid-root `caked` launched with `becomeRootEnvironmentKey`: switch the real (and saved) uid to root,
+		/// as `sudo` would have, then drop the variable so children don't inherit it. Does nothing when the key is absent or the process isn't root.
+		public static func becomeRootIfRequested() {
+			guard getenv(becomeRootEnvironmentKey) != nil else {
+				return
+			}
+
+			unsetenv(becomeRootEnvironmentKey)
+
+			if getuid() != 0 {
+				/*if seteuid(0) != 0 {
+					Logger("SUDO").error("seteuid(0) failed: \(String(cString: strerror(errno)))")
+				}*/
+
+				if setuid(0) != 0 {
+					Logger("SUDO").error("setuid(0) failed: \(String(cString: strerror(errno)))")
+				}
+			}
+		}
+	#endif
 
 	public static func checkIfSudoable(command: String) throws -> (Bool, URL, URL) {
 		guard let binary = URL.binary(command) else {
