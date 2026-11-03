@@ -822,6 +822,44 @@
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
+		9BA000000000000000001002 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001001 /* Dynamic */; };
+		9BA000000000000000001004 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001003 /* Algorithms */; };
+		9BA000000000000000001006 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001005 /* AsyncAlgorithms */; };
+		9BA000000000000000001008 /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001007 /* SwiftDate */; };
+		9BA00000000000000000100A /* Antlr4Static in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001009 /* Antlr4Static */; };
+		9BA00000000000000000100C /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000100B /* Atomics */; };
+		9BA00000000000000000100E /* SwiftFormat in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000100D /* SwiftFormat */; };
+		9BA000000000000000001010 /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000100F /* TextTable */; };
+		9BA000000000000000001012 /* Sysctl in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001011 /* Sysctl */; };
+		9BA000000000000000001014 /* SwiftRadix in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001013 /* SwiftRadix */; };
+		9BA000000000000000001016 /* Semaphore in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001015 /* Semaphore */; };
+		9BA000000000000000001018 /* DMRetry in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001017 /* DMRetry */; };
+		9BA00000000000000000101A /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001019 /* XAttr */; };
+		9BA00000000000000000101C /* ISO9660 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000101B /* ISO9660 */; };
+		9BA00000000000000000101E /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000101D /* Yams */; };
+		9BA000000000000000001020 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000101F /* X509 */; };
+		9BA000000000000000001022 /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001021 /* Crypto */; };
+		9BA000000000000000001024 /* NIOSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001023 /* NIOSSL */; };
+		9BA000000000000000001026 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001025 /* GRPC */; };
+		9BA000000000000000001028 /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001027 /* NIO */; };
+		9BA00000000000000000102A /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001029 /* NIOCore */; };
+		9BA00000000000000000102C /* NIOEmbedded in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102B /* NIOEmbedded */; };
+		9BA00000000000000000102E /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102D /* NIOFoundationCompat */; };
+		9BA000000000000000001030 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102F /* NIOHTTP1 */; };
+		9BA000000000000000001032 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001031 /* NIOPosix */; };
+		9BA000000000000000001034 /* NIOTLS in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001033 /* NIOTLS */; };
+		9BA000000000000000001036 /* NIOWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001035 /* NIOWebSocket */; };
+		9BA000000000000000001038 /* NIOHTTP2 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001037 /* NIOHTTP2 */; };
+		9BA00000000000000000103A /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001039 /* SwiftProtobuf */; };
+		9BA00000000000000000103C /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000103B /* Logging */; };
+		9BA00000000000000000103E /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000103D /* Shout */; };
+		9BA000000000000000001040 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000103F /* NIOPortForwarding */; };
+		9BA000000000000000001042 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001041 /* Gzip */; };
+		9BA000000000000000001044 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001043 /* RoyalVNCKitStatic */; };
+		9BA000000000000000001046 /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001045 /* ZLib */; };
+		9BA000000000000000001048 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001047 /* Subprocess */; };
+		9BA000000000000000001049 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
+		9BA00000000000000000104A /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1877,6 +1915,44 @@
 				9B9FE65A309A2F640006B008 /* libCakedLib.a in Frameworks */,
 				9B9FE663309A2FBC0006B008 /* CakeAgentLib in Frameworks */,
 				9B9FE65D309A2F640006B008 /* libGRPCLib.a in Frameworks */,
+				9BA000000000000000001002 /* Dynamic in Frameworks */,
+				9BA000000000000000001004 /* Algorithms in Frameworks */,
+				9BA000000000000000001006 /* AsyncAlgorithms in Frameworks */,
+				9BA000000000000000001008 /* SwiftDate in Frameworks */,
+				9BA00000000000000000100A /* Antlr4Static in Frameworks */,
+				9BA00000000000000000100C /* Atomics in Frameworks */,
+				9BA00000000000000000100E /* SwiftFormat in Frameworks */,
+				9BA000000000000000001010 /* TextTable in Frameworks */,
+				9BA000000000000000001012 /* Sysctl in Frameworks */,
+				9BA000000000000000001014 /* SwiftRadix in Frameworks */,
+				9BA000000000000000001016 /* Semaphore in Frameworks */,
+				9BA000000000000000001018 /* DMRetry in Frameworks */,
+				9BA00000000000000000101A /* XAttr in Frameworks */,
+				9BA00000000000000000101C /* ISO9660 in Frameworks */,
+				9BA00000000000000000101E /* Yams in Frameworks */,
+				9BA000000000000000001020 /* X509 in Frameworks */,
+				9BA000000000000000001022 /* Crypto in Frameworks */,
+				9BA000000000000000001024 /* NIOSSL in Frameworks */,
+				9BA000000000000000001026 /* GRPC in Frameworks */,
+				9BA000000000000000001028 /* NIO in Frameworks */,
+				9BA00000000000000000102A /* NIOCore in Frameworks */,
+				9BA00000000000000000102C /* NIOEmbedded in Frameworks */,
+				9BA00000000000000000102E /* NIOFoundationCompat in Frameworks */,
+				9BA000000000000000001030 /* NIOHTTP1 in Frameworks */,
+				9BA000000000000000001032 /* NIOPosix in Frameworks */,
+				9BA000000000000000001034 /* NIOTLS in Frameworks */,
+				9BA000000000000000001036 /* NIOWebSocket in Frameworks */,
+				9BA000000000000000001038 /* NIOHTTP2 in Frameworks */,
+				9BA00000000000000000103A /* SwiftProtobuf in Frameworks */,
+				9BA00000000000000000103C /* Logging in Frameworks */,
+				9BA00000000000000000103E /* Shout in Frameworks */,
+				9BA000000000000000001040 /* NIOPortForwarding in Frameworks */,
+				9BA000000000000000001042 /* Gzip in Frameworks */,
+				9BA000000000000000001044 /* RoyalVNCKitStatic in Frameworks */,
+				9BA000000000000000001046 /* ZLib in Frameworks */,
+				9BA000000000000000001048 /* Subprocess in Frameworks */,
+				9BA000000000000000001049 /* Virtualization.framework in Frameworks */,
+				9BA00000000000000000104A /* libswiftCompatibilitySpan.tbd in Frameworks */,
 			);
 		};
 		9BEBC68B2DF43FEE0092B196 /* Frameworks */ = {
@@ -3524,6 +3600,42 @@
 				9B9FE660309A2F6B0006B008 /* ArgumentParser */,
 				9B9FE662309A2FBC0006B008 /* CakeAgentLib */,
 				9B9FE664309A2FBC0006B008 /* LogManager */,
+				9BA000000000000000001001 /* Dynamic */,
+				9BA000000000000000001003 /* Algorithms */,
+				9BA000000000000000001005 /* AsyncAlgorithms */,
+				9BA000000000000000001007 /* SwiftDate */,
+				9BA000000000000000001009 /* Antlr4Static */,
+				9BA00000000000000000100B /* Atomics */,
+				9BA00000000000000000100D /* SwiftFormat */,
+				9BA00000000000000000100F /* TextTable */,
+				9BA000000000000000001011 /* Sysctl */,
+				9BA000000000000000001013 /* SwiftRadix */,
+				9BA000000000000000001015 /* Semaphore */,
+				9BA000000000000000001017 /* DMRetry */,
+				9BA000000000000000001019 /* XAttr */,
+				9BA00000000000000000101B /* ISO9660 */,
+				9BA00000000000000000101D /* Yams */,
+				9BA00000000000000000101F /* X509 */,
+				9BA000000000000000001021 /* Crypto */,
+				9BA000000000000000001023 /* NIOSSL */,
+				9BA000000000000000001025 /* GRPC */,
+				9BA000000000000000001027 /* NIO */,
+				9BA000000000000000001029 /* NIOCore */,
+				9BA00000000000000000102B /* NIOEmbedded */,
+				9BA00000000000000000102D /* NIOFoundationCompat */,
+				9BA00000000000000000102F /* NIOHTTP1 */,
+				9BA000000000000000001031 /* NIOPosix */,
+				9BA000000000000000001033 /* NIOTLS */,
+				9BA000000000000000001035 /* NIOWebSocket */,
+				9BA000000000000000001037 /* NIOHTTP2 */,
+				9BA000000000000000001039 /* SwiftProtobuf */,
+				9BA00000000000000000103B /* Logging */,
+				9BA00000000000000000103D /* Shout */,
+				9BA00000000000000000103F /* NIOPortForwarding */,
+				9BA000000000000000001041 /* Gzip */,
+				9BA000000000000000001043 /* RoyalVNCKitStatic */,
+				9BA000000000000000001045 /* ZLib */,
+				9BA000000000000000001047 /* Subprocess */,
 			);
 			productName = helper;
 			productReference = 9B9FE64D309A2E2E0006B008 /* helper */;
@@ -5172,6 +5284,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -5187,6 +5300,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -6599,6 +6713,186 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BF5531C301BBD0B009E3920 /* XCRemoteSwiftPackageReference "LogManager" */;
 			productName = LogManager;
+		};
+		9BA000000000000000001001 /* Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */;
+			productName = Dynamic;
+		};
+		9BA000000000000000001003 /* Algorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B862D5A3F2300164BF5 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
+			productName = Algorithms;
+		};
+		9BA000000000000000001005 /* AsyncAlgorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B892D5A3F4200164BF5 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
+			productName = AsyncAlgorithms;
+		};
+		9BA000000000000000001007 /* SwiftDate */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B8C2D5A3F5800164BF5 /* XCRemoteSwiftPackageReference "SwiftDate" */;
+			productName = SwiftDate;
+		};
+		9BA000000000000000001009 /* Antlr4Static */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B8F2D5A3F7B00164BF5 /* XCRemoteSwiftPackageReference "antlr4" */;
+			productName = Antlr4Static;
+		};
+		9BA00000000000000000100B /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B922D5A3F9B00164BF5 /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		9BA00000000000000000100D /* SwiftFormat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B952D5A3FB700164BF5 /* XCRemoteSwiftPackageReference "SwiftFormat" */;
+			productName = SwiftFormat;
+		};
+		9BA00000000000000000100F /* TextTable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B982D5A3FCD00164BF5 /* XCRemoteSwiftPackageReference "TextTable" */;
+			productName = TextTable;
+		};
+		9BA000000000000000001011 /* Sysctl */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B9B2D5A3FE100164BF5 /* XCRemoteSwiftPackageReference "swift-sysctl" */;
+			productName = Sysctl;
+		};
+		9BA000000000000000001013 /* SwiftRadix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B9E2D5A3FF600164BF5 /* XCRemoteSwiftPackageReference "SwiftRadix" */;
+			productName = SwiftRadix;
+		};
+		9BA000000000000000001015 /* Semaphore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BA12D5A402200164BF5 /* XCRemoteSwiftPackageReference "Semaphore" */;
+			productName = Semaphore;
+		};
+		9BA000000000000000001017 /* DMRetry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BA42D5A404A00164BF5 /* XCRemoteSwiftPackageReference "swift-retry" */;
+			productName = DMRetry;
+		};
+		9BA000000000000000001019 /* XAttr */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
+			productName = XAttr;
+		};
+		9BA00000000000000000101B /* ISO9660 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BAA2D5A407700164BF5 /* XCRemoteSwiftPackageReference "iso9660-swift" */;
+			productName = ISO9660;
+		};
+		9BA00000000000000000101D /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BAD2D5A408E00164BF5 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+		9BA00000000000000000101F /* X509 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB02D5A40A900164BF5 /* XCRemoteSwiftPackageReference "swift-certificates" */;
+			productName = X509;
+		};
+		9BA000000000000000001021 /* Crypto */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB32D5A40BB00164BF5 /* XCRemoteSwiftPackageReference "swift-crypto" */;
+			productName = Crypto;
+		};
+		9BA000000000000000001023 /* NIOSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB82D5A40DC00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-ssl" */;
+			productName = NIOSSL;
+		};
+		9BA000000000000000001025 /* GRPC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC22D5A411900164BF5 /* XCRemoteSwiftPackageReference "grpc-swift" */;
+			productName = GRPC;
+		};
+		9BA000000000000000001027 /* NIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIO;
+		};
+		9BA000000000000000001029 /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		9BA00000000000000000102B /* NIOEmbedded */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOEmbedded;
+		};
+		9BA00000000000000000102D /* NIOFoundationCompat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOFoundationCompat;
+		};
+		9BA00000000000000000102F /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
+		};
+		9BA000000000000000001031 /* NIOPosix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOPosix;
+		};
+		9BA000000000000000001033 /* NIOTLS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOTLS;
+		};
+		9BA000000000000000001035 /* NIOWebSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOWebSocket;
+		};
+		9BA000000000000000001037 /* NIOHTTP2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */;
+			productName = NIOHTTP2;
+		};
+		9BA000000000000000001039 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BF02D5A41A200164BF5 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		9BA00000000000000000103B /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BF52D5A41B300164BF5 /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
+		};
+		9BA00000000000000000103D /* Shout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */;
+			productName = Shout;
+		};
+		9BA00000000000000000103F /* NIOPortForwarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */;
+			productName = NIOPortForwarding;
+		};
+		9BA000000000000000001041 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+		9BA000000000000000001043 /* RoyalVNCKitStatic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
+			productName = RoyalVNCKitStatic;
+		};
+		9BA000000000000000001045 /* ZLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */;
+			productName = ZLib;
+		};
+		9BA000000000000000001047 /* Subprocess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */;
+			productName = Subprocess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
