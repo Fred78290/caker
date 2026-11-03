@@ -846,6 +846,14 @@
 		9BA00000000000000000102C /* NIOEmbedded in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102B /* NIOEmbedded */; };
 		9BA00000000000000000102E /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102D /* NIOFoundationCompat */; };
 		9BA000000000000000001030 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102F /* NIOHTTP1 */; };
+		9BA000000000000000001101 /* Containerization in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001100 /* Containerization */; };
+		9BA000000000000000001103 /* ContainerizationEXT4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001102 /* ContainerizationEXT4 */; };
+		9BA000000000000000001105 /* ContainerizationExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001104 /* ContainerizationExtras */; };
+		9BA000000000000000001107 /* ContainerizationIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001106 /* ContainerizationIO */; };
+		9BA000000000000000001109 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001108 /* ContainerizationOCI */; };
+		9BA00000000000000000110B /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000110A /* FileMonitor */; };
+		9BA00000000000000000110D /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000110C /* Multipart */; };
+		9BA00000000000000000110F /* NIOConcurrencyHelpers in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000110E /* NIOConcurrencyHelpers */; };
 		9BA000000000000000001032 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001031 /* NIOPosix */; };
 		9BA000000000000000001034 /* NIOTLS in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001033 /* NIOTLS */; };
 		9BA000000000000000001036 /* NIOWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001035 /* NIOWebSocket */; };
@@ -925,6 +933,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9B464A532D5A3DA000164BF5;
 			remoteInfo = Caker;
+		};
+		9BA000000000000000002001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B9FE64C309A2E2E0006B008;
+			remoteInfo = helper;
 		};
 		9B9FE65B309A2F640006B008 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1939,6 +1954,14 @@
 				9BA00000000000000000102C /* NIOEmbedded in Frameworks */,
 				9BA00000000000000000102E /* NIOFoundationCompat in Frameworks */,
 				9BA000000000000000001030 /* NIOHTTP1 in Frameworks */,
+				9BA000000000000000001101 /* Containerization in Frameworks */,
+				9BA000000000000000001103 /* ContainerizationEXT4 in Frameworks */,
+				9BA000000000000000001105 /* ContainerizationExtras in Frameworks */,
+				9BA000000000000000001107 /* ContainerizationIO in Frameworks */,
+				9BA000000000000000001109 /* ContainerizationOCI in Frameworks */,
+				9BA00000000000000000110B /* FileMonitor in Frameworks */,
+				9BA00000000000000000110D /* Multipart in Frameworks */,
+				9BA00000000000000000110F /* NIOConcurrencyHelpers in Frameworks */,
 				9BA000000000000000001032 /* NIOPosix in Frameworks */,
 				9BA000000000000000001034 /* NIOTLS in Frameworks */,
 				9BA000000000000000001036 /* NIOWebSocket in Frameworks */,
@@ -3456,6 +3479,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				9BA000000000000000002002 /* PBXTargetDependency */,
 				9BD69DF92FCEE92E005E24AF /* PBXTargetDependency */,
 				9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */,
 				9BF2D5F62FE2D30F00218073 /* PBXTargetDependency */,
@@ -3624,6 +3648,14 @@
 				9BA00000000000000000102B /* NIOEmbedded */,
 				9BA00000000000000000102D /* NIOFoundationCompat */,
 				9BA00000000000000000102F /* NIOHTTP1 */,
+				9BA000000000000000001100 /* Containerization */,
+				9BA000000000000000001102 /* ContainerizationEXT4 */,
+				9BA000000000000000001104 /* ContainerizationExtras */,
+				9BA000000000000000001106 /* ContainerizationIO */,
+				9BA000000000000000001108 /* ContainerizationOCI */,
+				9BA00000000000000000110A /* FileMonitor */,
+				9BA00000000000000000110C /* Multipart */,
+				9BA00000000000000000110E /* NIOConcurrencyHelpers */,
 				9BA000000000000000001031 /* NIOPosix */,
 				9BA000000000000000001033 /* NIOTLS */,
 				9BA000000000000000001035 /* NIOWebSocket */,
@@ -4850,6 +4882,11 @@
 			isa = PBXTargetDependency;
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 			targetProxy = 9B96B0132F4B68380069C970 /* PBXContainerItemProxy */;
+		};
+		9BA000000000000000002002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B9FE64C309A2E2E0006B008 /* helper */;
+			targetProxy = 9BA000000000000000002001 /* PBXContainerItemProxy */;
 		};
 		9B9FE65C309A2F640006B008 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -6833,6 +6870,46 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
 			productName = NIOHTTP1;
+		};
+		9BA000000000000000001100 /* Containerization */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = Containerization;
+		};
+		9BA000000000000000001102 /* ContainerizationEXT4 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationEXT4;
+		};
+		9BA000000000000000001104 /* ContainerizationExtras */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationExtras;
+		};
+		9BA000000000000000001106 /* ContainerizationIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationIO;
+		};
+		9BA000000000000000001108 /* ContainerizationOCI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationOCI;
+		};
+		9BA00000000000000000110A /* FileMonitor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */;
+			productName = FileMonitor;
+		};
+		9BA00000000000000000110C /* Multipart */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */;
+			productName = Multipart;
+		};
+		9BA00000000000000000110E /* NIOConcurrencyHelpers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOConcurrencyHelpers;
 		};
 		9BA000000000000000001031 /* NIOPosix */ = {
 			isa = XCSwiftPackageProductDependency;
