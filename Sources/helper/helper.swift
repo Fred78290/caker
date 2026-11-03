@@ -97,7 +97,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				var oneRight = AuthorizationItem(name: name, valueLength: 0, value: nil, flags: 0)
 				return withUnsafeMutablePointer(to: &oneRight) { items in
 					var rights = AuthorizationRights(count: 1, items: items)
-					return AuthorizationCopyRights(authRef, &rights, nil, [.extendRights, .interactionAllowed], nil)
+					return AuthorizationCopyRights(authRef, &rights, nil, [.extendRights], nil)
 				}
 			}
 		}

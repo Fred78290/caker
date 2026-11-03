@@ -54,6 +54,7 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 	private let log = Logger("DirectAuthorizationHelperConnector")
 	private let lock = NSLock()
 	private var authorization = Data()
+	private var authorizationRef: AuthorizationRef?
 	private var connection: NSXPCConnection?
 
 	public init() {
@@ -72,6 +73,7 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 		}
 		if err == errAuthorizationSuccess {
 			authorization = withUnsafeBytes(of: &extForm) { Data($0) }
+			authorizationRef = authRef
 		}
 		assert(err == errAuthorizationSuccess)
 
@@ -143,6 +145,41 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 				}
 			}
 		}
+	}
+
+	/// Asks the user to authorize `command` (an administrator password for the rights that need one). The helper has no UI:
+	/// it only checks that the authorization it receives already holds the right, so this must run first.
+	private func preAuthorize(_ command: Selector) async throws {
+		guard let authorizationRef = self.authorizationRef, let right = AuthorizationHelperCommon.authorizationRight(for: command) else {
+			throw ServiceError(String(localized: "Unable to authorize the privileged helper"))
+		}
+
+		nonisolated(unsafe) let reference = authorizationRef
+
+		let status: OSStatus = await withCheckedContinuation { continuation in
+			DispatchQueue.global(qos: .userInitiated).async {
+				let status = right.withCString { name -> OSStatus in
+					var item = AuthorizationItem(name: name, valueLength: 0, value: nil, flags: 0)
+
+					return withUnsafeMutablePointer(to: &item) { items in
+						var rights = AuthorizationRights(count: 1, items: items)
+
+						return AuthorizationCopyRights(reference, &rights, nil, [.interactionAllowed, .extendRights, .preAuthorize], nil)
+					}
+				}
+
+				continuation.resume(returning: status)
+			}
+		}
+
+		guard status == errAuthorizationSuccess else {
+			throw ServiceError(String(localized: "The privileged helper was not authorized (\(status))"))
+		}
+	}
+
+	/// State of the helper daemon registered by `install()`.
+	public static var daemonStatus: SMAppService.Status {
+		SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist").status
 	}
 
 	/// Registers the privileged helper daemon bundled in `Contents/Library/LaunchDaemons`. Does nothing once it is
@@ -231,7 +268,9 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 	}
 
 	public func installPriviligedFiles(cakerPath: String) async throws -> String {
-		try await call { helper, authorization, reply in
+		try await self.preAuthorize(#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)))
+
+		return try await call { helper, authorization, reply in
 			helper.installPriviligedFiles(authorization: authorization, cakerPath: cakerPath, withReply: reply)
 		}
 	}

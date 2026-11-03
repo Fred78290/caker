@@ -774,12 +774,23 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		Self.ensureCertificates()
-		Self.ensurePrivilegedBootstrapFiles()
 
 		#if !APPSTORE
 			if Bundle.isApplicationSandboxed == false {
 				DirectAuthorizationHelperConnector.install()
+
+				if Self.isPrivilegedBootstrapFilesInstalled == false {
+					// The helper installs the files once it is approved; the administrator prompt is the fallback.
+					Task {
+						await Self.installPrivilegedBootstrapFilesWithHelper()
+						await MainActor.run { Self.ensurePrivilegedBootstrapFiles() }
+					}
+				}
+			} else {
+				Self.ensurePrivilegedBootstrapFiles()
 			}
+		#else
+			Self.ensurePrivilegedBootstrapFiles()
 		#endif
 
 		Self.askUserToInstallCakedAgent()
@@ -819,6 +830,35 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: "/etc/sudoers.d/caked")
 		#endif
 	}
+
+	#if !APPSTORE
+		/// Installs /etc/paths.d/com.aldunelabs.caker and /etc/sudoers.d/caked through the privileged helper once it is
+		/// registered and approved (waits up to two minutes for the approval in Login Items). Does nothing, and logs why, when
+		/// the helper can't do it: `ensurePrivilegedBootstrapFiles()` is the fallback.
+		static func installPrivilegedBootstrapFilesWithHelper() async {
+			let log = CakeAgentLib.Logger("MainUIAppDelegate")
+			let deadline = Date().addingTimeInterval(120)
+
+			while DirectAuthorizationHelperConnector.daemonStatus == .requiresApproval && Date() < deadline {
+				try? await Task.sleep(for: .seconds(2))
+			}
+
+			guard DirectAuthorizationHelperConnector.daemonStatus == .enabled else {
+				log.info("The privileged helper is not enabled, cannot install the privileged files with it")
+				return
+			}
+
+			do {
+				let appPath = Bundle.main.bundlePath
+
+				if let reason = try await DirectAuthorizationHelperConnector.viaHelper(runMode: .user, { try await $0.installPriviligedFiles(cakerPath: appPath) }) {
+					log.info(reason)
+				}
+			} catch {
+				log.warn("The privileged helper failed to install the privileged files: \(error)")
+			}
+		}
+	#endif
 
 	static func ensurePrivilegedBootstrapFiles() {
 		let pluginPaths = Bundle.main.cakerBuildPlugInsPath
