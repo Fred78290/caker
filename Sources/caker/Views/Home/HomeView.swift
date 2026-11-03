@@ -97,7 +97,7 @@ struct HomeView: View {
 						.frame(width: 76)
 					}
 
-					if navigationModel.selectedVirtualMachine != nil && navigationModel.virtualMachinesViewMode == .list {
+					if haveDetailView {
 						Button("Detail", systemImage: "sidebar.squares.right") {
 							self.mustShowDetailView.toggle()
 						}
