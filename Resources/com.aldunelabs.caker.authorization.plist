@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.aldunelabs.caker.authorization</string>
+	<key>BundleProgram</key>
+	<string>Contents/MacOS/authorization</string>
+	<key>AssociatedBundleIdentifiers</key>
+	<array>
+		<string>com.aldunelabs.caker</string>
+	</array>
+	<key>MachServices</key>
+	<dict>
+		<key>com.aldunelabs.caker.authorization</key>
+		<true/>
+	</dict>
+	<key>StandardErrorPath</key>
+	<string>/var/log/caker-helper.log</string>
+	<key>StandardOutPath</key>
+	<string>/var/log/caker-helper.log</string>
+</dict>
+</plist>
