@@ -40,6 +40,7 @@ let package = Package(
 		.executable(name: "caked", targets: ["caked"]),
 		.executable(name: "Caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
+		.executable(name: "helper", targets: ["helper"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
 	],
@@ -274,6 +275,13 @@ let package = Package(
 			.product(name: "Yams", package: "Yams"),
 		],
 		linkerSettings: linkerSettings),
+		.executableTarget(name: "helper", dependencies: [
+			.target(name: "GRPCLib"),
+			.target(name: "CakedLib"),
+			.product(name: "ArgumentParser", package: "swift-argument-parser"),
+			.product(name: "CakeAgentLib", package: "CakeAgent"),
+		],
+		swiftSettings: dhcpServerSettings),
 		.testTarget(name: "CakerTests", dependencies: [
 			"GRPCLib",
 			"CakedLib",

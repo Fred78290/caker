@@ -776,6 +776,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		Self.ensureCertificates()
 		Self.ensurePrivilegedBootstrapFiles()
 
+		#if !APPSTORE
+			if Bundle.isApplicationSandboxed == false {
+				DirectAuthorizationHelperConnector.install()
+			}
+		#endif
+
 		Self.askUserToInstallCakedAgent()
 
 		if isDockIconHidden {

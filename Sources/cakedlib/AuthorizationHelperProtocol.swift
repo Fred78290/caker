@@ -30,7 +30,7 @@ public final class AuthorizationHelperReply: NSObject, NSSecureCoding, @unchecke
 		}
 
 		self.operation = operation
-		self.success = coder.decodeBool(forKey: "started")
+		self.success = coder.decodeBool(forKey: "success")
 		self.reason = reason
 		super.init()
 	}

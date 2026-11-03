@@ -52,7 +52,7 @@ ${SWIFTCMD} build \
 
 mkdir -p ${BINARYDIR}
 
-for FILE in Caker caked cakectl; do
+for FILE in Caker caked cakectl helper; do
 	cp ${PROJECT_ROOT}/.debug/$(arch)-apple-macosx/debug/${FILE} "${BINARYDIR}/${FILE}"
 done
 
