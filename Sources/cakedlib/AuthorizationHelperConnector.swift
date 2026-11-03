@@ -184,28 +184,34 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 
 	/// Registers the privileged helper daemon bundled in `Contents/Library/LaunchDaemons`. Does nothing once it is
 	/// registered, or when this build doesn't ship it (not running from an app bundle).
-	public static func install() {
+	public static func install() -> Bool {
 		let service = SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist")
-		let log = Logger("DirectAuthorizationHelperConnector")
 
-		guard service.status == .notRegistered else {
-			if service.status == .requiresApproval {
-				log.info("The privileged helper is waiting for approval in System Settings > General > Login Items")
-			}
-
-			return
-		}
-
-		do {
-			try service.register()
-		} catch {
-			log.error("Unable to register the privileged helper: \(error)")
+		// Service is already installed and running, nothing to do.
+		guard service.status != .enabled else {
+			return true
 		}
 
 		if service.status == .requiresApproval {
 			// The user must approve the daemon in System Settings > General > Login Items.
 			SMAppService.openSystemSettingsLoginItems()
+			return false
 		}
+
+		do {
+			try service.register()
+		} catch {
+			Logger(self).error("Unable to register the privileged helper: \(error)")
+		}
+
+		if service.status == .requiresApproval {
+			// The user must approve the daemon in System Settings > General > Login Items.
+			SMAppService.openSystemSettingsLoginItems()
+
+			return false
+		}
+
+		return true
 	}
 
 	/// Runs `body` against the shared helper connection. Returns `nil` when the helper is not an option here (sandboxed,

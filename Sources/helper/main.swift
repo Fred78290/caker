@@ -16,6 +16,8 @@ struct Helper: ParsableCommand {
 	func run() throws {
 		CakeAgentLib.Logger.setLevel(self.logLevel)
 
+		CakeAgentLib.Logger.appendNewLine(String(localized: "Starting helper tool..."))
+
 		// Serves the privileged operations over the Mach service until launchd stops the helper.
 		AuthorizationHelperTool().run()
 	}

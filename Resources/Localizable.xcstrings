@@ -2282,6 +2282,16 @@
         }
       }
     },
+    "Caker's privileged helper must be approved in System Settings > General > Login Items & Extensions. Approve it, then relaunch Caker." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'assistant privilégié de Caker doit être approuvé dans Réglages Système > Général > Éléments de connexion et extensions. Approuvez-le, puis relancez Caker."
+          }
+        }
+      }
+    },
     "Caker Virtual machine" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6663,6 +6673,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bonjour, Monde !"
+          }
+        }
+      }
+    },
+    "Helper approval required" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approbation de l'assistant requise"
           }
         }
       }

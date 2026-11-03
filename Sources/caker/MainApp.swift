@@ -777,7 +777,21 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		#if !APPSTORE
 			if Bundle.isApplicationSandboxed == false {
-				DirectAuthorizationHelperConnector.install()
+				if DirectAuthorizationHelperConnector.install() == false {
+					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
+					NSApplication.shared.setActivationPolicy(.regular)
+
+					let alert = NSGlassEffectAlert()
+
+					alert.messageText = String(localized: "Helper approval required")
+					alert.informativeText = String(localized: "Caker's privileged helper must be approved in System Settings > General > Login Items & Extensions. Approve it, then relaunch Caker.")
+					alert.alertStyle = .warning
+					alert.addButton(withTitle: String(localized: "Quit"))
+					alert.runModal()
+
+					NSApplication.shared.terminate(nil)
+					return
+				}
 
 				if Self.isPrivilegedBootstrapFilesInstalled == false {
 					// The helper installs the files once it is approved; the administrator prompt is the fallback.
