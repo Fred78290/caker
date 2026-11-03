@@ -550,8 +550,19 @@ struct Networks: ParsableCommand {
 				}
 			}
 
+			func startWithHelper() throws -> Bool {
+				#if APPSTORE
+					return false
+				#else
+					return try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil
+				#endif
+			}
+
 			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (try? Home(runMode: runMode).sharedNetworks().sharedNetworks[networkName])?.mode) {
 				try startForkedNetwork()
+			} else if try startWithHelper() {
+				// Started as root by the privileged helper, which waited for the pid file.
+				Logger(self).info("Network \(networkName) started by the privileged helper")
 			} else {
 				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
 					throw ServiceError(String(localized: "Failed to start networks \(options.networkName)"))

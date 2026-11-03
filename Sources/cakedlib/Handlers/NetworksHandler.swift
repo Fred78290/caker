@@ -263,8 +263,17 @@ public struct NetworksHandler {
 			SCPreferencesSetValue(ref, BootpD, lease)
 			SCPreferencesCommitChanges(ref)
 			SCPreferencesApplyChanges(ref)
-		} else if try SudoCaked(arguments: ["networks", "set-dhcp-lease", "\(leaseTime)"], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError(String(localized: "Failed to set DHCP lease time"))
+		} else {
+			#if !APPSTORE
+				// The privileged helper first; sudo when it is not installed or approved.
+				if let reason = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.setDHCPLease(leaseTime: leaseTime) }) {
+					return reason
+				}
+			#endif
+
+			if try SudoCaked(arguments: ["networks", "set-dhcp-lease", "\(leaseTime)"], runMode: runMode).runAndWait() != 0 {
+				throw ServiceError(String(localized: "Failed to set DHCP lease time"))
+			}
 		}
 
 		return "DHCP lease time set to \(leaseTime) seconds"
@@ -797,6 +806,17 @@ public struct NetworksHandler {
 		try? socketURL.socket.deleteIfFileExists()
 
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path(percentEncoded: false))")
+
+		#if !APPSTORE
+			if canManageNetworkWithoutRoot == false {
+				// The helper starts it as root and replies once the network wrote its pid file.
+				if try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil {
+					Logger(self).info("Network \(networkName) started by the privileged helper")
+
+					return socketURL
+				}
+			}
+		#endif
 
 		let executableURL = try Bundle.main.caked()
 

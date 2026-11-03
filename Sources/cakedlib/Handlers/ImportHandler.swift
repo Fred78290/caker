@@ -221,6 +221,23 @@ public struct ImportHandler {
 						arguments.append("--importer-arg=\(key)=\(value)")
 					}
 
+					#if !APPSTORE
+						do {
+							// The helper adds the import command, the owner and the home itself, and refuses them from a client.
+							let helperArguments = arguments.dropFirst().filter { $0.hasPrefix("--uid=") == false && $0.hasPrefix("--gid=") == false }
+
+							if let output = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.importVirtualMachine(arguments: Array(helperArguments), runMode: runMode) }) {
+								if let standardOutput, let data = output.data(using: .utf8) {
+									try? standardOutput.write(contentsOf: data)
+								}
+
+								return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
+							}
+						} catch let error as ServiceError {
+							return ImportedReply(source: source, name: name, imported: false, reason: error.description)
+						}
+					#endif
+
 					let sudo = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: standardOutput, standardError: standardError)
 					let exitCode = try sudo.runAndWait()
 

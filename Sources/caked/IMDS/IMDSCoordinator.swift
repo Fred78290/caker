@@ -179,6 +179,16 @@ public actor IMDSCoordinator {
 		let runMode = self.runMode
 
 		do {
+			#if !APPSTORE
+				if try await DirectAuthorizationHelperConnector.viaHelper(runMode: runMode, {
+					try await $0.imdsRedirect(externalAddress: IMDSNetworkInterface.awsCompatAddress, internalAddress: IMDSServer.bindAddress, internalPort: internalPort, install: true, runMode: runMode)
+				}) != nil {
+					self.logger.info("IMDS also reachable at http://\(IMDSNetworkInterface.awsCompatAddress) (AWS-style compatibility address)")
+
+					return
+				}
+			#endif
+
 			try await Task.detached(priority: .utility) {
 				let helper = try SudoCaked(
 					arguments: [
@@ -213,6 +223,14 @@ public actor IMDSCoordinator {
 		let runMode = self.runMode
 
 		do {
+			#if !APPSTORE
+				if try await DirectAuthorizationHelperConnector.viaHelper(runMode: runMode, {
+					try await $0.imdsRedirect(externalAddress: IMDSNetworkInterface.awsCompatAddress, internalAddress: IMDSServer.bindAddress, internalPort: 0, install: false, runMode: runMode)
+				}) != nil {
+					return
+				}
+			#endif
+
 			try await Task.detached(priority: .utility) {
 				let helper = try SudoCaked(
 					arguments: [
