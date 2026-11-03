@@ -60,6 +60,12 @@ public protocol AuthorizationHelperProtocol {
 	@objc(imdsRedirectWithAuthorization:cakeHome:externalAddress:internalAddress:internalPort:install:withReply:)
 	func imdsRedirect(authorization authData: Data, cakeHome: String, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
+	/// Run a standalone network (`caked networks run`) as root on a descriptor handed over by the caller: the VM end of the
+	/// socketpair stays with the caller. Replies with the pid of the process once its pid file exists.
+	/// `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(runNetworkWithAuthorization:cakeHome:arguments:pidFile:fileHandle:withReply:)
+	func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
 	/// Install files in /etc/sudoers.d/caked & /etc/paths.d/com.aldunelabs.caker. `authData` must be an AuthorizationExternalForm embedded in a Data.
 	@objc(installPriviligedFilesWithAuthorization:cakerPath:withReply:)
 	func installPriviligedFiles(authorization authData: Data, cakerPath: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
@@ -128,6 +134,14 @@ public enum AuthorizationHelperCommon {
 			authRightDescription: NSLocalizedString(
 				"Helper is trying to import external virtual machine.",
 				comment: "prompt shown when user is required to authorize to import external virtual machine"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.run-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to run a network on a file descriptor.",
+				comment: "prompt shown when user is required to authorize to run a network on a file descriptor"
 			)
 		),
 		#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)): CommandInfo(

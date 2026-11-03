@@ -389,7 +389,33 @@ public struct NetworksHandler {
 		logger.info("Started \(networks.count) network\(networks.count == 1 ? "" : "s")")
 	}
 
-	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> ProcessWithSharedFileHandle {
+	/// A standalone network process started by `run(fileDescriptor:…)`: a child of this process, or a root process owned by the
+	/// privileged helper (then only its pid is known, and it is stopped through the network's control client).
+	public enum RunningNetworkProcess {
+		case process(ProcessWithSharedFileHandle)
+		case helper(pid: pid_t)
+
+		public var isRunning: Bool {
+			switch self {
+			case .process(let process):
+				return process.isRunning
+			case .helper(let pid):
+				// Signal 0 only checks: EPERM means the root process exists.
+				return kill(pid, 0) == 0 || errno == EPERM
+			}
+		}
+
+		public var processIdentifier: pid_t {
+			switch self {
+			case .process(let process):
+				return process.processIdentifier
+			case .helper(let pid):
+				return pid
+			}
+		}
+	}
+
+	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> RunningNetworkProcess {
 		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
 		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : Home.cakedCommandName) else {
@@ -451,6 +477,32 @@ public struct NetworksHandler {
 		var environment = try Utilities.environment(runMode: runMode)
 		let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
 
+		#if !APPSTORE
+			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
+			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
+			if direct == false, phUseLimaVMNet == false {
+				let helperArguments = Array(arguments.dropFirst(2))
+				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
+
+				if let pid = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.runNetwork(arguments: helperArguments, pidFile: pidFile, fileHandle: handle, runMode: runMode) }) {
+					logger.info("Network \(networkConfig.networkName) started by the privileged helper with PID=\(pid)")
+
+					let running = RunningNetworkProcess.helper(pid: pid)
+
+					Thread.detachNewThread {
+						while running.isRunning {
+							Thread.sleep(forTimeInterval: 1)
+						}
+
+						logger.debug("Network process \(pid) died")
+						kill(getpid(), SIGUSR2)
+					}
+
+					return running
+				}
+			}
+		#endif
+
 		if direct {
 			runningArguments = []
 			process.executableURL = executableURL
@@ -509,7 +561,7 @@ public struct NetworksHandler {
 			}
 		}
 
-		return process
+		return .process(process)
 	}
 
 	public static func run(useLimaVMNet: Bool = false, mode: VMNetMode, networkConfig: UsedNetworkConfig, socketPath: URL? = nil, pidFile: URL? = nil, runMode: Utils.RunMode) throws {
