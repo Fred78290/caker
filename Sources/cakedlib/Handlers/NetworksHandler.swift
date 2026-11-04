@@ -481,10 +481,18 @@ public struct NetworksHandler {
 			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
 			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
 			if direct == false, phUseLimaVMNet == false {
+				let helperCanUsePID: Bool = {
+					guard let helperHome = try? Home(runMode: runMode) else {
+						return false
+					}
+					let homePath = helperHome.cakeHomeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
+					let pidPath = pidFile.standardizedFileURL.path
+					return pidPath.hasPrefix(homePath + "/")
+				}()
 				let helperArguments = Array(arguments.dropFirst(2))
 				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 
-				if let pid = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.runNetwork(arguments: helperArguments, pidFile: pidFile, fileHandle: handle, runMode: runMode) }) {
+				if helperCanUsePID, let pid = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.runNetwork(arguments: helperArguments, pidFile: pidFile, fileHandle: handle, runMode: runMode) }) {
 					logger.info("Network \(networkConfig.networkName) started by the privileged helper with PID=\(pid)")
 
 					let running = RunningNetworkProcess.helper(pid: pid)
