@@ -59,6 +59,24 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("dns")], help: ArgumentHelp(String(localized: "Enable DNS")))
 		public var dns: Bool = false
 
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			@Flag(name: [.customLong("imds")], help: ArgumentHelp(String(localized: "Enable IMDS Coordinator, apply only if network is imds"), visibility: .hidden))
+			public var imds: Bool = false
+
+			@Option(
+				name: [.customLong("imds-port")],
+				help: ArgumentHelp(
+					String(localized: "Unprivileged port IMDS listens on"),
+					discussion:
+						String(
+							format: String(
+								localized:
+									"AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (%@) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead."
+							), IMDSNetworkInterface.imdsGateway),
+					visibility: .hidden))
+			var imdsPort: Int = IMDSServer.internalBindPort
+		#endif
+
 		public init() {
 
 		}
@@ -87,7 +105,10 @@ struct Networks: ParsableCommand {
 				self.interfaceID = UUID().uuidString
 				self.nat66Prefix = nil
 				self.dns = false
-
+				#if !USE_IMDS_COORDINATOR_IN_SERVICE
+					self.imds = false
+					self.imdsPort = IMDSServer.internalBindPort
+				#endif
 			} else {
 				let home: Home = try Home(runMode: runMode)
 				let networkConfig = try home.sharedNetworks()
@@ -104,6 +125,10 @@ struct Networks: ParsableCommand {
 				self.interfaceID = network.interfaceID
 				self.nat66Prefix = network.nat66Prefix
 				self.dns = network.dns ?? false
+				#if !USE_IMDS_COORDINATOR_IN_SERVICE
+					self.imds = networkName == IMDSNetworkInterface.imdsNetworkName ? IMDSNetworkInterface.imdsEnabled : false
+					self.imdsPort = IMDSServer.internalBindPort
+				#endif
 			}
 		}
 
@@ -310,6 +335,12 @@ struct Networks: ParsableCommand {
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
+
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			var imdsCoordinator: IMDSCoordinator? = nil
+			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
+		#endif
+
 		#if USE_DHCP_SERVER
 			var dhcpServer: DHCPServer? = nil
 			var dhcpStartTask: Task<Void, Never>? = nil
@@ -357,8 +388,14 @@ struct Networks: ParsableCommand {
 				// and pass what isn't its own on to the host's resolvers.
 				let forwarder = ownsDHCP ? DNSForwarder(group: Utilities.group, upstreams: { DNSForwarder.systemResolvers(excluding: [network.gateway]) }) : nil
 				let started = ComposeDNSCoordinator(
-					group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort,
-					standardPort: ownsDHCP ? 53 : nil, forwarder: forwarder, networkName: ownsDHCP ? options.networkName : nil, subnet: ownsDHCP ? Self.subnet(of: network) : nil)
+					group: Utilities.group,
+					runMode: runMode,
+					bindAddress: network.gateway,
+					internalPort: ComposeDNS.internalBindPort,
+					standardPort: ownsDHCP ? 53 : nil,
+					forwarder: forwarder,
+					networkName: ownsDHCP ? options.networkName : nil,
+					subnet: ownsDHCP ? Self.subnet(of: network) : nil)
 
 				coordinator = started
 
@@ -376,6 +413,16 @@ struct Networks: ParsableCommand {
 
 		// Stops everything `syncServices` started.
 		let stopServices: () async -> Void = {
+			#if !USE_IMDS_COORDINATOR_IN_SERVICE
+				if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
+					imdsLifecycleHandler = nil
+					imdsCoordinator = nil
+
+					VMLifecycleHooks.removeHandler(handler)
+					await coordinator.shutdown()
+				}
+			#endif
+
 			if let coordinator {
 				await coordinator.shutdown()
 			}
@@ -474,6 +521,31 @@ struct Networks: ParsableCommand {
 				sig.cancel()
 			}
 		}
+
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			if options.imds {
+				// Central IMDS server for Linux VMs (see IMDSCoordinator's doc comment): the
+				// daemon learns about VM start/stop through VMLifecycleHooks, fired by
+				// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
+				// whether that's from autostart below or from a `Caked_StartRequest` RPC.
+				// Off by default (IMDSNetworkInterface.imdsEnabled, toggled from Caker's
+				// Advanced settings) — once on, this works including in sandboxed builds,
+				// guests can always reach it on its unprivileged port.
+				let coordinator = IMDSCoordinator(group: Utilities.group.next(), runMode: runMode, internalPort: options.imdsPort)
+
+				imdsCoordinator = coordinator
+
+				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
+					Task {
+						await coordinator.handle(event)
+					}
+				}
+
+				Task {
+					await coordinator.registerAlreadyRunning()
+				}
+			}
+		#endif
 
 		do {
 			try vzvmnet.vmnet.start { network in

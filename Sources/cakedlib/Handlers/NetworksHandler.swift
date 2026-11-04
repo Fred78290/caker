@@ -1365,6 +1365,13 @@ public struct NetworksHandler {
 		}
 	}
 
+	public static func getVMNetControlClient(_ networkName: String, runMode: Utils.RunMode) throws -> Vmnet_VMNetServiceNIOClient {
+		let home = try Home(runMode: runMode)
+		let networkDirectory = home.networkDirectory.appendingPathComponent(networkName, isDirectory: true)
+
+		return try getVMNetControlClient(networkDirectory.socketPath(name: "net"), runMode: runMode)
+	}
+
 	public static func getVMNetControlClient(_ socketURL: URL, runMode: Utils.RunMode) throws -> Vmnet_VMNetServiceNIOClient {
 		let socketURL = socketURL.deletingLastPathComponent().appendingPathComponent("ctrl")
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)

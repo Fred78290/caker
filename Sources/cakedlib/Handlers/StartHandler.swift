@@ -95,7 +95,7 @@ public struct StartHandler {
 
 				// Fires regardless of exit reason (clean stop, crash, kill) so daemon-side
 				// observers (e.g. IMDSCoordinator) never leak state for a VM that's gone.
-				VMLifecycleHooks.notify(.stopped(location: self.location, runMode: self.runMode))
+				VMLifecycleHooks.publish(.stopped(location: self.location, runMode: self.runMode))
 
 				if let promise = promise {
 					if process.terminationStatus == 0 {
@@ -116,7 +116,7 @@ public struct StartHandler {
 				config.runningIP = runningIP
 				try? config.save()
 
-				VMLifecycleHooks.notify(.started(location: location, runMode: runMode))
+				VMLifecycleHooks.publish(.started(location: location, runMode: runMode))
 
 				return runningIP
 			} catch {

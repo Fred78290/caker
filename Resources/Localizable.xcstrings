@@ -847,6 +847,17 @@
         }
       }
     },
+    "AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (%@) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Service de métadonnées d'instance de type AWS pour les VM Linux. Désactivé par défaut — activez-le via l'interrupteur \"AWS EC2 Metadata\" dans les réglages avancés de Caker. Une fois activé, il écoute sur ce port ordinaire, non privilégié, de la passerelle IMDS (%@) — toujours accessible depuis les invités à cette adresse, sans privilège, y compris dans les builds sandboxés. Ignoré lorsque caked s'exécute en root, IMDS utilisant alors directement le port standard 80."
+          }
+        }
+      }
+    },
     "About" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5174,6 +5185,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer le service DNS"
+          }
+        }
+      }
+    },
+    "Enable IMDS Coordinator, apply only if network is imds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active le coordinateur IMDS, ne s'applique que si le réseau est imds"
           }
         }
       }

@@ -1,5 +1,7 @@
 import Foundation
 import GRPCLib
+import GRPC
+import CakeAgentLib
 import Synchronization
 
 /// A daemon-observable event describing a VM process transition, fired from the same
@@ -51,4 +53,65 @@ public enum VMLifecycleHooks {
 
 		current.values.forEach { $0(event) }
 	}
+
+	/// Notifies this process's own subscribers and, unless the IMDS coordinator lives in the
+	/// service (`USE_IMDS_COORDINATOR_IN_SERVICE`), the process running the `imds` network, which
+	/// hosts it. Called by `StartHandler`, the one place that knows when a `caked vmrun` child
+	/// started (its IP resolved and persisted) and exited, whatever the reason — a crash or a
+	/// `kill -9` included, which the VM process itself could never report.
+	///
+	/// The network process receiving the event calls `notify(_:)` directly, never this, or the
+	/// event would loop back to it.
+	static func publish(_ event: VMLifecycleEvent) {
+		Self.notify(event)
+
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			Self.forwardToIMDSNetwork(event)
+		#endif
+	}
+
+	#if !USE_IMDS_COORDINATOR_IN_SERVICE
+		private static func forwardToIMDSNetwork(_ event: VMLifecycleEvent) {
+			guard IMDSNetworkInterface.imdsEnabled else {
+				return
+			}
+
+			let location: VMLocation
+			let runMode: Utils.RunMode
+			let kind: Vmnet_VMLifecycleEventRequest.Event
+
+			switch event {
+			case .started(let eventLocation, let eventRunMode):
+				(location, runMode, kind) = (eventLocation, eventRunMode, .started)
+			case .stopped(let eventLocation, let eventRunMode):
+				(location, runMode, kind) = (eventLocation, eventRunMode, .stopped)
+			}
+
+			// Only Linux VMs get the imds NIC, so only they are of any interest to the coordinator.
+			guard let config = try? location.config(), config.os == .linux else {
+				return
+			}
+
+			let logger = Logger("VMLifecycleHooks")
+
+			// The network may not be running (IMDS off, or not started yet): it registers the running VMs itself when it starts.
+			guard let client = try? NetworksHandler.getVMNetControlClient(IMDSNetworkInterface.imdsNetworkName, runMode: runMode) else {
+				logger.debug("IMDS network control socket unavailable, lifecycle event for \(location.name) not forwarded")
+				return
+			}
+
+			client.vMLifecycleEvent(
+				.with {
+					$0.event = kind
+					$0.vmName = location.name
+				}
+			).response.whenComplete { result in
+				if case .failure(let error) = result {
+					logger.debug("Failed to forward lifecycle event for \(location.name) to the IMDS network: \(error)")
+				}
+
+				_ = client.channel.close()
+			}
+		}
+	#endif
 }
