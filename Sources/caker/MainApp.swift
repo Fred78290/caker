@@ -803,9 +803,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 							Self.askUserToInstallCakedAgent()
 						}
 					}
+				} else {
+					Self.askUserToInstallCakedAgent()
 				}
 			} else {
 				Self.ensurePrivilegedBootstrapFiles()
+				Self.askUserToInstallCakedAgent()
 			}
 		#else
 			Self.ensurePrivilegedBootstrapFiles()
