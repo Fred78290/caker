@@ -58,7 +58,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	let macAddress: VZMACAddress
 	let mode: VMNetMode
 	let networkConfig: VZSharedNetwork?
-	var process: ProcessWithSharedFileHandle? = nil
+	var process: NetworksHandler.RunningNetworkProcess? = nil
 	var pipeChannel: Channel? = nil
 	var vmfd: Int32 = -1
 	var hostfd: Int32 = -1

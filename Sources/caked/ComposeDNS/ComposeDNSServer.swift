@@ -11,7 +11,9 @@ import Synchronization
 ///
 /// Answers `<service>.<project>.<domain>` and `<vmname>.<domain>` A queries (see
 /// `ComposeDNS.QueryName`) from `registry`, `NXDOMAIN` for a name inside that domain that isn't
-/// currently registered (unknown project/service/VM, or registered but not currently running).
+/// currently registered (unknown project/service/VM, or registered but not currently running),
+/// and for any other name inside that domain (`ComposeDNS.isInDomain(_:)`): the zone is answered
+/// locally, never forwarded upstream.
 /// This is the network's **main** DNS server (it is what the network's DHCP server hands out): a
 /// name outside the domain is forwarded to the next resolver (`forwarder`) and its answer relayed.
 /// Without a forwarder it is `REFUSED`, never an open resolver on the shared subnet.
@@ -62,6 +64,11 @@ final class ComposeDNSInboundHandler: Sendable, ChannelInboundHandler {
 			// AAAA, which this resolver never has an answer for) — a clean "no data" is more
 			// correct than REFUSED, since the name itself is legitimately ours to answer for.
 			responseData = DNSMessage.encodeResponse(to: query, addresses: [])
+		} else if ComposeDNS.isInDomain(query.name) {
+			// Inside the synthetic domain but not a name we can ever own (three labels in front, an empty label, the
+			// bare domain): the zone is ours, so say so locally. Forwarding it would leak a private name upstream
+			// and let an outside resolver answer for it.
+			responseData = DNSMessage.encodeError(to: query, rcode: .nxDomain)
 		} else if let forwarder = self.forwarder {
 			// Not ours: ask the next resolver and relay its answer verbatim.
 			let eventLoop = context.eventLoop

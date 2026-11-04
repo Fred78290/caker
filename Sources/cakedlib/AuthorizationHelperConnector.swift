@@ -273,6 +273,21 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 		}
 	}
 
+	/// Runs `caked networks run` as root on `fileHandle` (duplicated by XPC, the caller keeps its own copy) and returns its pid.
+	public func runNetwork(arguments: [String], pidFile: URL, fileHandle: FileHandle, runMode: Utils.RunMode) async throws -> pid_t {
+		let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+		let pidFile = pidFile.path(percentEncoded: false)
+		let reason = try await call { helper, authorization, reply in
+			helper.runNetwork(authorization: authorization, cakeHome: home, arguments: arguments, pidFile: pidFile, fileHandle: fileHandle, withReply: reply)
+		}
+
+		guard let pid = pid_t(reason) else {
+			throw ServiceError("Invalid pid '\(reason)' returned by the helper")
+		}
+
+		return pid
+	}
+
 	public func installPriviligedFiles(cakerPath: String) async throws -> String {
 		try await self.preAuthorize(#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)))
 

@@ -969,6 +969,11 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Network already running"))
 			}
 
+			#if USE_SETUID
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have: this has to happen before the root check below
+				SudoCaked.becomeRootIfRequested()
+			#endif
+
 			if geteuid() != 0 {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
 			}

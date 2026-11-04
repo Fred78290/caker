@@ -386,12 +386,9 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		perform("import-virtual-machine", authorization: authData, command: #selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:withReply:)), reply: reply) { caller in
 			let home = try Self.validatedHome(cakeHome, caller: caller)
 
-			// The import runs as root but the VM belongs to the caller: it must not choose another owner or home.
-			let forbidden: Set<String> = ["--uid", "--gid", "--home", "--system", "-s"]
-
-			if let argument = arguments.first(where: { forbidden.contains($0.split(separator: "=", maxSplits: 1).first.map(String.init) ?? $0) }) {
-				throw ServiceError("Argument \(argument) is not allowed")
-			}
+			// The import runs as root but the VM belongs to the caller: it can't choose another owner or home, nor
+			// have root open a path or take an option it was not written for. Only a Multipass import needs root.
+			try ImportHandler.validatePrivilegedImportArguments(arguments)
 
 			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
 			let result = try Self.runAndCollect(caked, arguments: ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments, environment: Self.environment(home: home))
@@ -401,6 +398,79 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			}
 
 			return result.output
+		}
+	}
+
+	/// `caked networks run` options a client may choose. Anything else (and any value outside `--option=value`) is refused.
+	private static let runNetworkOptions: Set<String> = ["--mode", "--interface-id", "--interface", "--gateway", "--dhcp-end", "--netmask", "--nat66-prefix", "--log-level"]
+	private static let runNetworkFlags: Set<String> = ["--debug", "--dns"]
+
+	/// Networks started for a client, kept so their `Process` is reaped and not released while running.
+	private static let runningNetworks = NSMutableDictionary()
+	private static let runningNetworksLock = NSLock()
+
+	func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+		perform("run-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)), reply: reply) { caller in
+			let home = try Self.validatedHome(cakeHome, caller: caller)
+
+			for argument in arguments {
+				let name = argument.split(separator: "=", maxSplits: 1).first.map(String.init) ?? argument
+
+				guard Self.runNetworkFlags.contains(argument) || (argument.contains("=") && Self.runNetworkOptions.contains(name)) else {
+					throw ServiceError("Argument \(argument) is not allowed")
+				}
+			}
+
+			// The pid file is written as root: it must be a .pid file inside the caller's cake home.
+			let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
+			let pidURL = requested.deletingLastPathComponent().resolvingSymlinksInPath().appendingPathComponent(requested.lastPathComponent)
+
+			guard pidURL.pathExtension == "pid", pidURL.path.hasPrefix(home.path + "/") else {
+				throw ServiceError("Invalid pid file '\(pidFile)'")
+			}
+
+			let caked = try Self.trustedCaked()
+			let log = Self.logFile()
+			let process = ProcessWithSharedFileHandle()
+
+			try? FileManager.default.removeItem(at: pidURL)
+
+			process.executableURL = caked
+			// The descriptor keeps the number it has here in the child.
+			process.arguments = ["networks", "run", "--home", home.path] + arguments + ["--fd=\(fileHandle.fileDescriptor)", "--pidfile=\(pidURL.path)"]
+			process.environment = Self.environment(home: home)
+			process.standardInput = FileHandle.nullDevice
+			process.standardOutput = log
+			process.standardError = log
+			process.sharedFileHandles = [fileHandle]
+
+			process.terminationHandler = { process in
+				Self.runningNetworksLock.lock()
+				Self.runningNetworks.removeObject(forKey: NSNumber(value: process.processIdentifier))
+				Self.runningNetworksLock.unlock()
+			}
+
+			try process.run()
+
+			Self.runningNetworksLock.lock()
+			Self.runningNetworks[NSNumber(value: process.processIdentifier)] = process
+			Self.runningNetworksLock.unlock()
+
+			for _ in 0..<150 {
+				if FileManager.default.fileExists(atPath: pidURL.path), process.isRunning {
+					return String(process.processIdentifier)
+				}
+
+				if process.isRunning == false {
+					throw ServiceError("Network failed to start: status \(process.terminationStatus), see \(Self.logPath)")
+				}
+
+				Thread.sleep(forTimeInterval: 0.1)
+			}
+
+			process.terminate()
+
+			throw ServiceError("Network did not start within the expected time, see \(Self.logPath)")
 		}
 	}
 

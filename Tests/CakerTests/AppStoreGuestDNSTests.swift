@@ -31,7 +31,7 @@ final class AppStoreGuestDNSTests: XCTestCase {
 		let cloud = AppStoreGuestDNS.cloudInitFragment(domain: "compose.internal", ip: "192.168.32.1", port: "28053")
 		let ssh = AppStoreGuestDNS.sshFragment(domain: "compose.internal", ip: "192.168.32.1", port: "28053")
 
-		#if !USE_DHCP_SERVER
+		if AppStoreGuestDNS.needsGuestWiring {
 			for fragment in [cloud, ssh] {
 				XCTAssertTrue(fragment.contains("COMPOSEDONS_DOMAIN_SUFFIX=\"compose.internal\""))
 				XCTAssertTrue(fragment.contains("COMPOSEDONS_DNS_IP=\"192.168.32.1\""))
@@ -39,10 +39,10 @@ final class AppStoreGuestDNSTests: XCTestCase {
 				XCTAssertTrue(fragment.contains("dnsmasq"))
 				XCTAssertTrue(try syntaxIsValid(fragment), fragment)
 			}
-		#else
+		} else {
 			XCTAssertEqual(cloud, "")
 			XCTAssertEqual(ssh, "")
-		#endif
+		}
 	}
 
 	func testInstallScriptsRenderToValidShellInBothBuilds() throws {
