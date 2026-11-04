@@ -408,7 +408,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			}
 
 			// The pid file is written as root: it must be a .pid file inside the caller's cake home.
-			let pidURL = URL(fileURLWithPath: pidFile).standardizedFileURL
+			let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
+			let pidURL = requested.deletingLastPathComponent().resolvingSymlinksInPath().appendingPathComponent(requested.lastPathComponent)
 
 			guard pidURL.pathExtension == "pid", pidURL.path.hasPrefix(home.path + "/") else {
 				throw ServiceError("Invalid pid file '\(pidFile)'")
