@@ -453,6 +453,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				Thread.sleep(forTimeInterval: 0.1)
 			}
 
+			process.terminate()
+
 			throw ServiceError("Network did not start within the expected time, see \(Self.logPath)")
 		}
 	}
