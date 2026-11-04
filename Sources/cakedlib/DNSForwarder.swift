@@ -110,6 +110,8 @@ public final class DNSForwarder: Sendable {
 	private func ask(_ upstream: String, _ query: [UInt8]) async throws -> [UInt8] {
 		let eventLoop = self.group.next()
 		let promise = eventLoop.makePromise(of: [UInt8].self)
+		// A completed promise ignores a second completion. This covers early throws from `bind` and `writeAndFlush`.
+		defer { promise.fail(ChannelError.ioOnClosedChannel) }
 		let queryID = Array(query[0..<2])
 		let channel = try await DatagramBootstrap(group: eventLoop)
 			.channelInitializer { channel in
