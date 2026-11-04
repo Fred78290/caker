@@ -793,18 +793,27 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					return
 				}
 
-				if Self.isPrivilegedBootstrapFilesInstalled == false || Self.isSudoersRuleStale {
-					// The helper installs the files once it is approved; the administrator prompt is the fallback.
-					Task {
-						await Self.installPrivilegedBootstrapFilesWithHelper()
+				Task {
+					// The rule pins caked by digest: after an update (the package rewrites it, but a Sparkle update does not) it has to be written again.
+					// Checking it runs sudo, so not on the main thread.
+					var needsInstall = Self.isPrivilegedBootstrapFilesInstalled == false
 
-						await MainActor.run {
-							Self.ensurePrivilegedBootstrapFiles()
-							Self.askUserToInstallCakedAgent()
-						}
+					if needsInstall == false {
+						needsInstall = await Task.detached { Self.isSudoersRuleStale }.value
 					}
-				} else {
-					Self.askUserToInstallCakedAgent()
+
+					if needsInstall {
+						// The helper installs the files once it is approved; the administrator prompt is the fallback.
+						await Self.installPrivilegedBootstrapFilesWithHelper()
+					}
+
+					await MainActor.run {
+						if needsInstall {
+							Self.ensurePrivilegedBootstrapFiles()
+						}
+
+						Self.askUserToInstallCakedAgent()
+					}
 				}
 			} else {
 				Self.ensurePrivilegedBootstrapFiles()

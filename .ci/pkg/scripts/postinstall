@@ -40,15 +40,28 @@ mkdir -p "${HOME}/Library/Logs/Caker"
     printf '%s\n%s\n' "${CAKED_DIR}" "${CAKECTL_DIR}" > /etc/paths.d/com.aldunelabs.caker
 
     echo "Creating sudoers file..."
-    # Create sudoers file for Caker
-    cat <<EOF > /etc/sudoers.d/caked
-# Caker sudoers file
-%everyone ALL=(root:wheel) NOPASSWD: ${CAKED}
-EOF
+    # Passwordless sudo for this one caked, for the installing user only, pinned by its SHA-256: sudo refuses the command if the
+    # binary or the bundle is replaced afterwards. The digest changes with every release, so this runs on each install and upgrade
+    # (the app also rewrites it at launch when it no longer matches, see SudoCaked.sudoersRule).
+    SUDOERS_FILE="/etc/sudoers.d/caked-pinned"
+    SUDOERS_TMP="/etc/sudoers.d/.caked-pinned.$$"
+    CAKED_SHA256=$(/usr/bin/shasum -a 256 "${CAKED}" | awk '{print $1}')
+    SUDO_UID=$(id -u "${HOME_USER}")
 
-    echo "Setting permissions..."
-    chgrp staff /etc/sudoers.d/caked
-    chmod 0440 /etc/sudoers.d/caked
+    # The old rule granted every user (%everyone) and was not pinned: never keep it.
+    rm -f /etc/sudoers.d/caked
+
+    printf '#%s ALL=(root:wheel) NOPASSWD:SETENV: sha256:%s %s\n' "${SUDO_UID}" "${CAKED_SHA256}" "${CAKED}" > "${SUDOERS_TMP}"
+    chown root:wheel "${SUDOERS_TMP}"
+    chmod 0440 "${SUDOERS_TMP}"
+
+    # A broken sudoers file locks sudo out: only install one that visudo accepts.
+    if /usr/sbin/visudo -c -f "${SUDOERS_TMP}" >/dev/null; then
+        mv -f "${SUDOERS_TMP}" "${SUDOERS_FILE}"
+    else
+        rm -f "${SUDOERS_TMP}"
+        echo "Invalid sudoers file, passwordless sudo for caked not installed"
+    fi
 
     echo "Generating certificates..."
     # Install the Caker service with proper UID
