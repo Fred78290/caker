@@ -485,9 +485,9 @@ public struct NetworksHandler {
 					guard let helperHome = try? Home(runMode: runMode) else {
 						return false
 					}
-					let homePath = helperHome.cakeHomeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
-					let pidPath = pidFile.standardizedFileURL.path
-					return pidPath.hasPrefix(homePath + "/")
+let homePath = helperHome.cakeHomeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
+let pidPath = pidFile.resolvingSymlinksInPath().standardizedFileURL.path
+return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 				}()
 				let helperArguments = Array(arguments.dropFirst(2))
 				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
