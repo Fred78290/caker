@@ -141,6 +141,19 @@ public enum ComposeDNS {
 		}
 	}
 
+	/// Whether `queryName` is the synthetic domain itself or anything below it, whether or not it names something
+	/// `parseQueryName(_:)` accepts (three labels in front, an empty label, the bare domain). The resolver owns that
+	/// whole zone: a name in it that isn't registered is answered `NXDOMAIN` locally, never handed to an upstream resolver.
+	public static func isInDomain(_ queryName: String) -> Bool {
+		var name = queryName.lowercased()
+
+		if name.hasSuffix(".") {
+			name.removeLast()
+		}
+
+		return name == self.domainSuffix || name.hasSuffix(".\(self.domainSuffix)")
+	}
+
 	/// Parses `<service>.<project>.<domain>` specifically, discarding a plain-VM match — the
 	/// original, narrower entry point kept for callers (and tests) that only ever care about
 	/// compose service names, implemented in terms of `parseQueryName(_:)` so the two never
