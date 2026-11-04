@@ -847,7 +847,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		#if APPSTORE
 			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
 		#else
-			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: "/etc/sudoers.d/caked")
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath) && FileManager.default.fileExists(atPath: SudoCaked.legacySudoersRulePath) == false
 		#endif
 	}
 
@@ -864,7 +864,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			return SudoCaked.isProtectedBundledBinary(caked) && SudoCaked.isCurrent(for: caked) == false
 		}
 
-		/// Installs /etc/paths.d/com.aldunelabs.caker and /etc/sudoers.d/caked through the privileged helper once it is
+		/// Installs /etc/paths.d/com.aldunelabs.caker and /etc/sudoers.d/caked-pinned through the privileged helper once it is
 		/// registered and approved (waits up to two minutes for the approval in Login Items). Does nothing, and logs why, when
 		/// the helper can't do it: `ensurePrivilegedBootstrapFiles()` is the fallback.
 		static func installPrivilegedBootstrapFilesWithHelper() async {
@@ -909,7 +909,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				// The rule pins `caked` by digest, so an updated app needs it written again.
 				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false || SudoCaked.isCurrent(for: cakedURL) == false
 
-				guard needsPathsFile || needsSudoersFile else { return }
+				// The `%everyone` rule of earlier versions is removed whatever happens to the new one.
+				let hasLegacySudoersFile = FileManager.default.fileExists(atPath: SudoCaked.legacySudoersRulePath)
+
+				guard needsPathsFile || needsSudoersFile || hasLegacySudoersFile else { return }
 			#else
 				guard needsPathsFile else { return }
 			#endif
@@ -932,6 +935,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					} catch {
 						CakeAgentLib.Logger("MainUIAppDelegate").warn("No passwordless sudo rule installed for caked: \(error.localizedDescription)")
 					}
+				}
+
+				if hasLegacySudoersFile {
+					contents.append("rm -f \(SudoCaked.legacySudoersRulePath)")
 				}
 			#endif
 

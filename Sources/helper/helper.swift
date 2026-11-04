@@ -124,7 +124,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	private static let queue = DispatchQueue(label: "com.aldunelabs.caker.authorization.work", attributes: .concurrent)
 	private static let logPath = "/var/log/com.aldunelabs.caker.authorization.log"
 	private static let installedPathsFile = "/etc/paths.d/com.aldunelabs.caker"
-	private static let installedSudoersFile = "/etc/sudoers.d/caked"
+	private static let installedSudoersFile = SudoCaked.sudoersRulePath
 
 	/// Runs `work` off the XPC thread and sends exactly one reply.
 	private func perform(_ operation: String, authorization authData: Data, command: Selector, reply: @escaping @Sendable (AuthorizationHelperReply) -> Void, work: @escaping @Sendable (Caller) throws -> String) {
@@ -433,6 +433,11 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				guard check.status == 0 else {
 					throw ServiceError("Invalid sudoers file: \(check.output)")
 				}
+			}
+
+			// The `%everyone` rule of earlier versions: nothing may keep granting it.
+			if unlink(SudoCaked.legacySudoersRulePath) != 0 && errno != ENOENT {
+				throw ServiceError("Unable to remove \(SudoCaked.legacySudoersRulePath): \(String(cString: strerror(errno)))")
 			}
 
 			return "Installed \(Self.installedPathsFile) and \(Self.installedSudoersFile)"

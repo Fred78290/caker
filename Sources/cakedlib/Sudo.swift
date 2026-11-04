@@ -362,7 +362,12 @@ public final class SudoCaked {
 /// Because the digest changes with every `caked`, the rule has to be rewritten on each update: `isCurrent(for:)` tells whether it
 /// still accepts the given binary.
 extension SudoCaked {
-	public static let sudoersRulePath = "/etc/sudoers.d/caked"
+	/// Where the rule lives. Not `caked`: that file held the previous `%everyone` rule, and a different name lets an install
+	/// tell an old rule (to be removed) from a current one. Mind that sudo skips files whose name contains a dot.
+	public static let sudoersRulePath = "/etc/sudoers.d/caked-pinned"
+
+	/// The file the `%everyone` rule used to be written to. It is removed whenever the current rule is installed.
+	public static let legacySudoersRulePath = "/etc/sudoers.d/caked"
 
 	/// Whether `url` is owned by root and can't be modified by anybody else.
 	static func isRootProtected(_ url: URL) -> Bool {
