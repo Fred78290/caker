@@ -61,17 +61,16 @@ public enum VMLifecycleHooks {
 	/// which the VM process itself could never report.
 	///
 	/// A VM that doesn't go through `StartHandler` (record, provisioning, the app's embedded VMs, a
-	/// guest-initiated shutdown) is reported by `VirtualMachine` itself, with
-	/// `forwardToIMDSNetwork(_:waitingUpTo:)`. Both can report the same transition: the network
-	/// registers and unregisters idempotently.
+	/// guest-initiated shutdown) is reported by `VirtualMachine` itself, through `publish(_:waitingUpTo:)`.
+	/// Both can report the same transition: the network registers and unregisters idempotently.
 	///
 	/// The network process receiving the event calls `notify(_:)` directly, never this, or the
 	/// event would loop back to it.
-	static func publish(_ event: VMLifecycleEvent) {
+	static func publish(_ event: VMLifecycleEvent, waitingUpTo timeout: TimeInterval = 0) {
 		Self.notify(event)
 
 		#if !USE_IMDS_COORDINATOR_IN_SERVICE
-			Self.forwardToIMDSNetwork(event)
+			Self.forwardToIMDSNetwork(event, waitingUpTo: timeout)
 		#endif
 	}
 
