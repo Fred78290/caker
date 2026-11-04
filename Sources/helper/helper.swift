@@ -405,7 +405,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	}
 
 	func installPriviligedFiles(authorization authData: Data, cakerPath: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-		perform("install-priviliged-files", authorization: authData, command: #selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)), reply: reply) { _ in
+		perform("install-priviliged-files", authorization: authData, command: #selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)), reply: reply) { caller in
 			let app = URL(fileURLWithPath: cakerPath).resolvingSymlinksInPath().standardizedFileURL
 
 			guard app.pathExtension == "app", cakerPath.hasPrefix("/") else {
@@ -413,7 +413,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			}
 
 			// `caked` goes into a NOPASSWD sudoers rule: the file must be one nobody but root can replace.
-			_ = try Self.trustedCaked(in: app)
+			let caked = try Self.trustedCaked(in: app)
 
 			let plugins = app.appendingPathComponent("Contents/PlugIns")
 			let directories = ["caked.app", "cakectl.app"]
@@ -422,7 +422,9 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 			try Self.installRootOwnedFile(directories.joined(separator: "\n") + "\n", to: Self.installedPathsFile, mode: 0o644)
 
-			let sudoers = "%everyone ALL=(root:wheel) NOPASSWD:SETENV: \(directories[0])caked\n"
+			// The rule names the calling user only and pins `caked` by its digest: see `SudoCaked.sudoersRule(uid:caked:)`.
+			// It is also the one place that refuses a bundle that isn't root-owned all the way up.
+			let sudoers = try SudoCaked.sudoersRule(uid: caller.uid, caked: caked)
 
 			// A broken sudoers file locks sudo out: let visudo check it before it replaces the real one.
 			try Self.installRootOwnedFile(sudoers, to: Self.installedSudoersFile, mode: 0o440) { temporary in

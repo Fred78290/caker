@@ -793,7 +793,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					return
 				}
 
-				if Self.isPrivilegedBootstrapFilesInstalled == false {
+				if Self.isPrivilegedBootstrapFilesInstalled == false || Self.isSudoersRuleStale {
 					// The helper installs the files once it is approved; the administrator prompt is the fallback.
 					Task {
 						await Self.installPrivilegedBootstrapFilesWithHelper()
@@ -852,6 +852,18 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	#if !APPSTORE
+		/// The passwordless sudo rule pins `caked` by its digest, so it stops working when the app is updated. True when the rule exists,
+		/// no longer accepts the bundled `caked`, and could be written again (a bundle that isn't root-owned never gets a rule).
+		static var isSudoersRuleStale: Bool {
+			guard let path = Bundle.main.cakerBuildPlugInsPath.first, FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath) else {
+				return false
+			}
+
+			let caked = URL(fileURLWithPath: path).appendingPathComponent("caked")
+
+			return SudoCaked.isProtectedBundledBinary(caked) && SudoCaked.isCurrent(for: caked) == false
+		}
+
 		/// Installs /etc/paths.d/com.aldunelabs.caker and /etc/sudoers.d/caked through the privileged helper once it is
 		/// registered and approved (waits up to two minutes for the approval in Login Items). Does nothing, and logs why, when
 		/// the helper can't do it: `ensurePrivilegedBootstrapFiles()` is the fallback.
@@ -892,8 +904,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path(percentEncoded: false)) == false
 
 			#if !APPSTORE
-				let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
-				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false
+				let sudoersFile = URL(fileURLWithPath: SudoCaked.sudoersRulePath)
+				let cakedURL = URL(fileURLWithPath: pluginPaths[0]).appendingPathComponent("caked")
+				// The rule pins `caked` by digest, so an updated app needs it written again.
+				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false || SudoCaked.isCurrent(for: cakedURL) == false
 
 				guard needsPathsFile || needsSudoersFile else { return }
 			#else
@@ -909,9 +923,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			#if !APPSTORE
-				if let pluginPath = pluginPaths.first, needsSudoersFile {
-					let sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD:SETENV: \(pluginPath)caked\n"
-					try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
+				if needsSudoersFile {
+					do {
+						// Only a root-owned bundle (a package install) gets a passwordless rule, and only for the current user.
+						let sudoersContent = try SudoCaked.sudoersRule(uid: getuid(), caked: cakedURL)
+
+						try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
+					} catch {
+						CakeAgentLib.Logger("MainUIAppDelegate").warn("No passwordless sudo rule installed for caked: \(error.localizedDescription)")
+					}
 				}
 			#endif
 
