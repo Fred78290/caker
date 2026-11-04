@@ -386,12 +386,9 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		perform("import-virtual-machine", authorization: authData, command: #selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:withReply:)), reply: reply) { caller in
 			let home = try Self.validatedHome(cakeHome, caller: caller)
 
-			// The import runs as root but the VM belongs to the caller: it must not choose another owner or home.
-			let forbidden: Set<String> = ["--uid", "--gid", "--home", "--system", "-s"]
-
-			if let argument = arguments.first(where: { forbidden.contains($0.split(separator: "=", maxSplits: 1).first.map(String.init) ?? $0) }) {
-				throw ServiceError("Argument \(argument) is not allowed")
-			}
+			// The import runs as root but the VM belongs to the caller: it can't choose another owner or home, nor
+			// have root open a path or take an option it was not written for. Only a Multipass import needs root.
+			try ImportHandler.validatePrivilegedImportArguments(arguments)
 
 			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
 			let result = try Self.runAndCollect(caked, arguments: ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments, environment: Self.environment(home: home))
