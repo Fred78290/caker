@@ -40,12 +40,20 @@ mkdir -p "${HOME}/Library/Logs/Caker"
     printf '%s\n%s\n' "${CAKED_DIR}" "${CAKECTL_DIR}" > /etc/paths.d/com.aldunelabs.caker
 
     echo "Creating sudoers files..."
-    # Passwordless sudo for this one caked, pinned by its SHA-256: sudo refuses the command if the binary or the bundle is replaced
-    # afterwards. There is one file per user (caked-pinned-<uid>), so that every user of this Mac has a rule of their own. The digest
-    # changes with every release: the installing user gets a rule, and so does each user that already had one (the app also rewrites
-    # its user's rule at launch when it no longer matches, see SudoCaked.sudoersRule).
-    CAKED_SHA256=$(/usr/bin/shasum -a 256 "${CAKED}" | awk '{print $1}')
+    # Passwordless sudo for this one caked, one file per user (caked-pinned-<uid>) so that every user of this Mac has a rule of their
+    # own. Same rule as SudoCaked.sudoersRule: by default it names the user and the path of caked; a build made with BECOME_PARANOID
+    # also pins caked by its SHA-256, so sudo refuses a binary or a bundle replaced afterwards. The digest changes with every release,
+    # hence, in that mode, each user that already had a rule gets the new one too (the app rewrites its user's rule at launch when it
+    # no longer matches). create-pkg.sh sets the value below from the BECOME_PARANOID variable (1 = pinned) when it builds the package.
+    BECOME_PARANOID=0
     SUDO_UID=$(id -u "${HOME_USER}")
+
+    if [ "${BECOME_PARANOID}" = "1" ]; then
+        CAKED_SHA256=$(/usr/bin/shasum -a 256 "${CAKED}" | awk '{print $1}')
+        SUDO_PIN="sha256:${CAKED_SHA256} "
+    else
+        SUDO_PIN=""
+    fi
 
     # The old rules granted every user (%everyone) or a single user: never keep them.
     rm -f /etc/sudoers.d/caked /etc/sudoers.d/caked-pinned
@@ -55,7 +63,7 @@ mkdir -p "${HOME}/Library/Logs/Caker"
         RULE_FILE="/etc/sudoers.d/caked-pinned-${RULE_UID}"
         RULE_TMP="/etc/sudoers.d/.caked-pinned-${RULE_UID}.$$"
 
-        printf '#%s ALL=(root:wheel) NOPASSWD:SETENV: sha256:%s %s\n' "${RULE_UID}" "${CAKED_SHA256}" "${CAKED}" > "${RULE_TMP}"
+        printf '#%s ALL=(root:wheel) NOPASSWD:SETENV: %s%s\n' "${RULE_UID}" "${SUDO_PIN}" "${CAKED}" > "${RULE_TMP}"
         chown root:wheel "${RULE_TMP}"
         chmod 0440 "${RULE_TMP}"
 
@@ -68,15 +76,17 @@ mkdir -p "${HOME}/Library/Logs/Caker"
         fi
     }
 
-    # Users that already have a rule, then the installing user. Only canonical numeric uids are taken for a rule.
-    for RULE_PATH in /etc/sudoers.d/caked-pinned-*; do
-        [ -f "${RULE_PATH}" ] || continue
-        EXISTING_UID="${RULE_PATH##*/caked-pinned-}"
-        case "${EXISTING_UID}" in
-            ''|*[!0-9]*|0[0-9]*) continue ;;
-        esac
-        [ "${EXISTING_UID}" = "${SUDO_UID}" ] || install_sudoers_rule "${EXISTING_UID}"
-    done
+    if [ "${BECOME_PARANOID}" = "1" ]; then
+        # Users that already have a rule: their digest is stale now. Only canonical numeric uids are taken for a rule.
+        for RULE_PATH in /etc/sudoers.d/caked-pinned-*; do
+            [ -f "${RULE_PATH}" ] || continue
+            EXISTING_UID="${RULE_PATH##*/caked-pinned-}"
+            case "${EXISTING_UID}" in
+                ''|*[!0-9]*|0[0-9]*) continue ;;
+            esac
+            [ "${EXISTING_UID}" = "${SUDO_UID}" ] || install_sudoers_rule "${EXISTING_UID}"
+        done
+    fi
 
     install_sudoers_rule "${SUDO_UID}"
 
