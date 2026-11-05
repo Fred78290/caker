@@ -23,6 +23,10 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		listener.delegate = self
 	}
 
+	func stop() {
+		listener.invalidate()
+	}
+
 	/// Starts processing requests and runs the run loop forever.
 	func run() -> Never {
 		listener.resume()
