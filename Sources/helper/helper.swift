@@ -133,13 +133,22 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	/// Runs `work` off the XPC thread and sends exactly one reply.
 	private func perform(_ operation: String, authorization authData: Data, command: Selector, reply: @escaping @Sendable (AuthorizationHelperReply) -> Void, work: @escaping @Sendable (Caller) throws -> String) {
 		self.logger.debug("Performing operation \(operation)")
+
+		func doReply(_ result: AuthorizationHelperReply) {
+			#if DEBUG
+				self.logger.debug(Format.text.renderSingle(result))
+			#endif
+
+			reply(result)
+		}
+
 		if let error = checkAuthorization(authData, command: command) {
-			reply(AuthorizationHelperReply(operation: operation, success: false, reason: error.reason))
+			doReply(AuthorizationHelperReply(operation: operation, success: false, reason: error.reason))
 			return
 		}
 
 		guard let caller = Caller.current() else {
-			reply(AuthorizationHelperReply(operation: operation, success: false, reason: "Unable to identify the caller"))
+			doReply(AuthorizationHelperReply(operation: operation, success: false, reason: "Unable to identify the caller"))
 			return
 		}
 
