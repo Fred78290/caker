@@ -14,6 +14,7 @@ import Security
 
 final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, AuthorizationHelperProtocol {
 	private let listener: NSXPCListener
+	private let logger = Logger("AuthorizationHelperTool")
 
 	override init() {
 		// Set up our XPC listener to handle requests on our Mach service.
@@ -39,7 +40,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		if let requirement = Self.clientRequirement {
 			newConnection.setCodeSigningRequirement(requirement)
 		} else {
-			Logger("AuthorizationHelper").warn("Helper is not signed by a team: XPC clients are not verified")
+			self.logger.warn("Helper is not signed by a team: XPC clients are not verified")
 		}
 
 		newConnection.exportedInterface = NSXPCInterface(with: AuthorizationHelperProtocol.self)
@@ -127,6 +128,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 	/// Runs `work` off the XPC thread and sends exactly one reply.
 	private func perform(_ operation: String, authorization authData: Data, command: Selector, reply: @escaping @Sendable (AuthorizationHelperReply) -> Void, work: @escaping @Sendable (Caller) throws -> String) {
+		self.logger.debug("Performing operation \(operation)")
 		if let error = checkAuthorization(authData, command: command) {
 			reply(AuthorizationHelperReply(operation: operation, success: false, reason: error.reason))
 			return
@@ -207,6 +209,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	/// An installed helper is root-owned: it only runs a root-owned `caked`.
 	private static func trustedCaked(in appURL: URL? = nil, alsoOwnedBy uid: uid_t? = nil) throws -> URL {
 		var candidates: [URL] = []
+
+		self.logger.debug("Finding trusted caked")
 
 		if let appURL {
 			candidates.append(appURL.appendingPathComponent("Contents/PlugIns/caked.app/Contents/MacOS/caked"))
