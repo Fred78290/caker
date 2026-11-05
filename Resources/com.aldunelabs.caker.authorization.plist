@@ -9,7 +9,7 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>Contents/MacOS/helper</string>
-		<string>--log-level=info</string>
+		<string>--log-level=debug</string>
 	</array>
 	<key>AssociatedBundleIdentifiers</key>
 	<array>
@@ -23,8 +23,8 @@
 		<true/>
 	</dict>
 	<key>StandardErrorPath</key>
-	<string>/var/log/caker-helper.log</string>
+	<string>/var/log/com.aldunelabs.caker.helper.log</string>
 	<key>StandardOutPath</key>
-	<string>/var/log/caker-helper.log</string>
+	<string>/var/log/com.aldunelabs.caker.helper.log</string>
 </dict>
 </plist>
