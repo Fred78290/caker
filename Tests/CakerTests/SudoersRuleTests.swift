@@ -37,6 +37,7 @@ final class SudoersRuleTests: XCTestCase {
 		XCTAssertEqual(SudoCaked.escapedForSudoers("/Apps/My Caker/a,b:c=d"), "/Apps/My\\ Caker/a\\,b\\:c\\=d")
 	}
 
+#if BECOME_PARANOID
 	func testUserOwnedBinaryIsNotTrusted() throws {
 		// A freshly written file belongs to the user running the tests (not root), like a drag-and-drop install or a DerivedData build.
 		let file = self.directory.appendingPathComponent("caked")
@@ -62,6 +63,20 @@ final class SudoersRuleTests: XCTestCase {
 		XCTAssertEqual(rule, "#501 ALL=(root:wheel) NOPASSWD:SETENV: sha256:\(digest) /bin/echo\n")
 		XCTAssertFalse(rule.contains("%everyone"))
 	}
+#else
+	func testRuleNamesTheUserAndTheBinaryOnly() throws {
+		// Without BECOME_PARANOID the rule is not pinned by a digest and the bundle needn't be root-owned.
+		let file = self.directory.appendingPathComponent("caked")
+
+		try Data("#!/bin/sh\n".utf8).write(to: file)
+
+		let rule = try SudoCaked.sudoersRule(uid: 501, caked: file)
+
+		XCTAssertEqual(rule, "#501 ALL=(root:wheel) NOPASSWD:SETENV: \(SudoCaked.escapedForSudoers(file.path(percentEncoded: false)))\n")
+		XCTAssertFalse(rule.contains("sha256"))
+		XCTAssertFalse(rule.contains("%everyone"))
+	}
+#endif
 
 	func testRuleIsAcceptedByVisudo() throws {
 		let rule = try SudoCaked.sudoersRule(uid: 501, caked: URL(fileURLWithPath: "/bin/echo"))
