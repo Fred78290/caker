@@ -146,7 +146,7 @@ public enum AuthorizationHelperCommon {
 		),
 		#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)): CommandInfo(
 			authRightName: "com.aldunelabs.caker.authorization.install-priviliged-files",
-			authRightDefault: kAuthorizationRuleAuthenticateAsAdmin,
+			authRightDefault: kAuthorizationRuleClassAllow,
 			authRightDescription: NSLocalizedString(
 				"Helper is trying to install some priviliged files.",
 				comment: "prompt shown when user is required to authorize to install some priviliged files"
