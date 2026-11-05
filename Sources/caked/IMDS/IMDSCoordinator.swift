@@ -180,9 +180,18 @@ public actor IMDSCoordinator {
 
 		do {
 			#if !APPSTORE
-				if try await DirectAuthorizationHelperConnector.viaHelper(runMode: runMode, {
-					try await $0.imdsRedirect(externalAddress: IMDSNetworkInterface.awsCompatAddress, internalAddress: IMDSServer.bindAddress, internalPort: internalPort, install: true, runMode: runMode)
-				}) != nil {
+				if geteuid() == 0 {
+					try PFRedirect.enableAddressAlias(externalAddress: IMDSNetworkInterface.awsCompatAddress, targetAddress: IMDSServer.bindAddress, targetPort: 0)
+					self.logger.info("IMDS also reachable at http://\(IMDSNetworkInterface.awsCompatAddress) (AWS-style compatibility address)")
+					return
+				}
+
+				if try await DirectAuthorizationHelperConnector.viaHelper(
+					runMode: runMode,
+					{
+						try await $0.imdsRedirect(externalAddress: IMDSNetworkInterface.awsCompatAddress, internalAddress: IMDSServer.bindAddress, internalPort: internalPort, install: true, runMode: runMode)
+					}) != nil
+				{
 					self.logger.info("IMDS also reachable at http://\(IMDSNetworkInterface.awsCompatAddress) (AWS-style compatibility address)")
 
 					return
@@ -224,9 +233,18 @@ public actor IMDSCoordinator {
 
 		do {
 			#if !APPSTORE
-				if try await DirectAuthorizationHelperConnector.viaHelper(runMode: runMode, {
-					try await $0.imdsRedirect(externalAddress: IMDSNetworkInterface.awsCompatAddress, internalAddress: IMDSServer.bindAddress, internalPort: 0, install: false, runMode: runMode)
-				}) != nil {
+				if geteuid() == 0 {
+					try PFRedirect.disableAddressAlias()
+
+					return
+				}
+
+				if try await DirectAuthorizationHelperConnector.viaHelper(
+					runMode: runMode,
+					{
+						try await $0.imdsRedirect(externalAddress: IMDSNetworkInterface.awsCompatAddress, internalAddress: IMDSServer.bindAddress, internalPort: 0, install: false, runMode: runMode)
+					}) != nil
+				{
 					return
 				}
 			#endif

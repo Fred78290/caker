@@ -266,10 +266,8 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 	}
 
 	public func imdsRedirect(externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, runMode: Utils.RunMode) async throws -> String {
-		let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
-
 		return try await call { helper, authorization, reply in
-			helper.imdsRedirect(authorization: authorization, cakeHome: home, externalAddress: externalAddress, internalAddress: internalAddress, internalPort: internalPort, install: install, withReply: reply)
+			helper.imdsRedirect(authorization: authorization, externalAddress: externalAddress, internalAddress: internalAddress, internalPort: internalPort, install: install, withReply: reply)
 		}
 	}
 

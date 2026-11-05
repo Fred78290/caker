@@ -8,7 +8,7 @@ import Foundation
 import GRPCLib
 
 @objc(AuthorizationHelperReply)
-public final class AuthorizationHelperReply: NSObject, NSSecureCoding, @unchecked Sendable {
+public final class AuthorizationHelperReply: NSObject, NSSecureCoding, @unchecked Sendable, Codable {
 	public static var supportsSecureCoding: Bool { true }
 
 	@objc public let operation: String
@@ -57,8 +57,8 @@ public protocol AuthorizationHelperProtocol {
 	func importVirtualMachine(authorization authData: Data, cakeHome: String, arguments: [String], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
 	/// Install or remove imds redirect. `authData` must be an AuthorizationExternalForm embedded in a Data.
-	@objc(imdsRedirectWithAuthorization:cakeHome:externalAddress:internalAddress:internalPort:install:withReply:)
-	func imdsRedirect(authorization authData: Data, cakeHome: String, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+	@objc(imdsRedirectWithAuthorization:externalAddress:internalAddress:internalPort:install:withReply:)
+	func imdsRedirect(authorization authData: Data, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
 	/// Run a standalone network (`caked networks run`) as root on a descriptor handed over by the caller: the VM end of the
 	/// socketpair stays with the caller. Replies with the pid of the process once its pid file exists.
@@ -120,7 +120,7 @@ public enum AuthorizationHelperCommon {
 				comment: "prompt shown when user is required to authorize to set global dhcp lease time for DHCP server"
 			)
 		),
-		#selector(AuthorizationHelperProtocol.imdsRedirect(authorization:cakeHome:externalAddress:internalAddress:internalPort:install:withReply:)): CommandInfo(
+		#selector(AuthorizationHelperProtocol.imdsRedirect(authorization:externalAddress:internalAddress:internalPort:install:withReply:)): CommandInfo(
 			authRightName: "com.aldunelabs.caker.authorization.imds-redirect",
 			authRightDefault: kAuthorizationRuleClassAllow,
 			authRightDescription: NSLocalizedString(
@@ -146,7 +146,7 @@ public enum AuthorizationHelperCommon {
 		),
 		#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)): CommandInfo(
 			authRightName: "com.aldunelabs.caker.authorization.install-priviliged-files",
-			authRightDefault: kAuthorizationRuleAuthenticateAsAdmin,
+			authRightDefault: kAuthorizationRuleClassAllow,
 			authRightDescription: NSLocalizedString(
 				"Helper is trying to install some priviliged files.",
 				comment: "prompt shown when user is required to authorize to install some priviliged files"

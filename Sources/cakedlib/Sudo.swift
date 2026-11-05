@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 11/11/2025.
 //
 import CakeAgentLib
+import CryptoKit
 import Foundation
 import GRPCLib
 
@@ -314,11 +315,13 @@ public final class SudoCaked {
 			return true
 		}
 
-		let info = try FileManager.default.attributesOfItem(atPath: binary.path(percentEncoded: false)) as NSDictionary
+		#if BECOME_PARANOID
+			let info = try FileManager.default.attributesOfItem(atPath: binary.path(percentEncoded: false)) as NSDictionary
 
-		if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
-			return true
-		}
+			if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
+				return true
+			}
+		#endif
 
 		let process = Process()
 
@@ -344,5 +347,147 @@ public final class SudoCaked {
 		}
 
 		return false
+	}
+}
+
+// MARK: - /etc/sudoers.d/caked
+
+/// The rule that lets one user run the bundled `caked` as root without a password (the fallback used when the
+/// privileged helper can't do the job).
+///
+/// It is deliberately narrow, because it outlives the process that installed it and names a path inside an application bundle:
+/// - it names one user (`#uid`), never `%everyone`;
+/// - it pins the binary with its SHA-256 (`sha256:<digest>`), which sudo checks every time it runs the command. A `caked`
+///   that was replaced, or a bundle moved aside and swapped for another one at the same path, is refused instead of run as root;
+/// - it is only written for a `caked` that is itself unmodifiable by non-root users (see `isProtectedBundledBinary(_:)`).
+///
+/// Because the digest changes with every `caked`, the rule has to be rewritten on each update: `isCurrent(for:)` tells whether it
+/// still accepts the given binary.
+extension SudoCaked {
+	/// Where the rule of the user `uid` lives. There is one file per user, so that several users of the same Mac (fast user
+	/// switching, or two administrators) each have a rule and installing one never replaces another's. Mind that sudo skips
+	/// files whose name contains a dot.
+	public static func sudoersRulePath(uid: uid_t) -> String {
+		"\(sudoersDirectory)/\(sudoersRulePrefix)\(uid)"
+	}
+
+	public static let sudoersDirectory = "/etc/sudoers.d"
+	static let sudoersRulePrefix = "caked-pinned-"
+
+	/// Files earlier versions wrote, to be removed whenever a current rule is installed: `caked` held the `%everyone` rule,
+	/// `caked-pinned` a single rule for one user.
+	public static let legacySudoersRulePaths = ["/etc/sudoers.d/caked", "/etc/sudoers.d/caked-pinned"]
+
+	/// The users that have a rule installed in `directory`. A new digest invalidates every one of them, not just the user
+	/// who updated the application.
+	public static func installedRuleUIDs(in directory: String = sudoersDirectory) -> [uid_t] {
+		let names = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
+
+		return names.compactMap { name -> uid_t? in
+			guard name.hasPrefix(sudoersRulePrefix) else {
+				return nil
+			}
+
+			let suffix = String(name.dropFirst(sudoersRulePrefix.count))
+
+			// Only the canonical form, so that `caked-pinned-0501` or `caked-pinned-501.bak` are not taken for a rule.
+			guard let uid = uid_t(suffix), String(uid) == suffix else {
+				return nil
+			}
+
+			return uid
+		}.sorted()
+	}
+
+	#if BECOME_PARANOID
+		/// Whether `url` is owned by root and can't be modified by anybody else.
+		static func isRootProtected(_ url: URL) -> Bool {
+			guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)) as NSDictionary else {
+				return false
+			}
+
+			return attributes.fileOwnerAccountID()?.uint32Value == 0 && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
+		}
+	#endif
+
+	#if BECOME_PARANOID
+		/// Whether `binary` and every directory between it and the outermost `.app` bundle containing it are owned by root and
+		/// not writable by others. A package installs a bundle like that; a drag-and-drop install or a build in DerivedData doesn't.
+		///
+		/// This doesn't cover the directory the bundle sits in (`/Applications` is writable by the admin group): that is what the digest is for.
+		public static func isProtectedBundledBinary(_ binary: URL) -> Bool {
+			let resolved = binary.resolvingSymlinksInPath().standardizedFileURL
+			var chain: [URL] = [resolved]
+			var directory = resolved.deletingLastPathComponent()
+
+			// Every directory up to the outermost `.app` containing the binary; nothing at all above it.
+			var outermost: Int? = nil
+
+			while directory.path != "/" {
+				chain.append(directory)
+
+				if directory.pathExtension == "app" {
+					outermost = chain.count
+				}
+
+				directory = directory.deletingLastPathComponent()
+			}
+
+			return chain.prefix(outermost ?? 1).allSatisfy { isRootProtected($0) }
+		}
+	#endif
+
+	public static func sha256Hex(of url: URL) throws -> String {
+		var hasher = SHA256()
+		let handle = try FileHandle(forReadingFrom: url)
+
+		defer {
+			try? handle.close()
+		}
+
+		while let chunk = try handle.read(upToCount: 1 << 20), chunk.isEmpty == false {
+			hasher.update(data: chunk)
+		}
+
+		return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+	}
+
+	/// A command path as sudoers wants it: the characters it uses as separators are escaped.
+	static func escapedForSudoers(_ path: String) -> String {
+		var result = ""
+
+		for character in path {
+			if " ,:=\\\"#!".contains(character) {
+				result.append("\\")
+			}
+
+			result.append(character)
+		}
+
+		return result
+	}
+
+	/// The content of the rule file of the user `uid` (`sudoersRulePath(uid:)`) for the binary `caked`.
+	/// Throws when `caked` can't be trusted with root (see `isProtectedBundledBinary(_:)`).
+	public static func sudoersRule(uid: uid_t, caked: URL) throws -> String {
+		#if BECOME_PARANOID
+			guard isProtectedBundledBinary(caked) else {
+				throw ServiceError("\(caked.path(percentEncoded: false)) must be owned by root and not writable by others to be run without a password")
+			}
+			let digest = try sha256Hex(of: caked.resolvingSymlinksInPath())
+
+			return "#\(uid) ALL=(root:wheel) NOPASSWD:SETENV: sha256:\(digest) \(escapedForSudoers(caked.path(percentEncoded: false)))\n"
+		#else
+			return "#\(uid) ALL=(root:wheel) NOPASSWD:SETENV: \(escapedForSudoers(caked.path(percentEncoded: false)))\n"
+		#endif
+	}
+
+	/// Whether the installed rule lets the current user run `caked` as root: sudo checks the user, the path and the digest.
+	public static func isCurrent(for caked: URL) -> Bool {
+		guard let sudo = URL.binary(SUDO) else {
+			return false
+		}
+
+		return (try? checkIfSudoable(sudoURL: sudo, binary: caked)) ?? false
 	}
 }

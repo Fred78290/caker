@@ -14,12 +14,17 @@ import Security
 
 final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, AuthorizationHelperProtocol {
 	private let listener: NSXPCListener
+	private let logger = Logger("AuthorizationHelperTool")
 
 	override init() {
 		// Set up our XPC listener to handle requests on our Mach service.
 		listener = NSXPCListener(machServiceName: AuthorizationHelperCommon.kAuthorizationHelperToolMachServiceName)
 		super.init()
 		listener.delegate = self
+	}
+
+	func stop() {
+		listener.invalidate()
 	}
 
 	/// Starts processing requests and runs the run loop forever.
@@ -39,12 +44,13 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		if let requirement = Self.clientRequirement {
 			newConnection.setCodeSigningRequirement(requirement)
 		} else {
-			Logger("AuthorizationHelper").warn("Helper is not signed by a team: XPC clients are not verified")
+			self.logger.warn("Helper is not signed by a team: XPC clients are not verified")
 		}
 
 		newConnection.exportedInterface = NSXPCInterface(with: AuthorizationHelperProtocol.self)
 		newConnection.exportedObject = self
 		newConnection.resume()
+
 		return true
 	}
 
@@ -75,7 +81,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	private func checkAuthorization(_ authData: Data, command: Selector) -> NSError? {
 		// First check that authData looks reasonable.
 		guard authData.count == MemoryLayout<AuthorizationExternalForm>.size,
-			  let rightName = AuthorizationHelperCommon.authorizationRight(for: command) else {
+			let rightName = AuthorizationHelperCommon.authorizationRight(for: command)
+		else {
 			return NSError(domain: NSOSStatusErrorDomain, code: Int(paramErr))
 		}
 
@@ -124,17 +131,26 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	private static let queue = DispatchQueue(label: "com.aldunelabs.caker.authorization.work", attributes: .concurrent)
 	private static let logPath = "/var/log/com.aldunelabs.caker.authorization.log"
 	private static let installedPathsFile = "/etc/paths.d/com.aldunelabs.caker"
-	private static let installedSudoersFile = "/etc/sudoers.d/caked"
 
 	/// Runs `work` off the XPC thread and sends exactly one reply.
 	private func perform(_ operation: String, authorization authData: Data, command: Selector, reply: @escaping @Sendable (AuthorizationHelperReply) -> Void, work: @escaping @Sendable (Caller) throws -> String) {
+		self.logger.debug("Performing operation \(operation)")
+
+		func doReply(_ result: AuthorizationHelperReply) {
+			#if DEBUG
+				self.logger.debug(Format.text.renderSingle(result))
+			#endif
+
+			reply(result)
+		}
+
 		if let error = checkAuthorization(authData, command: command) {
-			reply(AuthorizationHelperReply(operation: operation, success: false, reason: error.reason))
+			doReply(AuthorizationHelperReply(operation: operation, success: false, reason: error.reason))
 			return
 		}
 
 		guard let caller = Caller.current() else {
-			reply(AuthorizationHelperReply(operation: operation, success: false, reason: "Unable to identify the caller"))
+			doReply(AuthorizationHelperReply(operation: operation, success: false, reason: "Unable to identify the caller"))
 			return
 		}
 
@@ -160,7 +176,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		let attributes = try FileManager.default.attributesOfItem(atPath: resolved.path) as NSDictionary
 
 		guard attributes.fileType() == FileAttributeType.typeDirectory.rawValue, attributes.fileOwnerAccountID()?.uint32Value == caller.uid else {
-			throw ServiceError("Cake home \(resolved.path) is not a directory owned by the calling user")
+			throw ServiceError("Cake home \(resolved.path) is not a directory owned by the calling user \(caller.uid)")
 		}
 
 		return resolved
@@ -181,33 +197,39 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		}
 	}
 
-	/// Whether `url` is owned by root and can't be modified by anybody else.
-	/// True when this helper executable isn't root-owned and protected, which is never the case once it is installed with the app.
-	private static let isDevelopmentHelper: Bool = {
-		guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else {
-			return false
+	#if BECOME_PARANOID
+		/// Whether `url` is owned by root and can't be modified by anybody else.
+		/// True when this helper executable isn't root-owned and protected, which is never the case once it is installed with the app.
+		private func isDevelopmentHelper() -> Bool {
+			guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else {
+				return false
+			}
+
+			return isRootOwnedAndProtected(executable) == false
 		}
+	#endif
 
-		return isRootOwnedAndProtected(executable) == false
-	}()
+	#if BECOME_PARANOID
+		private func isRootOwnedAndProtected(_ url: URL, alsoOwnedBy uid: uid_t? = nil) -> Bool {
+			guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as NSDictionary else {
+				return false
+			}
 
-	private static func isRootOwnedAndProtected(_ url: URL, alsoOwnedBy uid: uid_t? = nil) -> Bool {
-		guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as NSDictionary else {
-			return false
+			let owner = attributes.fileOwnerAccountID()?.uint32Value
+
+			return (owner == 0 || (uid != nil && owner == uid)) && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
 		}
-
-		let owner = attributes.fileOwnerAccountID()?.uint32Value
-
-		return (owner == 0 || (uid != nil && owner == uid)) && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
-	}
+	#endif
 
 	/// The `caked` shipped with the app the helper belongs to. It runs as root, so it must be root-owned and not writable by others.
 	///
 	/// A `caked` owned by the caller (`alsoOwnedBy`) is accepted only when the helper's own executable isn't root-protected either, i.e. a development build run from Xcode's
 	/// products, where a freshly built binary belongs to the developer. Whoever can replace such a `caked` can already replace the helper, so nothing more is exposed.
 	/// An installed helper is root-owned: it only runs a root-owned `caked`.
-	private static func trustedCaked(in appURL: URL? = nil, alsoOwnedBy uid: uid_t? = nil) throws -> URL {
+	private func trustedCaked(in appURL: URL? = nil, alsoOwnedBy uid: uid_t? = nil) throws -> URL {
 		var candidates: [URL] = []
+
+		self.logger.debug("Finding trusted caked")
 
 		if let appURL {
 			candidates.append(appURL.appendingPathComponent("Contents/PlugIns/caked.app/Contents/MacOS/caked"))
@@ -225,11 +247,22 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			throw ServiceError("caked not found")
 		}
 
-		let developer = Self.isDevelopmentHelper ? uid : nil
+		#if BECOME_PARANOID
+			let isDevelopmentHelper = self.isDevelopmentHelper()
+			let developer = isDevelopmentHelper ? uid : nil
 
-		guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
-			throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
-		}
+			guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
+				if let uid, isDevelopmentHelper {
+					throw ServiceError("\(caked.path) must be owned by root or uid \(uid) and not writable by others to be run by the helper")
+				} else {
+					throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
+				}
+			}
+
+			guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
+				throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
+			}
+		#endif
 
 		return caked
 	}
@@ -307,7 +340,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 			try Self.validateNetworkName(networkName)
 
-			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
+			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
 
 			if pidFile.isCakedRunning() {
@@ -355,9 +388,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		}
 	}
 
-	func imdsRedirect(authorization authData: Data, cakeHome: String, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-		perform("imds-redirect", authorization: authData, command: #selector(AuthorizationHelperProtocol.imdsRedirect(authorization:cakeHome:externalAddress:internalAddress:internalPort:install:withReply:)), reply: reply) { caller in
-			_ = try Self.validatedHome(cakeHome, caller: caller)
+	func imdsRedirect(authorization authData: Data, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+		perform("imds-redirect", authorization: authData, command: #selector(AuthorizationHelperProtocol.imdsRedirect(authorization:externalAddress:internalAddress:internalPort:install:withReply:)), reply: reply) { caller in
 
 			if install {
 				try Self.validateIPv4(internalAddress)
@@ -390,7 +422,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			// have root open a path or take an option it was not written for. Only a Multipass import needs root.
 			try ImportHandler.validatePrivilegedImportArguments(arguments)
 
-			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
+			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let result = try Self.runAndCollect(caked, arguments: ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments, environment: Self.environment(home: home))
 
 			guard result.status == 0 else {
@@ -429,7 +461,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				throw ServiceError("Invalid pid file '\(pidFile)'")
 			}
 
-			let caked = try Self.trustedCaked()
+			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let log = Self.logFile()
 			let process = ProcessWithSharedFileHandle()
 
@@ -475,7 +507,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	}
 
 	func installPriviligedFiles(authorization authData: Data, cakerPath: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-		perform("install-priviliged-files", authorization: authData, command: #selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)), reply: reply) { _ in
+		perform("install-priviliged-files", authorization: authData, command: #selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)), reply: reply) { caller in
 			let app = URL(fileURLWithPath: cakerPath).resolvingSymlinksInPath().standardizedFileURL
 
 			guard app.pathExtension == "app", cakerPath.hasPrefix("/") else {
@@ -483,7 +515,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			}
 
 			// `caked` goes into a NOPASSWD sudoers rule: the file must be one nobody but root can replace.
-			_ = try Self.trustedCaked(in: app)
+			let caked = try self.trustedCaked(in: app, alsoOwnedBy: caller.uid)
 
 			let plugins = app.appendingPathComponent("Contents/PlugIns")
 			let directories = ["caked.app", "cakectl.app"]
@@ -492,10 +524,13 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 			try Self.installRootOwnedFile(directories.joined(separator: "\n") + "\n", to: Self.installedPathsFile, mode: 0o644)
 
-			let sudoers = "%everyone ALL=(root:wheel) NOPASSWD:SETENV: \(directories[0])caked\n"
+			// One rule file per user, naming that user only and pinning `caked` by its digest: see `SudoCaked.sudoersRule(uid:caked:)`.
+			// It is also the one place that refuses a bundle that isn't root-owned all the way up.
+			let sudoers = try SudoCaked.sudoersRule(uid: caller.uid, caked: caked)
+			let installedSudoersFile = SudoCaked.sudoersRulePath(uid: caller.uid)
 
 			// A broken sudoers file locks sudo out: let visudo check it before it replaces the real one.
-			try Self.installRootOwnedFile(sudoers, to: Self.installedSudoersFile, mode: 0o440) { temporary in
+			let checkSudoers: (URL) throws -> Void = { temporary in
 				let check = try Self.runAndCollect(URL(fileURLWithPath: "/usr/sbin/visudo"), arguments: ["-c", "-f", temporary.path], environment: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin"])
 
 				guard check.status == 0 else {
@@ -503,7 +538,20 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				}
 			}
 
-			return "Installed \(Self.installedPathsFile) and \(Self.installedSudoersFile)"
+			try Self.installRootOwnedFile(sudoers, to: installedSudoersFile, mode: 0o440, validate: checkSudoers)
+
+			// The digest changed for everybody: the other users that already have a rule get the new one too, otherwise
+			// theirs would stop working until they open the application themselves.
+			for uid in SudoCaked.installedRuleUIDs() where uid != caller.uid {
+				try Self.installRootOwnedFile(try SudoCaked.sudoersRule(uid: uid, caked: caked), to: SudoCaked.sudoersRulePath(uid: uid), mode: 0o440, validate: checkSudoers)
+			}
+
+			// The `%everyone` rule of earlier versions, and the single-user file: nothing may keep granting them.
+			for legacy in SudoCaked.legacySudoersRulePaths where unlink(legacy) != 0 && errno != ENOENT {
+				throw ServiceError("Unable to remove \(legacy): \(String(cString: strerror(errno)))")
+			}
+
+			return "Installed \(Self.installedPathsFile) and \(installedSudoersFile)"
 		}
 	}
 }

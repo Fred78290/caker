@@ -39,6 +39,16 @@ fi
 
 echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 
+# The sudoers rule the postinstall writes has to match the one the app writes: BECOME_PARANOID=1 (the build flag of the same name)
+# pins caked by its SHA-256. The scripts are staged so that the sources are left alone.
+SCRIPTS_DIR="${WORK_DIR}/scripts"
+cp -R "${PROJECT_ROOT}/.ci/pkg/scripts" "${SCRIPTS_DIR}"
+
+if [ "${BECOME_PARANOID:-0}" = "1" ]; then
+	sed -i '' 's/^    BECOME_PARANOID=0$/    BECOME_PARANOID=1/' "${SCRIPTS_DIR}/postinstall"
+	grep -q '^    BECOME_PARANOID=1$' "${SCRIPTS_DIR}/postinstall" || { echo "Error: unable to set BECOME_PARANOID in postinstall"; exit 1; }
+fi
+
 pkgbuild --analyze --root "${PKG_ROOT}" "${COMPONENT_PLIST}"
 plutil -replace BundleIsRelocatable -bool NO "${COMPONENT_PLIST}"
 
@@ -46,7 +56,7 @@ pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKG_ROOT}" \
 		--component-plist "${COMPONENT_PLIST}" \
 		--identifier com.aldunelabs.caker \
 		--version ${VERSION} \
-		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
+		--scripts "${SCRIPTS_DIR}" \
 		--install-location "/Applications" \
 		"${BUILD_DIR}/Caker.pkg"
 

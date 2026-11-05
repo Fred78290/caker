@@ -16,10 +16,39 @@ struct Helper: ParsableCommand {
 	func run() throws {
 		CakeAgentLib.Logger.setLevel(self.logLevel)
 
-		CakeAgentLib.Logger.appendNewLine(String(localized: "Starting helper tool..."))
+		let logger = Logger(self)
+
+		logger.info("Starting helper tool...")
+
+		let helper = AuthorizationHelperTool()
+		let signals = [SIGINT, SIGTERM, SIGQUIT].map { sig in
+			signal(sig, SIG_IGN)
+
+			let sig = DispatchSource.makeSignalSource(signal: sig)
+
+			sig.setEventHandler {
+				logger.info("Will Helper tool exit with code 128 due to signal \(sig.handle)")
+
+				helper.stop()
+
+				Foundation.exit(128)
+			}
+
+			return sig
+		}.map { sig in
+			sig.activate()
+
+			return sig
+		}
+
+		defer {
+			signals.forEach { sig in
+				sig.cancel()
+			}
+		}
 
 		// Serves the privileged operations over the Mach service until launchd stops the helper.
-		AuthorizationHelperTool().run()
+		helper.run()
 	}
 }
 
