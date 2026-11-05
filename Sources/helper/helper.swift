@@ -50,6 +50,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		newConnection.exportedInterface = NSXPCInterface(with: AuthorizationHelperProtocol.self)
 		newConnection.exportedObject = self
 		newConnection.resume()
+
 		return true
 	}
 
@@ -80,7 +81,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	private func checkAuthorization(_ authData: Data, command: Selector) -> NSError? {
 		// First check that authData looks reasonable.
 		guard authData.count == MemoryLayout<AuthorizationExternalForm>.size,
-			  let rightName = AuthorizationHelperCommon.authorizationRight(for: command) else {
+			let rightName = AuthorizationHelperCommon.authorizationRight(for: command)
+		else {
 			return NSError(domain: NSOSStatusErrorDomain, code: Int(paramErr))
 		}
 
