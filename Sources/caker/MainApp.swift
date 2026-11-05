@@ -857,7 +857,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		#if APPSTORE
 			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
 		#else
-			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid())) && SudoCaked.legacySudoersRulePaths.allSatisfy { FileManager.default.fileExists(atPath: $0) == false }
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid()))
+				&& SudoCaked.legacySudoersRulePaths.allSatisfy { FileManager.default.fileExists(atPath: $0) == false }
 		#endif
 	}
 
@@ -980,7 +981,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 						#endif
 						MainActor.assumeIsolated {
 							showCommandToPasteAlert(contents)
-                        }
+						}
 					}
 				} else {
 					do {
@@ -992,8 +993,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					}
 				}
 
-                AppState.shared.reloadNetworks()
-            }
+				AppState.shared.reloadNetworks()
+			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
@@ -1087,15 +1088,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		alert.accessoryView = scrollView
 		alert.addButton(withTitle: String(localized: "Copy & Quit"))
-        alert.addButton(withTitle: String(localized: "Quit"))
+		alert.addButton(withTitle: String(localized: "Quit"))
 
-        if alert.runModal() == .alertFirstButtonReturn {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(sudoScript, forType: .string)
-        }
+		if alert.runModal() == .alertFirstButtonReturn {
+			NSPasteboard.general.clearContents()
+			NSPasteboard.general.setString(sudoScript, forType: .string)
+		}
 
 		NSApplication.shared.terminate(self)
-    }
+	}
 
 	static func askUserToInstallCakedAgent() {
 		#if USE_SMAPPSERVICE
