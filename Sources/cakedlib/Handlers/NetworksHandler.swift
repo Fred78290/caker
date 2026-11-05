@@ -1202,9 +1202,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 			let running = location.status.isRunning
 
 			if let config = try? location.config() {
-				config.qualifiedNetworks.forEach { network in
-					let name = network.network
-
+				func reference(_ name: String) {
 					if var count = usedNetworks[name] {
 						count.used += 1
 
@@ -1216,6 +1214,16 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 					} else {
 						usedNetworks[name] = BridgedNetwork.NetworkUsage(used: 1, active: running ? 1 : 0)
 					}
+				}
+
+				// Config doesn't include imds network, but if the VM is running and has imds enabled, we need to count it as a reference.
+				// Assume that a network interface is connected to the imds network.
+				if IMDSNetworkInterface.imdsEnabled {
+					reference(IMDSNetworkInterface.imdsNetworkName)
+				}
+
+				config.qualifiedNetworks.forEach { network in
+					reference(network.network)
 				}
 			}
 		}
