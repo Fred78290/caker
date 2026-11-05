@@ -777,20 +777,21 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		#if !APPSTORE
 			if Bundle.isApplicationSandboxed == false {
-				if DirectAuthorizationHelperConnector.install() == false {
+				while DirectAuthorizationHelperConnector.install() == false {
 					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
 					NSApplication.shared.setActivationPolicy(.regular)
 
 					let alert = NSGlassEffectAlert()
 
 					alert.messageText = String(localized: "Helper approval required")
-					alert.informativeText = String(localized: "Caker's privileged helper must be approved in System Settings > General > Login Items & Extensions. Approve it, then relaunch Caker.")
+					alert.informativeText = String(localized: "Caker's privileged helper must be approved in System Settings > General > Login Items & Extensions. Approve it, then continue Caker.")
 					alert.alertStyle = .warning
+					alert.addButton(withTitle: String(localized: "Continue"))
 					alert.addButton(withTitle: String(localized: "Quit"))
-					alert.runModal()
 
-					NSApplication.shared.terminate(nil)
-					return
+					if alert.runModal() == .alertSecondButtonReturn {
+						NSApplication.shared.terminate(nil)
+					}
 				}
 
 				Task {
@@ -883,6 +884,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		static func installPrivilegedBootstrapFilesWithHelper() async {
 			let log = CakeAgentLib.Logger("MainUIAppDelegate")
 			let deadline = Date().addingTimeInterval(120)
+
+			if DirectAuthorizationHelperConnector.daemonStatus == .requiresApproval {
+				// The user must approve the daemon in System Settings > General > Login Items.
+				SMAppService.openSystemSettingsLoginItems()
+			}
 
 			while DirectAuthorizationHelperConnector.daemonStatus == .requiresApproval && Date() < deadline {
 				try? await Task.sleep(for: .seconds(2))
