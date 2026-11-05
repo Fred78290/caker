@@ -3235,8 +3235,8 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
-				9B9FE672309A444A0006B008 /* AuthorizationHelperConnector.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
+				9B9FE672309A444A0006B008 /* AuthorizationHelperConnector.swift */,
 				9B9FE668309A30920006B008 /* AuthorizationHelperProtocol.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
