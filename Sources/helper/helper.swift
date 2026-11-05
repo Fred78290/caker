@@ -354,9 +354,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		}
 	}
 
-	func imdsRedirect(authorization authData: Data, cakeHome: String, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-		perform("imds-redirect", authorization: authData, command: #selector(AuthorizationHelperProtocol.imdsRedirect(authorization:cakeHome:externalAddress:internalAddress:internalPort:install:withReply:)), reply: reply) { caller in
-			_ = try Self.validatedHome(cakeHome, caller: caller)
+	func imdsRedirect(authorization authData: Data, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+		perform("imds-redirect", authorization: authData, command: #selector(AuthorizationHelperProtocol.imdsRedirect(authorization:externalAddress:internalAddress:internalPort:install:withReply:)), reply: reply) { caller in
 
 			if install {
 				try Self.validateIPv4(internalAddress)
