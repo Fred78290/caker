@@ -86,4 +86,20 @@ final class SudoersRuleTests: XCTestCase {
 
 		XCTAssertEqual(process.terminationStatus, 0)
 	}
+
+	func testEachUserHasItsOwnRuleFile() {
+		XCTAssertEqual(SudoCaked.sudoersRulePath(uid: 501), "/etc/sudoers.d/caked-pinned-501")
+		XCTAssertNotEqual(SudoCaked.sudoersRulePath(uid: 501), SudoCaked.sudoersRulePath(uid: 502))
+		// sudo ignores the files whose name contains a dot.
+		XCTAssertFalse(URL(fileURLWithPath: SudoCaked.sudoersRulePath(uid: 501)).lastPathComponent.contains("."))
+		XCTAssertFalse(SudoCaked.legacySudoersRulePaths.contains(SudoCaked.sudoersRulePath(uid: 501)))
+	}
+
+	func testInstalledRuleUIDsListsOnlyCanonicalUserFiles() throws {
+		for name in ["caked-pinned-502", "caked-pinned-501", "caked-pinned-0", "caked-pinned-0501", "caked-pinned-501.bak", "caked-pinned-", "caked-pinned", "caked", "other-501", ".caked-pinned-503.123"] {
+			try "".write(to: self.directory.appendingPathComponent(name), atomically: true, encoding: .utf8)
+		}
+
+		XCTAssertEqual(SudoCaked.installedRuleUIDs(in: self.directory.path), [0, 501, 502])
+	}
 }

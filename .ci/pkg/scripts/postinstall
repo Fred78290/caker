@@ -39,29 +39,46 @@ mkdir -p "${HOME}/Library/Logs/Caker"
     echo "Setting up PATH..."
     printf '%s\n%s\n' "${CAKED_DIR}" "${CAKECTL_DIR}" > /etc/paths.d/com.aldunelabs.caker
 
-    echo "Creating sudoers file..."
-    # Passwordless sudo for this one caked, for the installing user only, pinned by its SHA-256: sudo refuses the command if the
-    # binary or the bundle is replaced afterwards. The digest changes with every release, so this runs on each install and upgrade
-    # (the app also rewrites it at launch when it no longer matches, see SudoCaked.sudoersRule).
-    SUDOERS_FILE="/etc/sudoers.d/caked-pinned"
-    SUDOERS_TMP="/etc/sudoers.d/.caked-pinned.$$"
+    echo "Creating sudoers files..."
+    # Passwordless sudo for this one caked, pinned by its SHA-256: sudo refuses the command if the binary or the bundle is replaced
+    # afterwards. There is one file per user (caked-pinned-<uid>), so that every user of this Mac has a rule of their own. The digest
+    # changes with every release: the installing user gets a rule, and so does each user that already had one (the app also rewrites
+    # its user's rule at launch when it no longer matches, see SudoCaked.sudoersRule).
     CAKED_SHA256=$(/usr/bin/shasum -a 256 "${CAKED}" | awk '{print $1}')
     SUDO_UID=$(id -u "${HOME_USER}")
 
-    # The old rule granted every user (%everyone) and was not pinned: never keep it.
-    rm -f /etc/sudoers.d/caked
+    # The old rules granted every user (%everyone) or a single user: never keep them.
+    rm -f /etc/sudoers.d/caked /etc/sudoers.d/caked-pinned
 
-    printf '#%s ALL=(root:wheel) NOPASSWD:SETENV: sha256:%s %s\n' "${SUDO_UID}" "${CAKED_SHA256}" "${CAKED}" > "${SUDOERS_TMP}"
-    chown root:wheel "${SUDOERS_TMP}"
-    chmod 0440 "${SUDOERS_TMP}"
+    install_sudoers_rule() {
+        RULE_UID="$1"
+        RULE_FILE="/etc/sudoers.d/caked-pinned-${RULE_UID}"
+        RULE_TMP="/etc/sudoers.d/.caked-pinned-${RULE_UID}.$$"
 
-    # A broken sudoers file locks sudo out: only install one that visudo accepts.
-    if /usr/sbin/visudo -c -f "${SUDOERS_TMP}" >/dev/null; then
-        mv -f "${SUDOERS_TMP}" "${SUDOERS_FILE}"
-    else
-        rm -f "${SUDOERS_TMP}"
-        echo "Invalid sudoers file, passwordless sudo for caked not installed"
-    fi
+        printf '#%s ALL=(root:wheel) NOPASSWD:SETENV: sha256:%s %s\n' "${RULE_UID}" "${CAKED_SHA256}" "${CAKED}" > "${RULE_TMP}"
+        chown root:wheel "${RULE_TMP}"
+        chmod 0440 "${RULE_TMP}"
+
+        # A broken sudoers file locks sudo out: only install one that visudo accepts.
+        if /usr/sbin/visudo -c -f "${RULE_TMP}" >/dev/null; then
+            mv -f "${RULE_TMP}" "${RULE_FILE}"
+        else
+            rm -f "${RULE_TMP}"
+            echo "Invalid sudoers file, passwordless sudo for caked not installed for uid ${RULE_UID}"
+        fi
+    }
+
+    # Users that already have a rule, then the installing user. Only canonical numeric uids are taken for a rule.
+    for RULE_PATH in /etc/sudoers.d/caked-pinned-*; do
+        [ -f "${RULE_PATH}" ] || continue
+        EXISTING_UID="${RULE_PATH##*/caked-pinned-}"
+        case "${EXISTING_UID}" in
+            ''|*[!0-9]*|0[0-9]*) continue ;;
+        esac
+        [ "${EXISTING_UID}" = "${SUDO_UID}" ] || install_sudoers_rule "${EXISTING_UID}"
+    done
+
+    install_sudoers_rule "${SUDO_UID}"
 
     echo "Generating certificates..."
     # Install the Caker service with proper UID

@@ -362,12 +362,40 @@ public final class SudoCaked {
 /// Because the digest changes with every `caked`, the rule has to be rewritten on each update: `isCurrent(for:)` tells whether it
 /// still accepts the given binary.
 extension SudoCaked {
-	/// Where the rule lives. Not `caked`: that file held the previous `%everyone` rule, and a different name lets an install
-	/// tell an old rule (to be removed) from a current one. Mind that sudo skips files whose name contains a dot.
-	public static let sudoersRulePath = "/etc/sudoers.d/caked-pinned"
+	/// Where the rule of the user `uid` lives. There is one file per user, so that several users of the same Mac (fast user
+	/// switching, or two administrators) each have a rule and installing one never replaces another's. Mind that sudo skips
+	/// files whose name contains a dot.
+	public static func sudoersRulePath(uid: uid_t) -> String {
+		"\(sudoersDirectory)/\(sudoersRulePrefix)\(uid)"
+	}
 
-	/// The file the `%everyone` rule used to be written to. It is removed whenever the current rule is installed.
-	public static let legacySudoersRulePath = "/etc/sudoers.d/caked"
+	public static let sudoersDirectory = "/etc/sudoers.d"
+	static let sudoersRulePrefix = "caked-pinned-"
+
+	/// Files earlier versions wrote, to be removed whenever a current rule is installed: `caked` held the `%everyone` rule,
+	/// `caked-pinned` a single rule for one user.
+	public static let legacySudoersRulePaths = ["/etc/sudoers.d/caked", "/etc/sudoers.d/caked-pinned"]
+
+	/// The users that have a rule installed in `directory`. A new digest invalidates every one of them, not just the user
+	/// who updated the application.
+	public static func installedRuleUIDs(in directory: String = sudoersDirectory) -> [uid_t] {
+		let names = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
+
+		return names.compactMap { name -> uid_t? in
+			guard name.hasPrefix(sudoersRulePrefix) else {
+				return nil
+			}
+
+			let suffix = String(name.dropFirst(sudoersRulePrefix.count))
+
+			// Only the canonical form, so that `caked-pinned-0501` or `caked-pinned-501.bak` are not taken for a rule.
+			guard let uid = uid_t(suffix), String(uid) == suffix else {
+				return nil
+			}
+
+			return uid
+		}.sorted()
+	}
 
 	/// Whether `url` is owned by root and can't be modified by anybody else.
 	static func isRootProtected(_ url: URL) -> Bool {
@@ -433,7 +461,7 @@ extension SudoCaked {
 		return result
 	}
 
-	/// The content of `/etc/sudoers.d/caked` for the user `uid` and the binary `caked`.
+	/// The content of the rule file of the user `uid` (`sudoersRulePath(uid:)`) for the binary `caked`.
 	/// Throws when `caked` can't be trusted with root (see `isProtectedBundledBinary(_:)`).
 	public static func sudoersRule(uid: uid_t, caked: URL) throws -> String {
 		guard isProtectedBundledBinary(caked) else {

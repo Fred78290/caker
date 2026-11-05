@@ -124,7 +124,6 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	private static let queue = DispatchQueue(label: "com.aldunelabs.caker.authorization.work", attributes: .concurrent)
 	private static let logPath = "/var/log/com.aldunelabs.caker.authorization.log"
 	private static let installedPathsFile = "/etc/paths.d/com.aldunelabs.caker"
-	private static let installedSudoersFile = SudoCaked.sudoersRulePath
 
 	/// Runs `work` off the XPC thread and sends exactly one reply.
 	private func perform(_ operation: String, authorization authData: Data, command: Selector, reply: @escaping @Sendable (AuthorizationHelperReply) -> Void, work: @escaping @Sendable (Caller) throws -> String) {
@@ -492,12 +491,13 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 			try Self.installRootOwnedFile(directories.joined(separator: "\n") + "\n", to: Self.installedPathsFile, mode: 0o644)
 
-			// The rule names the calling user only and pins `caked` by its digest: see `SudoCaked.sudoersRule(uid:caked:)`.
+			// One rule file per user, naming that user only and pinning `caked` by its digest: see `SudoCaked.sudoersRule(uid:caked:)`.
 			// It is also the one place that refuses a bundle that isn't root-owned all the way up.
 			let sudoers = try SudoCaked.sudoersRule(uid: caller.uid, caked: caked)
+			let installedSudoersFile = SudoCaked.sudoersRulePath(uid: caller.uid)
 
 			// A broken sudoers file locks sudo out: let visudo check it before it replaces the real one.
-			try Self.installRootOwnedFile(sudoers, to: Self.installedSudoersFile, mode: 0o440) { temporary in
+			let checkSudoers: (URL) throws -> Void = { temporary in
 				let check = try Self.runAndCollect(URL(fileURLWithPath: "/usr/sbin/visudo"), arguments: ["-c", "-f", temporary.path], environment: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin"])
 
 				guard check.status == 0 else {
@@ -505,12 +505,20 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				}
 			}
 
-			// The `%everyone` rule of earlier versions: nothing may keep granting it.
-			if unlink(SudoCaked.legacySudoersRulePath) != 0 && errno != ENOENT {
-				throw ServiceError("Unable to remove \(SudoCaked.legacySudoersRulePath): \(String(cString: strerror(errno)))")
+			try Self.installRootOwnedFile(sudoers, to: installedSudoersFile, mode: 0o440, validate: checkSudoers)
+
+			// The digest changed for everybody: the other users that already have a rule get the new one too, otherwise
+			// theirs would stop working until they open the application themselves.
+			for uid in SudoCaked.installedRuleUIDs() where uid != caller.uid {
+				try Self.installRootOwnedFile(try SudoCaked.sudoersRule(uid: uid, caked: caked), to: SudoCaked.sudoersRulePath(uid: uid), mode: 0o440, validate: checkSudoers)
 			}
 
-			return "Installed \(Self.installedPathsFile) and \(Self.installedSudoersFile)"
+			// The `%everyone` rule of earlier versions, and the single-user file: nothing may keep granting them.
+			for legacy in SudoCaked.legacySudoersRulePaths where unlink(legacy) != 0 && errno != ENOENT {
+				throw ServiceError("Unable to remove \(legacy): \(String(cString: strerror(errno)))")
+			}
+
+			return "Installed \(Self.installedPathsFile) and \(installedSudoersFile)"
 		}
 	}
 }

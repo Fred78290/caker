@@ -856,7 +856,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		#if APPSTORE
 			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
 		#else
-			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath) && FileManager.default.fileExists(atPath: SudoCaked.legacySudoersRulePath) == false
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid())) && SudoCaked.legacySudoersRulePaths.allSatisfy { FileManager.default.fileExists(atPath: $0) == false }
 		#endif
 	}
 
@@ -864,7 +864,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		/// The passwordless sudo rule pins `caked` by its digest, so it stops working when the app is updated. True when the rule exists,
 		/// no longer accepts the bundled `caked`, and could be written again (a bundle that isn't root-owned never gets a rule).
 		static var isSudoersRuleStale: Bool {
-			guard let path = Bundle.main.cakerBuildPlugInsPath.first, FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath) else {
+			guard let path = Bundle.main.cakerBuildPlugInsPath.first, FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid())) else {
 				return false
 			}
 
@@ -873,7 +873,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			return SudoCaked.isProtectedBundledBinary(caked) && SudoCaked.isCurrent(for: caked) == false
 		}
 
-		/// Installs /etc/paths.d/com.aldunelabs.caker and /etc/sudoers.d/caked-pinned through the privileged helper once it is
+		/// Installs /etc/paths.d/com.aldunelabs.caker and the current user's /etc/sudoers.d/caked-pinned-<uid> through the privileged helper once it is
 		/// registered and approved (waits up to two minutes for the approval in Login Items). Does nothing, and logs why, when
 		/// the helper can't do it: `ensurePrivilegedBootstrapFiles()` is the fallback.
 		static func installPrivilegedBootstrapFilesWithHelper() async {
@@ -913,13 +913,14 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path(percentEncoded: false)) == false
 
 			#if !APPSTORE
-				let sudoersFile = URL(fileURLWithPath: SudoCaked.sudoersRulePath)
+				let sudoersFile = URL(fileURLWithPath: SudoCaked.sudoersRulePath(uid: getuid()))
 				let cakedURL = URL(fileURLWithPath: pluginPaths[0]).appendingPathComponent("caked")
 				// The rule pins `caked` by digest, so an updated app needs it written again.
 				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false || SudoCaked.isCurrent(for: cakedURL) == false
 
 				// The `%everyone` rule of earlier versions is removed whatever happens to the new one.
-				let hasLegacySudoersFile = FileManager.default.fileExists(atPath: SudoCaked.legacySudoersRulePath)
+				let legacySudoersFiles = SudoCaked.legacySudoersRulePaths.filter { FileManager.default.fileExists(atPath: $0) }
+				let hasLegacySudoersFile = legacySudoersFiles.isEmpty == false
 
 				guard needsPathsFile || needsSudoersFile || hasLegacySudoersFile else { return }
 			#else
@@ -947,7 +948,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				}
 
 				if hasLegacySudoersFile {
-					contents.append("rm -f \(SudoCaked.legacySudoersRulePath)")
+					contents.append("rm -f \(legacySudoersFiles.joined(separator: " "))")
 				}
 			#endif
 
