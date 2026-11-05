@@ -774,9 +774,56 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		Self.ensureCertificates()
-		Self.ensurePrivilegedBootstrapFiles()
 
-		Self.askUserToInstallCakedAgent()
+		#if !APPSTORE
+			if Bundle.isApplicationSandboxed == false {
+				while DirectAuthorizationHelperConnector.install() == false {
+					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
+					NSApplication.shared.setActivationPolicy(.regular)
+
+					let alert = NSGlassEffectAlert()
+
+					alert.messageText = String(localized: "Helper approval required")
+					alert.informativeText = String(localized: "Caker's privileged helper must be approved in System Settings > General > Login Items & Extensions. Approve it, then continue Caker.")
+					alert.alertStyle = .warning
+					alert.addButton(withTitle: String(localized: "Continue"))
+					alert.addButton(withTitle: String(localized: "Quit"))
+
+					if alert.runModal() == .alertSecondButtonReturn {
+						NSApplication.shared.terminate(nil)
+					}
+				}
+
+				Task {
+					// The rule pins caked by digest: after an update (the package rewrites it, but a Sparkle update does not) it has to be written again.
+					// Checking it runs sudo, so not on the main thread.
+					var needsInstall = Self.isPrivilegedBootstrapFilesInstalled == false
+
+					if needsInstall == false {
+						needsInstall = await Task.detached { Self.isSudoersRuleStale }.value
+					}
+
+					if needsInstall {
+						// The helper installs the files once it is approved; the administrator prompt is the fallback.
+						await Self.installPrivilegedBootstrapFilesWithHelper()
+					}
+
+					await MainActor.run {
+						if needsInstall {
+							Self.ensurePrivilegedBootstrapFiles()
+						}
+
+						Self.askUserToInstallCakedAgent()
+					}
+				}
+			} else {
+				Self.ensurePrivilegedBootstrapFiles()
+				Self.askUserToInstallCakedAgent()
+			}
+		#else
+			Self.ensurePrivilegedBootstrapFiles()
+			Self.askUserToInstallCakedAgent()
+		#endif
 
 		if isDockIconHidden {
 			NSApplication.shared.setActivationPolicy(.accessory)
@@ -810,9 +857,60 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		#if APPSTORE
 			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
 		#else
-			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: "/etc/sudoers.d/caked")
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid()))
+				&& SudoCaked.legacySudoersRulePaths.allSatisfy { FileManager.default.fileExists(atPath: $0) == false }
 		#endif
 	}
+
+	#if !APPSTORE
+		/// The passwordless sudo rule pins `caked` by its digest, so it stops working when the app is updated. True when the rule exists,
+		/// no longer accepts the bundled `caked`, and could be written again (a bundle that isn't root-owned never gets a rule).
+		static var isSudoersRuleStale: Bool {
+			guard let path = Bundle.main.cakerBuildPlugInsPath.first, FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid())) else {
+				return false
+			}
+
+			let caked = URL(fileURLWithPath: path).appendingPathComponent("caked")
+
+			#if BECOME_PARANOID
+				return SudoCaked.isProtectedBundledBinary(caked) && SudoCaked.isCurrent(for: caked) == false
+			#else
+				return SudoCaked.isCurrent(for: caked) == false
+			#endif
+		}
+
+		/// Installs /etc/paths.d/com.aldunelabs.caker and the current user's /etc/sudoers.d/caked-pinned-<uid> through the privileged helper once it is
+		/// registered and approved (waits up to two minutes for the approval in Login Items). Does nothing, and logs why, when
+		/// the helper can't do it: `ensurePrivilegedBootstrapFiles()` is the fallback.
+		static func installPrivilegedBootstrapFilesWithHelper() async {
+			let log = CakeAgentLib.Logger("MainUIAppDelegate")
+			let deadline = Date().addingTimeInterval(120)
+
+			if DirectAuthorizationHelperConnector.daemonStatus == .requiresApproval {
+				// The user must approve the daemon in System Settings > General > Login Items.
+				SMAppService.openSystemSettingsLoginItems()
+			}
+
+			while DirectAuthorizationHelperConnector.daemonStatus == .requiresApproval && Date() < deadline {
+				try? await Task.sleep(for: .seconds(2))
+			}
+
+			guard DirectAuthorizationHelperConnector.daemonStatus == .enabled else {
+				log.info("The privileged helper is not enabled, cannot install the privileged files with it")
+				return
+			}
+
+			do {
+				let appPath = Bundle.main.bundlePath
+
+				if let reason = try await DirectAuthorizationHelperConnector.viaHelper(runMode: .user, { try await $0.installPriviligedFiles(cakerPath: appPath) }) {
+					log.info(reason)
+				}
+			} catch {
+				log.warn("The privileged helper failed to install the privileged files: \(error)")
+			}
+		}
+	#endif
 
 	static func ensurePrivilegedBootstrapFiles() {
 		let pluginPaths = Bundle.main.cakerBuildPlugInsPath
@@ -826,10 +924,16 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path(percentEncoded: false)) == false
 
 			#if !APPSTORE
-				let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
-				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false
+				let sudoersFile = URL(fileURLWithPath: SudoCaked.sudoersRulePath(uid: getuid()))
+				let cakedURL = URL(fileURLWithPath: pluginPaths[0]).appendingPathComponent("caked")
+				// The rule pins `caked` by digest, so an updated app needs it written again.
+				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false || SudoCaked.isCurrent(for: cakedURL) == false
 
-				guard needsPathsFile || needsSudoersFile else { return }
+				// The `%everyone` rule of earlier versions is removed whatever happens to the new one.
+				let legacySudoersFiles = SudoCaked.legacySudoersRulePaths.filter { FileManager.default.fileExists(atPath: $0) }
+				let hasLegacySudoersFile = legacySudoersFiles.isEmpty == false
+
+				guard needsPathsFile || needsSudoersFile || hasLegacySudoersFile else { return }
 			#else
 				guard needsPathsFile else { return }
 			#endif
@@ -843,9 +947,19 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			#if !APPSTORE
-				if let pluginPath = pluginPaths.first, needsSudoersFile {
-					let sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD:SETENV: \(pluginPath)caked\n"
-					try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
+				if needsSudoersFile {
+					do {
+						// Only a root-owned bundle (a package install) gets a passwordless rule, and only for the current user.
+						let sudoersContent = try SudoCaked.sudoersRule(uid: getuid(), caked: cakedURL)
+
+						try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
+					} catch {
+						CakeAgentLib.Logger("MainUIAppDelegate").warn("No passwordless sudo rule installed for caked: \(error.localizedDescription)")
+					}
+				}
+
+				if hasLegacySudoersFile {
+					contents.append("rm -f \(legacySudoersFiles.joined(separator: " "))")
 				}
 			#endif
 
@@ -867,7 +981,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 						#endif
 						MainActor.assumeIsolated {
 							showCommandToPasteAlert(contents)
-                        }
+						}
 					}
 				} else {
 					do {
@@ -879,8 +993,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					}
 				}
 
-                AppState.shared.reloadNetworks()
-            }
+				AppState.shared.reloadNetworks()
+			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
@@ -974,15 +1088,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		alert.accessoryView = scrollView
 		alert.addButton(withTitle: String(localized: "Copy & Quit"))
-        alert.addButton(withTitle: String(localized: "Quit"))
+		alert.addButton(withTitle: String(localized: "Quit"))
 
-        if alert.runModal() == .alertFirstButtonReturn {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(sudoScript, forType: .string)
-        }
+		if alert.runModal() == .alertFirstButtonReturn {
+			NSPasteboard.general.clearContents()
+			NSPasteboard.general.setString(sudoScript, forType: .string)
+		}
 
 		NSApplication.shared.terminate(self)
-    }
+	}
 
 	static func askUserToInstallCakedAgent() {
 		#if USE_SMAPPSERVICE

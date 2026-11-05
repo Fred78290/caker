@@ -27,6 +27,7 @@
 		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
+		2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */; };
 		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
@@ -408,6 +409,10 @@
 		9B737DCF2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
+		9B80F5A430987C8A00E754ED /* DHCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F5A230987C8A00E754ED /* DHCPServer.swift */; };
+		9B80F5A530987C8A00E754ED /* DHCPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F5A130987C8A00E754ED /* DHCPMessage.swift */; };
+		9B80F5A630987C8A00E754ED /* DHCPLeaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F5A030987C8A00E754ED /* DHCPLeaseStore.swift */; };
+		9B80F5A730987C8A00E754ED /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F59F30987C8A00E754ED /* DHCPLeases.swift */; };
 		9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */; };
 		9B82D31C2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
@@ -447,11 +452,8 @@
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA4A2F2307839DC005EEA30 /* ComposeDNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */; };
 		9BA60F0A30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
-		A5E11EA33732CD288C94C810 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		9BA60F0B30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
-		A5E1E00811513A1CE91AE10A /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		9BA60F0C30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
-		A5E1553A68783A018C527152 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */; };
 		9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */; };
 		9BA941172F3C891100B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941162F3C890C00B51543 /* PingHandler.swift */; };
@@ -632,7 +634,6 @@
 		9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC72B2DF440720092B196 /* VMRunHandler.swift */; };
 		9BEBC7802DF440720092B196 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7582DF440720092B196 /* Config.swift */; };
 		9BEBC7812DF440720092B196 /* GRPCVMRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7342DF440720092B196 /* GRPCVMRunService.swift */; };
-		9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75A2DF440720092B196 /* DHCPLeases.swift */; };
 		9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71F2DF440720092B196 /* ListHandler.swift */; };
 		9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7682DF440720092B196 /* VMLocation.swift */; };
 		9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7112DF440720092B196 /* CloudImageConverter.swift */; };
@@ -787,10 +788,14 @@
 		9BFDBBD7F829EB6E350E6D26 /* PFRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B949D73C13CA664958CF40F /* PFRedirect.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A5E11EA33732CD288C94C810 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
+		A5E1553A68783A018C527152 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
+		A5E1E00811513A1CE91AE10A /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */; };
 		A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */; };
 		AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */; };
 		B8986FBA890BF94A260C2932 /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		C510D27CC0FA17DEAF6B4A53 /* CakedKeyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC16F9D9878F3C1849C6564 /* CakedKeyConfigTests.swift */; };
+		C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */; };
 		CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */; };
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
@@ -1022,12 +1027,14 @@
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
 		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
+		7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreGuestDNS.swift; sourceTree = "<group>"; };
 		7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteEngine.swift; sourceTree = "<group>"; };
 		7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningVideoRecorder.swift; sourceTree = "<group>"; };
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		8DC16F9D9878F3C1849C6564 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
+		92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSForwarder.swift; sourceTree = "<group>"; };
 		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		9B001DC9300189A80048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
 		9B001E8B300191920048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
@@ -1344,6 +1351,10 @@
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		9B80F59F30987C8A00E754ED /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
+		9B80F5A030987C8A00E754ED /* DHCPLeaseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeaseStore.swift; sourceTree = "<group>"; };
+		9B80F5A130987C8A00E754ED /* DHCPMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPMessage.swift; sourceTree = "<group>"; };
+		9B80F5A230987C8A00E754ED /* DHCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPServer.swift; sourceTree = "<group>"; };
 		9B82A038305B09DB00362643 /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
 		9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthServerInterceptor.swift; sourceTree = "<group>"; };
 		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
@@ -1400,7 +1411,6 @@
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSTests.swift; sourceTree = "<group>"; };
 		9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "cloudinit-install-cakeagent.sh"; sourceTree = "<group>"; };
-		A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
 		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
@@ -1629,7 +1639,6 @@
 		9BEBC7572DF440720092B196 /* CertificatesLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatesLocation.swift; sourceTree = "<group>"; };
 		9BEBC7582DF440720092B196 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		9BEBC7592DF440720092B196 /* Curl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Curl.swift; sourceTree = "<group>"; };
-		9BEBC75A2DF440720092B196 /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
 		9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
 		9BEBC75C2DF440720092B196 /* GuestPlateform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPlateform.swift; sourceTree = "<group>"; };
 		9BEBC75D2DF440720092B196 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
@@ -1715,6 +1724,7 @@
 		9BFE87442F7E6480005CC9B2 /* VM.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VM.png; sourceTree = "<group>"; };
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
+		A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
@@ -2622,6 +2632,17 @@
 			path = IMDS;
 			sourceTree = "<group>";
 		};
+		9B80F5A330987C8A00E754ED /* DHCP */ = {
+			isa = PBXGroup;
+			children = (
+				9B80F59F30987C8A00E754ED /* DHCPLeases.swift */,
+				9B80F5A030987C8A00E754ED /* DHCPLeaseStore.swift */,
+				9B80F5A130987C8A00E754ED /* DHCPMessage.swift */,
+				9B80F5A230987C8A00E754ED /* DHCPServer.swift */,
+			);
+			path = DHCP;
+			sourceTree = "<group>";
+		};
 		9B8F3F71301F3F52001FA32A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2906,6 +2927,7 @@
 				9BEBC7102DF440720092B196 /* Certificate.swift */,
 				9BEBC7112DF440720092B196 /* CloudImageConverter.swift */,
 				9BEBC7122DF440720092B196 /* CloudInit.swift */,
+				7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */,
 				9BEBC7132DF440720092B196 /* ImageCache.swift */,
 				9BEBC7142DF440720092B196 /* SimpleStreams.swift */,
 			);
@@ -3059,8 +3081,8 @@
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
-				9BEBC75A2DF440720092B196 /* DHCPLeases.swift */,
 				9B0A37432FF575C6004609F2 /* DirWatcher.swift */,
+				92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */,
 				9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */,
 				9B5C3F3B2F896662005651BF /* Entitlement.swift */,
 				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
@@ -3088,6 +3110,7 @@
 				9BEBC7152DF440720092B196 /* CloudImage */,
 				9BEBD17E2F9CC16B0005EC80 /* Commands */,
 				9BA1808A2EFBF87B000D1424 /* Compression */,
+				9B80F5A330987C8A00E754ED /* DHCP */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
@@ -4409,6 +4432,7 @@
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
+				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */,
@@ -4435,14 +4459,18 @@
 				9B9DCB362F6EB09900E07852 /* NSVNCView.swift in Sources */,
 				9B9DCB372F6EB09900E07852 /* VNCFramebufferView.swift in Sources */,
 				9B9DCB382F6EB09900E07852 /* KeyboardModifiers.swift in Sources */,
-				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
 				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,
 				9B48B6673033687600B18C35 /* SplashScreenView.swift in Sources */,
+				9B80F5A430987C8A00E754ED /* DHCPServer.swift in Sources */,
+				9B80F5A530987C8A00E754ED /* DHCPMessage.swift in Sources */,
+				9B80F5A630987C8A00E754ED /* DHCPLeaseStore.swift in Sources */,
+				9B80F5A730987C8A00E754ED /* DHCPLeases.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
+				2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,

@@ -71,6 +71,67 @@ public struct ImportHandler {
 		return try taskResult.get()
 	}
 
+	/// What a client may ask the privileged helper to run as `caked import`. Only Multipass needs root (its instances live under
+	/// `/var/root`); every other importer reads the caller's own files and runs unprivileged. So the helper imports a Multipass
+	/// instance **by name** and nothing else: no path for root to open, and no option it was not written for.
+	///
+	/// `arguments` are those following `import`: `<instance> <name>` and `--option=value` / `--flag` forms. Anything else throws.
+	public static let privilegedImportOptions: Set<String> = ["--from", "--user", "--password", "--ssh-key", "--ssh-passphrase", "--importer-arg", "--log-level"]
+	public static let privilegedImportFlags: Set<String> = ["--clear-password", "--json"]
+	public static let privilegedImportDrivers: Set<String> = ["qemu", "applevz"]
+
+	public static func validatePrivilegedImportArguments(_ arguments: [String]) throws {
+		/// An instance or VM name: one path component, no leading dash or dot.
+		func isPlainName(_ value: String) -> Bool {
+			value.isEmpty == false && value.count <= 128 && value.first != "-" && value.first != "." && value.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "-_.".contains($0)) }
+		}
+
+		var positionals: [String] = []
+		var from: String? = nil
+
+		for argument in arguments {
+			guard argument.hasPrefix("-") else {
+				positionals.append(argument)
+				continue
+			}
+
+			if Self.privilegedImportFlags.contains(argument) {
+				continue
+			}
+
+			let parts = argument.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false).map(String.init)
+
+			guard parts.count == 2, Self.privilegedImportOptions.contains(parts[0]) else {
+				throw ServiceError("Argument \(argument) is not allowed")
+			}
+
+			switch parts[0] {
+			case "--from":
+				guard parts[1] == ImportSource.multipass.rawValue, from == nil else {
+					throw ServiceError("Argument \(argument) is not allowed: only a Multipass import runs as root")
+				}
+
+				from = parts[1]
+			case "--importer-arg":
+				let pair = parts[1].split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false).map(String.init)
+
+				guard pair.count == 2, pair[0] == "driver", Self.privilegedImportDrivers.contains(pair[1].lowercased()) else {
+					throw ServiceError("Argument \(argument) is not allowed")
+				}
+			default:
+				break
+			}
+		}
+
+		guard from != nil else {
+			throw ServiceError("--from=multipass is required: only a Multipass import runs as root")
+		}
+
+		guard positionals.count == 2, positionals.allSatisfy(isPlainName) else {
+			throw ServiceError("Expected a Multipass instance name and a virtual machine name")
+		}
+	}
+
 	public static func importVM(
 		importer: Importer,
 		source: String,
@@ -220,6 +281,23 @@ public struct ImportHandler {
 					for (key, value) in customArguments.sorted(by: { $0.key < $1.key }) {
 						arguments.append("--importer-arg=\(key)=\(value)")
 					}
+
+					#if !APPSTORE
+						do {
+							// The helper adds the import command, the owner and the home itself, and refuses them from a client.
+							let helperArguments = arguments.dropFirst().filter { $0.hasPrefix("--uid=") == false && $0.hasPrefix("--gid=") == false }
+
+							if let output = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.importVirtualMachine(arguments: Array(helperArguments), runMode: runMode) }) {
+								if let standardOutput, let data = output.data(using: .utf8) {
+									try? standardOutput.write(contentsOf: data)
+								}
+
+								return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
+							}
+						} catch let error as ServiceError {
+							return ImportedReply(source: source, name: name, imported: false, reason: error.description)
+						}
+					#endif
 
 					let sudo = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: standardOutput, standardError: standardError)
 					let exitCode = try sudo.runAndWait()

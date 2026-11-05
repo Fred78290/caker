@@ -127,16 +127,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
     ],
     "ipsw": [
       {
-        "id": "macos272",
-        "label": "macOS 27.2 beta3",
-        "url": "https://updates.cdn-apple.com/2026FallSeed/be28b1ac-a2ec-40db-a9ad-29bef37820f8/UniversalMac_27.2_26B5101f_Restore.ipsw",
-        "minCPU": 6,
-        "minMemoryMiB": 8192
-      },
-      {
         "id": "macos27",
-        "label": "macOS 27.0.1",
-        "url": "https://updates.cdn-apple.com/2026FallFCS/59241290-5d51-4ca8-9df4-31624b9a4eac/UniversalMac_27.0.1_26A434_Restore.ipsw",
+        "label": "macOS 27.2",
+        "url": "https://updates.cdn-apple.com/2026FallFCS/c9671975-52db-4fb5-9af2-00217169ba8d/UniversalMac_27.2_26B123_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
@@ -283,7 +276,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "Gentoo",
+        "id": "gentoo",
         "label": "Gentoo",
         "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261025T234555Z.qcow2",
         "minCPU": 2,
@@ -548,7 +541,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "Gentoo",
+        "id": "gentoo",
         "label": "Gentoo",
         "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261025T170057Z.qcow2",
         "minCPU": 2,

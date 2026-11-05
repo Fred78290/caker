@@ -28,6 +28,7 @@
 		1ABE4CCBA6204E3183685314 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
+		2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */; };
 		316202E4F9253C385E7E8204 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */; };
 		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
@@ -363,6 +364,10 @@
 		9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
+		9B80F59B30987A8000E754ED /* DHCPLeaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F59730987A8000E754ED /* DHCPLeaseStore.swift */; };
+		9B80F59C30987A8000E754ED /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F59630987A8000E754ED /* DHCPLeases.swift */; };
+		9B80F59D30987A8000E754ED /* DHCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F59930987A8000E754ED /* DHCPServer.swift */; };
+		9B80F59E30987A8000E754ED /* DHCPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F59830987A8000E754ED /* DHCPMessage.swift */; };
 		9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */; };
 		9B82D31C2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */; };
 		9B839A75305C2B6800558A5C /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B839A72305C263900558A5C /* NSGlassEffectAlert.swift */; };
@@ -398,11 +403,8 @@
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B9ADA673095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */; };
-		A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		9B9ADA683095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */; };
-		A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		9B9ADA693095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */; };
-		A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */; };
 		9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */; };
 		9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */; };
@@ -422,6 +424,64 @@
 		9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCDED2F70006D00E07852 /* CI.swift */; };
 		9B9DCED42F57220E007EEACC /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED32F572202007EEACC /* InfosHandler.swift */; };
 		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
+		9B9FE659309A2F040006B008 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9FE657309A2F040006B008 /* main.swift */; };
+		9B9FE65A309A2F640006B008 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
+		9B9FE65D309A2F640006B008 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
+		9B9FE661309A2F6B0006B008 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9FE660309A2F6B0006B008 /* ArgumentParser */; };
+		9B9FE663309A2FBC0006B008 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9FE662309A2FBC0006B008 /* CakeAgentLib */; };
+		9B9FE665309A2FBC0006B008 /* LogManager in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9FE664309A2FBC0006B008 /* LogManager */; };
+		9B9FE667309A305B0006B008 /* helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9FE666309A30570006B008 /* helper.swift */; };
+		9B9FE669309A30990006B008 /* AuthorizationHelperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9FE668309A30920006B008 /* AuthorizationHelperProtocol.swift */; };
+		9B9FE66D309A42AC0006B008 /* helper in Copy Helper */ = {isa = PBXBuildFile; fileRef = 9B9FE64D309A2E2E0006B008 /* helper */; };
+		9B9FE670309A43520006B008 /* com.aldunelabs.caker.authorization.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9B9FE66F309A43520006B008 /* com.aldunelabs.caker.authorization.plist */; };
+		9B9FE671309A438B0006B008 /* com.aldunelabs.caker.authorization.plist in Copy Authorization */ = {isa = PBXBuildFile; fileRef = 9B9FE66F309A43520006B008 /* com.aldunelabs.caker.authorization.plist */; };
+		9B9FE673309A44570006B008 /* AuthorizationHelperConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9FE672309A444A0006B008 /* AuthorizationHelperConnector.swift */; };
+		9BA000000000000000001002 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001001 /* Dynamic */; };
+		9BA000000000000000001004 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001003 /* Algorithms */; };
+		9BA000000000000000001006 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001005 /* AsyncAlgorithms */; };
+		9BA000000000000000001008 /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001007 /* SwiftDate */; };
+		9BA00000000000000000100A /* Antlr4Static in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001009 /* Antlr4Static */; };
+		9BA00000000000000000100C /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000100B /* Atomics */; };
+		9BA00000000000000000100E /* SwiftFormat in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000100D /* SwiftFormat */; };
+		9BA000000000000000001010 /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000100F /* TextTable */; };
+		9BA000000000000000001012 /* Sysctl in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001011 /* Sysctl */; };
+		9BA000000000000000001014 /* SwiftRadix in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001013 /* SwiftRadix */; };
+		9BA000000000000000001016 /* Semaphore in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001015 /* Semaphore */; };
+		9BA000000000000000001018 /* DMRetry in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001017 /* DMRetry */; };
+		9BA00000000000000000101A /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001019 /* XAttr */; };
+		9BA00000000000000000101C /* ISO9660 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000101B /* ISO9660 */; };
+		9BA00000000000000000101E /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000101D /* Yams */; };
+		9BA000000000000000001020 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000101F /* X509 */; };
+		9BA000000000000000001022 /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001021 /* Crypto */; };
+		9BA000000000000000001024 /* NIOSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001023 /* NIOSSL */; };
+		9BA000000000000000001026 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001025 /* GRPC */; };
+		9BA000000000000000001028 /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001027 /* NIO */; };
+		9BA00000000000000000102A /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001029 /* NIOCore */; };
+		9BA00000000000000000102C /* NIOEmbedded in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102B /* NIOEmbedded */; };
+		9BA00000000000000000102E /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102D /* NIOFoundationCompat */; };
+		9BA000000000000000001030 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000102F /* NIOHTTP1 */; };
+		9BA000000000000000001032 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001031 /* NIOPosix */; };
+		9BA000000000000000001034 /* NIOTLS in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001033 /* NIOTLS */; };
+		9BA000000000000000001036 /* NIOWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001035 /* NIOWebSocket */; };
+		9BA000000000000000001038 /* NIOHTTP2 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001037 /* NIOHTTP2 */; };
+		9BA00000000000000000103A /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001039 /* SwiftProtobuf */; };
+		9BA00000000000000000103C /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000103B /* Logging */; };
+		9BA00000000000000000103E /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000103D /* Shout */; };
+		9BA000000000000000001040 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000103F /* NIOPortForwarding */; };
+		9BA000000000000000001042 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001041 /* Gzip */; };
+		9BA000000000000000001044 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001043 /* RoyalVNCKitStatic */; };
+		9BA000000000000000001046 /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001045 /* ZLib */; };
+		9BA000000000000000001048 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001047 /* Subprocess */; };
+		9BA000000000000000001049 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
+		9BA00000000000000000104A /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
+		9BA000000000000000001101 /* Containerization in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001100 /* Containerization */; };
+		9BA000000000000000001103 /* ContainerizationEXT4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001102 /* ContainerizationEXT4 */; };
+		9BA000000000000000001105 /* ContainerizationExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001104 /* ContainerizationExtras */; };
+		9BA000000000000000001107 /* ContainerizationIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001106 /* ContainerizationIO */; };
+		9BA000000000000000001109 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA000000000000000001108 /* ContainerizationOCI */; };
+		9BA00000000000000000110B /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000110A /* FileMonitor */; };
+		9BA00000000000000000110D /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000110C /* Multipart */; };
+		9BA00000000000000000110F /* NIOConcurrencyHelpers in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA00000000000000000110E /* NIOConcurrencyHelpers */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
@@ -632,7 +692,6 @@
 		9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC72B2DF440720092B196 /* VMRunHandler.swift */; };
 		9BEBC7802DF440720092B196 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7582DF440720092B196 /* Config.swift */; };
 		9BEBC7812DF440720092B196 /* GRPCVMRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7342DF440720092B196 /* GRPCVMRunService.swift */; };
-		9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75A2DF440720092B196 /* DHCPLeases.swift */; };
 		9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71F2DF440720092B196 /* ListHandler.swift */; };
 		9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7682DF440720092B196 /* VMLocation.swift */; };
 		9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7112DF440720092B196 /* CloudImageConverter.swift */; };
@@ -793,10 +852,14 @@
 		9BFE87182F7E6202005CC9B2 /* caked.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A199C421AA7B30AB6695C4A5 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */; };
 		A424451134385526A101CD0D /* CakedKeyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */; };
+		A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
+		A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
+		A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */; };
 		AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */; };
 		AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
 		C67C4C7F7CAAA38DDCDB6738 /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
+		C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */; };
 		CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */; };
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
@@ -870,6 +933,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9B464A532D5A3DA000164BF5;
 			remoteInfo = Caker;
+		};
+		9B9FE65B309A2F640006B008 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BEBC7062DF440560092B196;
+			remoteInfo = CakedLib;
+		};
+		9B9FE65E309A2F640006B008 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
+			remoteInfo = GRPCLib;
+		};
+		9BA000000000000000002001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B9FE64C309A2E2E0006B008;
+			remoteInfo = helper;
 		};
 		9BD69DF42FCEE8FC005E24AF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -949,6 +1033,32 @@
 			);
 			name = Compatibility;
 		};
+		9B9FE64B309A2E2E0006B008 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolder = None;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		9B9FE66C309A428C0006B008 /* Copy Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/MacOS;
+			dstSubfolder = Wrapper;
+			files = (
+				9B9FE66D309A42AC0006B008 /* helper in Copy Helper */,
+			);
+			name = "Copy Helper";
+		};
+		9B9FE66E309A42F10006B008 /* Copy Authorization */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolder = Wrapper;
+			files = (
+				9B9FE671309A438B0006B008 /* com.aldunelabs.caker.authorization.plist in Copy Authorization */,
+			);
+			name = "Copy Authorization";
+		};
 		9BB7AEF92FFFC3C500B7DD6D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = Contents/Library/LaunchAgents;
@@ -1011,11 +1121,13 @@
 		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
+		7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreGuestDNS.swift; sourceTree = "<group>"; };
 		7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteEngine.swift; sourceTree = "<group>"; };
 		7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningVideoRecorder.swift; sourceTree = "<group>"; };
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
+		92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSForwarder.swift; sourceTree = "<group>"; };
 		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		9B001A0C300025340048894C /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
 		9B001A0D300025340048894C /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
@@ -1334,6 +1446,10 @@
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		9B80F59630987A8000E754ED /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
+		9B80F59730987A8000E754ED /* DHCPLeaseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeaseStore.swift; sourceTree = "<group>"; };
+		9B80F59830987A8000E754ED /* DHCPMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPMessage.swift; sourceTree = "<group>"; };
+		9B80F59930987A8000E754ED /* DHCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPServer.swift; sourceTree = "<group>"; };
 		9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthServerInterceptor.swift; sourceTree = "<group>"; };
 		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B839A72305C263900558A5C /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
@@ -1357,7 +1473,6 @@
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "cloudinit-install-cakeagent.sh"; sourceTree = "<group>"; };
-		A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksView.swift; sourceTree = "<group>"; };
 		9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotesView.swift; sourceTree = "<group>"; };
 		9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarView.swift; sourceTree = "<group>"; };
@@ -1377,6 +1492,12 @@
 		9B9DCDED2F70006D00E07852 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B9DCED32F572202007EEACC /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
 		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
+		9B9FE64D309A2E2E0006B008 /* helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B9FE657309A2F040006B008 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		9B9FE666309A30570006B008 /* helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = helper.swift; sourceTree = "<group>"; };
+		9B9FE668309A30920006B008 /* AuthorizationHelperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizationHelperProtocol.swift; sourceTree = "<group>"; };
+		9B9FE66F309A43520006B008 /* com.aldunelabs.caker.authorization.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.authorization.plist; sourceTree = "<group>"; };
+		9B9FE672309A444A0006B008 /* AuthorizationHelperConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizationHelperConnector.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
 		9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibStream.swift; sourceTree = "<group>"; };
 		9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibDeflateStream.swift; sourceTree = "<group>"; };
@@ -1621,7 +1742,6 @@
 		9BEBC7572DF440720092B196 /* CertificatesLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatesLocation.swift; sourceTree = "<group>"; };
 		9BEBC7582DF440720092B196 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		9BEBC7592DF440720092B196 /* Curl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Curl.swift; sourceTree = "<group>"; };
-		9BEBC75A2DF440720092B196 /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
 		9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
 		9BEBC75C2DF440720092B196 /* GuestPlateform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPlateform.swift; sourceTree = "<group>"; };
 		9BEBC75D2DF440720092B196 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
@@ -1705,6 +1825,7 @@
 		9BFE87442F7E6480005CC9B2 /* VM.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VM.png; sourceTree = "<group>"; };
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
+		A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
@@ -1799,6 +1920,62 @@
 				9B5F52AA300E5DFD004DD207 /* ContainerizationEXT4 in Frameworks */,
 				9B5F52B0300E5DFD004DD207 /* ContainerizationOCI in Frameworks */,
 				9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */,
+			);
+		};
+		9B9FE64A309A2E2E0006B008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				9B9FE661309A2F6B0006B008 /* ArgumentParser in Frameworks */,
+				9B9FE665309A2FBC0006B008 /* LogManager in Frameworks */,
+				9B9FE65A309A2F640006B008 /* libCakedLib.a in Frameworks */,
+				9B9FE663309A2FBC0006B008 /* CakeAgentLib in Frameworks */,
+				9B9FE65D309A2F640006B008 /* libGRPCLib.a in Frameworks */,
+				9BA000000000000000001002 /* Dynamic in Frameworks */,
+				9BA000000000000000001004 /* Algorithms in Frameworks */,
+				9BA000000000000000001006 /* AsyncAlgorithms in Frameworks */,
+				9BA000000000000000001008 /* SwiftDate in Frameworks */,
+				9BA00000000000000000100A /* Antlr4Static in Frameworks */,
+				9BA00000000000000000100C /* Atomics in Frameworks */,
+				9BA00000000000000000100E /* SwiftFormat in Frameworks */,
+				9BA000000000000000001010 /* TextTable in Frameworks */,
+				9BA000000000000000001012 /* Sysctl in Frameworks */,
+				9BA000000000000000001014 /* SwiftRadix in Frameworks */,
+				9BA000000000000000001016 /* Semaphore in Frameworks */,
+				9BA000000000000000001018 /* DMRetry in Frameworks */,
+				9BA00000000000000000101A /* XAttr in Frameworks */,
+				9BA00000000000000000101C /* ISO9660 in Frameworks */,
+				9BA00000000000000000101E /* Yams in Frameworks */,
+				9BA000000000000000001020 /* X509 in Frameworks */,
+				9BA000000000000000001022 /* Crypto in Frameworks */,
+				9BA000000000000000001024 /* NIOSSL in Frameworks */,
+				9BA000000000000000001026 /* GRPC in Frameworks */,
+				9BA000000000000000001028 /* NIO in Frameworks */,
+				9BA00000000000000000102A /* NIOCore in Frameworks */,
+				9BA00000000000000000102C /* NIOEmbedded in Frameworks */,
+				9BA00000000000000000102E /* NIOFoundationCompat in Frameworks */,
+				9BA000000000000000001030 /* NIOHTTP1 in Frameworks */,
+				9BA000000000000000001101 /* Containerization in Frameworks */,
+				9BA000000000000000001103 /* ContainerizationEXT4 in Frameworks */,
+				9BA000000000000000001105 /* ContainerizationExtras in Frameworks */,
+				9BA000000000000000001107 /* ContainerizationIO in Frameworks */,
+				9BA000000000000000001109 /* ContainerizationOCI in Frameworks */,
+				9BA00000000000000000110B /* FileMonitor in Frameworks */,
+				9BA00000000000000000110D /* Multipart in Frameworks */,
+				9BA00000000000000000110F /* NIOConcurrencyHelpers in Frameworks */,
+				9BA000000000000000001032 /* NIOPosix in Frameworks */,
+				9BA000000000000000001034 /* NIOTLS in Frameworks */,
+				9BA000000000000000001036 /* NIOWebSocket in Frameworks */,
+				9BA000000000000000001038 /* NIOHTTP2 in Frameworks */,
+				9BA00000000000000000103A /* SwiftProtobuf in Frameworks */,
+				9BA00000000000000000103C /* Logging in Frameworks */,
+				9BA00000000000000000103E /* Shout in Frameworks */,
+				9BA000000000000000001040 /* NIOPortForwarding in Frameworks */,
+				9BA000000000000000001042 /* Gzip in Frameworks */,
+				9BA000000000000000001044 /* RoyalVNCKitStatic in Frameworks */,
+				9BA000000000000000001046 /* ZLib in Frameworks */,
+				9BA000000000000000001048 /* Subprocess in Frameworks */,
+				9BA000000000000000001049 /* Virtualization.framework in Frameworks */,
+				9BA00000000000000000104A /* libswiftCompatibilitySpan.tbd in Frameworks */,
 			);
 		};
 		9BEBC68B2DF43FEE0092B196 /* Frameworks */ = {
@@ -2335,6 +2512,7 @@
 				9BFE869D2F7E592B005CC9B2 /* caked.app */,
 				9BD69DF02FCEE8F1005E24AF /* cakectl.app */,
 				9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */,
+				9B9FE64D309A2E2E0006B008 /* helper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2428,6 +2606,7 @@
 				9BEBC7692DF440720092B196 /* cakedlib */,
 				9B2BFAB92DFED25E000045C3 /* caker */,
 				9B464ADB2D5A3E0300164BF5 /* Grpc */,
+				9B9FE658309A2F040006B008 /* helper */,
 				9BF1A0243001000000AA0024 /* VirtualInstallSPI */,
 			);
 			name = Sources;
@@ -2601,6 +2780,17 @@
 			path = REST;
 			sourceTree = "<group>";
 		};
+		9B80F59A30987A8000E754ED /* DHCP */ = {
+			isa = PBXGroup;
+			children = (
+				9B80F59630987A8000E754ED /* DHCPLeases.swift */,
+				9B80F59730987A8000E754ED /* DHCPLeaseStore.swift */,
+				9B80F59830987A8000E754ED /* DHCPMessage.swift */,
+				9B80F59930987A8000E754ED /* DHCPServer.swift */,
+			);
+			path = DHCP;
+			sourceTree = "<group>";
+		};
 		9B8F3F5C301F3DCA001FA32A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2690,6 +2880,15 @@
 				9B9DCDED2F70006D00E07852 /* CI.swift */,
 			);
 			path = CI;
+			sourceTree = "<group>";
+		};
+		9B9FE658309A2F040006B008 /* helper */ = {
+			isa = PBXGroup;
+			children = (
+				9B9FE666309A30570006B008 /* helper.swift */,
+				9B9FE657309A2F040006B008 /* main.swift */,
+			);
+			path = helper;
 			sourceTree = "<group>";
 		};
 		9BA1808A2EFBF87B000D1424 /* Compression */ = {
@@ -2894,6 +3093,7 @@
 				9BEBC7102DF440720092B196 /* Certificate.swift */,
 				9BEBC7112DF440720092B196 /* CloudImageConverter.swift */,
 				9BEBC7122DF440720092B196 /* CloudInit.swift */,
+				7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */,
 				9BEBC7132DF440720092B196 /* ImageCache.swift */,
 				9BEBC7142DF440720092B196 /* SimpleStreams.swift */,
 			);
@@ -3036,6 +3236,8 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
+				9B9FE672309A444A0006B008 /* AuthorizationHelperConnector.swift */,
+				9B9FE668309A30920006B008 /* AuthorizationHelperProtocol.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
 				9BEBC7562DF440720092B196 /* CakeAgentConnection.swift */,
@@ -3047,8 +3249,8 @@
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
-				9BEBC75A2DF440720092B196 /* DHCPLeases.swift */,
 				9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */,
+				92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */,
 				9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */,
 				9B5C3F3B2F896662005651BF /* Entitlement.swift */,
 				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
@@ -3076,6 +3278,7 @@
 				9BEBC7152DF440720092B196 /* CloudImage */,
 				9BEBD17E2F9CC16B0005EC80 /* Commands */,
 				9BA1808A2EFBF87B000D1424 /* Compression */,
+				9B80F59A30987A8000E754ED /* DHCP */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
@@ -3195,6 +3398,7 @@
 				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
 				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
 				9B001A0E300025340048894C /* caker.provisionprofile */,
+				9B9FE66F309A43520006B008 /* com.aldunelabs.caker.authorization.plist */,
 				9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */,
 				9B22CCE02FF3CA3D001D626A /* debug */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
@@ -3267,12 +3471,15 @@
 				9B464A512D5A3DA000164BF5 /* Frameworks */,
 				9B464A522D5A3DA000164BF5 /* Resources */,
 				9BE569EB2DFEF9720086B9C7 /* Bundle */,
+				9B9FE66E309A42F10006B008 /* Copy Authorization */,
+				9B9FE66C309A428C0006B008 /* Copy Helper */,
 				9B4EA8252F76912A0044C18E /* Compatibility */,
 				9B773E4D2FE92DBF00C69B33 /* Set version */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				9BA000000000000000002002 /* PBXTargetDependency */,
 				9BD69DF92FCEE92E005E24AF /* PBXTargetDependency */,
 				9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */,
 				9BF2D5F62FE2D30F00218073 /* PBXTargetDependency */,
@@ -3397,6 +3604,74 @@
 			productName = CakerTests;
 			productReference = 9B96B00F2F4B68380069C970 /* CakerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9B9FE64C309A2E2E0006B008 /* helper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9B9FE653309A2E2E0006B008 /* Build configuration list for PBXNativeTarget "helper" */;
+			buildPhases = (
+				9B9FE649309A2E2E0006B008 /* Sources */,
+				9B9FE64A309A2E2E0006B008 /* Frameworks */,
+				9B9FE64B309A2E2E0006B008 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9B9FE65C309A2F640006B008 /* PBXTargetDependency */,
+				9B9FE65F309A2F640006B008 /* PBXTargetDependency */,
+			);
+			name = helper;
+			packageProductDependencies = (
+				9B9FE660309A2F6B0006B008 /* ArgumentParser */,
+				9B9FE662309A2FBC0006B008 /* CakeAgentLib */,
+				9B9FE664309A2FBC0006B008 /* LogManager */,
+				9BA000000000000000001001 /* Dynamic */,
+				9BA000000000000000001003 /* Algorithms */,
+				9BA000000000000000001005 /* AsyncAlgorithms */,
+				9BA000000000000000001007 /* SwiftDate */,
+				9BA000000000000000001009 /* Antlr4Static */,
+				9BA00000000000000000100B /* Atomics */,
+				9BA00000000000000000100D /* SwiftFormat */,
+				9BA00000000000000000100F /* TextTable */,
+				9BA000000000000000001011 /* Sysctl */,
+				9BA000000000000000001013 /* SwiftRadix */,
+				9BA000000000000000001015 /* Semaphore */,
+				9BA000000000000000001017 /* DMRetry */,
+				9BA000000000000000001019 /* XAttr */,
+				9BA00000000000000000101B /* ISO9660 */,
+				9BA00000000000000000101D /* Yams */,
+				9BA00000000000000000101F /* X509 */,
+				9BA000000000000000001021 /* Crypto */,
+				9BA000000000000000001023 /* NIOSSL */,
+				9BA000000000000000001025 /* GRPC */,
+				9BA000000000000000001027 /* NIO */,
+				9BA000000000000000001029 /* NIOCore */,
+				9BA00000000000000000102B /* NIOEmbedded */,
+				9BA00000000000000000102D /* NIOFoundationCompat */,
+				9BA00000000000000000102F /* NIOHTTP1 */,
+				9BA000000000000000001100 /* Containerization */,
+				9BA000000000000000001102 /* ContainerizationEXT4 */,
+				9BA000000000000000001104 /* ContainerizationExtras */,
+				9BA000000000000000001106 /* ContainerizationIO */,
+				9BA000000000000000001108 /* ContainerizationOCI */,
+				9BA00000000000000000110A /* FileMonitor */,
+				9BA00000000000000000110C /* Multipart */,
+				9BA00000000000000000110E /* NIOConcurrencyHelpers */,
+				9BA000000000000000001031 /* NIOPosix */,
+				9BA000000000000000001033 /* NIOTLS */,
+				9BA000000000000000001035 /* NIOWebSocket */,
+				9BA000000000000000001037 /* NIOHTTP2 */,
+				9BA000000000000000001039 /* SwiftProtobuf */,
+				9BA00000000000000000103B /* Logging */,
+				9BA00000000000000000103D /* Shout */,
+				9BA00000000000000000103F /* NIOPortForwarding */,
+				9BA000000000000000001041 /* Gzip */,
+				9BA000000000000000001043 /* RoyalVNCKitStatic */,
+				9BA000000000000000001045 /* ZLib */,
+				9BA000000000000000001047 /* Subprocess */,
+			);
+			productName = helper;
+			productReference = 9B9FE64D309A2E2E0006B008 /* helper */;
+			productType = "com.apple.product-type.tool";
 		};
 		9BD69DEF2FCEE8F1005E24AF /* cakectl.app */ = {
 			isa = PBXNativeTarget;
@@ -3572,7 +3847,7 @@
 				9B06995F2FB1A1E400FEAE13 /* Localization */,
 				9B773E4E2FE92DD500C69B33 /* Set version */,
 				9B001A083000034A0048894C /* LaunchAgent */,
-				9B001A10300025710048894C /* ShellScript */,
+				9B001A10300025710048894C /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -3591,8 +3866,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2710;
+				LastSwiftUpdateCheck = 2720;
+				LastUpgradeCheck = 2720;
 				TargetAttributes = {
 					9B464A532D5A3DA000164BF5 = {
 						CreatedOnToolsVersion = 16.2;
@@ -3607,6 +3882,9 @@
 					};
 					9B96B00E2F4B68380069C970 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					9B9FE64C309A2E2E0006B008 = {
+						CreatedOnToolsVersion = 27.2;
 					};
 					9BD69DEF2FCEE8F1005E24AF = {
 						CreatedOnToolsVersion = 26.5;
@@ -3691,6 +3969,7 @@
 				9B464A532D5A3DA000164BF5 /* Caker */,
 				9B464B4E2D5A3E5C00164BF5 /* cakectl */,
 				9BEBC68D2DF43FEE0092B196 /* caked */,
+				9B9FE64C309A2E2E0006B008 /* helper */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
 				9B96B00E2F4B68380069C970 /* CakerTests */,
@@ -3780,6 +4059,7 @@
 				9B11BFFD3084C577005BBCBD /* windows.png in Resources */,
 				9B561281301350FB00E9FA7D /* syllable.png in Resources */,
 				9B2D37B8304AD81600204614 /* ubuntu.packerlite.yaml in Resources */,
+				9B9FE670309A43520006B008 /* com.aldunelabs.caker.authorization.plist in Resources */,
 				9B561282301350FB00E9FA7D /* ubuntu.png in Resources */,
 				9B561283301350FB00E9FA7D /* webos.png in Resources */,
 				9B561284301350FB00E9FA7D /* xubuntu.png in Resources */,
@@ -3810,11 +4090,12 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9B001A10300025710048894C /* ShellScript */ = {
+		9B001A10300025710048894C /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"${SOURCE_ROOT}/../Resources/caked.provisionprofile",
 			);
+			name = "Run Script";
 			outputPaths = (
 				"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
 			);
@@ -3822,6 +4103,9 @@
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"cp \"${SOURCE_ROOT}/../Resources/caked.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
+				"",
+				"#CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}\"",
+				"#sudo --non-interactive -- sh -c 'chown root \"$1\" && chmod u+s \"$1\"' sh \"${CAKED_PATH}\" || echo \"warning: caked is not setuid root (no cached sudo authorization); run the chown/chmod by hand to use the DHCP server\"",
 				"",
 			);
 		};
@@ -3908,6 +4192,9 @@
 				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD 2>/dev/null || echo 0)}\"",
 				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
+				"",
+				"#CAKED_PATH=\"${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/caked.app/Contents/MacOS/caked\"",
+				"#sudo --non-interactive -- sh -c 'chown root \"$1\" && chmod u+s \"$1\"' sh \"${CAKED_PATH}\" || echo \"warning: caked is not setuid root (no cached sudo authorization); run the chown/chmod by hand to use the DHCP server\"",
 				"",
 			);
 		};
@@ -4230,6 +4517,13 @@
 				9B96B01E2F4B68540069C970 /* NetworkTest.swift in Sources */,
 			);
 		};
+		9B9FE649309A2E2E0006B008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				9B9FE659309A2F040006B008 /* main.swift in Sources */,
+				9B9FE667309A305B0006B008 /* helper.swift in Sources */,
+			);
+		};
 		9BEBC68A2DF43FEE0092B196 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
@@ -4359,6 +4653,7 @@
 				D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */,
 				9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */,
 				9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */,
+				9B9FE673309A44570006B008 /* AuthorizationHelperConnector.swift in Sources */,
 				9BEBC76B2DF440720092B196 /* ImageHandler.swift in Sources */,
 				9BEBC76C2DF440720092B196 /* VMView.swift in Sources */,
 				9BEBC76D2DF440720092B196 /* Home.swift in Sources */,
@@ -4386,6 +4681,7 @@
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
+				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BBF7BB72F3E0E8D00F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
@@ -4398,13 +4694,13 @@
 				9BB032BF2FF66A8000F4612F /* VirtualBuddy.swift in Sources */,
 				9BB032C02FF66A8000F4612F /* UTM.swift in Sources */,
 				9BB032C12FF66A8000F4612F /* Tart.swift in Sources */,
-				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
 				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
+				2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
 				9B1D8FD1308523EE009515C6 /* LZXDecompressor.swift in Sources */,
 				9B1D8FD2308523EE009515C6 /* WIMArchive.swift in Sources */,
@@ -4424,10 +4720,15 @@
 				9BEBC7902DF440720092B196 /* LoginHandler.swift in Sources */,
 				9BEBC7912DF440720092B196 /* WaitIPHandler.swift in Sources */,
 				9BEBC7922DF440720092B196 /* StopHandler.swift in Sources */,
+				9B9FE669309A30990006B008 /* AuthorizationHelperProtocol.swift in Sources */,
 				9BEBC7932DF440720092B196 /* VZVMNetHandler.swift in Sources */,
 				9BEBC7942DF440720092B196 /* LaunchHandler.swift in Sources */,
 				9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */,
 				9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */,
+				9B80F59B30987A8000E754ED /* DHCPLeaseStore.swift in Sources */,
+				9B80F59C30987A8000E754ED /* DHCPLeases.swift in Sources */,
+				9B80F59D30987A8000E754ED /* DHCPServer.swift in Sources */,
+				9B80F59E30987A8000E754ED /* DHCPMessage.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
 				9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */,
 				9BB728C1308AB3180095D3D2 /* WindowsDisplayLimit.swift in Sources */,
@@ -4582,6 +4883,21 @@
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 			targetProxy = 9B96B0132F4B68380069C970 /* PBXContainerItemProxy */;
 		};
+		9B9FE65C309A2F640006B008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BEBC7062DF440560092B196 /* CakedLib */;
+			targetProxy = 9B9FE65B309A2F640006B008 /* PBXContainerItemProxy */;
+		};
+		9B9FE65F309A2F640006B008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
+			targetProxy = 9B9FE65E309A2F640006B008 /* PBXContainerItemProxy */;
+		};
+		9BA000000000000000002002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B9FE64C309A2E2E0006B008 /* helper */;
+			targetProxy = 9BA000000000000000002001 /* PBXContainerItemProxy */;
+		};
 		9BD69DF52FCEE8FC005E24AF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
@@ -4690,7 +5006,7 @@
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE USE_VIRTUAL_INSTALL_BACKEND USE_SMAPPSERVICE DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE USE_DHCP_SERVER USE_VIRTUAL_INSTALL_BACKEND USE_SMAPPSERVICE DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -4730,7 +5046,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = LE7988HTRN;
@@ -4761,7 +5077,7 @@
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE USE_VIRTUAL_INSTALL_BACKEND USE_SMAPPSERVICE";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE USE_DHCP_SERVER USE_VIRTUAL_INSTALL_BACKEND USE_SMAPPSERVICE";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -4984,6 +5300,38 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9B9FE651309A2E2E0006B008 /* Debug configuration for PBXNativeTarget "helper" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9B9FE652309A2E2E0006B008 /* Release configuration for PBXNativeTarget "helper" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -5279,6 +5627,14 @@
 			buildConfigurations = (
 				9B96B0162F4B68380069C970 /* Debug configuration for PBXNativeTarget "CakerTests" */,
 				9B96B0172F4B68380069C970 /* Release configuration for PBXNativeTarget "CakerTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		9B9FE653309A2E2E0006B008 /* Build configuration list for PBXNativeTarget "helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9B9FE651309A2E2E0006B008 /* Debug configuration for PBXNativeTarget "helper" */,
+				9B9FE652309A2E2E0006B008 /* Release configuration for PBXNativeTarget "helper" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -5984,6 +6340,241 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
 			productName = SwiftTerm;
+		};
+		9B9FE660309A2F6B0006B008 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		9B9FE662309A2FBC0006B008 /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
+		};
+		9B9FE664309A2FBC0006B008 /* LogManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B1C21EB305AED6E001E1F46 /* XCRemoteSwiftPackageReference "LogManager" */;
+			productName = LogManager;
+		};
+		9BA000000000000000001001 /* Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */;
+			productName = Dynamic;
+		};
+		9BA000000000000000001003 /* Algorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B862D5A3F2300164BF5 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
+			productName = Algorithms;
+		};
+		9BA000000000000000001005 /* AsyncAlgorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B892D5A3F4200164BF5 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
+			productName = AsyncAlgorithms;
+		};
+		9BA000000000000000001007 /* SwiftDate */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B8C2D5A3F5800164BF5 /* XCRemoteSwiftPackageReference "SwiftDate" */;
+			productName = SwiftDate;
+		};
+		9BA000000000000000001009 /* Antlr4Static */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B8F2D5A3F7B00164BF5 /* XCRemoteSwiftPackageReference "antlr4" */;
+			productName = Antlr4Static;
+		};
+		9BA00000000000000000100B /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B922D5A3F9B00164BF5 /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		9BA00000000000000000100D /* SwiftFormat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B952D5A3FB700164BF5 /* XCRemoteSwiftPackageReference "SwiftFormat" */;
+			productName = SwiftFormat;
+		};
+		9BA00000000000000000100F /* TextTable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B982D5A3FCD00164BF5 /* XCRemoteSwiftPackageReference "TextTable" */;
+			productName = TextTable;
+		};
+		9BA000000000000000001011 /* Sysctl */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B9B2D5A3FE100164BF5 /* XCRemoteSwiftPackageReference "swift-sysctl" */;
+			productName = Sysctl;
+		};
+		9BA000000000000000001013 /* SwiftRadix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B9E2D5A3FF600164BF5 /* XCRemoteSwiftPackageReference "SwiftRadix" */;
+			productName = SwiftRadix;
+		};
+		9BA000000000000000001015 /* Semaphore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BA12D5A402200164BF5 /* XCRemoteSwiftPackageReference "Semaphore" */;
+			productName = Semaphore;
+		};
+		9BA000000000000000001017 /* DMRetry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BA42D5A404A00164BF5 /* XCRemoteSwiftPackageReference "swift-retry" */;
+			productName = DMRetry;
+		};
+		9BA000000000000000001019 /* XAttr */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
+			productName = XAttr;
+		};
+		9BA00000000000000000101B /* ISO9660 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BAA2D5A407700164BF5 /* XCRemoteSwiftPackageReference "iso9660-swift" */;
+			productName = ISO9660;
+		};
+		9BA00000000000000000101D /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BAD2D5A408E00164BF5 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+		9BA00000000000000000101F /* X509 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB02D5A40A900164BF5 /* XCRemoteSwiftPackageReference "swift-certificates" */;
+			productName = X509;
+		};
+		9BA000000000000000001021 /* Crypto */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB32D5A40BB00164BF5 /* XCRemoteSwiftPackageReference "swift-crypto" */;
+			productName = Crypto;
+		};
+		9BA000000000000000001023 /* NIOSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB82D5A40DC00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-ssl" */;
+			productName = NIOSSL;
+		};
+		9BA000000000000000001025 /* GRPC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC22D5A411900164BF5 /* XCRemoteSwiftPackageReference "grpc-swift" */;
+			productName = GRPC;
+		};
+		9BA000000000000000001027 /* NIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIO;
+		};
+		9BA000000000000000001029 /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		9BA00000000000000000102B /* NIOEmbedded */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOEmbedded;
+		};
+		9BA00000000000000000102D /* NIOFoundationCompat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOFoundationCompat;
+		};
+		9BA00000000000000000102F /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
+		};
+		9BA000000000000000001031 /* NIOPosix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOPosix;
+		};
+		9BA000000000000000001033 /* NIOTLS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOTLS;
+		};
+		9BA000000000000000001035 /* NIOWebSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOWebSocket;
+		};
+		9BA000000000000000001037 /* NIOHTTP2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */;
+			productName = NIOHTTP2;
+		};
+		9BA000000000000000001039 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BF02D5A41A200164BF5 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		9BA00000000000000000103B /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BF52D5A41B300164BF5 /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
+		};
+		9BA00000000000000000103D /* Shout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */;
+			productName = Shout;
+		};
+		9BA00000000000000000103F /* NIOPortForwarding */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */;
+			productName = NIOPortForwarding;
+		};
+		9BA000000000000000001041 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+		9BA000000000000000001043 /* RoyalVNCKitStatic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
+			productName = RoyalVNCKitStatic;
+		};
+		9BA000000000000000001045 /* ZLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */;
+			productName = ZLib;
+		};
+		9BA000000000000000001047 /* Subprocess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */;
+			productName = Subprocess;
+		};
+		9BA000000000000000001100 /* Containerization */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = Containerization;
+		};
+		9BA000000000000000001102 /* ContainerizationEXT4 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationEXT4;
+		};
+		9BA000000000000000001104 /* ContainerizationExtras */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationExtras;
+		};
+		9BA000000000000000001106 /* ContainerizationIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationIO;
+		};
+		9BA000000000000000001108 /* ContainerizationOCI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationOCI;
+		};
+		9BA00000000000000000110A /* FileMonitor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */;
+			productName = FileMonitor;
+		};
+		9BA00000000000000000110C /* Multipart */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */;
+			productName = Multipart;
+		};
+		9BA00000000000000000110E /* NIOConcurrencyHelpers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOConcurrencyHelpers;
 		};
 		9BC1F9972F6D469A00A83B33 /* Subprocess */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -19,9 +19,11 @@ import NIO
 ///   address is assigned to a host interface before binding and throws
 ///   `ComposeDNSServerError.gatewayNotPresent` otherwise; the next poll tick retries, so this is
 ///   logged at `.debug`.
-/// - **Not verified end to end**: addresses come from the host DHCP lease table of the *default*
-///   network (`ComposeDNS.natAddress(for:)`), so a custom network with DNS enabled answers with
-///   the default network's addresses.
+/// - **Addresses come from this network's own lease table** when caked runs its DHCP server
+///   (`networkName`/`subnet` set: `<CAKE_HOME>/net/<name>/dhcpd_leases`). Otherwise (vmnet's own
+///   DHCP) they come from the host table, which is shared by every vmnet network.
+/// - **Main DNS server of the network**: with `standardPort`/`forwarder` set it also listens on
+///   port 53 (what the DHCP server advertises) and forwards the names it doesn't own.
 public actor ComposeDNSCoordinator {
 	private let group: EventLoopGroup
 	private let runMode: Utils.RunMode
@@ -33,12 +35,20 @@ public actor ComposeDNSCoordinator {
 	private var startTask: Task<Void, Error>?
 	private var pollTask: Task<Void, Never>?
 	private let bindAddress: String
+	private let standardPort: Int?
+	private let forwarder: DNSForwarder?
+	private let networkName: String?
+	private let subnet: String?
 
-	public init(group: EventLoopGroup, runMode: Utils.RunMode, bindAddress: String, internalPort: Int = ComposeDNS.internalBindPort) {
+	public init(group: EventLoopGroup, runMode: Utils.RunMode, bindAddress: String, internalPort: Int = ComposeDNS.internalBindPort, standardPort: Int? = nil, forwarder: DNSForwarder? = nil, networkName: String? = nil, subnet: String? = nil) {
 		self.group = group
 		self.runMode = runMode
 		self.bindAddress = bindAddress
 		self.internalPort = internalPort
+		self.standardPort = standardPort
+		self.forwarder = forwarder
+		self.networkName = networkName
+		self.subnet = subnet
 	}
 
 	/// Binds the server, then runs the recurring poll loop until `shutdown()` cancels it. Blocks
@@ -81,7 +91,7 @@ public actor ComposeDNSCoordinator {
 		for (_, location) in vms {
 			guard case .running = location.status else { continue }
 			guard let config = try? location.config() else { continue }
-			guard let address = ComposeDNS.natAddress(for: config, name: location.name) else { continue }
+			guard let address = ComposeDNS.natAddress(for: config, name: location.name, runMode: self.runMode, network: self.networkName, subnet: self.subnet) else { continue }
 
 			vmNames.append((name: location.name, ip: address))
 
@@ -123,7 +133,7 @@ public actor ComposeDNSCoordinator {
 	private func ensureServerRunning() async {
 		guard self.server == nil, self.startTask == nil else { return }
 
-		let server = ComposeDNSServer(group: self.group, registry: self.registry, bindAddress: self.bindAddress, internalPort: self.internalPort)
+		let server = ComposeDNSServer(group: self.group, registry: self.registry, bindAddress: self.bindAddress, internalPort: self.internalPort, standardPort: self.standardPort, forwarder: self.forwarder)
 
 		self.server = server
 
@@ -131,7 +141,7 @@ public actor ComposeDNSCoordinator {
 			do {
 				try await server.startWithRetry()
 
-				self.logger.info("Compose DNS server started at \(self.bindAddress):\(server.internalPort)")
+				self.logger.info("Compose DNS server started at \(self.bindAddress):\(server.internalPort)\(server.standardPort.map { ", \($0)" } ?? "")")
 			} catch is CancellationError {
 				// Torn down before it managed to start; nothing to log.
 				self.logger.debug("Compose DNS server cancelled before it could start")

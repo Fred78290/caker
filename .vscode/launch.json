@@ -1,6 +1,5 @@
 {
 	"configurations": [
-
 		{
 			"type": "lldb",
 			"request": "attach",
@@ -812,10 +811,15 @@
 			"request": "launch",
 			"name": "webui: dev server",
 			"runtimeExecutable": "npm",
-			"runtimeArgs": ["run", "dev"],
+			"runtimeArgs": [
+				"run",
+				"dev"
+			],
 			"cwd": "${workspaceFolder:caker}/webui",
 			"console": "integratedTerminal",
-			"skipFiles": ["<node_internals>/**"]
+			"skipFiles": [
+				"<node_internals>/**"
+			]
 		},
 		{
 			"type": "chrome",
@@ -838,6 +842,26 @@
 				"/@fs/*": "/*",
 				"/ui/*": "${workspaceFolder:caker}/webui/src/*"
 			}
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug helper",
+			"target": "helper",
+			"configuration": "debug",
+			"preLaunchTask": "swift: Build Debug helper"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release helper",
+			"target": "helper",
+			"configuration": "release",
+			"preLaunchTask": "swift: Build Release helper"
 		}
 	],
 	"compounds": [

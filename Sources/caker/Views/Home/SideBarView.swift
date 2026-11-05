@@ -51,7 +51,6 @@ struct SideBarView: View {
 			}
 		}
 		.listStyle(.sidebar)
-		.navigationTitle("Explore")
 	}
 }
 

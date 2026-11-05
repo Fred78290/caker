@@ -34,6 +34,25 @@ Ceci vaut pour le mode `.app`. Connecté à un `caked` (mode service ou distant)
 
 L'interface Web fait de même via `GET /1.0/vm-images` (une extension Caker de l'API REST, comme `/1.0/remotes`) : la fenêtre de création d'instance liste le catalogue du `caked` qui la sert. Tant que la réponse n'est pas arrivée, ou si l'endpoint n'existe pas (un `caked` plus ancien), elle utilise `src/data/vmImages.ts`, la copie que `npm run sync-vm-images` intègre au moment du build.
 
+## Options de compilation
+
+Variables d'environnement lues par `Package.swift` :
+
+| Variable | Effet |
+|---|---|
+| `APPSTORE=1` | Build App Store : sandbox, sans Sparkle, sans serveur DHCP. |
+| `USE_DHCP_SERVER=1` / `0` | Force l'inclusion (ou retire) le serveur DHCP par réseau, présent par défaut hors App Store. |
+| `BECOME_PARANOID=1` | Définit le drapeau `BECOME_PARANOID` : règle sudo épinglée par SHA-256, `caked` et son bundle appartenant à root, assistant qui n'exécute qu'un `caked` de root. Absent par défaut. |
+
+`BECOME_PARANOID=1` pilote aussi `.ci/create-pkg.sh` : le `postinstall` du paquet épingle alors l'empreinte et la rafraîchit pour chaque utilisateur. Pour un paquet strict, utilisez la même variable aux deux étapes :
+
+```bash
+BECOME_PARANOID=1 swift build
+BECOME_PARANOID=1 .ci/create-pkg.sh
+```
+
+Les projets Xcode n'utilisent pas `Package.swift` : ajoutez `BECOME_PARANOID` à leurs conditions de compilation à la main. Voir [Architecture](architecture#privileges-fr).
+
 ## Tests
 
 Emplacements principaux des tests :
@@ -191,6 +210,25 @@ Separately, `VMImageCatalog.refreshFromGitHub()` downloads the current `VMImages
 That holds in `.app` mode. Connected to a `caked` (service or remote mode), the wizard lists that `caked`'s catalog instead, fetched with the `Aliases` RPC (the one behind `cakectl aliases`, which also returns each entry's URL and minimum resources) every time the wizard opens, so the pickers offer what that `caked`'s host can build (its architecture, its own `<CAKE_HOME>/VMImages.json`). If the RPC fails, or the `caked` is too old to send URLs, the wizard keeps its own catalog. On its side, `caked` re-reads `<CAKE_HOME>/VMImages.json` whenever the file changes (`VMImageCatalog.reloadIfChanged()`), so a GitHub refresh done by Caker.app is picked up without restarting the service.
 
 The web UI does the same through `GET /1.0/vm-images` (a Caker extension of the REST API, like `/1.0/remotes`): the create-instance dialog lists the catalog of the `caked` serving it. Until the reply arrives, or when the endpoint is missing (an older `caked`), it uses `src/data/vmImages.ts`, the copy `npm run sync-vm-images` bakes in at build time.
+
+## Build options
+
+Environment variables read by `Package.swift`:
+
+| Variable | Effect |
+|---|---|
+| `APPSTORE=1` | App Store build: sandboxed, no Sparkle, no DHCP server. |
+| `USE_DHCP_SERVER=1` / `0` | Forces the per-network DHCP server in (or removes it); it is on by default outside the App Store. |
+| `BECOME_PARANOID=1` | Defines the `BECOME_PARANOID` flag: sudo rule pinned by SHA-256, `caked` and its bundle owned by root, a helper that only runs a root-owned `caked`. Off by default. |
+
+`BECOME_PARANOID=1` also drives `.ci/create-pkg.sh`: the package's `postinstall` then pins the digest and refreshes it for every user. For a strict package, use the same variable for both steps:
+
+```bash
+BECOME_PARANOID=1 swift build
+BECOME_PARANOID=1 .ci/create-pkg.sh
+```
+
+The Xcode projects do not use `Package.swift`: add `BECOME_PARANOID` to their compilation conditions by hand. See [Architecture](architecture#privileges).
 
 ## Tests
 

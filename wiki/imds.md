@@ -8,7 +8,7 @@ Caker fournit un service de métadonnées d'instance de style AWS pour les VM Li
 
 ## Activation
 
-IMDS est activé par défaut pour les VM Linux dès que `caked service listen` tourne — **y compris dans la version App Store sandboxée** : le serveur démarre sur un port non privilégié de la passerelle IMDS dès qu'une VM Linux démarre, et s'arrête quand la dernière VM Linux s'arrête. Les invités peuvent toujours le joindre directement à cette adresse, sans root ni `sudo`.
+IMDS est activé par défaut pour les VM Linux. Le serveur s'exécute dans le processus du réseau `imds` (`caked networks start imds`), pas dans `caked service listen` (sauf compilation avec `USE_IMDS_COORDINATOR_IN_SERVICE`) — **y compris dans la version App Store sandboxée** : le serveur démarre sur un port non privilégié de la passerelle IMDS dès qu'une VM Linux démarre, et s'arrête quand la dernière VM Linux s'arrête. Les invités peuvent toujours le joindre directement à cette adresse, sans root ni `sudo`.
 
 ```bash
 caked service listen                        # IMDS joignable par les invités sur son port non privilégié
@@ -59,7 +59,7 @@ Points de terminaison disponibles sous `latest/meta-data` : `instance-id`, `host
 <a name="imds-limitations-fr"></a>
 ## Limitations
 
-- **VM lancée via `caked vmrun` en dehors du démon** (par exemple, un processus autonome qui contourne `caked service listen`) : la VM reçoit bien son interface réseau et sa route netplan, mais comme rien n'enregistre la VM auprès d'un `IMDSCoordinator` (ce mécanisme dépend des événements du démon), aucun serveur IMDS ne répond côté hôte.
+- **VM lancée via `caked vmrun` en dehors de `StartHandler`** (par exemple, un processus autonome) : la VM reçoit bien son interface réseau et sa route netplan, mais les événements de cycle de vie sont émis par `StartHandler` vers le réseau `imds`; sans eux la VM n'est enregistrée qu'au prochain démarrage du réseau `imds`.
 - **Joindre IMDS à l'adresse `169.254.169.254` de style AWS** nécessite `sudo` pour la redirection `pf` d'alias d'adresse, donc c'est indisponible dans la version App Store sandboxée. IMDS lui-même fonctionne toujours là, joignable à la vraie adresse de la passerelle sur son port non privilégié.
 
 </div>
@@ -72,7 +72,7 @@ Caker provides an AWS-style instance metadata service for Linux VMs, reachable f
 
 ## Enabling it
 
-IMDS is enabled by default for Linux VMs whenever `caked service listen` is running — **including in the sandboxed App Store build**: the server starts on an unprivileged port on the IMDS gateway as soon as a Linux VM starts, and stops once the last Linux VM stops. Guests can always reach it there directly, no root or `sudo` required.
+IMDS is enabled by default for Linux VMs. The server runs inside the `imds` network's process (`caked networks start imds`), not in `caked service listen` (unless built with `USE_IMDS_COORDINATOR_IN_SERVICE`) — **including in the sandboxed App Store build**: the server starts on an unprivileged port on the IMDS gateway as soon as a Linux VM starts, and stops once the last Linux VM stops. Guests can always reach it there directly, no root or `sudo` required.
 
 ```bash
 caked service listen                        # IMDS reachable by guests on its unprivileged port
@@ -121,7 +121,7 @@ Available endpoints under `latest/meta-data`: `instance-id`, `hostname`, `local-
 <a name="imds-limitations"></a>
 ## Limitations
 
-- **VM launched via `caked vmrun` outside the daemon** (e.g. a standalone process that bypasses `caked service listen`): the VM still gets its network interface and netplan route, but since nothing registers the VM with an `IMDSCoordinator` (that mechanism depends on daemon-side events), no IMDS server answers on the host side.
+- **VM launched via `caked vmrun` outside `StartHandler`** (e.g. a standalone process): the VM still gets its network interface and netplan route, but lifecycle events are sent by `StartHandler` to the `imds` network; without them the VM is only registered the next time the `imds` network starts.
 - **Reaching IMDS at the AWS-style `169.254.169.254` address** needs `sudo` for its `pf` address-alias redirect, so it's not available in the sandboxed App Store build. IMDS itself still works there, reachable at the real gateway address on its unprivileged port.
 
 </div>

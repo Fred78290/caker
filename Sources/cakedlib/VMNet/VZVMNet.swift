@@ -10,7 +10,9 @@ import vmnet
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
-public protocol VZVMNet {
+public protocol VZVMNet: AnyObject {
+	/// Applies the saved configuration to the running network (the `restart` RPC calls it).
+	var reconfigureHandler: (@Sendable () async throws -> Void)? { get set }
 	func reconfigure(networkConfig: VZSharedNetwork) throws
 	func start(_ startedHandler: @escaping (VZSharedNetwork) -> Void) throws
 	func stop()
@@ -80,6 +82,9 @@ extension vmnet_return_t {
 }
 
 public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
+	/// Set by the process running the network.
+	public var reconfigureHandler: (@Sendable () async throws -> Void)?
+
 	private class GRPCVMNetService: Vmnet_VMNetServiceAsyncProvider, @unchecked Sendable {
 		let owner: VZVMNetCommon
 
@@ -119,8 +124,31 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		}
 
 		func restart(request: Vmnet_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmnet_Empty {
+			// Apply the saved configuration: the owner stops its services, restarts vmnet and syncs the services again.
+			// Without a handler (a network that can't be reconfigured live) there is nothing to do.
+			try await self.owner.reconfigureHandler?()
+
 			return Vmnet_Empty()
 		}
+
+		func vMLifecycleEvent(request: Vmnet_VMLifecycleEventRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmnet_Empty {
+			guard let home = try? Home(runMode: self.owner.runMode) else {
+				self.owner.logger.error("Failed to load home for lifecycle event \(request.event)")
+				return Vmnet_Empty()
+			}
+
+			let storage = StorageLocation(home, runMode: self.owner.runMode)
+			
+			guard let location = try? storage.find(request.vmName) else {
+				self.owner.logger.error("Failed to find VM \(request.vmName) for lifecycle event \(request.event)")
+				return Vmnet_Empty()
+			}
+
+			VMLifecycleHooks.notify(request.event == .started ? .started(location: location, runMode: self.owner.runMode) : .stopped(location: location, runMode: self.owner.runMode))
+
+			return Vmnet_Empty()
+		}
+		
 	}
 
 	private var grpcServer: Server? = nil
@@ -177,8 +205,12 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		let server = try Server.start(configuration: serverConfiguration).wait()
 		self.grpcServer = server
 
-		if chown(socketFile, getegid(), self.socketGroup) < 0 {
+		if chown(socketFile, geteuid(), self.socketGroup) < 0 {
 			self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
+		}
+
+		if chmod(socketFile, 0o660) < 0 {
+			self.logger.error("Failed to set permissions on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
 		}
 
 		let future = self.eventLoop.makeFutureWithTask {

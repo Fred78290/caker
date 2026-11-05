@@ -287,22 +287,14 @@ extension Bundle {
 			let process = Process()
 			var runningArguments: [String] = []
 
+			var environment = try Utilities.environment(runMode: runMode)
+
 			if sudo {
-				guard let sudoURL = URL.binary(SUDO) else {
-					throw ServiceError(String(localized: "sudo not found in path"))
-				}
+				let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-				}
-
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-				if runMode.isSystem {
-					runningArguments.append("--system")
-				}
-
-				executableURL = sudoURL
+				runningArguments = launch.arguments
+				environment = launch.environment
+				executableURL = launch.executableURL
 			}
 
 			runningArguments.append(contentsOf: arguments)
@@ -310,7 +302,7 @@ extension Bundle {
 			Logger(self).debug("Running: \(executableURL.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
-			process.environment = try Utilities.environment(runMode: runMode)
+			process.environment = environment
 			process.arguments = runningArguments
 
 			process.standardOutput = standardOutput
@@ -352,22 +344,14 @@ extension Bundle {
 			let process = ProcessWithSharedFileHandle()
 			var runningArguments: [String] = []
 
+			var environment = try Utilities.environment(runMode: runMode)
+
 			if sudo {
-				guard let sudoURL = URL.binary(SUDO) else {
-					throw ServiceError(String(localized: "sudo not found in path"))
-				}
+				let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-				}
-
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-				if runMode.isSystem {
-					runningArguments.append("--system")
-				}
-
-				executableURL = sudoURL
+				runningArguments = launch.arguments
+				environment = launch.environment
+				executableURL = launch.executableURL
 			}
 
 			runningArguments.append(contentsOf: arguments)
@@ -375,7 +359,7 @@ extension Bundle {
 			Logger(self).debug("Running: \(executableURL.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
-			process.environment = try Utilities.environment(runMode: runMode)
+			process.environment = environment
 			process.arguments = runningArguments
 
 			process.sharedFileHandles = sharedFileHandles

@@ -33,6 +33,11 @@ public protocol Vmnet_VMNetServiceClientProtocol: GRPCClient {
     _ request: Vmnet_Empty,
     callOptions: CallOptions?
   ) -> UnaryCall<Vmnet_Empty, Vmnet_Empty>
+
+  func vMLifecycleEvent(
+    _ request: Vmnet_VMLifecycleEventRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmnet_VMLifecycleEventRequest, Vmnet_Empty>
 }
 
 extension Vmnet_VMNetServiceClientProtocol {
@@ -91,6 +96,24 @@ extension Vmnet_VMNetServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeRestartInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to VMLifecycleEvent
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to VMLifecycleEvent.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func vMLifecycleEvent(
+    _ request: Vmnet_VMLifecycleEventRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmnet_VMLifecycleEventRequest, Vmnet_Empty> {
+    return self.makeUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.vMLifecycleEvent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVMLifecycleEventInterceptors() ?? []
     )
   }
 }
@@ -173,6 +196,11 @@ public protocol Vmnet_VMNetServiceAsyncClientProtocol: GRPCClient {
     _ request: Vmnet_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Vmnet_Empty, Vmnet_Empty>
+
+  func makeVmlifecycleEventCall(
+    _ request: Vmnet_VMLifecycleEventRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmnet_VMLifecycleEventRequest, Vmnet_Empty>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -220,6 +248,28 @@ extension Vmnet_VMNetServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
+
+  public func makeVmlifecycleEventCall(
+    _ request: Vmnet_VMLifecycleEventRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmnet_VMLifecycleEventRequest, Vmnet_Empty> {
+    return self.makeAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.vMLifecycleEvent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVMLifecycleEventInterceptors() ?? []
+    )
+  }
+
+  public func makeVMLifecycleEventCall(
+    _ request: Vmnet_VMLifecycleEventRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmnet_VMLifecycleEventRequest, Vmnet_Empty> {
+    return self.makeVmlifecycleEventCall(
+      request,
+      callOptions: callOptions
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -259,6 +309,18 @@ extension Vmnet_VMNetServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
+
+  public func vMLifecycleEvent(
+    _ request: Vmnet_VMLifecycleEventRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmnet_Empty {
+    return try await self.performAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.vMLifecycleEvent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVMLifecycleEventInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -288,6 +350,9 @@ public protocol Vmnet_VMNetServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'restart'.
   func makeRestartInterceptors() -> [ClientInterceptor<Vmnet_Empty, Vmnet_Empty>]
+
+  /// - Returns: Interceptors to use when invoking 'vMLifecycleEvent'.
+  func makeVMLifecycleEventInterceptors() -> [ClientInterceptor<Vmnet_VMLifecycleEventRequest, Vmnet_Empty>]
 }
 
 public enum Vmnet_VMNetServiceClientMetadata {
@@ -298,6 +363,7 @@ public enum Vmnet_VMNetServiceClientMetadata {
       Vmnet_VMNetServiceClientMetadata.Methods.getSerialization,
       Vmnet_VMNetServiceClientMetadata.Methods.stop,
       Vmnet_VMNetServiceClientMetadata.Methods.restart,
+      Vmnet_VMNetServiceClientMetadata.Methods.vMLifecycleEvent,
     ]
   )
 
@@ -319,6 +385,12 @@ public enum Vmnet_VMNetServiceClientMetadata {
       path: "/vmnet.VMNetService/Restart",
       type: GRPCCallType.unary
     )
+
+    public static let vMLifecycleEvent = GRPCMethodDescriptor(
+      name: "VMLifecycleEvent",
+      path: "/vmnet.VMNetService/VMLifecycleEvent",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -334,6 +406,8 @@ public protocol Vmnet_VMNetServiceProvider: CallHandlerProvider {
   func stop(request: Vmnet_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_Empty>
 
   func restart(request: Vmnet_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_Empty>
+
+  func vMLifecycleEvent(request: Vmnet_VMLifecycleEventRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_Empty>
 }
 
 extension Vmnet_VMNetServiceProvider {
@@ -375,6 +449,15 @@ extension Vmnet_VMNetServiceProvider {
         userFunction: self.restart(request:context:)
       )
 
+    case "VMLifecycleEvent":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_VMLifecycleEventRequest>(),
+        responseSerializer: ProtobufSerializer<Vmnet_Empty>(),
+        interceptors: self.interceptors?.makeVMLifecycleEventInterceptors() ?? [],
+        userFunction: self.vMLifecycleEvent(request:context:)
+      )
+
     default:
       return nil
     }
@@ -402,6 +485,11 @@ public protocol Vmnet_VMNetServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func restart(
     request: Vmnet_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmnet_Empty
+
+  func vMLifecycleEvent(
+    request: Vmnet_VMLifecycleEventRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmnet_Empty
 }
@@ -452,6 +540,15 @@ extension Vmnet_VMNetServiceAsyncProvider {
         wrapping: { try await self.restart(request: $0, context: $1) }
       )
 
+    case "VMLifecycleEvent":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_VMLifecycleEventRequest>(),
+        responseSerializer: ProtobufSerializer<Vmnet_Empty>(),
+        interceptors: self.interceptors?.makeVMLifecycleEventInterceptors() ?? [],
+        wrapping: { try await self.vMLifecycleEvent(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -471,6 +568,10 @@ public protocol Vmnet_VMNetServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'restart'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRestartInterceptors() -> [ServerInterceptor<Vmnet_Empty, Vmnet_Empty>]
+
+  /// - Returns: Interceptors to use when handling 'vMLifecycleEvent'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeVMLifecycleEventInterceptors() -> [ServerInterceptor<Vmnet_VMLifecycleEventRequest, Vmnet_Empty>]
 }
 
 public enum Vmnet_VMNetServiceServerMetadata {
@@ -481,6 +582,7 @@ public enum Vmnet_VMNetServiceServerMetadata {
       Vmnet_VMNetServiceServerMetadata.Methods.getSerialization,
       Vmnet_VMNetServiceServerMetadata.Methods.stop,
       Vmnet_VMNetServiceServerMetadata.Methods.restart,
+      Vmnet_VMNetServiceServerMetadata.Methods.vMLifecycleEvent,
     ]
   )
 
@@ -500,6 +602,12 @@ public enum Vmnet_VMNetServiceServerMetadata {
     public static let restart = GRPCMethodDescriptor(
       name: "Restart",
       path: "/vmnet.VMNetService/Restart",
+      type: GRPCCallType.unary
+    )
+
+    public static let vMLifecycleEvent = GRPCMethodDescriptor(
+      name: "VMLifecycleEvent",
+      path: "/vmnet.VMNetService/VMLifecycleEvent",
       type: GRPCCallType.unary
     )
   }

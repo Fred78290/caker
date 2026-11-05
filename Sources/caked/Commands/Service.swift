@@ -47,11 +47,11 @@ struct Service: ParsableCommand {
 }
 
 extension Service {
-#if USE_SMAPPSERVICE
-	static var appService: SMAppService {
-		SMAppService.agent(plistName: "\(ServiceHandler.launchdAgentName).plist")
-	}
-#endif
+	#if USE_SMAPPSERVICE
+		static var appService: SMAppService {
+			SMAppService.agent(plistName: "\(ServiceHandler.launchdAgentName).plist")
+		}
+	#endif
 
 	struct ServiceOptions: ParsableArguments {
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
@@ -93,7 +93,13 @@ extension Service {
 		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
 		var webUIDirectory: String? = nil
 
-		@Option(name: [.customLong("imds-port")], help: ArgumentHelp(String(localized: "Unprivileged port IMDS listens on"), discussion: "AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (\(IMDSNetworkInterface.imdsGateway)) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead."))
+		@Option(
+			name: [.customLong("imds-port")],
+			help: ArgumentHelp(
+				String(localized: "Unprivileged port IMDS listens on"),
+				discussion:
+					"AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (\(IMDSNetworkInterface.imdsGateway)) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead."
+			))
 		var imdsPort: Int = IMDSServer.internalBindPort
 
 		func validate() throws {
@@ -161,7 +167,7 @@ extension Service {
 
 				func uninstall() -> UninstallReply {
 					let service = Service.appService
-					
+
 					if service.status == .requiresApproval || service.status == .enabled {
 						do {
 							try service.unregister()
@@ -363,29 +369,31 @@ extension Service {
 				try? home.agentPID.delete()
 			}
 
-			var imdsCoordinator: IMDSCoordinator? = nil
-			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
+			#if USE_IMDS_COORDINATOR_IN_SERVICE
+				var imdsCoordinator: IMDSCoordinator? = nil
+				var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
 
-			if IMDSNetworkInterface.imdsEnabled {
-				// Central IMDS server for Linux VMs (see IMDSCoordinator's doc comment): the
-				// daemon learns about VM start/stop through VMLifecycleHooks, fired by
-				// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
-				// whether that's from autostart below or from a `Caked_StartRequest` RPC.
-				// Off by default (IMDSNetworkInterface.imdsEnabled, toggled from Caker's
-				// Advanced settings) — once on, this works including in sandboxed builds,
-				// guests can always reach it on its unprivileged port.
-				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort)
+				if IMDSNetworkInterface.imdsEnabled {
+					// Central IMDS server for Linux VMs (see IMDSCoordinator's doc comment): the
+					// daemon learns about VM start/stop through VMLifecycleHooks, fired by
+					// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
+					// whether that's from autostart below or from a `Caked_StartRequest` RPC.
+					// Off by default (IMDSNetworkInterface.imdsEnabled, toggled from Caker's
+					// Advanced settings) — once on, this works including in sandboxed builds,
+					// guests can always reach it on its unprivileged port.
+					let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort)
 
-				imdsCoordinator = coordinator
+					imdsCoordinator = coordinator
 
-				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
-					Task {
-						await coordinator.handle(event)
+					imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
+						Task {
+							await coordinator.handle(event)
+						}
 					}
-				}
 
-				await coordinator.registerAlreadyRunning()
-			}
+					await coordinator.registerAlreadyRunning()
+				}
+			#endif
 
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
 				switch result {
@@ -402,16 +410,19 @@ extension Service {
 
 				do {
 					if let listeningAddress = URL(string: address) {
-						return try (listeningAddress, ServiceHandler.createServer(
-							eventLoopGroup: eventLoopGroup,
-							runMode: runMode,
-							listeningAddress: listeningAddress,
-							serviceProviders: [provider],
-							password: self.password,
-							caCert: self.options.caCert,
-							tlsCert: self.options.tlsCert,
-							tlsKey: self.options.tlsKey
-						).wait())
+						return try (
+							listeningAddress,
+							ServiceHandler.createServer(
+								eventLoopGroup: eventLoopGroup,
+								runMode: runMode,
+								listeningAddress: listeningAddress,
+								serviceProviders: [provider],
+								password: self.password,
+								caCert: self.options.caCert,
+								tlsCert: self.options.tlsCert,
+								tlsKey: self.options.tlsKey
+							).wait()
+						)
 					}
 				} catch {
 					logger.error("Failed to start server on \(address): \(error)")
@@ -443,7 +454,8 @@ extension Service {
 				if let listen = components.url {
 					do {
 						restServer = try await LXDRESTServer(
-							group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel, provider: provider
+							group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory,
+							restLogLevel: self.options.restLogLevel, provider: provider
 						)
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
@@ -487,14 +499,15 @@ extension Service {
 						sigintSrc.activate()
 
 						Task {
-							if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
-								imdsLifecycleHandler = nil
-								imdsCoordinator = nil
+							#if USE_IMDS_COORDINATOR_IN_SERVICE
+								if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
+									imdsLifecycleHandler = nil
+									imdsCoordinator = nil
 
-								VMLifecycleHooks.removeHandler(handler)
-								await coordinator.shutdown()
-							}
-
+									VMLifecycleHooks.removeHandler(handler)
+									await coordinator.shutdown()
+								}
+							#endif
 							await restServer?.shutdown()
 							provider.stop()
 

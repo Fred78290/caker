@@ -9,6 +9,7 @@ import vmnet
 public var phUseLimaVMNet = false
 
 public protocol NetworkAttachement {
+	var networkName: String { get }
 	func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
 	func stop(runMode: Utils.RunMode)
 }
@@ -19,6 +20,10 @@ public class IsolatedNATNetworkInterface: NetworkAttachement {
 
 	public init(macAddress: VZMACAddress) {
 		self.macAddress = macAddress
+	}
+
+	public var networkName: String {
+		return "nat"
 	}
 
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
@@ -33,10 +38,12 @@ public class IsolatedNATNetworkInterface: NetworkAttachement {
 public class BridgedNetworkInterface: NetworkAttachement {
 	let interface: VZBridgedNetworkInterface
 	let macAddress: VZMACAddress
+	public var networkName: String
 
 	public init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
 		self.interface = interface
 		self.macAddress = macAddress
+		self.networkName = interface.identifier
 	}
 
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
@@ -50,13 +57,14 @@ public class BridgedNetworkInterface: NetworkAttachement {
 public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDelegate {
 	let macAddress: VZMACAddress
 	let mode: VMNetMode
-	let networkName: String
 	let networkConfig: VZSharedNetwork?
-	var process: ProcessWithSharedFileHandle? = nil
+	var process: NetworksHandler.RunningNetworkProcess? = nil
 	var pipeChannel: Channel? = nil
 	var vmfd: Int32 = -1
 	var hostfd: Int32 = -1
 	var pidURL: URL? = nil
+
+	public let networkName: String
 
 	public init(mode: VMNetMode, networkName: String, macAddress: VZMACAddress) {
 		self.mode = mode

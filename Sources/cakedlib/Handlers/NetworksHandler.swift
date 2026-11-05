@@ -158,6 +158,69 @@ public struct NetworksHandler {
 		}
 	}
 
+	/// Whether the DHCP server (`USE_DHCP_SERVER`) needs the network service to run as root: it reads `/dev/bpf*` and binds port 53.
+	/// `CAKED_VMNET_DHCP=vmnet` keeps vmnet's own DHCP, so nothing needs root then. A sandboxed process can't use sudo anyway.
+	static var dhcpServerNeedsRoot: Bool {
+		#if USE_DHCP_SERVER
+			return Bundle.isApplicationSandboxed == false && ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+		#else
+			return false
+		#endif
+	}
+
+	/// Whether this process can start, signal and stop a network service itself instead of going through `sudo caked`.
+	/// vmnet networks created with `vmnet_network_ref` (macOS 26+) or with the vmnet entitlement don't need root, except
+	/// when caked serves DHCP: then the service must always be root, whoever starts it.
+	public static var canManageNetworkWithoutRoot: Bool {
+		canManageNetworkWithoutRoot(mode: nil)
+	}
+
+	/// Same as `canManageNetworkWithoutRoot`, for a network of a known `mode` (`nil` when it isn't known).
+	/// A bridged network, or any network on a host without `vmnet_network_ref` (macOS 15), never uses caked's DHCP server
+	/// (see `usesCakerDHCP(mode:)`), so it keeps starting without root where the vmnet entitlement allows it.
+	public static func canManageNetworkWithoutRoot(mode: VMNetMode?) -> Bool {
+		if geteuid() == 0 {
+			return true
+		}
+
+		let servesDHCP = vmnetNative && mode != .bridged && dhcpServerNeedsRoot
+
+		return (vmnetNative || hasVMNetEntitlement) && servesDHCP == false
+	}
+
+	/// Whether caked serves DHCP (and, when `dns` is on, DNS on port 53) for this network instead of vmnet. **Full build only**: always false in the App Store build.
+	///
+	/// Only networks created through `vmnet_network_ref` (macOS 26+) can have vmnet's DHCP switched off, binding the
+	/// privileged ports 67/53 needs root, and a sandboxed build can't do either. Everywhere else vmnet keeps serving
+	/// DHCP exactly as before. `CAKED_VMNET_DHCP=vmnet` forces that fallback.
+	public static func usesCakerDHCP(_ network: VZSharedNetwork) -> Bool {
+		usesCakerDHCP(mode: network.mode)
+	}
+
+	public static func usesCakerDHCP(mode: VMNetMode) -> Bool {
+		// The App Store build is sandboxed (no root, no /dev/bpf): vmnet keeps serving DHCP and DNS there.
+		#if !USE_DHCP_SERVER
+			return false
+		#else
+			return Self.usesCakerDHCPOnThisHost(mode: mode)
+		#endif
+	}
+
+	#if USE_DHCP_SERVER
+		private static func usesCakerDHCPOnThisHost(mode: VMNetMode) -> Bool {
+			guard mode != .bridged, vmnetNative, Bundle.isApplicationSandboxed == false, geteuid() == 0 else {
+				return false
+			}
+
+			return ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+		}
+	#endif
+
+	/// `<CAKE_HOME>/net/<name>/dhcpd_leases`: the lease table of the DHCP server of that network.
+	public static func dhcpLeaseFile(networkName: String, runMode: Utils.RunMode) throws -> URL {
+		try vmnetEndpoint(networkName: networkName, runMode: runMode).pidFile.deletingLastPathComponent().appendingPathComponent(DHCPLeaseStore.leaseFilename, isDirectory: false)
+	}
+
 	private static let InternetSharingPrefs = "/Library/Preferences/SystemConfiguration/com.apple.InternetSharing.default.plist" as CFString
 	private static let BootpD = "bootpd" as CFString
 	private static let DHCPLeaseTimeSecs = "DHCPLeaseTimeSecs"
@@ -200,8 +263,17 @@ public struct NetworksHandler {
 			SCPreferencesSetValue(ref, BootpD, lease)
 			SCPreferencesCommitChanges(ref)
 			SCPreferencesApplyChanges(ref)
-		} else if try SudoCaked(arguments: ["networks", "set-dhcp-lease", "\(leaseTime)"], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError(String(localized: "Failed to set DHCP lease time"))
+		} else {
+			#if !APPSTORE
+				// The privileged helper first; sudo when it is not installed or approved.
+				if let reason = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.setDHCPLease(leaseTime: leaseTime) }) {
+					return reason
+				}
+			#endif
+
+			if try SudoCaked(arguments: ["networks", "set-dhcp-lease", "\(leaseTime)"], runMode: runMode).runAndWait() != 0 {
+				throw ServiceError(String(localized: "Failed to set DHCP lease time"))
+			}
 		}
 
 		return "DHCP lease time set to \(leaseTime) seconds"
@@ -242,25 +314,15 @@ public struct NetworksHandler {
 			return String(localized: "Network \(networkName) is not running")
 		}
 
-		if Bundle.isApplicationSandboxed {
-			let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
+		Logger(self).info("Restart network \(networkName)")
 
-			defer {
-				try? client.channel.close().wait()
-			}
+		let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
 
-			_ = try client.restart(.init()).response.wait()
-		} else if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
-			Logger(self).info("Restart network \(networkName)")
-
-			if pidURL.killPID(SIGUSR2) < 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
-			} else {
-				Logger(self).info("Network \(networkName) restarted")
-			}
-		} else if try SudoCaked(arguments: ["networks", "restart", networkName], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError(String(localized: "Failed to restart network \(networkName)"))
+		defer {
+			try? client.channel.close().wait()
 		}
+
+		_ = try client.restart(.init()).response.wait()
 
 		return String(localized: "Network \(networkName) restarted")
 	}
@@ -327,7 +389,33 @@ public struct NetworksHandler {
 		logger.info("Started \(networks.count) network\(networks.count == 1 ? "" : "s")")
 	}
 
-	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> ProcessWithSharedFileHandle {
+	/// A standalone network process started by `run(fileDescriptor:…)`: a child of this process, or a root process owned by the
+	/// privileged helper (then only its pid is known, and it is stopped through the network's control client).
+	public enum RunningNetworkProcess {
+		case process(ProcessWithSharedFileHandle)
+		case helper(pid: pid_t)
+
+		public var isRunning: Bool {
+			switch self {
+			case .process(let process):
+				return process.isRunning
+			case .helper(let pid):
+				// Signal 0 only checks: EPERM means the root process exists.
+				return kill(pid, 0) == 0 || errno == EPERM
+			}
+		}
+
+		public var processIdentifier: pid_t {
+			switch self {
+			case .process(let process):
+				return process.processIdentifier
+			case .helper(let pid):
+				return pid
+			}
+		}
+	}
+
+	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> RunningNetworkProcess {
 		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
 		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : Home.cakedCommandName) else {
@@ -386,28 +474,63 @@ public struct NetworksHandler {
 		var fd = fileDescriptor
 		let logger = Logger(self)
 
-		if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
+		var environment = try Utilities.environment(runMode: runMode)
+		let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
+
+		#if !APPSTORE
+			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
+			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
+			if direct == false, phUseLimaVMNet == false {
+				let helperCanUsePID: Bool = {
+					guard let helperHome = try? Home(runMode: runMode) else {
+						return false
+					}
+let homePath = helperHome.cakeHomeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
+let pidPath = pidFile.resolvingSymlinksInPath().standardizedFileURL.path
+return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
+				}()
+				let helperArguments = Array(arguments.dropFirst(2))
+				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
+
+				if helperCanUsePID, let pid = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.runNetwork(arguments: helperArguments, pidFile: pidFile, fileHandle: handle, runMode: runMode) }) {
+					logger.info("Network \(networkConfig.networkName) started by the privileged helper with PID=\(pid)")
+
+					let running = RunningNetworkProcess.helper(pid: pid)
+
+					Thread.detachNewThread {
+						while running.isRunning {
+							Thread.sleep(forTimeInterval: 1)
+						}
+
+						logger.debug("Network process \(pid) died")
+						kill(getpid(), SIGUSR2)
+					}
+
+					return running
+				}
+			}
+		#endif
+
+		if direct {
 			runningArguments = []
 			process.executableURL = executableURL
 			process.standardInput = FileHandle.standardInput
 			process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 		} else {
-			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError(String(localized: "sudo not found in path"))
-			}
+			let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-			}
+			environment = launch.environment
+			runningArguments = launch.arguments
+			process.executableURL = launch.executableURL
 
-			fd = STDIN_FILENO
-			// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it and will block forever
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-			process.executableURL = sudoURL
-			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
-
-			if runMode.isSystem {
-				runningArguments.append("--system")
+			if launch.viaSudo {
+				fd = STDIN_FILENO
+				// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it and will block forever
+				process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
+			} else {
+				// setuid-root caked: no sudo in between, so the descriptor is inherited like for an unprivileged start
+				process.standardInput = FileHandle.standardInput
+				process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 			}
 		}
 
@@ -423,7 +546,7 @@ public struct NetworksHandler {
 		try? pidFile.delete()
 
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = environment
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
 		process.terminationHandler = { process in
@@ -446,7 +569,7 @@ public struct NetworksHandler {
 			}
 		}
 
-		return process
+		return .process(process)
 	}
 
 	public static func run(useLimaVMNet: Bool = false, mode: VMNetMode, networkConfig: UsedNetworkConfig, socketPath: URL? = nil, pidFile: URL? = nil, runMode: Utils.RunMode) throws {
@@ -561,25 +684,17 @@ public struct NetworksHandler {
 		var runningArguments: [String]
 		let logger = Logger(self)
 
-		if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
+		var environment = try Utilities.environment(runMode: runMode)
+
+		if NetworksHandler.canManageNetworkWithoutRoot(mode: mode) {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
-			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError(String(localized: "sudo not found in path"))
-			}
+			let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-			}
-
-			process.executableURL = sudoURL
-
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-			if runMode.isSystem {
-				runningArguments.append("--system")
-			}
+			environment = launch.environment
+			process.executableURL = launch.executableURL
+			runningArguments = launch.arguments
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -587,7 +702,7 @@ public struct NetworksHandler {
 		logger.debug("Running: \(process.executableURL!.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = environment
 		process.standardInput = FileHandle.nullDevice
 		process.terminationHandler = { process in
 			#if DEBUG
@@ -719,18 +834,21 @@ public struct NetworksHandler {
 		let sharedNetworks = try home.sharedNetworks().sharedNetworks
 		let socketURL: (socket: URL, pidFile: URL)
 		let isPhysicalInterface = Self.isPhysicalInterface(name: networkName)
+		let canManageNetworkWithoutRoot: Bool
 
 		if isPhysicalInterface {
 			if CakedLib.NetworksHandler.hasVMNetEntitlement {
 				throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
 			}
 
+			canManageNetworkWithoutRoot = CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: VMNetMode.bridged)
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		} else {
-			guard sharedNetworks[networkName] != nil else {
+			guard let network = sharedNetworks[networkName] else {
 				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
 
+			canManageNetworkWithoutRoot = CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: network.mode)
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
 
@@ -748,6 +866,17 @@ public struct NetworksHandler {
 		try? socketURL.socket.deleteIfFileExists()
 
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path(percentEncoded: false))")
+
+		#if !APPSTORE
+			if canManageNetworkWithoutRoot == false {
+				// The helper starts it as root and replies once the network wrote its pid file.
+				if try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil {
+					Logger(self).info("Network \(networkName) started by the privileged helper")
+
+					return socketURL
+				}
+			}
+		#endif
 
 		let executableURL = try Bundle.main.caked()
 
@@ -767,25 +896,17 @@ public struct NetworksHandler {
 
 		try? socketURL.socket.delete()
 
-		if geteuid() == 0 || CakedLib.NetworksHandler.vmnetNative || CakedLib.NetworksHandler.hasVMNetEntitlement {
+		var environment = try Utilities.environment(runMode: runMode)
+
+		if canManageNetworkWithoutRoot {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
-			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError(String(localized: "sudo not found in path"))
-			}
+			let launch = try SudoCaked.privilegedLaunch(binary: executableURL, runMode: runMode)
 
-			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-			}
-
-			process.executableURL = sudoURL
-
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
-
-			if runMode.isSystem {
-				runningArguments.append("--system")
-			}
+			environment = launch.environment
+			process.executableURL = launch.executableURL
+			runningArguments = launch.arguments
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -795,7 +916,7 @@ public struct NetworksHandler {
 		#endif
 
 		process.arguments = runningArguments
-		process.environment = try Utilities.environment(runMode: runMode)
+		process.environment = environment
 		process.standardInput = FileHandle.nullDevice
 		process.terminationHandler = { process in
 			if process.terminationReason == .uncaughtSignal {
@@ -936,28 +1057,13 @@ public struct NetworksHandler {
 				return "PID \(pidURL.path(percentEncoded: false)) is not running"
 			}
 
-			if Bundle.isApplicationSandboxed {
-				let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
+			let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
 
-				defer {
-					try? client.channel.close().wait()
-				}
-
-				_ = try client.stop(.init()).response.wait()
-			} else if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
-				// We are running as root, so we can just kill the process
-				if pidURL.killPID(SIGTERM) < 0 {
-					throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
-				} else {
-					#if DEBUG
-						Logger(self).debug("PID \(pidURL.path(percentEncoded: false)) stopped")
-					#endif
-				}
-			} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path(percentEncoded: false))"], runMode: runMode).runAndWait() != 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false))"))
-			} else {
-				try pidURL.waitStopped()
+			defer {
+				try? client.channel.close().wait()
 			}
+
+			_ = try client.stop(.init()).response.wait()
 
 			return "PID \(pidURL.path(percentEncoded: false)) stopped"
 		} catch {
@@ -993,7 +1099,6 @@ public struct NetworksHandler {
 
 	private static func stopNetwork(networkName: String, checkIfUsed: Bool, runMode: Utils.RunMode) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
-		let vmnet = CakedLib.NetworksHandler.vmnetNative
 
 		if checkIfUsed {
 			guard CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode).active == 0 else {
@@ -1001,34 +1106,20 @@ public struct NetworksHandler {
 			}
 		}
 
-		if geteuid() == 0 || vmnet || CakedLib.NetworksHandler.hasVMNetEntitlement {
-			let pidURL = socketURL.pidFile
+		let pidURL = socketURL.pidFile
 
-			guard pidURL.isCakedRunning() else {
-				Logger(self).info("Network \(networkName) is not running")
-				return "Network \(networkName) is not running"
-			}
-
-			// We are running as root, so we can just kill the process
-			if Bundle.isApplicationSandboxed {
-				let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
-
-				defer {
-					try? client.channel.close().wait()
-				}
-
-				_ = try client.stop(.init()).response.wait()
-			} else if pidURL.killPID(SIGTERM) < 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
-			} else {
-				Logger(self).info("Network \(networkName) stopped")
-			}
-		} else if try SudoCaked(arguments: ["networks", "stop", networkName], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError(String(localized: "Failed to kill network process \(networkName)"))
-		} else {
-			// Wait for the process to exit
-			try socketURL.pidFile.waitStopped()
+		guard pidURL.isCakedRunning() else {
+			Logger(self).info("Network \(networkName) is not running")
+			return "Network \(networkName) is not running"
 		}
+
+		let client = try Self.getVMNetControlClient(pidURL, runMode: runMode)
+
+		defer {
+			try? client.channel.close().wait()
+		}
+
+		_ = try client.stop(.init()).response.wait()
 
 		return "Network \(networkName) stopped"
 	}
@@ -1099,7 +1190,7 @@ public struct NetworksHandler {
 
 		return usage
 	}
-	
+
 	public static func referencedNetworks(runMode: Utils.RunMode) -> ReferencedNetworks {
 		var usedNetworks: ReferencedNetworks = ReferencedNetworks()
 
@@ -1111,9 +1202,7 @@ public struct NetworksHandler {
 			let running = location.status.isRunning
 
 			if let config = try? location.config() {
-				config.qualifiedNetworks.forEach { network in
-					let name = network.network
-
+				func reference(_ name: String) {
 					if var count = usedNetworks[name] {
 						count.used += 1
 
@@ -1125,6 +1214,16 @@ public struct NetworksHandler {
 					} else {
 						usedNetworks[name] = BridgedNetwork.NetworkUsage(used: 1, active: running ? 1 : 0)
 					}
+				}
+
+				// Config doesn't include imds network, but if the VM is running and has imds enabled, we need to count it as a reference.
+				// Assume that a network interface is connected to the imds network.
+				if IMDSNetworkInterface.imdsEnabled {
+					reference(IMDSNetworkInterface.imdsNetworkName)
+				}
+
+				config.qualifiedNetworks.forEach { network in
+					reference(network.network)
 				}
 			}
 		}
@@ -1283,9 +1382,13 @@ public struct NetworksHandler {
 			gateway = "\(network.dhcpStart)/\(cidr)"
 			dhcpEnd = "\(network.dhcpEnd)/\(cidr)"
 			managed = mode != .nat
-			if let value = try? Self.getDHCPLease() {
-				dhcpLease = "\(value)"
-			}
+			#if !USE_DHCP_SERVER
+				if let value = try? Self.getDHCPLease() {
+					dhcpLease = "\(value)"
+				}
+			#else
+				dhcpLease = network.dhcpLease.map { "\($0)" } ?? String.empty
+			#endif
 		}
 
 		do {
@@ -1328,6 +1431,13 @@ public struct NetworksHandler {
 				success: false,
 				reason: error.reason)
 		}
+	}
+
+	public static func getVMNetControlClient(_ networkName: String, runMode: Utils.RunMode) throws -> Vmnet_VMNetServiceNIOClient {
+		let home = try Home(runMode: runMode)
+		let networkDirectory = home.networkDirectory.appendingPathComponent(networkName, isDirectory: true)
+
+		return try getVMNetControlClient(networkDirectory.socketPath(name: "net"), runMode: runMode)
 	}
 
 	public static func getVMNetControlClient(_ socketURL: URL, runMode: Utils.RunMode) throws -> Vmnet_VMNetServiceNIOClient {

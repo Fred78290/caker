@@ -208,6 +208,17 @@ final class ConnectionManager: Equatable {
 		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.connectionMode.runMode)
 	}
 
+	func statusNetwork(network: BridgedNetwork) -> NetworkInfoReply {
+		let client = self.serviceClient
+
+		// Same rule as `configureNetwork`: a failed connection must not answer with a same-named local network.
+		if client == nil && self.connectionMode != .app {
+			return NetworkInfoReply(info: network, success: false, reason: String(localized: "Unable to connect to the service"))
+		}
+
+		return NetworksHandler.status(client: client, network: network, runMode: self.connectionMode.runMode)
+	}
+
 	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
 		let client = self.serviceClient
 

@@ -6,6 +6,17 @@ import Foundation
 // App Store builds must not depend on or link Sparkle.framework, since it is
 // excluded from the app bundle (Sparkle isn't permitted on the Mac App Store).
 let isAppStoreBuild = ProcessInfo.processInfo.environment["APPSTORE"] == "1"
+
+// The per-network DHCP server (and the DNS forwarding it relies on) is compiled in unless this is an App Store build.
+// `USE_DHCP_SERVER=1` forces it in (to try it in the sandboxed build), `USE_DHCP_SERVER=0` removes it from the code.
+let useDHCPServer = ProcessInfo.processInfo.environment["USE_DHCP_SERVER"].map { $0 == "1" } ?? !isAppStoreBuild
+let dhcpServerSettings: [SwiftSetting] = useDHCPServer ? [.define("USE_DHCP_SERVER")] : []
+
+// The strict privilege checks (the passwordless sudo rule pinned by the SHA-256 of caked, a bundle that must be root-owned, a helper
+// that only runs a root-owned caked) are compiled in only with `BECOME_PARANOID=1`. The same variable makes `.ci/create-pkg.sh` pin the
+// digest in the package's postinstall, so one variable drives both.
+let becomeParanoid = ProcessInfo.processInfo.environment["BECOME_PARANOID"] == "1"
+let becomeParanoidSettings: [SwiftSetting] = becomeParanoid ? [.define("BECOME_PARANOID")] : []
 let supportedVersions: [SupportedPlatform]
 let linkerSettings: [LinkerSetting]?
 
@@ -35,6 +46,7 @@ let package = Package(
 		.executable(name: "caked", targets: ["caked"]),
 		.executable(name: "Caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
+		.executable(name: "helper", targets: ["helper"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
 	],
@@ -194,7 +206,8 @@ let package = Package(
 			.copy("PackerLite/Resources/fedora-server.packerlite.yaml"),
 			.copy("PackerLite/Resources/fedora.packerlite.yaml"),
 			.copy("PackerLite/Resources/macos12.packerlite.yaml"),
-		]),
+		],
+		swiftSettings: dhcpServerSettings + becomeParanoidSettings),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "GRPCLib"),
 			.target(name: "CakedLib"),
@@ -216,6 +229,7 @@ let package = Package(
 		resources: [
 			.process("Resources"),
 		],
+		swiftSettings: becomeParanoidSettings,
 		linkerSettings: [
 			.unsafeFlags([
 				"-Xlinker", "-rpath",
@@ -232,6 +246,7 @@ let package = Package(
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "Vapor", package: "vapor"),
 		],
+		swiftSettings: dhcpServerSettings,
 		linkerSettings: linkerSettings),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
@@ -267,6 +282,13 @@ let package = Package(
 			.product(name: "Yams", package: "Yams"),
 		],
 		linkerSettings: linkerSettings),
+		.executableTarget(name: "helper", dependencies: [
+			.target(name: "GRPCLib"),
+			.target(name: "CakedLib"),
+			.product(name: "ArgumentParser", package: "swift-argument-parser"),
+			.product(name: "CakeAgentLib", package: "CakeAgent"),
+		],
+		swiftSettings: dhcpServerSettings + becomeParanoidSettings),
 		.testTarget(name: "CakerTests", dependencies: [
 			"GRPCLib",
 			"CakedLib",
@@ -275,7 +297,7 @@ let package = Package(
 			"caker"
 		], exclude: [
 			"echo.py",
-		])
+		], swiftSettings: dhcpServerSettings + becomeParanoidSettings)
 	],
 	swiftLanguageModes: [
 		.v5

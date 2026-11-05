@@ -1,4 +1,5 @@
 import Foundation
+import GRPCLib
 import SwiftRadix
 
 extension String {
@@ -55,6 +56,51 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 
 		self.allLeases = Self.parseLeases(content: content)
 		self.leases = Self.newestByAddress(self.allLeases)
+	}
+
+	/// Every lease the host knows about: the system table (`/var/db/dhcpd_leases`, networks still served by vmnet's own
+	/// DHCP) plus the table of each network served by caked's DHCP server (`<CAKE_HOME>/net/<name>/dhcpd_leases`).
+	/// With `network` only that network's table is read. When a client appears in several tables, the lease that
+	/// expires last wins.
+	///
+	/// With `networks` the lookup is restricted to the tables of those networks plus the system table (vmnet's own DHCP),
+	/// so a stale lease left on a network the VM no longer uses can't be returned.
+	init(runMode: Utils.RunMode, network: String? = nil, networks: [String]? = nil) throws {
+		var files: [URL] = []
+
+		if let network {
+			files.append(try Self.leaseFile(network: network, runMode: runMode))
+		} else if let networks {
+			files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
+			files.append(contentsOf: try networks.map { try Self.leaseFile(network: $0, runMode: runMode) })
+		} else {
+			files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
+			files.append(contentsOf: Self.networkLeaseFiles(runMode: runMode))
+		}
+
+		let contents = files.compactMap { try? String(contentsOf: $0, encoding: .ascii) }
+
+		guard contents.isEmpty == false else {
+			throw ServiceError(String(localized: "No DHCP lease table found"))
+		}
+
+		self.allLeases = contents.flatMap { Self.parseLeases(content: $0) }
+		self.leases = Self.newestByAddress(self.allLeases)
+	}
+
+	/// The lease table of the network `network`, written by its DHCP server.
+	static func leaseFile(network: String, runMode: Utils.RunMode) throws -> URL {
+		try Home(runMode: runMode, createItIfNotExists: false).networkDirectory.appendingPathComponent(network, isDirectory: true).appendingPathComponent(DHCPLeaseStore.leaseFilename, isDirectory: false)
+	}
+
+	static func networkLeaseFiles(runMode: Utils.RunMode) -> [URL] {
+		guard let home = try? Home(runMode: runMode, createItIfNotExists: false),
+			let directories = try? FileManager.default.contentsOfDirectory(at: home.networkDirectory, includingPropertiesForKeys: nil)
+		else {
+			return []
+		}
+
+		return directories.map { $0.appendingPathComponent(DHCPLeaseStore.leaseFilename, isDirectory: false) }.filter { FileManager.default.fileExists(atPath: $0.path(percentEncoded: false)) }
 	}
 
 	/// Builds a parser from the text of a `dhcpd_leases` file, for tests.

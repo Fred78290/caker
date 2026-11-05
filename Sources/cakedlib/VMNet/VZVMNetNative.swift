@@ -101,6 +101,16 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 			}
 		}
 
+		// caked serves DHCP itself (one server and one lease table per network, see `DHCPServer`), and DNS when the
+		// network's resolver is on: vmnet's own services would answer the same broadcasts and bind the same port.
+		if NetworksHandler.usesCakerDHCP(networkConfig) {
+			vmnet_network_configuration_disable_dhcp(network_configuration)
+
+			if networkConfig.dns == true {
+				vmnet_network_configuration_disable_dns_proxy(network_configuration)
+			}
+		}
+
 		if networkConfig.mode == .host {
 			vmnet_network_configuration_disable_nat44(network_configuration)
 			vmnet_network_configuration_disable_nat66(network_configuration)

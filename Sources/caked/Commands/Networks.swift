@@ -59,6 +59,24 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("dns")], help: ArgumentHelp(String(localized: "Enable DNS")))
 		public var dns: Bool = false
 
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			@Flag(name: [.customLong("imds")], help: ArgumentHelp(String(localized: "Enable IMDS Coordinator, apply only if network is imds"), visibility: .hidden))
+			public var imds: Bool = false
+
+			@Option(
+				name: [.customLong("imds-port")],
+				help: ArgumentHelp(
+					String(localized: "Unprivileged port IMDS listens on"),
+					discussion:
+						String(
+							format: String(
+								localized:
+									"AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (%@) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead."
+							), IMDSNetworkInterface.imdsGateway),
+					visibility: .hidden))
+			var imdsPort: Int = IMDSServer.internalBindPort
+		#endif
+
 		public init() {
 
 		}
@@ -87,7 +105,10 @@ struct Networks: ParsableCommand {
 				self.interfaceID = UUID().uuidString
 				self.nat66Prefix = nil
 				self.dns = false
-
+				#if !USE_IMDS_COORDINATOR_IN_SERVICE
+					self.imds = false
+					self.imdsPort = IMDSServer.internalBindPort
+				#endif
 			} else {
 				let home: Home = try Home(runMode: runMode)
 				let networkConfig = try home.sharedNetworks()
@@ -104,6 +125,10 @@ struct Networks: ParsableCommand {
 				self.interfaceID = network.interfaceID
 				self.nat66Prefix = network.nat66Prefix
 				self.dns = network.dns ?? false
+				#if !USE_IMDS_COORDINATOR_IN_SERVICE
+					self.imds = networkName == IMDSNetworkInterface.imdsNetworkName ? IMDSNetworkInterface.imdsEnabled : false
+					self.imdsPort = IMDSServer.internalBindPort
+				#endif
 			}
 		}
 
@@ -273,6 +298,33 @@ struct Networks: ParsableCommand {
 		return CakedLib.NetworksHandler.referencedNetwork(networkName: networkName, runMode: runMode)
 	}
 
+	/// `a.b.c.d/nn` of the subnet `network` lives in.
+	static func subnet(of network: VZSharedNetwork) -> String {
+		let mask = DHCPAddress.parse(network.netmask) ?? 0xffff_ff00
+		let base = (DHCPAddress.parse(network.gateway) ?? 0) & mask
+
+		return "\(DHCPAddress.string(base))/\(network.netmask.netmaskToCidr())"
+	}
+
+	#if USE_DHCP_SERVER
+		/// The DHCP server of `network`: pool from the first address after the gateway up to `dhcp-end`, leases kept in
+		/// the network's own table.
+		static func makeDHCPServer(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> DHCPServer {
+			guard let gateway = DHCPAddress.parse(network.gateway), let netmask = DHCPAddress.parse(network.netmask), let end = DHCPAddress.parse(network.dhcpEnd) else {
+				throw ServiceError(String(localized: "Bad network configuration \(networkName)"))
+			}
+
+			let start = max(DHCPAddress.parse(network.dhcpStart) ?? 0, gateway + 1)
+			let store = DHCPLeaseStore(
+				gateway: gateway, poolStart: start, poolEnd: end, leaseDuration: TimeInterval(network.dhcpLease ?? 86400),
+				fileURL: try CakedLib.NetworksHandler.dhcpLeaseFile(networkName: networkName, runMode: runMode))
+			// The gateway is the DNS server: the compose resolver when `dns` is on, vmnet's proxy otherwise.
+			let responder = DHCPResponder(configuration: .init(gateway: gateway, netmask: netmask, dnsServers: [gateway], domainName: network.dns == true ? ComposeDNS.domainSuffix : nil), store: store)
+
+			return DHCPServer(group: Utilities.group, responder: responder, bindAddress: network.gateway)
+		}
+	#endif
+
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
 		let logger = Logger(self)
@@ -284,14 +336,66 @@ struct Networks: ParsableCommand {
 		var signalReconfigure: DispatchSourceSignal? = nil
 		var coordinator: ComposeDNSCoordinator? = nil
 
-		// Starts or stops the compose DNS resolver so it follows the network's `dns` setting.
-		let syncDNSCoordinator: (VZSharedNetwork) -> Void = { network in
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			var imdsCoordinator: IMDSCoordinator? = nil
+			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
+		#endif
+
+		#if USE_DHCP_SERVER
+			var dhcpServer: DHCPServer? = nil
+			var dhcpStartTask: Task<Void, Never>? = nil
+		#endif
+
+		// Starts or stops the network's own services so they follow its configuration: caked's DHCP server
+		// (replaces vmnet's, see `NetworksHandler.usesCakerDHCP`) and the compose DNS resolver (`dns`).
+		let syncServices: (VZSharedNetwork) -> Void = { network in
+			let ownsDHCP = CakedLib.NetworksHandler.usesCakerDHCP(network)
+
+			#if USE_DHCP_SERVER
+				if ownsDHCP, dhcpServer == nil {
+					do {
+						dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
+
+						if let server = dhcpServer {
+							// Kept so `stopServices` can cancel it: the retry loop waits for a bridge that only exists once a guest
+							// attaches, and must not start a server after the services were stopped or replaced.
+							dhcpStartTask = Task {
+								logger.info("Starting the DHCP server of network \(options.networkName)")
+
+								do {
+									try await server.startWithRetry()
+								} catch is CancellationError {
+									logger.debug("DHCP server of network \(options.networkName) was cancelled")
+								} catch {
+									logger.error("DHCP server of network \(options.networkName) failed: \(error)")
+								}
+							}
+						} else {
+							logger.error("Failed to start the DHCP server of network \(options.networkName)")
+						}
+					} catch {
+						logger.error("Unable to start the DHCP server of network \(options.networkName): \(error)")
+					}
+				}
+			#endif
+
 			if network.dns == true {
 				guard coordinator == nil else {
 					return
 				}
 
-				let started = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, bindAddress: network.gateway, internalPort: ComposeDNS.internalBindPort)
+				// As the network's DHCP server hands the gateway out as DNS server, the resolver must answer on port 53
+				// and pass what isn't its own on to the host's resolvers.
+				let forwarder = ownsDHCP ? DNSForwarder(group: Utilities.group, upstreams: { DNSForwarder.systemResolvers(excluding: [network.gateway]) }) : nil
+				let started = ComposeDNSCoordinator(
+					group: Utilities.group,
+					runMode: runMode,
+					bindAddress: network.gateway,
+					internalPort: ComposeDNS.internalBindPort,
+					standardPort: ownsDHCP ? 53 : nil,
+					forwarder: forwarder,
+					networkName: ownsDHCP ? options.networkName : nil,
+					subnet: ownsDHCP ? Self.subnet(of: network) : nil)
 
 				coordinator = started
 
@@ -305,6 +409,36 @@ struct Networks: ParsableCommand {
 					await stopped.shutdown()
 				}
 			}
+		}
+
+		// Stops everything `syncServices` started.
+		let stopServices: () async -> Void = {
+			#if !USE_IMDS_COORDINATOR_IN_SERVICE
+				if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
+					imdsLifecycleHandler = nil
+					imdsCoordinator = nil
+
+					VMLifecycleHooks.removeHandler(handler)
+					await coordinator.shutdown()
+				}
+			#endif
+
+			if let coordinator {
+				await coordinator.shutdown()
+			}
+
+			#if USE_DHCP_SERVER
+				dhcpStartTask?.cancel()
+				dhcpStartTask = nil
+
+				if let dhcpServer {
+					await dhcpServer.shutdown()
+				}
+
+				dhcpServer = nil
+			#endif
+
+			coordinator = nil
 		}
 
 		defer {
@@ -339,7 +473,8 @@ struct Networks: ParsableCommand {
 		if isPhysicalInterface == false {
 			let sigReconfigure = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
-			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false {
+			// With caked's own DHCP server the lease time is the network's `dhcpLease`, not a host-wide bootpd setting.
+			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false, CakedLib.NetworksHandler.usesCakerDHCP(mode: options.mode) == false {
 				_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 			}
 
@@ -347,19 +482,22 @@ struct Networks: ParsableCommand {
 
 			signal(SIGUSR2, SIG_IGN)
 
-			sigReconfigure.setEventHandler {
+			@Sendable func reconfigureNetwork() async throws {
 				logger.info("Will reconfigure network: \(options.networkName)")
 
+				// The services must be stopped first: the network's `dns`/range may have changed.
+				await stopServices()
+
+				try syncServices(vzvmnet.vmnet.restart())
+			}
+
+			// The `restart` RPC (`networks configure` on a running network) runs the same sequence as SIGUSR2.
+			vzvmnet.vmnet.reconfigureHandler = reconfigureNetwork
+
+			sigReconfigure.setEventHandler {
 				Task {
 					do {
-						// Coodinator must be stopped before if the network's `dns` setting changes.
-						if let coordinator {
-							await coordinator.shutdown()
-						}
-
-						coordinator = nil
-
-						try syncDNSCoordinator(vzvmnet.vmnet.restart())
+						try await reconfigureNetwork()
 					} catch {
 						Logger(self).error("Failed to reconfigure network: \(error)")
 					}
@@ -375,10 +513,8 @@ struct Networks: ParsableCommand {
 				sig.cancel()
 			}
 
-			if let coordinator {
-				Task.sync {
-					await coordinator.shutdown()
-				}
+			Task.sync {
+				await stopServices()
 			}
 
 			signals.forEach { sig in
@@ -386,9 +522,34 @@ struct Networks: ParsableCommand {
 			}
 		}
 
+		#if !USE_IMDS_COORDINATOR_IN_SERVICE
+			if options.imds {
+				// Central IMDS server for Linux VMs (see IMDSCoordinator's doc comment): the
+				// daemon learns about VM start/stop through VMLifecycleHooks, fired by
+				// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
+				// whether that's from autostart below or from a `Caked_StartRequest` RPC.
+				// Off by default (IMDSNetworkInterface.imdsEnabled, toggled from Caker's
+				// Advanced settings) — once on, this works including in sandboxed builds,
+				// guests can always reach it on its unprivileged port.
+				let coordinator = IMDSCoordinator(group: Utilities.group.next(), runMode: runMode, internalPort: options.imdsPort)
+
+				imdsCoordinator = coordinator
+
+				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
+					Task {
+						await coordinator.handle(event)
+					}
+				}
+
+				Task {
+					await coordinator.registerAlreadyRunning()
+				}
+			}
+		#endif
+
 		do {
 			try vzvmnet.vmnet.start { network in
-				syncDNSCoordinator(network)
+				syncServices(network)
 			}
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")
@@ -461,8 +622,19 @@ struct Networks: ParsableCommand {
 				}
 			}
 
-			if geteuid() == 0 || CakedLib.NetworksHandler.vmnetNative || CakedLib.NetworksHandler.hasVMNetEntitlement {
+			func startWithHelper() throws -> Bool {
+				#if APPSTORE
+					return false
+				#else
+					return try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil
+				#endif
+			}
+
+			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (try? Home(runMode: runMode).sharedNetworks().sharedNetworks[networkName])?.mode) {
 				try startForkedNetwork()
+			} else if try startWithHelper() {
+				// Started as root by the privileged helper, which waited for the pid file.
+				Logger(self).info("Network \(networkName) started by the privileged helper")
 			} else {
 				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
 					throw ServiceError(String(localized: "Failed to start networks \(options.networkName)"))
@@ -535,6 +707,11 @@ struct Networks: ParsableCommand {
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
+
+			#if USE_SETUID
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+				SudoCaked.becomeRootIfRequested()
+			#endif
 		}
 
 		func run() throws {
@@ -567,6 +744,17 @@ struct Networks: ParsableCommand {
 			if name == nil && all == false {
 				throw ValidationError("You must specify one of <name> or --all")
 			}
+
+			if self.fork && self.all {
+				throw ValidationError("You cannot specify --fork with --all")
+			}
+
+			#if USE_SETUID
+				if self.fork {
+					// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+					SudoCaked.becomeRootIfRequested()
+				}
+			#endif
 
 			if let name {
 				_ = try validateNetwork(networkName: name, runMode: self.common.runMode)
@@ -781,6 +969,11 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Network already running"))
 			}
 
+			#if USE_SETUID
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have: this has to happen before the root check below
+				SudoCaked.becomeRootIfRequested()
+			#endif
+
 			if geteuid() != 0 {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
 			}
@@ -821,6 +1014,11 @@ struct Networks: ParsableCommand {
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
+
+			#if USE_SETUID
+				// A setuid-root caked launched by SudoCaked takes root as its real uid too, as sudo would have
+				SudoCaked.becomeRootIfRequested()
+			#endif
 
 			if geteuid() != 0 {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
