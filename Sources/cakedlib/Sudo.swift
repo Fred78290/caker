@@ -315,11 +315,13 @@ public final class SudoCaked {
 			return true
 		}
 
-		let info = try FileManager.default.attributesOfItem(atPath: binary.path(percentEncoded: false)) as NSDictionary
+		#if BECOME_PARANOID
+			let info = try FileManager.default.attributesOfItem(atPath: binary.path(percentEncoded: false)) as NSDictionary
 
-		if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
-			return true
-		}
+			if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
+				return true
+			}
+		#endif
 
 		let process = Process()
 
@@ -397,39 +399,43 @@ extension SudoCaked {
 		}.sorted()
 	}
 
-	/// Whether `url` is owned by root and can't be modified by anybody else.
-	static func isRootProtected(_ url: URL) -> Bool {
-		guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)) as NSDictionary else {
-			return false
-		}
-
-		return attributes.fileOwnerAccountID()?.uint32Value == 0 && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
-	}
-
-	/// Whether `binary` and every directory between it and the outermost `.app` bundle containing it are owned by root and
-	/// not writable by others. A package installs a bundle like that; a drag-and-drop install or a build in DerivedData doesn't.
-	///
-	/// This doesn't cover the directory the bundle sits in (`/Applications` is writable by the admin group): that is what the digest is for.
-	public static func isProtectedBundledBinary(_ binary: URL) -> Bool {
-		let resolved = binary.resolvingSymlinksInPath().standardizedFileURL
-		var chain: [URL] = [resolved]
-		var directory = resolved.deletingLastPathComponent()
-
-		// Every directory up to the outermost `.app` containing the binary; nothing at all above it.
-		var outermost: Int? = nil
-
-		while directory.path != "/" {
-			chain.append(directory)
-
-			if directory.pathExtension == "app" {
-				outermost = chain.count
+	#if BECOME_PARANOID
+		/// Whether `url` is owned by root and can't be modified by anybody else.
+		static func isRootProtected(_ url: URL) -> Bool {
+			guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)) as NSDictionary else {
+				return false
 			}
 
-			directory = directory.deletingLastPathComponent()
+			return attributes.fileOwnerAccountID()?.uint32Value == 0 && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
 		}
+	#endif
 
-		return chain.prefix(outermost ?? 1).allSatisfy { isRootProtected($0) }
-	}
+	#if BECOME_PARANOID
+		/// Whether `binary` and every directory between it and the outermost `.app` bundle containing it are owned by root and
+		/// not writable by others. A package installs a bundle like that; a drag-and-drop install or a build in DerivedData doesn't.
+		///
+		/// This doesn't cover the directory the bundle sits in (`/Applications` is writable by the admin group): that is what the digest is for.
+		public static func isProtectedBundledBinary(_ binary: URL) -> Bool {
+			let resolved = binary.resolvingSymlinksInPath().standardizedFileURL
+			var chain: [URL] = [resolved]
+			var directory = resolved.deletingLastPathComponent()
+
+			// Every directory up to the outermost `.app` containing the binary; nothing at all above it.
+			var outermost: Int? = nil
+
+			while directory.path != "/" {
+				chain.append(directory)
+
+				if directory.pathExtension == "app" {
+					outermost = chain.count
+				}
+
+				directory = directory.deletingLastPathComponent()
+			}
+
+			return chain.prefix(outermost ?? 1).allSatisfy { isRootProtected($0) }
+		}
+	#endif
 
 	public static func sha256Hex(of url: URL) throws -> String {
 		var hasher = SHA256()
@@ -464,13 +470,16 @@ extension SudoCaked {
 	/// The content of the rule file of the user `uid` (`sudoersRulePath(uid:)`) for the binary `caked`.
 	/// Throws when `caked` can't be trusted with root (see `isProtectedBundledBinary(_:)`).
 	public static func sudoersRule(uid: uid_t, caked: URL) throws -> String {
-		guard isProtectedBundledBinary(caked) else {
-			throw ServiceError("\(caked.path(percentEncoded: false)) must be owned by root and not writable by others to be run without a password")
-		}
+		#if BECOME_PARANOID
+			guard isProtectedBundledBinary(caked) else {
+				throw ServiceError("\(caked.path(percentEncoded: false)) must be owned by root and not writable by others to be run without a password")
+			}
+			let digest = try sha256Hex(of: caked.resolvingSymlinksInPath())
 
-		let digest = try sha256Hex(of: caked.resolvingSymlinksInPath())
-
-		return "#\(uid) ALL=(root:wheel) NOPASSWD:SETENV: sha256:\(digest) \(escapedForSudoers(caked.path(percentEncoded: false)))\n"
+			return "#\(uid) ALL=(root:wheel) NOPASSWD:SETENV: sha256:\(digest) \(escapedForSudoers(caked.path(percentEncoded: false)))\n"
+		#else
+			return "#\(uid) ALL=(root:wheel) NOPASSWD:SETENV: \(escapedForSudoers(caked.path(percentEncoded: false)))\n"
+		#endif
 	}
 
 	/// Whether the installed rule lets the current user run `caked` as root: sudo checks the user, the path and the digest.

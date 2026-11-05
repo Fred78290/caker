@@ -197,32 +197,36 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		}
 	}
 
-	/// Whether `url` is owned by root and can't be modified by anybody else.
-	/// True when this helper executable isn't root-owned and protected, which is never the case once it is installed with the app.
-	private static let isDevelopmentHelper: Bool = {
-		guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else {
-			return false
+	#if BECOME_PARANOID
+		/// Whether `url` is owned by root and can't be modified by anybody else.
+		/// True when this helper executable isn't root-owned and protected, which is never the case once it is installed with the app.
+		private func isDevelopmentHelper() -> Bool {
+			guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else {
+				return false
+			}
+
+			return isRootOwnedAndProtected(executable) == false
 		}
+	#endif
 
-		return isRootOwnedAndProtected(executable) == false
-	}()
+	#if BECOME_PARANOID
+		private func isRootOwnedAndProtected(_ url: URL, alsoOwnedBy uid: uid_t? = nil) -> Bool {
+			guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as NSDictionary else {
+				return false
+			}
 
-	private static func isRootOwnedAndProtected(_ url: URL, alsoOwnedBy uid: uid_t? = nil) -> Bool {
-		guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) as NSDictionary else {
-			return false
+			let owner = attributes.fileOwnerAccountID()?.uint32Value
+
+			return (owner == 0 || (uid != nil && owner == uid)) && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
 		}
-
-		let owner = attributes.fileOwnerAccountID()?.uint32Value
-
-		return (owner == 0 || (uid != nil && owner == uid)) && (attributes.filePosixPermissions() & Int(S_IWGRP | S_IWOTH)) == 0
-	}
+	#endif
 
 	/// The `caked` shipped with the app the helper belongs to. It runs as root, so it must be root-owned and not writable by others.
 	///
 	/// A `caked` owned by the caller (`alsoOwnedBy`) is accepted only when the helper's own executable isn't root-protected either, i.e. a development build run from Xcode's
 	/// products, where a freshly built binary belongs to the developer. Whoever can replace such a `caked` can already replace the helper, so nothing more is exposed.
 	/// An installed helper is root-owned: it only runs a root-owned `caked`.
-	private static func trustedCaked(in appURL: URL? = nil, alsoOwnedBy uid: uid_t? = nil) throws -> URL {
+	private func trustedCaked(in appURL: URL? = nil, alsoOwnedBy uid: uid_t? = nil) throws -> URL {
 		var candidates: [URL] = []
 
 		self.logger.debug("Finding trusted caked")
@@ -243,11 +247,22 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			throw ServiceError("caked not found")
 		}
 
-		let developer = Self.isDevelopmentHelper ? uid : nil
+		#if BECOME_PARANOID
+			let isDevelopmentHelper = self.isDevelopmentHelper()
+			let developer = isDevelopmentHelper ? uid : nil
 
-		guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
-			throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
-		}
+			guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
+				if let uid, isDevelopmentHelper {
+					throw ServiceError("\(caked.path) must be owned by root or uid \(uid) and not writable by others to be run by the helper")
+				} else {
+					throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
+				}
+			}
+
+			guard isRootOwnedAndProtected(caked, alsoOwnedBy: developer) else {
+				throw ServiceError("\(caked.path) must be owned by root and not writable by others to be run by the helper")
+			}
+		#endif
 
 		return caked
 	}

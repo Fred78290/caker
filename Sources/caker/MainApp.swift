@@ -870,7 +870,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			let caked = URL(fileURLWithPath: path).appendingPathComponent("caked")
 
-			return SudoCaked.isProtectedBundledBinary(caked) && SudoCaked.isCurrent(for: caked) == false
+			#if BECOME_PARANOID
+				return SudoCaked.isProtectedBundledBinary(caked) && SudoCaked.isCurrent(for: caked) == false
+			#else
+				return SudoCaked.isCurrent(for: caked) == false
+			#endif
 		}
 
 		/// Installs /etc/paths.d/com.aldunelabs.caker and the current user's /etc/sudoers.d/caked-pinned-<uid> through the privileged helper once it is
