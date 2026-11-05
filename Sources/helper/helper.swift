@@ -176,7 +176,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		let attributes = try FileManager.default.attributesOfItem(atPath: resolved.path) as NSDictionary
 
 		guard attributes.fileType() == FileAttributeType.typeDirectory.rawValue, attributes.fileOwnerAccountID()?.uint32Value == caller.uid else {
-			throw ServiceError("Cake home \(resolved.path) is not a directory owned by the calling user")
+			throw ServiceError("Cake home \(resolved.path) is not a directory owned by the calling user \(caller.uid)")
 		}
 
 		return resolved
@@ -325,7 +325,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 
 			try Self.validateNetworkName(networkName)
 
-			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
+			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
 
 			if pidFile.isCakedRunning() {
@@ -407,7 +407,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			// have root open a path or take an option it was not written for. Only a Multipass import needs root.
 			try ImportHandler.validatePrivilegedImportArguments(arguments)
 
-			let caked = try Self.trustedCaked(alsoOwnedBy: caller.uid)
+			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let result = try Self.runAndCollect(caked, arguments: ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments, environment: Self.environment(home: home))
 
 			guard result.status == 0 else {
@@ -446,7 +446,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				throw ServiceError("Invalid pid file '\(pidFile)'")
 			}
 
-			let caked = try Self.trustedCaked()
+			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let log = Self.logFile()
 			let process = ProcessWithSharedFileHandle()
 
@@ -500,7 +500,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			}
 
 			// `caked` goes into a NOPASSWD sudoers rule: the file must be one nobody but root can replace.
-			let caked = try Self.trustedCaked(in: app)
+			let caked = try self.trustedCaked(in: app, alsoOwnedBy: caller.uid)
 
 			let plugins = app.appendingPathComponent("Contents/PlugIns")
 			let directories = ["caked.app", "cakectl.app"]
