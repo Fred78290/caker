@@ -179,7 +179,7 @@ public actor IMDSCoordinator {
 		let runMode = self.runMode
 
 		do {
-			#if !APPSTORE
+			#if !APPSTORE || USE_AUTHORIZATION_HELPER
 				if geteuid() == 0 {
 					try PFRedirect.enableAddressAlias(externalAddress: IMDSNetworkInterface.awsCompatAddress, targetAddress: IMDSServer.bindAddress, targetPort: 0)
 					self.logger.info("IMDS also reachable at http://\(IMDSNetworkInterface.awsCompatAddress) (AWS-style compatibility address)")
@@ -232,7 +232,7 @@ public actor IMDSCoordinator {
 		let runMode = self.runMode
 
 		do {
-			#if !APPSTORE
+			#if !APPSTORE || USE_AUTHORIZATION_HELPER
 				if geteuid() == 0 {
 					try PFRedirect.disableAddressAlias()
 

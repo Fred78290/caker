@@ -217,9 +217,7 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 	/// Runs `body` against the shared helper connection. Returns `nil` when the helper is not an option here (sandboxed,
 	/// App Store build, system run mode, or helper unreachable), so the caller can use `sudo` instead; real failures are thrown.
 	public static func viaHelper<T: Sendable>(runMode: Utils.RunMode, _ body: @escaping @Sendable (DirectAuthorizationHelperConnector) async throws -> T) async throws -> T? {
-		#if APPSTORE
-			return nil
-		#else
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
 			// The helper works on the calling user's cake home only.
 			guard Bundle.isApplicationSandboxed == false, runMode.isSystem == false else {
 				return nil
@@ -232,6 +230,8 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 
 				return nil
 			}
+		#else
+			return nil
 		#endif
 	}
 

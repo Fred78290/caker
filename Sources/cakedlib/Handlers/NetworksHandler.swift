@@ -264,7 +264,7 @@ public struct NetworksHandler {
 			SCPreferencesCommitChanges(ref)
 			SCPreferencesApplyChanges(ref)
 		} else {
-			#if !APPSTORE
+			#if !APPSTORE || USE_AUTHORIZATION_HELPER
 				// The privileged helper first; sudo when it is not installed or approved.
 				if let reason = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.setDHCPLease(leaseTime: leaseTime) }) {
 					return reason
@@ -477,7 +477,7 @@ public struct NetworksHandler {
 		var environment = try Utilities.environment(runMode: runMode)
 		let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
 
-		#if !APPSTORE
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
 			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
 			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
 			if direct == false, phUseLimaVMNet == false {
@@ -867,7 +867,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path(percentEncoded: false))")
 
-		#if !APPSTORE
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
 			if canManageNetworkWithoutRoot == false {
 				// The helper starts it as root and replies once the network wrote its pid file.
 				if try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil {

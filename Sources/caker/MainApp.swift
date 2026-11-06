@@ -775,7 +775,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		Self.ensureCertificates()
 
-		#if !APPSTORE
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
 			if Bundle.isApplicationSandboxed == false {
 				while DirectAuthorizationHelperConnector.install() == false {
 					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
@@ -854,15 +854,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	static var isPrivilegedBootstrapFilesInstalled: Bool {
-		#if APPSTORE
-			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
-		#else
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
 			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: SudoCaked.sudoersRulePath(uid: getuid()))
 				&& SudoCaked.legacySudoersRulePaths.allSatisfy { FileManager.default.fileExists(atPath: $0) == false }
+		#else
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
 		#endif
 	}
 
-	#if !APPSTORE
+	#if !APPSTORE || USE_AUTHORIZATION_HELPER
 		/// The passwordless sudo rule pins `caked` by its digest, so it stops working when the app is updated. True when the rule exists,
 		/// no longer accepts the bundled `caked`, and could be written again (a bundle that isn't root-owned never gets a rule).
 		static var isSudoersRuleStale: Bool {
@@ -923,7 +923,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path(percentEncoded: false)) == false
 
-			#if !APPSTORE
+			#if !APPSTORE || USE_AUTHORIZATION_HELPER
 				let sudoersFile = URL(fileURLWithPath: SudoCaked.sudoersRulePath(uid: getuid()))
 				let cakedURL = URL(fileURLWithPath: pluginPaths[0]).appendingPathComponent("caked")
 				// The rule pins `caked` by digest, so an updated app needs it written again.
@@ -946,7 +946,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				try contents.append(contentsOf: installRootOwnedFile(content: pathsContent, to: pathsFile, mode: "0644"))
 			}
 
-			#if !APPSTORE
+			#if !APPSTORE || USE_AUTHORIZATION_HELPER
 				if needsSudoersFile {
 					do {
 						// Only a root-owned bundle (a package install) gets a passwordless rule, and only for the current user.
