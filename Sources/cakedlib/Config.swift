@@ -846,8 +846,7 @@ extension VirtualMachineConfiguration {
 
 	public func collectNetworks(runMode: Utils.RunMode) throws -> [NetworkAttachement] {
 		let networks = self.qualifiedNetworks
-		let home: Home = try Home(runMode: runMode)
-		let networkConfig = try home.sharedNetworks()
+		let networkConfig = try NetworksHandler.sharedNetworks(runMode: runMode)
 		let sharedNetworks = networkConfig.sharedNetworks
 
 		return try networks.compactMap { inf in

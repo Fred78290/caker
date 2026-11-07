@@ -32,7 +32,7 @@ extension Caked_CreateNetworkRequest {
 			dhcpEnd: self.dhcpEnd,
 			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
 			interfaceID: self.hasUuid ? self.uuid : UUID().uuidString,
-			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil,
+			nat66Prefix: self.nat66Prefix,
 			dns: self.dns
 		)
 	}
@@ -54,44 +54,9 @@ extension Caked_ConfigureNetworkRequest {
 	}
 }
 
-public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
-	public var defaultValueDescription: String { "host" }
+public typealias VMNetMode = BridgedNetworkMode
 
-	public static let allValueStrings: [String] = VMNetMode.allCases.map { "\($0)" }
-
-	case nat
-	case host
-	case shared
-	case bridged
-
-	public var description: String {
-		switch self {
-		case .host:
-			return String(localized: "Hosted network")
-		case .shared:
-			return String(localized: "Shared network")
-		case .bridged:
-			return String(localized: "Bridged network")
-		case .nat:
-			return BridgeAttachement.defaultNetworkDescription
-		}
-	}
-
-	public init?(argument: String) {
-		switch argument {
-		case "nat":
-			self = .nat
-		case "host":
-			self = .host
-		case "shared":
-			self = .shared
-		case "bridged":
-			self = .bridged
-		default:
-			return nil
-		}
-	}
-
+extension VMNetMode {
 	public var integerValue: uint64 {
 		switch self {
 		case .nat:
@@ -103,12 +68,6 @@ public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 		case .bridged:
 			return 1002
 		}
-	}
-}
-
-extension BridgedNetworkMode {
-	init(_ from: VMNetMode) {
-		self.init(rawValue: from.rawValue)!
 	}
 }
 
@@ -168,6 +127,44 @@ public struct NetworksHandler {
 		#endif
 	}
 
+	/// Whether the network operations of this process go through the privileged helper first: a sandboxed caker neither runs a vmnet
+	/// network nor reaches what a root one creates (its pid, its control socket), so the helper, which is root, does it for the sandbox.
+	/// Never true for root itself, the helper's own `caked` children included: they do the work.
+	public static var usesHelperForNetworks: Bool {
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
+			return Bundle.isApplicationSandboxed && geteuid() != 0
+		#else
+			return false
+		#endif
+	}
+
+	/// Runs `body` against the privileged helper when `usesHelperForNetworks`. `nil` when it doesn't apply or the helper can't be reached
+	/// (not installed, not approved): the caller then does the work itself. A refusal of the helper is thrown.
+	public static func viaSandboxHelper<T: Sendable>(runMode: Utils.RunMode, _ body: @escaping @Sendable (DirectAuthorizationHelperConnector) async throws -> T) async throws -> T? {
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
+			guard usesHelperForNetworks else {
+				return nil
+			}
+
+			return try await DirectAuthorizationHelperConnector.viaHelper(runMode: runMode, body)
+		#else
+			return nil
+		#endif
+	}
+
+	/// Blocking variant of `viaSandboxHelper`, for the synchronous commands.
+	public static func viaSandboxHelperSync<T: Sendable>(runMode: Utils.RunMode, _ body: @escaping @Sendable (DirectAuthorizationHelperConnector) async throws -> T) throws -> T? {
+		#if !APPSTORE || USE_AUTHORIZATION_HELPER
+			guard usesHelperForNetworks else {
+				return nil
+			}
+
+			return try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, body)
+		#else
+			return nil
+		#endif
+	}
+
 	/// Whether this process can start, signal and stop a network service itself instead of going through `sudo caked`.
 	/// vmnet networks created with `vmnet_network_ref` (macOS 26+) or with the vmnet entitlement don't need root, except
 	/// when caked serves DHCP: then the service must always be root, whoever starts it.
@@ -215,6 +212,13 @@ public struct NetworksHandler {
 			return ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
 		}
 	#endif
+
+	/// Return networks configuration
+	public static func sharedNetworks(runMode: Utils.RunMode) throws -> VZVMNetConfig {
+		let home: Home = try Home(runMode: runMode)
+		
+		return try home.sharedNetworks()
+	}
 
 	/// `<CAKE_HOME>/net/<name>/dhcpd_leases`: the lease table of the DHCP server of that network.
 	public static func dhcpLeaseFile(networkName: String, runMode: Utils.RunMode) throws -> URL {
@@ -480,7 +484,7 @@ public struct NetworksHandler {
 		#if !APPSTORE || USE_AUTHORIZATION_HELPER
 			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
 			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
-			if direct == false, phUseLimaVMNet == false {
+			if direct == false || NetworksHandler.usesHelperForNetworks, phUseLimaVMNet == false {
 				let helperCanUsePID: Bool = {
 					guard let helperHome = try? Home(runMode: runMode) else {
 						return false
@@ -745,6 +749,10 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 				throw ServiceError(String(localized: "Network \(networkName) is a reserved default network and cannot be configured"))
 			}
 
+			guard Self.isPhysicalInterface(name: String(networkName)) == false else {
+				return ConfiguredNetworkReply(name: networkName, configured: false, reason: String(localized: "Network \(networkName) is a physical interface"))
+			}
+
 			let home: Home = try Home(runMode: runMode)
 			var networkConfig = try home.sharedNetworks()
 
@@ -755,6 +763,8 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 			if existing == network {
 				return ConfiguredNetworkReply(name: networkName, configured: false, reason: String(localized: "Network \(networkName) unchanged"))
 			}
+
+			try network.validate(runMode: runMode, excluding: networkName)
 
 			networkConfig.userNetworks[networkName] = network
 			try home.setSharedNetworks(networkConfig)
@@ -868,7 +878,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path(percentEncoded: false))")
 
 		#if !APPSTORE || USE_AUTHORIZATION_HELPER
-			if canManageNetworkWithoutRoot == false {
+			if canManageNetworkWithoutRoot == false || NetworksHandler.usesHelperForNetworks {
 				// The helper starts it as root and replies once the network wrote its pid file.
 				if try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil {
 					Logger(self).info("Network \(networkName) started by the privileged helper")
@@ -1153,6 +1163,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 			gateway: BridgeAttachement.defaultNetworkGateway,
 			dhcpEnd: dhcpEnd,
 			dhcpLease: dhcpLease,
+			nat66Prefix: String.empty,
 			interfaceID: BridgeAttachement.defaultNetworkUUID,
 			endpoint: String.empty,
 			running: false,
@@ -1239,7 +1250,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 			let referencedNetworks = Self.referencedNetworks(runMode: runMode)
 			let networkInterfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
 
-			func createBridgedNetwork(_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String, _ dns: Bool) throws -> BridgedNetwork {
+			func createBridgedNetwork(_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ nat66Prefix: String, _ dhcpLease: String, _ dns: Bool) throws -> BridgedNetwork {
 				let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
 				let endpoint: String
 				let running = socketURL.pidFile.isPIDRunning().running
@@ -1258,6 +1269,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 					gateway: gateway,
 					dhcpEnd: dhcpEnd,
 					dhcpLease: dhcpLease,
+					nat66Prefix: nat66Prefix,
 					interfaceID: uuid,
 					endpoint: endpoint,
 					running: running,
@@ -1277,12 +1289,14 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 							address.network.description,
 							"\(address.range.upperBound.description)/\(address.network.bits)",
 							String.empty,
+							String.empty,
 							false)
 					} else {
 						return try createBridgedNetwork(
 							inf.identifier,
 							.bridged,
 							inf.localizedDisplayName ?? inf.identifier,
+							String.empty,
 							String.empty,
 							String.empty,
 							String.empty,
@@ -1299,9 +1313,10 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 				let uuid = $1.value.interfaceID
 				let dns = $1.value.dns ?? false
+				let nat66Prefix = $1.value.nat66Prefix
 				let networkLease = $1.value.dhcpLease.map { "\($0)" } ?? dhcpLease
 
-				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, networkLease, dns))
+				$0.append(try createBridgedNetwork($1.key, $1.value.mode, $1.value.mode.description, uuid, gateway, dhcpEnd, nat66Prefix, networkLease, dns))
 			}.sorted {
 				$0 < $1
 			}
@@ -1321,6 +1336,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 		var gateway: String = String.empty
 		var dhcpEnd: String = String.empty
 		var dhcpLease: String = String.empty
+		var nat66Prefix: String = String.empty
 		var endpoint: String = String.empty
 		var managed = true
 		var dns = false
@@ -1346,6 +1362,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 						description: String.empty,
 						gateway: String.empty,
 						dhcpLease: String.empty,
+						nat66Prefix: String.empty,
 						interfaceID: String.empty,
 						endpoint: String.empty,
 						running: false,
@@ -1364,6 +1381,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 						description: String.empty,
 						gateway: String.empty,
 						dhcpLease: String.empty,
+						nat66Prefix: String.empty,
 						interfaceID: String.empty,
 						endpoint: String.empty,
 						running: false,
@@ -1376,11 +1394,12 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 
 			let cidr = network.netmask.netmaskToCidr()
 			dns = network.dns ?? false
-			mode = .init(network.mode)
+			mode = network.mode
 			description = network.mode.description
 			uuid = network.interfaceID
 			gateway = "\(network.dhcpStart)/\(cidr)"
 			dhcpEnd = "\(network.dhcpEnd)/\(cidr)"
+			nat66Prefix = network.nat66Prefix
 			managed = mode != .nat
 			#if !USE_DHCP_SERVER
 				if let value = try? Self.getDHCPLease() {
@@ -1406,6 +1425,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 				gateway: gateway,
 				dhcpEnd: dhcpEnd,
 				dhcpLease: dhcpLease,
+				nat66Prefix: nat66Prefix,
 				interfaceID: uuid,
 				endpoint: endpoint,
 				running: running,
@@ -1422,6 +1442,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 					description: String.empty,
 					gateway: String.empty,
 					dhcpLease: String.empty,
+					nat66Prefix: String.empty,
 					interfaceID: String.empty,
 					endpoint: String.empty,
 					running: false,

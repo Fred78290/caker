@@ -120,7 +120,7 @@ struct NetworkWizard: View {
 				dhcpEnd: dhcpEnd.description,
 				dhcpLease: Int32(network.dhcpLease),
 				interfaceID: network.interfaceID,
-				nat66Prefix: nil
+				nat66Prefix: String.empty
 			)
 
 			return (network, nil)

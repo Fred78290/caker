@@ -6,12 +6,45 @@
 //
 
 import Foundation
+import ArgumentParser
 
 public enum BridgedNetworkMode: String, Codable, CaseIterable {
+	public var defaultValueDescription: String { "host" }
+
 	case nat
-	case bridged
-	case shared
 	case host
+	case shared
+	case bridged
+
+	public var description: String {
+		switch self {
+		case .host:
+			return String(localized: "Hosted network")
+		case .shared:
+			return String(localized: "Shared network")
+		case .bridged:
+			return String(localized: "Bridged network")
+		case .nat:
+			return BridgeAttachement.defaultNetworkDescription
+		}
+	}
+}
+
+extension BridgedNetworkMode: ExpressibleByArgument {
+	public init?(argument: String) {
+		switch argument {
+		case "nat":
+			self = .nat
+		case "host":
+			self = .host
+		case "shared":
+			self = .shared
+		case "bridged":
+			self = .bridged
+		default:
+			return nil
+		}
+	}
 }
 
 public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
@@ -38,6 +71,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 	public var dhcpEnd = String.empty
 	public var dhcpLease: String = String.empty
 	public var interfaceID: String = String.empty
+	public var nat66Prefix: String = String.empty
 	public var endpoint: String = String.empty
 	public var running: Bool = false
 	public var managed: Bool = false
@@ -74,6 +108,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		gateway: String,
 		dhcpEnd: String = String.empty,
 		dhcpLease: String,
+		nat66Prefix: String,
 		interfaceID: String,
 		endpoint: String,
 		running: Bool,
@@ -93,6 +128,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.running = running
 		self.managed = managed
 		self.dns = dns
+		self.nat66Prefix = nat66Prefix
 	}
 
 	public static func random(existingNetworks: [BridgedNetwork] = []) -> BridgedNetwork {
@@ -120,6 +156,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			gateway: gateway,
 			dhcpEnd: "192.168.\(thirdOctet).254",
 			dhcpLease: String.empty,
+			nat66Prefix: String.empty,
 			interfaceID: UUID().uuidString,
 			endpoint: String.empty,
 			running: false,
@@ -141,6 +178,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.running = from.running
 		self.managed = from.managed
 		self.dns = from.dns
+		self.nat66Prefix = from.nat66Prefix
 	}
 
 	public var caked: Caked_NetworkInfo {
@@ -157,6 +195,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			$0.managed = self.managed
 			$0.dns = self.dns
 			$0.active = Int32(self.usedBy.active)
+			$0.nat66Prefix = nat66Prefix
 		}
 	}
 }

@@ -18,9 +18,7 @@ extension NetworksHandler {
 				$0.dhcpEnd = network.dhcpEnd
 				$0.netmask = network.netmask
 				$0.uuid = network.interfaceID
-				if let nat66Prefix = network.nat66Prefix {
-					$0.nat66Prefix = nat66Prefix
-				}
+				$0.nat66Prefix = network.nat66Prefix
 				$0.dns = network.dns ?? false
 			}
 		}).response.wait().networks.created)

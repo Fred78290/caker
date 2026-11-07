@@ -9,6 +9,7 @@ APPSTORE=${APPSTORE:-0}
 USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
 SPARKLE_VERSION=2.10.0
 MINIMUM_SYSTEM_VERSION=${MINIMUM_SYSTEM_VERSION:-15.0}
+USE_AUTHORIZATION_HELPER=${USE_AUTHORIZATION_HELPER:-0}
 
 CAKER_APP="${PKGDIR}/Contents"
 CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
@@ -40,7 +41,7 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 
 # The privileged helper is a launchd daemon registered through SMAppService: its plist lives in
 # Contents/Library/LaunchDaemons and its BundleProgram points at the binary in Contents/MacOS.
-if [ $APPSTORE -eq 0 ]; then
+if [ $APPSTORE -eq 0 ] || [ $USE_AUTHORIZATION_HELPER -eq 1 ]; then
 	mkdir -p "${CAKER_APP}/Library/LaunchDaemons"
 fi
 
@@ -104,8 +105,8 @@ cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"
 cp -c "${BINARYDIR}/cakectl" "${CAKECTL_APP}/MacOS/cakectl"
 cp -c "${BINARYDIR}/caked" "${CAKED_APP}/MacOS/caked"
 
-if [ $APPSTORE -eq 0 ]; then
-	cp -c "${BINARYDIR}/helper" "${CAKER_APP}/MacOS/helper"
+if [ $APPSTORE -eq 0 ] || [ $USE_AUTHORIZATION_HELPER -eq 1 ]; then
+	cp -c "${BINARYDIR}/AuthorizationHelper" "${CAKER_APP}/Contents/Helpers/AuthorizationHelper"
 	cp -c "${PROJECT_ROOT}/Resources/com.aldunelabs.caker.authorization.plist" "${CAKER_APP}/Library/LaunchDaemons/com.aldunelabs.caker.authorization.plist"
 fi
 
@@ -210,6 +211,16 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--strip-disallowed-xattrs \
 		--force "${CAKED_APP}/MacOS/caked"
 
+	if [ $USE_AUTHORIZATION_HELPER -eq 1 ]; then
+		codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
+			--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/helper.entitlements" \
+			--strip-disallowed-xattrs \
+			--force "${CAKER_APP}/Contents/Helpers/AuthorizationHelper"
+	fi
+
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
@@ -299,18 +310,19 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
+			--identifier "com.aldunelabs.caker.authorization" \
+			--entitlements "${PROJECT_ROOT}/Resources/release/helper.entitlements" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.authorization}" \
+			--force "${CAKER_APP}/Contents/Helpers/AuthorizationHelper"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
 			--identifier "com.aldunelabs.caker" \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
 			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
 			--force "${CAKER_APP}/MacOS/Caker"
-
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--timestamp \
-			--identifier "com.aldunelabs.caker.authorization" \
-			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.authorization}" \
-			--force "${CAKER_APP}/MacOS/helper"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -354,16 +366,16 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
-			--identifier "com.aldunelabs.caker" \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
-			--force "${CAKER_APP}/MacOS/Caker"
+			--identifier "com.aldunelabs.caker.authorization" \
+			--force "${CAKER_APP}/Contents/Helpers/AuthorizationHelper"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
-			--identifier "com.aldunelabs.caker.authorization" \
-			--force "${CAKER_APP}/MacOS/helper"
+			--identifier "com.aldunelabs.caker" \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
+			--force "${CAKER_APP}/MacOS/Caker"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -387,7 +399,7 @@ else
 	echo "Build unsigned debug binaries"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/cakectl.entitlements" --force "${CAKECTL_APP}/MacOS/cakectl"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caked.entitlements" --force "${CAKED_APP}/MacOS/caked"
-	codesign --sign - --identifier "com.aldunelabs.caker.authorization" --force "${CAKER_APP}/MacOS/helper"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/helper.entitlements" --force "${CAKER_APP}/Contents/Helpers/AuthorizationHelper"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/libswiftCompatibilitySpan.dylib"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/Sparkle.framework/Versions/Current"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/MacOS/Caker"

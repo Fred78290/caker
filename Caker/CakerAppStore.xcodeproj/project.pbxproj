@@ -421,7 +421,7 @@
 		9B8F3057309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3056309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist */; };
 		9B8F305A309CF98F0079ADB6 /* AuthorizationHelperConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8F3058309CF98F0079ADB6 /* AuthorizationHelperConnector.swift */; };
 		9B8F305B309CF98F0079ADB6 /* AuthorizationHelperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8F3059309CF98F0079ADB6 /* AuthorizationHelperProtocol.swift */; };
-		9B8F305D309CFD180079ADB6 /* helper in Copy Authorization */ = {isa = PBXBuildFile; fileRef = 9B8F304A309CF7060079ADB6 /* helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9B8F305D309CFD180079ADB6 /* AuthorizationHelper in Copy Authorization */ = {isa = PBXBuildFile; fileRef = 9B8F304A309CF7060079ADB6 /* AuthorizationHelper */; };
 		9B8F305F309CFD5D0079ADB6 /* com.aldunelabs.caker.authorization.plist in Copy Helper */ = {isa = PBXBuildFile; fileRef = 9B8F3056309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist */; };
 		9B8F3061309CFE0E0079ADB6 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F3060309CFE0E0079ADB6 /* Dynamic */; };
 		9B8F3063309CFE0E0079ADB6 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F3062309CFE0E0079ADB6 /* Algorithms */; };
@@ -474,6 +474,7 @@
 		9B8F30C5309D02440079ADB6 /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F30C4309D02440079ADB6 /* ZLib */; };
 		9B8F30C7309D02D00079ADB6 /* Antlr4Static in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F30C6309D02D00079ADB6 /* Antlr4Static */; };
 		9B8F30C9309D03630079ADB6 /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F30C8309D03630079ADB6 /* Crypto */; };
+		9B8F30CC309D10000079ADB6 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
@@ -822,7 +823,6 @@
 		9BF2DA872FE5475D00218073 /* VirtualizationPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF2DA7D2FE5475D00218073 /* VirtualizationPrivate.h */; };
 		9BF2DA882FE5475D00218073 /* MobileDeviceEnums.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF2DA792FE5475D00218073 /* MobileDeviceEnums.h */; };
 		9BF2DA892FE5475D00218073 /* MobileDeviceSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF2DA7B2FE5475D00218073 /* MobileDeviceSPI.h */; };
-		9B8F30CC309D10000079ADB6 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9BF2DA8A2FE547B800218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9BF2DA8D2FE547BD00218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9BF2DA902FE547C400218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
@@ -949,12 +949,12 @@
 			remoteGlobalIDString = 9BA9CBC92FCD7B8000CEBFC0;
 			remoteInfo = cakectl.bundle;
 		};
-		9B8F30CA309D10000079ADB6 /* PBXContainerItemProxy */ = {
+		9B792377309DDB9F009D49B9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 9BF2DA742FE5470700218073;
-			remoteInfo = VirtualInstallSPI;
+			remoteGlobalIDString = 9B8F3049309CF7060079ADB6;
+			remoteInfo = helper;
 		};
 		9B8F3093309CFE0F0079ADB6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1066,10 +1066,10 @@
 		};
 		9B8F305C309CFCF30079ADB6 /* Copy Authorization */ = {
 			isa = PBXCopyFilesBuildPhase;
-			dstPath = Contents/MacOS;
+			dstPath = Contents/Helpers;
 			dstSubfolder = Wrapper;
 			files = (
-				9B8F305D309CFD180079ADB6 /* helper in Copy Authorization */,
+				9B8F305D309CFD180079ADB6 /* AuthorizationHelper in Copy Authorization */,
 			);
 			name = "Copy Authorization";
 		};
@@ -1466,7 +1466,7 @@
 		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
-		9B8F304A309CF7060079ADB6 /* helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B8F304A309CF7060079ADB6 /* AuthorizationHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AuthorizationHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B8F3051309CF7CD0079ADB6 /* helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = helper.swift; sourceTree = "<group>"; };
 		9B8F3052309CF7CD0079ADB6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		9B8F3056309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.authorization.plist; sourceTree = "<group>"; };
@@ -2527,7 +2527,7 @@
 				9B29F8302FCAE4B700AEBCB8 /* Caker.app */,
 				9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.app */,
 				9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */,
-				9B8F304A309CF7060079ADB6 /* helper */,
+				9B8F304A309CF7060079ADB6 /* AuthorizationHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3491,6 +3491,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				9B792378309DDB9F009D49B9 /* PBXTargetDependency */,
 				9BA9CBD62FCD7D8500CEBFC0 /* PBXTargetDependency */,
 				9B29F79F2FCAE4B700AEBCB8 /* PBXTargetDependency */,
 				9BF2DA922FE547C400218073 /* PBXTargetDependency */,
@@ -3582,9 +3583,9 @@
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		9B8F3049309CF7060079ADB6 /* helper */ = {
+		9B8F3049309CF7060079ADB6 /* AuthorizationHelper */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "helper" */;
+			buildConfigurationList = 9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "AuthorizationHelper" */;
 			buildPhases = (
 				9B8F3046309CF7060079ADB6 /* Sources */,
 				9B8F3047309CF7060079ADB6 /* Frameworks */,
@@ -3595,9 +3596,8 @@
 			dependencies = (
 				9B8F3094309CFE0F0079ADB6 /* PBXTargetDependency */,
 				9B8F3097309CFE0F0079ADB6 /* PBXTargetDependency */,
-				9B8F30CB309D10000079ADB6 /* PBXTargetDependency */,
 			);
-			name = helper;
+			name = AuthorizationHelper;
 			packageProductDependencies = (
 				9B8F3060309CFE0E0079ADB6 /* Dynamic */,
 				9B8F3062309CFE0E0079ADB6 /* Algorithms */,
@@ -3648,7 +3648,7 @@
 				9B8F30C8309D03630079ADB6 /* Crypto */,
 			);
 			productName = helper;
-			productReference = 9B8F304A309CF7060079ADB6 /* helper */;
+			productReference = 9B8F304A309CF7060079ADB6 /* AuthorizationHelper */;
 			productType = "com.apple.product-type.tool";
 		};
 		9B96B00E2F4B68380069C970 /* CakerTests */ = {
@@ -3977,7 +3977,7 @@
 				9B29F79E2FCAE4B700AEBCB8 /* Caker */,
 				9B464B4E2D5A3E5C00164BF5 /* cakectl */,
 				9BEBC68D2DF43FEE0092B196 /* caked */,
-				9B8F3049309CF7060079ADB6 /* helper */,
+				9B8F3049309CF7060079ADB6 /* AuthorizationHelper */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
 				9BFE869C2F7E592B005CC9B2 /* caked.app */,
@@ -4908,10 +4908,10 @@
 			target = 9BA9CBC92FCD7B8000CEBFC0 /* cakectl.app */;
 			targetProxy = 9B6ECDE62FD1A78E00A51430 /* PBXContainerItemProxy */;
 		};
-		9B8F30CB309D10000079ADB6 /* PBXTargetDependency */ = {
+		9B792378309DDB9F009D49B9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BF2DA742FE5470700218073 /* VirtualInstallSPI */;
-			targetProxy = 9B8F30CA309D10000079ADB6 /* PBXContainerItemProxy */;
+			target = 9B8F3049309CF7060079ADB6 /* AuthorizationHelper */;
+			targetProxy = 9B792377309DDB9F009D49B9 /* PBXContainerItemProxy */;
 		};
 		9B8F3094309CFE0F0079ADB6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5035,7 +5035,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caker.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -5232,7 +5231,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
@@ -5263,7 +5261,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CODE_SIGN_FLAGS = "-i $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -5277,7 +5275,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
@@ -5346,10 +5344,11 @@
 			};
 			name = Release;
 		};
-		9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "helper" */ = {
+		9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "AuthorizationHelper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/helper.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
@@ -5368,29 +5367,26 @@
 				ENABLE_RESOURCE_ACCESS_USB = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.authorization;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "helper" */ = {
+		9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "AuthorizationHelper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/helper.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
@@ -5413,12 +5409,12 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.authorization;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -5546,7 +5542,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
@@ -5577,7 +5572,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CODE_SIGN_FLAGS = "$(inherited) -i $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -5591,7 +5586,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
@@ -5786,11 +5781,11 @@
 			);
 			defaultConfigurationName = Release;
 		};
-		9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "helper" */ = {
+		9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "AuthorizationHelper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "helper" */,
-				9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "helper" */,
+				9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "AuthorizationHelper" */,
+				9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "AuthorizationHelper" */,
 			);
 			defaultConfigurationName = Release;
 		};

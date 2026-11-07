@@ -1228,6 +1228,7 @@ message Caked {
         bool   managed     = 11;
         bool   dns         = 12;
         int32  active      = 13;
+        string nat66Prefix = 14;
       }
 
       message NetworkInfoReply {

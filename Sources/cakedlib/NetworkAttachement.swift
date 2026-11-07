@@ -372,7 +372,7 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 			dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
 			dhcpLease: nil,
 			interfaceID: IMDSNetworkInterface.imdsNetworkName,
-			nat66Prefix: nil
+			nat66Prefix: String.empty
 		)
 		super.init(mode: .host, macAddress: macAddress, networkName: IMDSNetworkInterface.imdsNetworkName, networkConfig: networkConfig)
 	}

@@ -44,9 +44,43 @@ public final class AuthorizationHelperReply: NSObject, NSSecureCoding, @unchecke
 
 @objc(AuthorizationHelperProtocol)
 public protocol AuthorizationHelperProtocol {
-	/// Start vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	/// Create network. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(createNetworkWithAuthorization:cakeHome:networkName:options:withReply:)
+	func createNetwork(authorization authData: Data, cakeHome: String, networkName: String, options: [String:Any], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// Configure network. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(configureNetworkWithAuthorization:cakeHome:networkName:options:withReply:)
+	func configureNetwork(authorization authData: Data, cakeHome: String, networkName: String, options: [String:Any], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// Start vmnet network with DHCP server. `authData` must be an AuthorizationExternalForm embedded in a Data.
 	@objc(startNetworkWithAuthorization:cakeHome:networkName:withReply:)
 	func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// Run a standalone network (`caked networks run`) as root on a descriptor handed over by the caller: the VM end of the
+	/// socketpair stays with the caller. Replies with the pid of the process once its pid file exists.
+	/// `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(runNetworkWithAuthorization:cakeHome:arguments:pidFile:fileHandle:withReply:)
+	func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// Restart vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(restartNetworkWithAuthorization:cakeHome:networkName:withReply:)
+	func restartNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// Stop vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(stopNetworkWithAuthorization:cakeHome:networkName:withReply:)
+	func stopNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// Delete vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(deleteNetworkWithAuthorization:cakeHome:networkName:withReply:)
+	func deleteNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// List network. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(listNetworkWithAuthorization:cakeHome:withReply:)
+	func listNetwork(authorization authData: Data, cakeHome: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
+	/// get network infos. `authData` must be an AuthorizationExternalForm embedded in a Data.
+	@objc(infosNetworkWithAuthorization:cakeHome:networkName:withReply:)
+	func infosNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
 	/// Set DHCP Lease. `authData` must be an AuthorizationExternalForm embedded in a Data.
 	@objc(setDHCPLeaseWithAuthorization:leaseTime:withReply:)
@@ -59,12 +93,6 @@ public protocol AuthorizationHelperProtocol {
 	/// Install or remove imds redirect. `authData` must be an AuthorizationExternalForm embedded in a Data.
 	@objc(imdsRedirectWithAuthorization:externalAddress:internalAddress:internalPort:install:withReply:)
 	func imdsRedirect(authorization authData: Data, externalAddress: String, internalAddress: String, internalPort: Int, install: Bool, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
-
-	/// Run a standalone network (`caked networks run`) as root on a descriptor handed over by the caller: the VM end of the
-	/// socketpair stays with the caller. Replies with the pid of the process once its pid file exists.
-	/// `authData` must be an AuthorizationExternalForm embedded in a Data.
-	@objc(runNetworkWithAuthorization:cakeHome:arguments:pidFile:fileHandle:withReply:)
-	func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
 	/// Install files in /etc/sudoers.d/caked & /etc/paths.d/com.aldunelabs.caker. `authData` must be an AuthorizationExternalForm embedded in a Data.
 	@objc(installPriviligedFilesWithAuthorization:cakerPath:withReply:)
@@ -104,12 +132,76 @@ public enum AuthorizationHelperCommon {
 	}
 
 	private static let commandInfo: [Selector: CommandInfo] = [
+		#selector(AuthorizationHelperProtocol.createNetwork(authorization:cakeHome:networkName:options:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.create-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to create named network.",
+				comment: "prompt shown when user is required to create named network"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.configureNetwork(authorization:cakeHome:networkName:options:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.configure-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to configure named network.",
+				comment: "prompt shown when user is required to configure named network"
+			)
+		),
 		#selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:)): CommandInfo(
 			authRightName: "com.aldunelabs.caker.authorization.start-network",
 			authRightDefault: kAuthorizationRuleClassAllow,
 			authRightDescription: NSLocalizedString(
 				"Helper is trying to start named network with DHCP server.",
 				comment: "prompt shown when user is required to authorize to start vmnet network with DHCP server"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.restartNetwork(authorization:cakeHome:networkName:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.restart-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to restart named network with DHCP server.",
+				comment: "prompt shown when user is required to authorize to restart vmnet network with DHCP server"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.run-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to run a network on a file descriptor.",
+				comment: "prompt shown when user is required to authorize to run a network on a file descriptor"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.stopNetwork(authorization:cakeHome:networkName:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.stop-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to stop named network with DHCP server.",
+				comment: "prompt shown when user is required to authorize to stop vmnet network with DHCP server"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.deleteNetwork(authorization:cakeHome:networkName:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.delete-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to delete named network with DHCP server.",
+				comment: "prompt shown when user is required to authorize to delete vmnet network with DHCP server"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.listNetwork(authorization:cakeHome:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.list-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to list network with DHCP server.",
+				comment: "prompt shown when user is required to authorize to list network"
+			)
+		),
+		#selector(AuthorizationHelperProtocol.infosNetwork(authorization:cakeHome:networkName:withReply:)): CommandInfo(
+			authRightName: "com.aldunelabs.caker.authorization.infos-network",
+			authRightDefault: kAuthorizationRuleClassAllow,
+			authRightDescription: NSLocalizedString(
+				"Helper is trying to get infos for named network.",
+				comment: "prompt shown when user is required to authorize to get infos for named network"
 			)
 		),
 		#selector(AuthorizationHelperProtocol.setDHCPLease(authorization:leaseTime:withReply:)): CommandInfo(
@@ -136,14 +228,6 @@ public enum AuthorizationHelperCommon {
 				comment: "prompt shown when user is required to authorize to import external virtual machine"
 			)
 		),
-		#selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.run-network",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to run a network on a file descriptor.",
-				comment: "prompt shown when user is required to authorize to run a network on a file descriptor"
-			)
-		),
 		#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)): CommandInfo(
 			authRightName: "com.aldunelabs.caker.authorization.install-priviliged-files",
 			authRightDefault: kAuthorizationRuleClassAllow,
@@ -153,6 +237,23 @@ public enum AuthorizationHelperCommon {
 			)
 		),
 	]
+
+	/// The XPC interface both ends use. `options: [String: Any]` of `createNetwork`/`configureNetwork` is a collection: NSXPCConnection
+	/// refuses to decode what it holds unless the classes allowed inside it are listed, so each end builds its interface here.
+	public static func makeInterface() -> NSXPCInterface {
+		let interface = NSXPCInterface(with: AuthorizationHelperProtocol.self)
+		let optionClasses = NSSet(array: [NSDictionary.self, NSString.self, NSNumber.self]) as! Set<AnyHashable>
+
+		// Argument 3 (counting from 0, the reply block excluded) is `options`.
+		for selector in [
+			#selector(AuthorizationHelperProtocol.createNetwork(authorization:cakeHome:networkName:options:withReply:)),
+			#selector(AuthorizationHelperProtocol.configureNetwork(authorization:cakeHome:networkName:options:withReply:)),
+		] {
+			interface.setClasses(optionClasses, for: selector, argumentIndex: 3, ofReply: false)
+		}
+
+		return interface
+	}
 
 	/// For a given command selector, returns the associated authorization right name.
 	public static func authorizationRight(for command: Selector) -> String? {

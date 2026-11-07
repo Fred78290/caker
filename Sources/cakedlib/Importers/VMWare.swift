@@ -555,7 +555,7 @@ struct VMWareImporter: Importer {
 								dhcpEnd: dhcpEnd.description,
 								dhcpLease: 300,
 								interfaceID: vmnet.uuid ?? UUID().uuidString,
-								nat66Prefix: vmnet.natIp6Prefix
+								nat66Prefix: vmnet.natIp6Prefix ?? String.empty
 							))
 					}
 				} else {

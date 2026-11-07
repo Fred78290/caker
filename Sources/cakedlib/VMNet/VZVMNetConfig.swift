@@ -9,7 +9,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public let dhcpEnd: String
 	public let dhcpLease: Int32?
 	public let interfaceID: String
-	public let nat66Prefix: String?
+	public let nat66Prefix: String
 	public var dns: Bool? = false
 	public var visible: Bool = true
 
@@ -24,7 +24,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		dhcpEnd: String,
 		dhcpLease: Int32? = nil,
 		interfaceID: String = "en0",
-		nat66Prefix: String? = nil,
+		nat66Prefix: String,
 		dns: Bool = false,
 		visible: Bool = true
 	) {
@@ -139,6 +139,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 			dhcpEnd: dhcpEnd.address!.description,
 			dhcpLease: Int32(network.dhcpLease) ?? 0,
 			interfaceID: network.interfaceID,
+			nat66Prefix: String.empty,
 			dns: network.dns,
 			visible: true)
 	}
@@ -151,6 +152,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 			dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
 			dhcpLease: try? NetworksHandler.getDHCPLease(),
 			interfaceID: IMDSNetworkInterface.imdsNetworkName,
+			nat66Prefix: String.empty,
 			dns: false,
 			visible: false)
 	}
@@ -259,7 +261,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public static func createNetwork(mode: VMNetMode, baseAddress: String, cidr: Int, runMode: Utils.RunMode) throws -> VZSharedNetwork {
 		let (gateway, dhcpEnd) = try freeIP(baseAddress, includeSharedNetworks: false, runMode: runMode)
 
-		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, interfaceID: UUID().uuidString, nat66Prefix: nil, dns: false, visible: true)
+		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, interfaceID: UUID().uuidString, nat66Prefix: String.empty, dns: false, visible: true)
 	}
 }
 

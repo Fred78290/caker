@@ -476,6 +476,7 @@ struct EditableNetworkDetailView: View {
 				gateway: BridgeAttachement.defaultNetworkGateway,
 				dhcpEnd: String.empty,
 				dhcpLease: String.empty,
+				nat66Prefix: String.empty,
 				interfaceID: BridgeAttachement.defaultNetworkUUID,
 				endpoint: String.empty,
 				running: false,

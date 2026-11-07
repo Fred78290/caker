@@ -110,8 +110,7 @@ struct Networks: ParsableCommand {
 					self.imdsPort = IMDSServer.internalBindPort
 				#endif
 			} else {
-				let home: Home = try Home(runMode: runMode)
-				let networkConfig = try home.sharedNetworks()
+				let networkConfig = try CakedLib.NetworksHandler.sharedNetworks(runMode: runMode)
 
 				guard let network = networkConfig.sharedNetworks[networkName] else {
 					throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
@@ -197,9 +196,9 @@ struct Networks: ParsableCommand {
 			let network: VZSharedNetwork
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.networkName) {
-				network = VZSharedNetwork(mode: self.mode, netmask: String.empty, dhcpStart: String.empty, dhcpEnd: String.empty, dhcpLease: nil, interfaceID: self.interfaceID, nat66Prefix: nil, dns: false)
+				network = VZSharedNetwork(mode: self.mode, netmask: String.empty, dhcpStart: String.empty, dhcpEnd: String.empty, dhcpLease: nil, interfaceID: self.interfaceID, nat66Prefix: String.empty, dns: false)
 			} else {
-				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix, dns: self.dns)
+				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix ?? String.empty, dns: self.dns)
 			}
 
 			guard let grp = getgrnam(self.socketGroup) else {
@@ -287,8 +286,7 @@ struct Networks: ParsableCommand {
 	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws -> BridgedNetwork.NetworkUsage {
 		// Validate the network name
 		if CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) == false {
-			let home: Home = try Home(runMode: runMode)
-			let networkConfig = try home.sharedNetworks()
+			let networkConfig = try CakedLib.NetworksHandler.sharedNetworks(runMode: runMode)
 
 			if networkConfig.sharedNetworks[networkName] == nil {
 				throw ValidationError(String(localized: "Network \(networkName) does not exist"))
@@ -630,7 +628,10 @@ struct Networks: ParsableCommand {
 				#endif
 			}
 
-			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (try? Home(runMode: runMode).sharedNetworks().sharedNetworks[networkName])?.mode) {
+			if CakedLib.NetworksHandler.usesHelperForNetworks, try startWithHelper() {
+				// A sandboxed caker never runs the network: the helper did, as root.
+				Logger(self).info("Network \(networkName) started by the privileged helper")
+			} else if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (try? Home(runMode: runMode).sharedNetworks().sharedNetworks[networkName])?.mode) {
 				try startForkedNetwork()
 			} else if try startWithHelper() {
 				// Started as root by the privileged helper, which waited for the pid file.
@@ -686,7 +687,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			let result = CakedLib.NetworksHandler.status(networkName: self.name, runMode: self.common.runMode)
+			let result = NetworksHandler.status(networkName: self.name, runMode: self.common.runMode)
 
 			if result.success {
 				Logger.appendNewLine(self.common.format.render(result.info))
@@ -804,11 +805,20 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
+			let runMode = self.common.runMode
+			let name = self.name
+
+			if let reason = try CakedLib.NetworksHandler.viaSandboxHelperSync(runMode: runMode, { try await $0.restartNetwork(networkName: name, runMode: runMode) }) {
+				Logger.appendNewLine(self.common.format.render(reason))
+
+				return
+			}
+
 			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.restartNetworkService(networkName: self.name, runMode: self.common.runMode)))
 		}
 	}
 
-	struct Create: AsyncParsableCommand {
+	struct Create: ParsableCommand {
 		static let configuration = NetworkCreateOptions.configuration
 
 		@OptionGroup(title: String(localized: "Global options"))
@@ -822,8 +832,7 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let home: Home = try Home(runMode: self.common.runMode)
-			let networkConfig = try home.sharedNetworks()
+			let networkConfig = try CakedLib.NetworksHandler.sharedNetworks(runMode: self.common.runMode)
 
 			if self.options.name == BridgeAttachement.defaultNetworkName || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
 				throw ValidationError(String(localized: "Network \(self.options.name) is a reserved default network and cannot be used"))
@@ -844,7 +853,7 @@ struct Networks: ParsableCommand {
 				dhcpEnd: self.options.dhcpEnd,
 				dhcpLease: self.options.dhcpLease,
 				interfaceID: self.options.interfaceID,
-				nat66Prefix: self.options.nat66Prefix,
+				nat66Prefix: self.options.nat66Prefix ?? String.empty,
 				dns: self.options.dns
 			)
 
@@ -852,8 +861,8 @@ struct Networks: ParsableCommand {
 			self.createdNetwork = network
 		}
 
-		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, runMode: self.common.runMode)))
+		func run() throws {
+			Logger.appendNewLine(self.common.format.render(NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -871,9 +880,6 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let home: Home = try Home(runMode: self.common.runMode)
-			let networkConfig = try home.sharedNetworks()
-
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.options.name) {
 				throw ValidationError(String(localized: "Unable to configure physical network \(self.options.name)"))
 			}
@@ -881,6 +887,8 @@ struct Networks: ParsableCommand {
 			if self.options.name == BridgeAttachement.defaultNetworkName || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
 				throw ValidationError(String(localized: "Network \(self.options.name) is a reserved default network and cannot be configured"))
 			}
+
+			let networkConfig = try CakedLib.NetworksHandler.sharedNetworks(runMode: self.common.runMode)
 
 			guard let existing = networkConfig.sharedNetworks[self.options.name] else {
 				throw ValidationError(String(localized: "Network \(self.options.name) does not exist"))
@@ -909,7 +917,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -925,8 +933,7 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let home: Home = try Home(runMode: self.common.runMode)
-			let networkConfig = try home.sharedNetworks()
+			let networkConfig = try CakedLib.NetworksHandler.sharedNetworks(runMode: self.common.runMode)
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: self.name, runMode: self.common.runMode)
 
 			if FileManager.default.fileExists(atPath: socketURL.socket.path(percentEncoded: false)) {
@@ -947,7 +954,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.delete(networkName: self.name, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(NetworksHandler.delete(networkName: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -1078,8 +1085,31 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
+			let runMode = self.common.runMode
+
 			if all {
-				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stopAll(runMode: self.common.runMode)))
+				// Same selection as `stopAll`: what runs and is not used by a virtual machine.
+				let replies: [StoppedNetworkReply]? = try CakedLib.NetworksHandler.viaSandboxHelperSync(runMode: runMode) { helper in
+					var replies: [StoppedNetworkReply] = []
+
+					for network in try await helper.listNetwork(runMode: runMode) where network.running {
+						if network.usedBy.active == 0 {
+							replies.append(try await helper.stopNetwork(networkName: network.name, runMode: runMode))
+						} else {
+							replies.append(StoppedNetworkReply(name: network.name, stopped: false, reason: String(localized: "Network \(network.name) is currently in use by one or more virtual machines")))
+						}
+					}
+
+					return replies
+				}
+
+				if let replies {
+					Logger.appendNewLine(self.common.format.render(replies))
+				} else {
+					Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stopAll(runMode: self.common.runMode)))
+				}
+			} else if let networkName, let reply = try CakedLib.NetworksHandler.viaSandboxHelperSync(runMode: runMode, { try await $0.stopNetwork(networkName: networkName, runMode: runMode) }) {
+				Logger.appendNewLine(self.common.format.render(reply))
 			} else if let pidFile {
 				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
@@ -1101,7 +1131,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			let result = CakedLib.NetworksHandler.networks(runMode: self.common.runMode)
+			let result = NetworksHandler.networks(runMode: self.common.runMode)
 
 			if result.success {
 				Logger.appendNewLine(self.common.format.render(result.networks))
