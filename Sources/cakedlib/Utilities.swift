@@ -714,6 +714,13 @@ extension URL: Purgeable {
 	/// Foundation URLs print `/private/var/...` as `/var/...`. Those three links are root-owned, nobody can swap them, so
 	/// they are the only ones resolved before a no-follow walk.
 	private static func systemLinksResolved(_ path: String) -> String {
+		// `URL.path(percentEncoded:)` keeps the trailing slash of a directory URL.
+		var path = path
+
+		while path.count > 1, path.hasSuffix("/") {
+			path.removeLast()
+		}
+
 		for link in ["/var", "/tmp", "/etc"] where path == link || path.hasPrefix(link + "/") {
 			return "/private" + path
 		}

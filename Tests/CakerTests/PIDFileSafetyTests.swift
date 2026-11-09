@@ -91,6 +91,20 @@ final class PIDFileSafetyTests: XCTestCase {
 		XCTAssertFalse(moved.appendingPathComponent("vmnet.pid").fileExists)
 	}
 
+	func testPIDDirectoryRefusesAHomeReplacedBySymlinkOrNotOwnedByTheCaller() throws {
+		let realHome = self.root.appendingPathComponent("realhome")
+		let home = self.root.appendingPathComponent("home")
+
+		try FileManager.default.createDirectory(at: realHome.appendingPathComponent("net"), withIntermediateDirectories: true)
+
+		close(try URL.openPIDDirectory(realHome.appendingPathComponent("net/vmnet.pid"), beneath: realHome, owner: getuid()))
+		XCTAssertThrowsError(try URL.openPIDDirectory(realHome.appendingPathComponent("net/vmnet.pid"), beneath: realHome, owner: getuid() &+ 1))
+
+		// The home is replaced by a link after the validation: nothing below it is reachable.
+		try FileManager.default.createSymbolicLink(at: home, withDestinationURL: realHome)
+		XCTAssertThrowsError(try URL.openPIDDirectory(home.appendingPathComponent("net/vmnet.pid"), beneath: home, owner: getuid()))
+	}
+
 	func testPIDDirectoryRejectsPathsOutsideHome() throws {
 		let home = self.root.appendingPathComponent("home")
 		try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
