@@ -60,6 +60,43 @@ final class PIDFileSafetyTests: XCTestCase {
 		XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
 	}
 
+	func testPinnedPIDDirectorySurvivesReplacementAndKeepsCleanupAnchored() throws {
+		let parent = self.root.appendingPathComponent("network")
+		let moved = self.root.appendingPathComponent("moved")
+		let outside = self.root.appendingPathComponent("outside")
+		try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+		try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+		let pid = parent.appendingPathComponent("vmnet.pid")
+		let descriptor = try URL.openPIDDirectory(pid, beneath: self.root, owner: getuid())
+		defer { close(descriptor) }
+		try FileManager.default.moveItem(at: parent, to: moved)
+		try FileManager.default.createSymbolicLink(at: parent, withDestinationURL: outside)
+		XCTAssertThrowsError(try URL.openPIDDirectory(pid, beneath: self.root, owner: getuid()))
+
+		// Exercise the same inherited directory used by the privileged child.
+		guard geteuid() == 0 else { throw XCTSkip("Inherited PID writes require root") }
+		setenv(URL.pidDirectoryEnvironmentKey, String(descriptor), 1)
+		setenv(URL.pidPathEnvironmentKey, pid.path(percentEncoded: false), 1)
+		defer {
+			unsetenv(URL.pidDirectoryEnvironmentKey)
+			unsetenv(URL.pidPathEnvironmentKey)
+		}
+		try pid.writePIDWithoutFollowingSymlinks()
+		XCTAssertEqual(moved.appendingPathComponent("vmnet.pid").readPID(), getpid())
+		XCTAssertFalse(outside.appendingPathComponent("vmnet.pid").fileExists)
+		let outsidePID = outside.appendingPathComponent("vmnet.pid")
+		try "sentinel".write(to: outsidePID, atomically: true, encoding: .ascii)
+		pid.removeWithoutFollowingSymlinks()
+		XCTAssertEqual(try String(contentsOf: outsidePID, encoding: .ascii), "sentinel")
+		XCTAssertFalse(moved.appendingPathComponent("vmnet.pid").fileExists)
+	}
+
+	func testPIDDirectoryRejectsPathsOutsideHome() throws {
+		let home = self.root.appendingPathComponent("home")
+		try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+		XCTAssertThrowsError(try URL.openPIDDirectory(self.root.appendingPathComponent("vmnet.pid"), beneath: home, owner: getuid()))
+	}
+
 	func testRemoveNeverFollowsASymlinkAtTheFileItself() throws {
 		let target = self.root.appendingPathComponent("target.pid")
 		let link = self.root.appendingPathComponent("vmnet.pid")

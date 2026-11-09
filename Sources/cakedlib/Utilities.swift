@@ -721,8 +721,8 @@ extension URL: Purgeable {
 		return path
 	}
 
-	public static func openDirectoryWithoutFollowingSymlinks(_ path: String) throws -> CInt {
-		let canonical = ProcessInfo.processInfo.environment[noFollowPathsEnvironmentKey] == "1" ? systemLinksResolved(URL(fileURLWithPath: path).standardizedFileURL.path(percentEncoded: false)) : canonicalPath(path)
+	public static func openDirectoryWithoutFollowingSymlinks(_ path: String, resolveSymlinks: Bool = true) throws -> CInt {
+		let canonical = !resolveSymlinks || ProcessInfo.processInfo.environment[noFollowPathsEnvironmentKey] == "1" ? systemLinksResolved(URL(fileURLWithPath: path).standardizedFileURL.path(percentEncoded: false)) : canonicalPath(path)
 		var descriptor = open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC)
 
 		guard descriptor >= 0 else {
@@ -745,6 +745,48 @@ extension URL: Purgeable {
 		return descriptor
 	}
 
+	/// Open the PID parent beneath an owned home once; all later operations use this descriptor.
+	public static func openPIDDirectory(_ pidURL: URL, beneath home: URL, owner: uid_t) throws -> CInt {
+		let homePath = systemLinksResolved(home.path(percentEncoded: false))
+		let parent = systemLinksResolved(pidURL.deletingLastPathComponent().path(percentEncoded: false))
+		guard pidURL.pathExtension == "pid", parent == homePath || parent.hasPrefix(homePath + "/") else {
+			throw ServiceError("Invalid PID file '\(pidURL.path)'")
+		}
+		var descriptor = try openDirectoryWithoutFollowingSymlinks(homePath, resolveSymlinks: false)
+		var attributes = stat()
+		guard fstat(descriptor, &attributes) == 0, attributes.st_uid == owner else {
+			close(descriptor)
+			throw ServiceError("PID home is not owned by the caller")
+		}
+		for component in parent.dropFirst(homePath.count).split(separator: "/") {
+			let next = openat(descriptor, String(component), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+			close(descriptor)
+			guard next >= 0 else {
+				throw ServiceError("Unable to open PID directory without following symbolic links")
+			}
+			descriptor = next
+		}
+		return descriptor
+	}
+
+	public static let pidDirectoryEnvironmentKey = "CAKED_PID_DIRECTORY_FD"
+	public static let pidPathEnvironmentKey = "CAKED_PID_PATH"
+
+	private func openPIDDirectory() throws -> CInt {
+		let environment = ProcessInfo.processInfo.environment
+		if let value = environment[URL.pidDirectoryEnvironmentKey] {
+			guard environment[URL.pidPathEnvironmentKey] == self.path(percentEncoded: false), let descriptor = CInt(value) else {
+				throw ServiceError("Invalid inherited PID directory")
+			}
+			let duplicate = fcntl(descriptor, F_DUPFD_CLOEXEC, 0)
+			guard duplicate >= 0 else {
+				throw ServiceError("Unable to duplicate inherited PID directory")
+			}
+			return duplicate
+		}
+		return try URL.openDirectoryWithoutFollowingSymlinks(self.deletingLastPathComponent().path(percentEncoded: false))
+	}
+
 	/// `writePID()` for a process running as root in a directory the user can write: the parent directory is opened
 	/// without following symlinks and the file is created (temporary name, then renamed) relative to that descriptor,
 	/// so it can't be redirected outside the directory. A process that isn't root has nothing to protect and writes as before.
@@ -753,7 +795,7 @@ extension URL: Purgeable {
 			return try self.writePID()
 		}
 
-		let directory = try URL.openDirectoryWithoutFollowingSymlinks(self.deletingLastPathComponent().path(percentEncoded: false))
+		let directory = try self.openPIDDirectory()
 
 		defer {
 			close(directory)
@@ -793,7 +835,7 @@ extension URL: Purgeable {
 			return
 		}
 
-		guard let directory = try? URL.openDirectoryWithoutFollowingSymlinks(self.deletingLastPathComponent().path(percentEncoded: false)) else {
+		guard let directory = try? self.openPIDDirectory() else {
 			return
 		}
 

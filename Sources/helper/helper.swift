@@ -455,32 +455,28 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				}
 			}
 
-			// The pid file is written as root: it must be a .pid file inside the caller's cake home. caked then opens its directory
-			// without following symlinks, so the directory can't be swapped for a link once this check has passed.
-			// `canonicalPath` (realpath) also resolves /var -> /private/var, which caked's no-follow walk would otherwise refuse.
+			// Resolve aliases once, then validate and open the parent beneath an owned home.
+			// Keep that directory open through removal, child writes, readiness checks and cleanup.
 			let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
 			let pidURL = URL(fileURLWithPath: URL.canonicalPath(requested.deletingLastPathComponent().path(percentEncoded: false))).appendingPathComponent(requested.lastPathComponent)
-
-			guard pidURL.pathExtension == "pid", pidURL.path.hasPrefix(URL.canonicalPath(home.path) + "/") else {
-				throw ServiceError("Invalid pid file '\(pidFile)'")
-			}
+			let pidDirectory = FileHandle(fileDescriptor: try URL.openPIDDirectory(pidURL, beneath: home, owner: caller.uid), closeOnDealloc: true)
 
 			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 			let log = Self.logFile()
 			let process = ProcessWithSharedFileHandle()
 
-			// Walks the directory without following symlinks: a component swapped after the check above can't point the removal elsewhere.
-			// caked (root) writes and removes the file the same way.
-			pidURL.removeWithoutFollowingSymlinks()
+			unlinkat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, 0)
 
 			process.executableURL = caked
 			// The descriptor keeps the number it has here in the child.
 			process.arguments = ["networks", "run", "--home", home.path] + arguments + ["--fd=\(fileHandle.fileDescriptor)", "--pidfile=\(pidURL.path)"]
 			process.environment = Self.environment(home: home)
+			process.environment?[URL.pidDirectoryEnvironmentKey] = String(pidDirectory.fileDescriptor)
+			process.environment?[URL.pidPathEnvironmentKey] = pidURL.path(percentEncoded: false)
 			process.standardInput = FileHandle.nullDevice
 			process.standardOutput = log
 			process.standardError = log
-			process.sharedFileHandles = [fileHandle]
+			process.sharedFileHandles = [fileHandle, pidDirectory]
 
 			process.terminationHandler = { process in
 				Self.runningNetworksLock.lock()
@@ -495,7 +491,9 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			Self.runningNetworksLock.unlock()
 
 			for _ in 0..<150 {
-				if FileManager.default.fileExists(atPath: pidURL.path), process.isRunning {
+				var attributes = stat()
+				if fstatat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, &attributes, AT_SYMLINK_NOFOLLOW) == 0,
+					attributes.st_mode & S_IFMT == S_IFREG, process.isRunning {
 					return String(process.processIdentifier)
 				}
 
