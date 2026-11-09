@@ -13,6 +13,14 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public var dns: Bool? = false
 	public var visible: Bool = true
 
+	/// `a.b.c.d/nn` of the subnet `network` lives in.
+	public var subnet: String {
+		let mask = DHCPAddress.parse(self.netmask) ?? 0xffff_ff00
+		let base = (DHCPAddress.parse(self.gateway) ?? 0) & mask
+
+		return "\(DHCPAddress.string(base))/\(self.netmask.netmaskToCidr())"
+	}
+
 	public var gateway: String {
 		return dhcpStart.stringBeforeLast(before: ".") + ".1"
 	}
