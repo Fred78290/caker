@@ -46,7 +46,7 @@ let package = Package(
 		.executable(name: "caked", targets: ["caked"]),
 		.executable(name: "Caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
-		.executable(name: "helper", targets: ["helper"]),
+		.executable(name: "AuthorizationHelper", targets: ["helper"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
 	],
