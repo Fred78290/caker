@@ -24,22 +24,20 @@ public final class VZVMNetHandlerClient: ChannelDuplexHandler {
 	private var partner: VZVMNetHandlerClient?
 	private var currentContext: ChannelHandlerContext?
 	private var pendingRead: Bool = false
-	private let useLimaVMNet: Bool
 	private let side: HandlerSide
 	private let delegate: CloseDelegate?
 	private var notified: Bool = false
 	private let trace: Bool
 
-	private init(useLimaVMNet: Bool, side: HandlerSide, delegate: CloseDelegate?) {
-		self.useLimaVMNet = useLimaVMNet
+	private init(side: HandlerSide, delegate: CloseDelegate?) {
 		self.side = side
 		self.delegate = delegate
 		self.trace = Logger.Level() >= Logger.LogLevel.trace
 	}
 
-	static func matchedPair(useLimaVMNet: Bool, delegate: CloseDelegate?) -> (VZVMNetHandlerClient, VZVMNetHandlerClient) {
-		let guestHandler = VZVMNetHandlerClient(useLimaVMNet: useLimaVMNet, side: .guest, delegate: delegate)
-		let hostHandler = VZVMNetHandlerClient(useLimaVMNet: useLimaVMNet, side: .host, delegate: delegate)
+	static func matchedPair(delegate: CloseDelegate?) -> (VZVMNetHandlerClient, VZVMNetHandlerClient) {
+		let guestHandler = VZVMNetHandlerClient(side: .guest, delegate: delegate)
+		let hostHandler = VZVMNetHandlerClient(side: .host, delegate: delegate)
 
 		guestHandler.partner = hostHandler
 		hostHandler.partner = guestHandler
@@ -85,66 +83,7 @@ public final class VZVMNetHandlerClient: ChannelDuplexHandler {
 	}
 
 	public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-		if useLimaVMNet {
-			var byteBuffer = unwrapInboundIn(data)
-			var readableBytes = byteBuffer.readableBytes
-
-			if side == .host {
-				//Logger(self).debug("available \(readableBytes) bytes")
-
-				while readableBytes > 0 {
-					guard let packetLen = byteBuffer.readInteger(endianness: .big, as: UInt32.self) else {
-						//Logger(self).error("Failed to read packet length")
-						break
-					}
-
-					if let bufData = byteBuffer.readData(length: Int(packetLen)) {
-						//Logger(self).debug("Readed \(packetLen) bytes")
-						partner?.partnerWrite(NIOAny(ByteBuffer(data: bufData)))
-					} else {
-						Logger(self).error("Failed to read \(packetLen) bytes")
-					}
-					/*
-					 let readerIndex = byteBuffer.readerIndex
-					
-					 byteBuffer.withUnsafeMutableReadableBytes {
-					 	let unsafeData = Data(bytesNoCopy: $0.baseAddress! + readerIndex, count: Int(packetLen), deallocator: .none)
-					 	partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
-					 }*/
-
-					readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
-					//Logger(self).debug("Remains \(readableBytes) bytes")
-				}
-
-				//Logger(self).debug("Done reading")
-
-				/*				byteBuffer.withUnsafeMutableReadableBytes {
-				 	var baseAddress = $0.baseAddress!
-				
-				 	while readableBytes > 0 {
-				 		let packetLen = baseAddress.assumingMemoryBound(to: UInt32.self).pointee.bigEndian
-				 		let unsafeData = Data(bytesNoCopy: baseAddress + MemoryLayout<UInt32>.size, count: Int(packetLen), deallocator: .none)
-				
-				 		partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
-				
-				 		readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
-				 		baseAddress += Int(packetLen) + MemoryLayout<UInt32>.size
-				 	}
-				 }
-				
-				 byteBuffer.moveReaderIndex(forwardBy: byteBuffer.readableBytes)
-				 */
-			} else {
-				var buffer = context.channel.allocator.buffer(capacity: MemoryLayout<UInt32>.size + readableBytes)
-
-				buffer.writeInteger(UInt32(readableBytes), endianness: .big, as: UInt32.self)
-				buffer.writeBuffer(&byteBuffer)
-
-				partner?.partnerWrite(NIOAny(buffer))
-			}
-		} else {
-			partner?.partnerWrite(data)
-		}
+		partner?.partnerWrite(data)
 	}
 
 	public func channelReadComplete(context _: ChannelHandlerContext) {

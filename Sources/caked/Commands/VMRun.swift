@@ -22,9 +22,6 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("service"), .customShort("l")], help: ArgumentHelp(String(localized: "VM running from service"), discussion: String(localized: "This option tell that vm run from service"), visibility: .private))
 	var launchedFromService: Bool = false
 
-	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp(String(localized: "Use socket-vmnet for network"), visibility: .private))
-	var useLimaVMNet: Bool = false
-
 	@Flag(help: ArgumentHelp(String(localized: "VM Display mode"), discussion: String(localized: "This option allows display window of running vm or vnc server"), visibility: .hidden))
 	var display: VMRunHandler.DisplayMode = .none
 
@@ -99,7 +96,6 @@ struct VMRun: AsyncParsableCommand {
 			throw ValidationError(String(localized: "VM at \(path) is already running"))
 		}
 
-		phUseLimaVMNet = self.useLimaVMNet
 		MainApp.displayUI = display == .ui
 
 		let config = try location.config()

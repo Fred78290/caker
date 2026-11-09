@@ -247,7 +247,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 					return NIOPipeBootstrap(group: inboundChannel.eventLoop)
 						.takingOwnershipOfDescriptor(inputOutput: self.hostfd)
 						.flatMap { childChannel in
-							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: false, delegate: self)
+							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(delegate: self)
 
 							return childChannel.pipeline.addHandler(guestHandler)
 								.flatMap {

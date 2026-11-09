@@ -485,9 +485,9 @@ public struct NetworksHandler {
 					guard let helperHome = try? Home(runMode: runMode) else {
 						return false
 					}
-let homePath = helperHome.cakeHomeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
-let pidPath = pidFile.resolvingSymlinksInPath().standardizedFileURL.path
-return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
+					let homePath = helperHome.cakeHomeDirectory.resolvingSymlinksInPath().standardizedFileURL.path
+					let pidPath = pidFile.resolvingSymlinksInPath().standardizedFileURL.path
+					return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 				}()
 				let helperArguments = Array(arguments.dropFirst(2))
 				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
@@ -572,7 +572,7 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 		return .process(process)
 	}
 
-	public static func run(useLimaVMNet: Bool = false, mode: VMNetMode, networkConfig: UsedNetworkConfig, socketPath: URL? = nil, pidFile: URL? = nil, runMode: Utils.RunMode) throws {
+	public static func run(mode: VMNetMode, networkConfig: UsedNetworkConfig, socketPath: URL? = nil, pidFile: URL? = nil, runMode: Utils.RunMode) throws {
 		let socketURL: (socket: URL, pidFile: URL)
 		let executableURL: URL
 		let debug = Logger.Level() >= .debug
@@ -586,93 +586,51 @@ return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 
 		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using socket: \(socketURL.socket.path(percentEncoded: false))")
 
-		if useLimaVMNet {
+		executableURL = try Bundle.main.caked()
 
-			guard let socket_vmnet = URL.binary("socket_vmnet") else {
-				throw ServiceError(String(localized: "socket_vmnet not found in path"))
-			}
+		arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.rawValue)"])
 
-			executableURL = socket_vmnet
-
-			//if Logger.Level() >= .debug {
-			//	arguments.append("--debug")
-			//}
-
-			//arguments.append("--vmnet-vz")
-			arguments.append("--vmnet-mode=\(mode.rawValue)")
-
-			if mode == .bridged {
-				guard networkConfig.networkName != String.empty else {
-					throw ServiceError(String(localized: "interface is required for bridged mode"))
-				}
-				arguments.append("--vmnet-interface=\(networkConfig.networkName)")
-			} else {
-				if let dhcpStart = networkConfig.dhcpStart {
-					arguments.append("--vmnet-gateway=\(dhcpStart)")
-				}
-				if let dhcpEnd = networkConfig.dhcpEnd {
-					arguments.append("--vmnet-dhcp-end=\(dhcpEnd)")
-				}
-				if let netmask = networkConfig.netmask {
-					arguments.append("--vmnet-mask=\(netmask)")
-				}
-				if let interfaceID = networkConfig.interfaceID {
-					arguments.append("--vmnet-interface-id=\(interfaceID)")
-				}
-				if let nat66Prefix = networkConfig.nat66Prefix {
-					arguments.append("--vmnet-nat66-prefix=\(nat66Prefix)")
-				}
-			}
-
-			arguments.append("--pidfile=\(socketURL.pidFile.path(percentEncoded: false))")
-			arguments.append(socketURL.socket.path(percentEncoded: false))
-		} else {
-			executableURL = try Bundle.main.caked()
-
-			arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.rawValue)"])
-
-			if Logger.LoggingLevel() > .info {
-				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
-			}
-
-			if runMode.isSystem {
-				arguments.append("--system")
-			}
-
-			if let interfaceID = networkConfig.interfaceID {
-				arguments.append("--interface-id=\(interfaceID)")
-			}
-
-			if mode == .bridged {
-				guard networkConfig.networkName != String.empty else {
-					throw ServiceError(String(localized: "interface is required for bridged mode"))
-				}
-				arguments.append("--interface=\(networkConfig.networkName)")
-			} else {
-				if let dhcpStart = networkConfig.dhcpStart {
-					arguments.append("--gateway=\(dhcpStart)")
-				}
-
-				if let dhcpEnd = networkConfig.dhcpEnd {
-					arguments.append("--dhcp-end=\(dhcpEnd)")
-				}
-
-				if let netmask = networkConfig.netmask {
-					arguments.append("--netmask=\(netmask)")
-				}
-
-				if let nat66Prefix = networkConfig.nat66Prefix {
-					arguments.append("--nat66-prefix=\(nat66Prefix)")
-				}
-
-				if networkConfig.dns == true {
-					arguments.append("--dns")
-				}
-			}
-
-			arguments.append("--pidfile=\(socketURL.pidFile.path(percentEncoded: false))")
-			arguments.append(socketURL.socket.path(percentEncoded: false))
+		if Logger.LoggingLevel() > .info {
+			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 		}
+
+		if runMode.isSystem {
+			arguments.append("--system")
+		}
+
+		if let interfaceID = networkConfig.interfaceID {
+			arguments.append("--interface-id=\(interfaceID)")
+		}
+
+		if mode == .bridged {
+			guard networkConfig.networkName != String.empty else {
+				throw ServiceError(String(localized: "interface is required for bridged mode"))
+			}
+			arguments.append("--interface=\(networkConfig.networkName)")
+		} else {
+			if let dhcpStart = networkConfig.dhcpStart {
+				arguments.append("--gateway=\(dhcpStart)")
+			}
+
+			if let dhcpEnd = networkConfig.dhcpEnd {
+				arguments.append("--dhcp-end=\(dhcpEnd)")
+			}
+
+			if let netmask = networkConfig.netmask {
+				arguments.append("--netmask=\(netmask)")
+			}
+
+			if let nat66Prefix = networkConfig.nat66Prefix {
+				arguments.append("--nat66-prefix=\(nat66Prefix)")
+			}
+
+			if networkConfig.dns == true {
+				arguments.append("--dns")
+			}
+		}
+
+		arguments.append("--pidfile=\(socketURL.pidFile.path(percentEncoded: false))")
+		arguments.append(socketURL.socket.path(percentEncoded: false))
 
 		if socketURL.pidFile.isCakedRunning() {
 			throw ServiceError(String(localized: "\(executableURL.path(percentEncoded: false)) is already running."))
