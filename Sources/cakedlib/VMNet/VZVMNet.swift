@@ -215,7 +215,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 		let future = self.eventLoop.makeFutureWithTask {
 			self.logger.info("VMNet \(self.networkName) started on \(socketFile)")
-			try self.pidFile.writePID()
+			try self.pidFile.writePIDWithoutFollowingSymlinks()
 
 			do {
 				startedHandler(self.networkConfig)
@@ -247,7 +247,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		try? server.close().wait()
 		self.semaphore.signal()
 
-		try? pidFile.delete()
+		pidFile.removeWithoutFollowingSymlinks()
 	}
 
 	public func restart() throws -> VZSharedNetwork {

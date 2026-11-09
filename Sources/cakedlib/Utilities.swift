@@ -690,6 +690,117 @@ extension URL: Purgeable {
 		}
 	}
 
+	/// Opens the directory `path` through its own path components with `O_NOFOLLOW`: a component swapped for a symlink after
+	/// the caller validated the path makes the walk fail instead of leading elsewhere. The descriptor then anchors every
+	/// operation, so replacing a component later can't redirect it. The caller owns (and closes) the descriptor.
+	/// Launched by the privileged helper (`noFollowPathsEnvironmentKey`), the path was canonicalized and checked there, so a
+	/// symlink in it is refused. Otherwise (`sudo caked`, whose caller can already run caked as root with any argument) a
+	/// path through a symlink, e.g. a cake home on another volume, is resolved once first.
+	public static let noFollowPathsEnvironmentKey = "CAKED_NOFOLLOW_PATHS"
+
+	/// `realpath(3)`: unlike `resolvingSymlinksInPath()`, it also resolves the `/var`, `/tmp` and `/etc` links to `/private`.
+	public static func canonicalPath(_ path: String) -> String {
+		guard let resolved = realpath(path, nil) else {
+			return URL(fileURLWithPath: path).standardizedFileURL.path(percentEncoded: false)
+		}
+
+		defer {
+			free(resolved)
+		}
+
+		return String(cString: resolved)
+	}
+
+	/// Foundation URLs print `/private/var/...` as `/var/...`. Those three links are root-owned, nobody can swap them, so
+	/// they are the only ones resolved before a no-follow walk.
+	private static func systemLinksResolved(_ path: String) -> String {
+		for link in ["/var", "/tmp", "/etc"] where path == link || path.hasPrefix(link + "/") {
+			return "/private" + path
+		}
+
+		return path
+	}
+
+	public static func openDirectoryWithoutFollowingSymlinks(_ path: String) throws -> CInt {
+		let canonical = ProcessInfo.processInfo.environment[noFollowPathsEnvironmentKey] == "1" ? systemLinksResolved(URL(fileURLWithPath: path).standardizedFileURL.path(percentEncoded: false)) : canonicalPath(path)
+		var descriptor = open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+
+		guard descriptor >= 0 else {
+			throw ServiceError("Unable to open /: \(String(cString: strerror(errno)))")
+		}
+
+		for component in canonical.split(separator: "/") {
+			let next = openat(descriptor, String(component), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+			let reason = errno
+
+			close(descriptor)
+
+			guard next >= 0 else {
+				throw ServiceError("Unable to open \(canonical) without following symbolic links: \(String(cString: strerror(reason)))")
+			}
+
+			descriptor = next
+		}
+
+		return descriptor
+	}
+
+	/// `writePID()` for a process running as root in a directory the user can write: the parent directory is opened
+	/// without following symlinks and the file is created (temporary name, then renamed) relative to that descriptor,
+	/// so it can't be redirected outside the directory. A process that isn't root has nothing to protect and writes as before.
+	public func writePIDWithoutFollowingSymlinks() throws {
+		guard geteuid() == 0 else {
+			return try self.writePID()
+		}
+
+		let directory = try URL.openDirectoryWithoutFollowingSymlinks(self.deletingLastPathComponent().path(percentEncoded: false))
+
+		defer {
+			close(directory)
+		}
+
+		let name = self.lastPathComponent
+		let temporary = ".\(name).\(getpid()).tmp"
+
+		unlinkat(directory, temporary, 0)
+
+		let file = openat(directory, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o644)
+
+		guard file >= 0 else {
+			throw ServiceError(String(localized: "Failed to create PID file at \(self.path(percentEncoded: false)): errno=\(errno)"))
+		}
+
+		let content = Array("\(getpid())".utf8)
+		let written = write(file, content, content.count)
+		let reason = errno
+
+		// open(2) applies the umask: be explicit about the mode, like `writePID()`.
+		let moded = fchmod(file, 0o644)
+
+		close(file)
+
+		guard written == content.count, moded == 0, renameat(directory, temporary, directory, name) == 0 else {
+			unlinkat(directory, temporary, 0)
+
+			throw ServiceError(String(localized: "Failed to write PID file at \(self.path(percentEncoded: false)): errno=\(reason)"))
+		}
+	}
+
+	/// Removes this file (never what a symlink points to) through its parent directory opened without following symlinks.
+	public func removeWithoutFollowingSymlinks() {
+		guard geteuid() == 0 else {
+			try? self.deleteIfFileExists()
+			return
+		}
+
+		guard let directory = try? URL.openDirectoryWithoutFollowingSymlinks(self.deletingLastPathComponent().path(percentEncoded: false)) else {
+			return
+		}
+
+		unlinkat(directory, self.lastPathComponent, 0)
+		close(directory)
+	}
+
 	public func readPID() -> Int32? {
 		if FileManager.default.fileExists(atPath: self.absoluteURL.path(percentEncoded: false)) == false {
 			return nil

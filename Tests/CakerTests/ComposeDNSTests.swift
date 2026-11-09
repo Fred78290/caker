@@ -42,8 +42,22 @@ final class ComposeDNSTests: XCTestCase {
 	}
 
 	func testIsInDomainRejectsNamesOutsideTheZone() {
+		// The negative cases must not depend on the domain configured on the machine running the tests.
+		let original: String? = CakedKeyConfig.composeDnsDomain.get()
+
+		defer {
+			if let original {
+				CakedKeyConfig.composeDnsDomain.set(original)
+			} else {
+				CakedKeyConfig.composeDnsDomain.removeObject()
+			}
+		}
+
+		CakedKeyConfig.composeDnsDomain.set(ComposeDNS.defaultDomainSuffix)
+
 		let domain = ComposeDNS.domainSuffix
 
+		XCTAssertEqual(domain, "compose.internal")
 		XCTAssertFalse(ComposeDNS.isInDomain("example.com"))
 		XCTAssertFalse(ComposeDNS.isInDomain("web.notcompose.internal"))
 		// A longer label ending the same way is a different zone, not a child of this one.

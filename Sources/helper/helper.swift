@@ -268,7 +268,9 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	}
 
 	private static func environment(home: URL) -> [String: String] {
-		["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path, "TART_HOME": home.path]
+		// CAKED_NOFOLLOW_PATHS: the paths handed to caked were canonicalized by the helper, so caked must not resolve a symlink
+		// it finds in them (see `URL.openDirectoryWithoutFollowingSymlinks`).
+		["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path, "TART_HOME": home.path, URL.noFollowPathsEnvironmentKey: "1"]
 	}
 
 	private static func logFile() -> FileHandle {
@@ -453,11 +455,13 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 				}
 			}
 
-			// The pid file is written as root: it must be a .pid file inside the caller's cake home.
+			// The pid file is written as root: it must be a .pid file inside the caller's cake home. caked then opens its directory
+			// without following symlinks, so the directory can't be swapped for a link once this check has passed.
+			// `canonicalPath` (realpath) also resolves /var -> /private/var, which caked's no-follow walk would otherwise refuse.
 			let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
-			let pidURL = requested.deletingLastPathComponent().resolvingSymlinksInPath().appendingPathComponent(requested.lastPathComponent)
+			let pidURL = URL(fileURLWithPath: URL.canonicalPath(requested.deletingLastPathComponent().path(percentEncoded: false))).appendingPathComponent(requested.lastPathComponent)
 
-			guard pidURL.pathExtension == "pid", pidURL.path.hasPrefix(home.path + "/") else {
+			guard pidURL.pathExtension == "pid", pidURL.path.hasPrefix(URL.canonicalPath(home.path) + "/") else {
 				throw ServiceError("Invalid pid file '\(pidFile)'")
 			}
 
@@ -465,7 +469,9 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			let log = Self.logFile()
 			let process = ProcessWithSharedFileHandle()
 
-			try? FileManager.default.removeItem(at: pidURL)
+			// Walks the directory without following symlinks: a component swapped after the check above can't point the removal elsewhere.
+			// caked (root) writes and removes the file the same way.
+			pidURL.removeWithoutFollowingSymlinks()
 
 			process.executableURL = caked
 			// The descriptor keeps the number it has here in the child.
