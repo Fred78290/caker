@@ -93,7 +93,7 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 		}
 
 		let connection = NSXPCConnection(machServiceName: AuthorizationHelperCommon.kAuthorizationHelperToolMachServiceName, options: .privileged)
-		connection.remoteObjectInterface = NSXPCInterface(with: AuthorizationHelperProtocol.self)
+		connection.remoteObjectInterface = AuthorizationHelperCommon.makeInterface()
 		connection.invalidationHandler = { [weak self, weak connection] in
 			// If the connection gets invalidated then nil out our reference to it.
 			// This ensures that we attempt to rebuild it the next time around.
@@ -218,8 +218,9 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 	/// App Store build, system run mode, or helper unreachable), so the caller can use `sudo` instead; real failures are thrown.
 	public static func viaHelper<T: Sendable>(runMode: Utils.RunMode, _ body: @escaping @Sendable (DirectAuthorizationHelperConnector) async throws -> T) async throws -> T? {
 		#if !APPSTORE || USE_AUTHORIZATION_HELPER
-			// The helper works on the calling user's cake home only.
-			guard Bundle.isApplicationSandboxed == false, runMode.isSystem == false else {
+			// The helper works on the calling user's cake home only. A sandboxed process is the very reason for it to exist (it can't
+			// run a network, nor reach what root created), and root itself, the helper's own children included, never asks it.
+			guard runMode.isSystem == false, geteuid() != 0 else {
 				return nil
 			}
 
@@ -271,20 +272,21 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 		}
 	}
 
-	/// Runs `caked networks run` as root on `fileHandle` (duplicated by XPC, the caller keeps its own copy) and returns its pid.
-	public func runNetwork(arguments: [String], pidFile: URL, fileHandle: FileHandle, runMode: Utils.RunMode) async throws -> pid_t {
-		let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
-		let pidFile = pidFile.path(percentEncoded: false)
-		let reason = try await call { helper, authorization, reply in
-			helper.runNetwork(authorization: authorization, cakeHome: home, arguments: arguments, pidFile: pidFile, fileHandle: fileHandle, withReply: reply)
-		}
+	#if !APPSTORE
+		/// Runs `caked networks run` as root on `fileHandle` (duplicated by XPC, the caller keeps its own copy) and returns its pid.
+		public func runNetwork(arguments: [String], fileHandle: FileHandle, runMode: Utils.RunMode) async throws -> pid_t {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.runNetwork(authorization: authorization, cakeHome: home, arguments: arguments, fileHandle: fileHandle, withReply: reply)
+			}
 
-		guard let pid = pid_t(reason) else {
-			throw ServiceError("Invalid pid '\(reason)' returned by the helper")
-		}
+			guard let pid = pid_t(reason) else {
+				throw ServiceError("Invalid pid '\(reason)' returned by the helper")
+			}
 
-		return pid
-	}
+			return pid
+		}
+	#endif
 
 	public func installPriviligedFiles(cakerPath: String) async throws -> String {
 		try await self.preAuthorize(#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)))
@@ -293,4 +295,143 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 			helper.installPriviligedFiles(authorization: authorization, cakerPath: cakerPath, withReply: reply)
 		}
 	}
+
+	#if APPSTORE && USE_AUTHORIZATION_HELPER
+		/// The reply of a network operation: the JSON the `caked networks` command printed, decoded as that command would have rendered it.
+		private func decode<T: Decodable>(_ type: T.Type, from reason: String) throws -> T {
+			do {
+				return try JSONDecoder().decode(type, from: Data(reason.utf8))
+			} catch {
+				// The command reported something else than the reply (a message instead of the structure): show it as it is.
+				throw ServiceError(reason)
+			}
+		}
+
+		private func networkOptions(_ network: VZSharedNetwork, includeMode: Bool) -> NetworkOptions {
+			var options: [String: Any] = [
+				"gateway": network.dhcpStart,
+				"dhcp-end": network.dhcpEnd,
+				"netmask": network.netmask,
+				"interface-id": network.interfaceID,
+				"dns": network.dns ?? false,
+			]
+
+			if includeMode {
+				options["mode"] = network.mode == .host ? "host" : "shared"
+			}
+
+			if let lease = network.dhcpLease {
+				options["dhcp-lease"] = Int(lease)
+			}
+
+			if network.nat66Prefix.isEmpty == false {
+				options["nat66-prefix"] = network.nat66Prefix
+			}
+
+			return NetworkOptions(values: options)
+		}
+
+		/// Options for the helper: a property list, which is not `Sendable` for the compiler though nothing mutates it once built.
+		private struct NetworkOptions: @unchecked Sendable {
+			let values: [String: Any]
+		}
+
+		public func getSerialization(networkName: String, runMode: Utils.RunMode) async throws -> xpc_object_t {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let result = try await call { helper, authorization, reply in
+				helper.getSerialization(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+			}
+
+			guard let data = Data(base64Encoded: result) else {
+				throw ServiceError(String(localized: "Unable to decode network serialization buffer"))
+			}
+
+			return try decodeXPCObject(data)
+		}
+
+		public func createNetwork(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) async throws -> CreatedNetworkReply {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let options = self.networkOptions(network, includeMode: true)
+			let reason = try await call { helper, authorization, reply in
+				helper.createNetwork(authorization: authorization, cakeHome: home, networkName: networkName, options: options.values, withReply: reply)
+			}
+
+			return try self.decode(CreatedNetworkReply.self, from: reason)
+		}
+
+		/// `network` is the whole configuration the network must have afterwards, not only what changed.
+		public func configureNetwork(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) async throws -> ConfiguredNetworkReply {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let options = self.networkOptions(network, includeMode: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.configureNetwork(authorization: authorization, cakeHome: home, networkName: networkName, options: options.values, withReply: reply)
+			}
+
+			return try self.decode(ConfiguredNetworkReply.self, from: reason)
+		}
+
+		public func restartNetwork(networkName: String, runMode: Utils.RunMode) async throws -> String {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+
+			return try await call { helper, authorization, reply in
+				helper.restartNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+			}
+		}
+
+		public func stopNetwork(networkName: String, runMode: Utils.RunMode) async throws -> StoppedNetworkReply {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.stopNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+			}
+
+			return try self.decode(StoppedNetworkReply.self, from: reason)
+		}
+
+		public func deleteNetwork(networkName: String, runMode: Utils.RunMode) async throws -> DeleteNetworkReply {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.deleteNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+			}
+
+			return try self.decode(DeleteNetworkReply.self, from: reason)
+		}
+
+		public func listNetwork(runMode: Utils.RunMode) async throws -> [BridgedNetwork] {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.listNetwork(authorization: authorization, cakeHome: home, withReply: reply)
+			}
+
+			// The command prints the flat rendering of a network, not the Codable shape of `BridgedNetwork`.
+			return try self.decode([FlatBridgedNetwork].self, from: reason).map(\.network)
+		}
+
+		public func infosNetwork(networkName: String, runMode: Utils.RunMode) async throws -> FlatBridgedNetwork {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.infosNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+			}
+
+			return try self.decode(FlatBridgedNetwork.self, from: reason)
+		}
+
+		public func getSharedNetworks(runMode: Utils.RunMode) async throws -> VZVMNetConfig {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.getSharedNetworks(authorization: authorization, cakeHome: home, withReply: reply)
+			}
+
+			return try VZVMNetConfig(fromJSON: Data(reason.utf8))
+		}
+
+		public func setSharedNetworks(_ config: VZVMNetConfig, runMode: Utils.RunMode) async throws {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let configuration = String(decoding: try JSONEncoder().encode(config), as: UTF8.self)
+
+			_ = try await call { helper, authorization, reply in
+				helper.setSharedNetworks(authorization: authorization, cakeHome: home, configuration: configuration, withReply: reply)
+			}
+		}
+
+	#endif
 }

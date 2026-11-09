@@ -6,7 +6,7 @@ import CakeAgentLib
 extension NetworksHandler {
 	public static func create(client: CakedServiceClient?, networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> CreatedNetworkReply {
 		guard let client = client else {
-			return self.create(networkName: networkName, network: network, runMode: runMode)
+			return NetworksWrapper.create(networkName: networkName, network: network, runMode: runMode)
 		}
 		
 		return try CreatedNetworkReply(client.networks(.with {
@@ -18,9 +18,7 @@ extension NetworksHandler {
 				$0.dhcpEnd = network.dhcpEnd
 				$0.netmask = network.netmask
 				$0.uuid = network.interfaceID
-				if let nat66Prefix = network.nat66Prefix {
-					$0.nat66Prefix = nat66Prefix
-				}
+				$0.nat66Prefix = network.nat66Prefix
 				$0.dns = network.dns ?? false
 			}
 		}).response.wait().networks.created)
@@ -39,7 +37,7 @@ extension NetworksHandler {
 		)
 
 		guard let client = client else {
-			return self.configure(network: config, runMode: runMode)
+			return NetworksWrapper.configure(network: config, runMode: runMode)
 		}
 
 		do {
@@ -64,7 +62,7 @@ extension NetworksHandler {
 
 	public static func networks(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListNetworksReply {
 		guard let client = client else {
-			return self.networks(runMode: runMode)
+			return NetworksWrapper.networks(runMode: runMode)
 		}
 		
 		return try ListNetworksReply(client.networks(.with { $0.command = .infos }).response.wait().networks.list)
@@ -72,10 +70,7 @@ extension NetworksHandler {
 	
 	public static func start(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
 		guard let client = client else {
-			if Bundle.mustUseUnixTask {
-				return startSandboxed(networkName: networkName, runMode: runMode)
-			}
-			return self.start(networkName: networkName, runMode: runMode)
+			return NetworksWrapper.start(networkName: networkName, runMode: runMode)
 		}
 
 		do {
@@ -90,7 +85,7 @@ extension NetworksHandler {
 
 	public static func status(client: CakedServiceClient?, network: BridgedNetwork, runMode: Utils.RunMode) -> NetworkInfoReply {
 		guard let client = client else {
-			return self.status(networkName: network.name, runMode: runMode)
+			return NetworksWrapper.status(networkName: network.name, runMode: runMode)
 		}
 
 		do {
@@ -103,41 +98,9 @@ extension NetworksHandler {
 		}
 	}
 
-	private static func startSandboxed(networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
-		do {
-			let socketURL = try vmnetEndpoint(networkName: networkName, runMode: runMode)
-
-			if socketURL.pidFile.isCakedRunning() {
-				return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) already running"))
-			}
-
-			var arguments = ["networks", "start", networkName]
-
-			if Logger.LoggingLevel() > .info {
-				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
-			}
-
-			if runMode.isSystem {
-				arguments.append("--system")
-			}
-
-			try? socketURL.socket.delete()
-
-			try Utilities.group.next().makeFutureWithTask {
-				try await Bundle.runCakedWithUnixTask(with: arguments)
-			}.wait()
-
-			try socketURL.pidFile.waitPID()
-
-			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
-		} catch {
-			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
-		}
-	}
-	
 	public static func stop(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StoppedNetworkReply {
 		guard let client = client else {
-			return self.stop(networkName: networkName, checkIfUsed: true, runMode: runMode)
+			return NetworksWrapper.stop(networkName: networkName, checkIfUsed: true, runMode: runMode)
 		}
 		
 		do {
@@ -152,7 +115,7 @@ extension NetworksHandler {
 	
 	public static func delete(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> DeleteNetworkReply {
 		guard let client = client else {
-			return self.delete(networkName: networkName, runMode: runMode)
+			return NetworksWrapper.delete(networkName: networkName, runMode: runMode)
 		}
 
 		do {

@@ -776,7 +776,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		Self.ensureCertificates()
 
 		#if !APPSTORE || USE_AUTHORIZATION_HELPER
-			if Bundle.isApplicationSandboxed == false {
+			if Bundle.isPermittedOperationInSandbox {
 				while DirectAuthorizationHelperConnector.install() == false {
 					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
 					NSApplication.shared.setActivationPolicy(.regular)

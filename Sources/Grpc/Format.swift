@@ -16,9 +16,10 @@ public struct FlatBridgedNetwork: Codable {
 	public let description: String
 	public let gateway: String
 	public let dhcpEnd: String
-	public let dhcpLease: String
+	public let dhcpLease: Int32?
 	public let interfaceID: String
 	public let endpoint: String
+	public let nat66Prefix: String
 	public let running: Bool
 	public let managed: Bool
 	public let dns: Bool
@@ -31,7 +32,7 @@ public struct FlatBridgedNetwork: Codable {
 		self.description = from.description
 		self.gateway = from.gateway
 		self.dhcpEnd = from.dhcpEnd
-		self.dhcpLease = from.dhcpLease
+		self.dhcpLease = Int32(from.dhcpLease)
 		self.interfaceID = from.interfaceID
 		self.endpoint = from.endpoint
 		self.running = from.running
@@ -39,6 +40,27 @@ public struct FlatBridgedNetwork: Codable {
 		self.dns = from.dns
 		self.usedBy = from.usedBy.used
 		self.active = from.usedBy.active
+		self.nat66Prefix = from.nat66Prefix
+	}
+}
+
+extension FlatBridgedNetwork {
+	/// The network this rendering (what `caked networks list|infos --json` prints) was made from.
+	public var network: BridgedNetwork {
+		BridgedNetwork(
+			name: self.name,
+			mode: self.mode,
+			description: self.description,
+			gateway: self.gateway,
+			dhcpEnd: self.dhcpEnd,
+			dhcpLease: "\(self.dhcpLease ?? 300)",
+			nat66Prefix: self.nat66Prefix,
+			interfaceID: self.interfaceID,
+			endpoint: self.endpoint,
+			running: self.running,
+			managed: self.managed,
+			dns: self.dns,
+			usedBy: BridgedNetwork.NetworkUsage(used: self.usedBy, active: self.active))
 	}
 }
 

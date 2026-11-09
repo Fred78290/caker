@@ -35,13 +35,13 @@ final class NetworkConfigTests: XCTestCase {
 	}
 
 	func testValidNetwork() throws {
-		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.1.0.1", dhcpEnd: "10.1.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.1.0.1", dhcpEnd: "10.1.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertNoThrow(try vz.validate(runMode: .user))
 	}
 
 	func testInvalidNetmask() throws {
-		let vz = VZSharedNetwork(mode: .shared, netmask: "ABC.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "10.0.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "ABC.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "10.0.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "Invalid netmask ABC.255.255.0")))
@@ -49,7 +49,7 @@ final class NetworkConfigTests: XCTestCase {
 	}
 
 	func testInvalidGateway() throws {
-		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0", dhcpEnd: "10.0.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0", dhcpEnd: "10.0.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "Invalid gateway 10.0.0")))
@@ -57,7 +57,7 @@ final class NetworkConfigTests: XCTestCase {
 	}
 
 	func testInvalidDhcpEnd() throws {
-		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "192.168.2", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "192.168.2", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "Invalid dhcp end 192.168.2")))
@@ -65,7 +65,7 @@ final class NetworkConfigTests: XCTestCase {
 	}
 
 	func testDhcpEndNotInRangeNetwork() throws {
-		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "192.168.2.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "192.168.2.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "dhcp end 192.168.2.254 is not in the range of the network 10.0.0.0/24")))
@@ -86,7 +86,7 @@ final class NetworkConfigTests: XCTestCase {
 			"\($0[0]).\($0[1]).\($0[2]).254"
 		}
 
-		let vz = VZSharedNetwork(mode: .shared, netmask: "\(firstInf.bits)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "\(firstInf.bits)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "Gateway \(gateway) is already in use")))
@@ -107,7 +107,7 @@ final class NetworkConfigTests: XCTestCase {
 			"\($0[0]).\($0[1]).\($0[2]).254"
 		}
 
-		let vz = VZSharedNetwork(mode: .shared, netmask: "\(first.value.bits)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "\(first.value.bits)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		// Same address as an existing network: refused for a new network, accepted when it is that network being reconfigured.
 		XCTAssertThrowsError(try vz.validate(runMode: .user))
@@ -129,7 +129,7 @@ final class NetworkConfigTests: XCTestCase {
 			"\($0[0]).\($0[1] ^ 0x80).\($0[2]).254"
 		}
 
-		let vz = VZSharedNetwork(mode: .shared, netmask: "255.0.0.0", dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let vz = VZSharedNetwork(mode: .shared, netmask: "255.0.0.0", dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "Gateway \(gateway) is already in use")))
@@ -137,13 +137,13 @@ final class NetworkConfigTests: XCTestCase {
 	}
 
 	func testDhcpEndMustFollowDhcpStart() throws {
-		let reversed = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.250.250.200", dhcpEnd: "10.250.250.100", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let reversed = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.250.250.200", dhcpEnd: "10.250.250.100", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try reversed.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError(String(localized: "dhcp end 10.250.250.100 must be after dhcp start 10.250.250.200")))
 		}
 
-		let same = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.250.250.100", dhcpEnd: "10.250.250.100", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
+		let same = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.250.250.100", dhcpEnd: "10.250.250.100", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: String.empty)
 
 		XCTAssertThrowsError(try same.validate(runMode: .user))
 	}

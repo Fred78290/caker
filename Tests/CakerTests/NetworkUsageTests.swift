@@ -15,6 +15,7 @@ final class NetworkUsageTests: XCTestCase {
 			gateway: "192.168.105.1/24",
 			dhcpEnd: "192.168.105.254",
 			dhcpLease: "300",
+			nat66Prefix: "",
 			interfaceID: "en0",
 			endpoint: "",
 			running: true,
@@ -61,9 +62,9 @@ final class NetworkUsageTests: XCTestCase {
 	}
 
 	func testSharedNetworkEqualityTreatsAMissingDnsAsDisabled() {
-		var withoutFlag = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254")
-		let disabled = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254", dns: false)
-		let enabled = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254", dns: true)
+		var withoutFlag = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254", nat66Prefix: String.empty)
+		let disabled = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254", nat66Prefix: String.empty, dns: false)
+		let enabled = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254", nat66Prefix: String.empty, dns: true)
 
 		// A config written before the flag existed decodes with `dns == nil`.
 		withoutFlag.dns = nil
@@ -73,7 +74,7 @@ final class NetworkUsageTests: XCTestCase {
 	}
 
 	func testSharedNetworkDoesNotEnableDnsByDefault() {
-		let network = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254")
+		let network = VZSharedNetwork(netmask: "255.255.255.0", dhcpStart: "192.168.105.1", dhcpEnd: "192.168.105.254", nat66Prefix: String.empty)
 
 		XCTAssertEqual(network.dns, false)
 	}

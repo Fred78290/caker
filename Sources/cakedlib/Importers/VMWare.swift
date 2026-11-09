@@ -534,7 +534,7 @@ struct VMWareImporter: Importer {
 			var network: VZSharedNetwork
 		}
 
-		let networkConfig = try Home(runMode: runMode).sharedNetworks()
+		let networkConfig = try NetworksHandler.sharedNetworks(runMode: runMode)
 		let vmnets = try vmnet()
 		let createIt: [CreateNetwork] = try ethernetAttachements.compactMap { ethernet in
 			if ethernet.connectionType == .custom {
@@ -555,7 +555,7 @@ struct VMWareImporter: Importer {
 								dhcpEnd: dhcpEnd.description,
 								dhcpLease: 300,
 								interfaceID: vmnet.uuid ?? UUID().uuidString,
-								nat66Prefix: vmnet.natIp6Prefix
+								nat66Prefix: vmnet.natIp6Prefix ?? String.empty
 							))
 					}
 				} else {

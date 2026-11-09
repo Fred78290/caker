@@ -236,7 +236,7 @@ struct NetworkConfig: Codable {
 		// Add IMDS interface for Linux VMs with a static route to 169.254.169.254. Available
 		// in sandboxed builds too — see VirtualMachine.swift's matching comment.
 		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
-			let routes = Bundle.isApplicationSandboxed ? nil : [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
+			let routes = Bundle.isPermittedOperationInSandbox ? [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)] : nil
 			let imdsMac = try config.ensureImdsMacAddress()
 			let imdsName = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
 			self.network.ethernets[imdsName] = Interface(

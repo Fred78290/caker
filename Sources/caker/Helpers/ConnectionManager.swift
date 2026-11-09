@@ -202,7 +202,7 @@ final class ConnectionManager: Equatable {
 			dhcpEnd: network.dhcpEnd,
 			dhcpLease: Int32(network.dhcpLease),
 			interfaceID: network.interfaceID,
-			nat66Prefix: nil
+			nat66Prefix: String.empty
 		)
 
 		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.connectionMode.runMode)

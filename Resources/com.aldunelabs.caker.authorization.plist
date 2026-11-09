@@ -5,10 +5,10 @@
 	<key>Label</key>
 	<string>com.aldunelabs.caker.authorization</string>
 	<key>BundleProgram</key>
-	<string>Contents/MacOS/helper</string>
+	<string>Contents/Helpers/AuthorizationHelper</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>Contents/MacOS/helper</string>
+		<string>Contents/Helpers/AuthorizationHelper</string>
 		<string>--log-level=debug</string>
 	</array>
 	<key>AssociatedBundleIdentifiers</key>

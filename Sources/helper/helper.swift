@@ -9,7 +9,9 @@ import CakeAgentLib
 import CakedLib
 import Darwin
 import Foundation
+import GRPC
 import GRPCLib
+import NIO
 import Security
 
 final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, AuthorizationHelperProtocol {
@@ -47,7 +49,7 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			self.logger.warn("Helper is not signed by a team: XPC clients are not verified")
 		}
 
-		newConnection.exportedInterface = NSXPCInterface(with: AuthorizationHelperProtocol.self)
+		newConnection.exportedInterface = AuthorizationHelperCommon.makeInterface()
 		newConnection.exportedObject = self
 		newConnection.resume()
 
@@ -166,6 +168,10 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	/// `cakeHome` as sent by the client (a path or a file URL) when it is an existing directory owned by the caller.
 	/// The helper is root: it must never be pointed at a directory the caller doesn't own.
 	private static func validatedHome(_ cakeHome: String, caller: Caller) throws -> URL {
+		if Bundle.isApplicationSandboxed {
+			return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.\(Utils.cakerSignature)")!
+		}
+
 		let url = cakeHome.hasPrefix("file:") ? URL(string: cakeHome) : URL(fileURLWithPath: cakeHome)
 
 		guard let url, url.isFileURL, url.path.hasPrefix("/") else {
@@ -268,7 +274,11 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	}
 
 	private static func environment(home: URL) -> [String: String] {
-		["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path, "TART_HOME": home.path]
+		#if APPSTORE
+			["PATH": "/usr/bin:/bin:/usr/sbin:/sbin"]
+		#else
+			["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path, "TART_HOME": home.path]
+		#endif
 	}
 
 	private static func logFile() -> FileHandle {
@@ -304,6 +314,135 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		process.waitUntilExit()
 
 		return (process.terminationStatus, String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
+	}
+
+	/// A root `caked` that creates `net/` or rewrites `networks.json` in the caller's cake home leaves them owned by root, which the
+	/// caller's own `caked` could no longer update: hand them back. Both are opened without following symbolic links, the caller
+	/// owns the directory and could otherwise have a link there point root at a file of its choice.
+	private static func restoreOwnership(home: URL, caller: Caller) {
+		guard Bundle.isApplicationSandboxed == false else {
+			return
+		}
+
+		func giveBack(_ descriptor: Int32) {
+			var status = stat()
+
+			if fstat(descriptor, &status) == 0, status.st_uid == 0 {
+				_ = fchown(descriptor, caller.uid, caller.gid)
+			}
+		}
+
+		let directory = open(home.appendingPathComponent("net", isDirectory: true).path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+
+		guard directory >= 0 else {
+			return
+		}
+
+		defer {
+			close(directory)
+		}
+
+		giveBack(directory)
+
+		let file = openat(directory, Home.networksFilename, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+
+		if file >= 0 {
+			giveBack(file)
+			close(file)
+		}
+	}
+
+	/// What a client may ask for when it creates or configures a network. Every field is optional: `configure` only changes what is given.
+	private struct NetworkValues {
+		var mode: VMNetMode?
+		var gateway: String?
+		var dhcpEnd: String?
+		var netmask: String?
+		var dhcpLease: Int32?
+		var interfaceID: String?
+		var dns: Bool?
+		var nat66Prefix: String?
+	}
+
+	/// The values of `options` (long option name of `caked networks create`, without the dashes -> value), refusing any option, or value,
+	/// a client was not meant to send to a root process. `configure` can't change the mode of a network.
+	private static func networkValues(_ options: [String: Any], allowMode: Bool) throws -> NetworkValues {
+		var values = NetworkValues()
+
+		for name in options.keys.sorted() {
+			guard let value = options[name] else {
+				throw ServiceError("Option \(name) is not allowed")
+			}
+
+			func text() throws -> String {
+				guard let text = value as? String, text.isEmpty == false, text.count <= 64, text.first != "-" else {
+					throw ServiceError("Invalid value for option \(name)")
+				}
+
+				return text
+			}
+
+			func address() throws -> String {
+				let address = try text()
+
+				try Self.validateIPv4(address)
+
+				return address
+			}
+
+			switch name {
+			case "mode" where allowMode:
+				switch try text() {
+				case "shared": values.mode = .shared
+				case "host": values.mode = .host
+				default: throw ServiceError("Invalid network mode '\(try text())'")
+				}
+			case "gateway":
+				values.gateway = try address()
+			case "dhcp-end":
+				values.dhcpEnd = try address()
+			case "netmask":
+				values.netmask = try address()
+			case "interface-id":
+				let uuid = try text()
+
+				guard UUID(uuidString: uuid) != nil else {
+					throw ServiceError("Invalid interface identifier '\(uuid)'")
+				}
+
+				values.interfaceID = uuid
+			case "nat66-prefix":
+				let prefix = try text()
+
+				// An IPv6 prefix: hexadecimal digits, colons and the length.
+				guard prefix.allSatisfy({ $0.isHexDigit || $0 == ":" || $0 == "/" }) else {
+					throw ServiceError("Invalid IPv6 prefix '\(prefix)'")
+				}
+
+				values.nat66Prefix = prefix
+			case "dhcp-lease":
+				guard let seconds = (value as? NSNumber)?.int64Value, (1...Int64(Int32.max)).contains(seconds) else {
+					throw ServiceError("Invalid DHCP lease time")
+				}
+
+				values.dhcpLease = Int32(seconds)
+			case "dns":
+				guard let enabled = (value as? NSNumber)?.boolValue else {
+					throw ServiceError("Invalid value for option dns")
+				}
+
+				values.dns = enabled
+			default:
+				throw ServiceError("Option \(name) is not allowed")
+			}
+		}
+
+		return values
+	}
+
+	/// What `caked networks ... --json` prints, and what `DirectAuthorizationHelperConnector` decodes.
+	private static func json<T: Encodable>(_ value: T) throws -> String {
+		String(decoding: try JSONEncoder().encode(value), as: UTF8.self)
 	}
 
 	/// Writes a root:wheel file with `mode`, replacing `destination` atomically.
@@ -433,79 +572,6 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		}
 	}
 
-	/// `caked networks run` options a client may choose. Anything else (and any value outside `--option=value`) is refused.
-	private static let runNetworkOptions: Set<String> = ["--mode", "--interface-id", "--interface", "--gateway", "--dhcp-end", "--netmask", "--nat66-prefix", "--log-level"]
-	private static let runNetworkFlags: Set<String> = ["--debug", "--dns"]
-
-	/// Networks started for a client, kept so their `Process` is reaped and not released while running.
-	private static let runningNetworks = NSMutableDictionary()
-	private static let runningNetworksLock = NSLock()
-
-	func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-		perform("run-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)), reply: reply) { caller in
-			let home = try Self.validatedHome(cakeHome, caller: caller)
-
-			for argument in arguments {
-				let name = argument.split(separator: "=", maxSplits: 1).first.map(String.init) ?? argument
-
-				guard Self.runNetworkFlags.contains(argument) || (argument.contains("=") && Self.runNetworkOptions.contains(name)) else {
-					throw ServiceError("Argument \(argument) is not allowed")
-				}
-			}
-
-			// The pid file is written as root: it must be a .pid file inside the caller's cake home.
-			let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
-			let pidURL = requested.deletingLastPathComponent().resolvingSymlinksInPath().appendingPathComponent(requested.lastPathComponent)
-
-			guard pidURL.pathExtension == "pid", pidURL.path.hasPrefix(home.path + "/") else {
-				throw ServiceError("Invalid pid file '\(pidFile)'")
-			}
-
-			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
-			let log = Self.logFile()
-			let process = ProcessWithSharedFileHandle()
-
-			try? FileManager.default.removeItem(at: pidURL)
-
-			process.executableURL = caked
-			// The descriptor keeps the number it has here in the child.
-			process.arguments = ["networks", "run", "--home", home.path] + arguments + ["--fd=\(fileHandle.fileDescriptor)", "--pidfile=\(pidURL.path)"]
-			process.environment = Self.environment(home: home)
-			process.standardInput = FileHandle.nullDevice
-			process.standardOutput = log
-			process.standardError = log
-			process.sharedFileHandles = [fileHandle]
-
-			process.terminationHandler = { process in
-				Self.runningNetworksLock.lock()
-				Self.runningNetworks.removeObject(forKey: NSNumber(value: process.processIdentifier))
-				Self.runningNetworksLock.unlock()
-			}
-
-			try process.run()
-
-			Self.runningNetworksLock.lock()
-			Self.runningNetworks[NSNumber(value: process.processIdentifier)] = process
-			Self.runningNetworksLock.unlock()
-
-			for _ in 0..<150 {
-				if FileManager.default.fileExists(atPath: pidURL.path), process.isRunning {
-					return String(process.processIdentifier)
-				}
-
-				if process.isRunning == false {
-					throw ServiceError("Network failed to start: status \(process.terminationStatus), see \(Self.logPath)")
-				}
-
-				Thread.sleep(forTimeInterval: 0.1)
-			}
-
-			process.terminate()
-
-			throw ServiceError("Network did not start within the expected time, see \(Self.logPath)")
-		}
-	}
-
 	func installPriviligedFiles(authorization authData: Data, cakerPath: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
 		perform("install-priviliged-files", authorization: authData, command: #selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)), reply: reply) { caller in
 			let app = URL(fileURLWithPath: cakerPath).resolvingSymlinksInPath().standardizedFileURL
@@ -554,4 +620,359 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			return "Installed \(Self.installedPathsFile) and \(installedSudoersFile)"
 		}
 	}
+
+	#if !APPSTORE
+		/// `caked networks run` options a client may choose. Anything else (and any value outside `--option=value`) is refused.
+		private static let runNetworkOptions: Set<String> = ["--mode", "--interface-id", "--interface", "--gateway", "--dhcp-end", "--netmask", "--nat66-prefix", "--log-level"]
+		private static let runNetworkFlags: Set<String> = ["--debug", "--dns"]
+
+		/// Networks started for a client, kept so their `Process` is reaped and not released while running.
+		private static let runningNetworks = NSMutableDictionary()
+		private static let runningNetworksLock = NSLock()
+
+		func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("run-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:fileHandle:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				for argument in arguments {
+					let name = argument.split(separator: "=", maxSplits: 1).first.map(String.init) ?? argument
+
+					guard Self.runNetworkFlags.contains(argument) || (argument.contains("=") && Self.runNetworkOptions.contains(name)) else {
+						throw ServiceError("Argument \(argument) is not allowed")
+					}
+				}
+
+				// The network is the one `--interface=` names, and its pid file is the one `caked` derives from that name, written as root:
+				// the client does not get to choose a path.
+				guard let networkName = arguments.first(where: { $0.hasPrefix("--interface=") }).map({ String($0.dropFirst("--interface=".count)) }) else {
+					throw ServiceError("The network to run is required")
+				}
+
+				try Self.validateNetworkName(networkName)
+
+				let pidURL = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
+
+				// A running network is not replaced: it would lose its pid file.
+				if pidURL.isCakedRunning() {
+					throw ServiceError("Network \(networkName) is already running")
+				}
+
+				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
+				let log = Self.logFile()
+				let process = ProcessWithSharedFileHandle()
+
+				try? FileManager.default.removeItem(at: pidURL)
+
+				process.executableURL = caked
+				// The descriptor keeps the number it has here in the child.
+				process.arguments = ["networks", "run", "--home", home.path] + arguments + ["--fd=\(fileHandle.fileDescriptor)"]
+				process.environment = Self.environment(home: home)
+				process.standardInput = FileHandle.nullDevice
+				process.standardOutput = log
+				process.standardError = log
+				process.sharedFileHandles = [fileHandle]
+
+				process.terminationHandler = { process in
+					Self.runningNetworksLock.lock()
+					Self.runningNetworks.removeObject(forKey: NSNumber(value: process.processIdentifier))
+					Self.runningNetworksLock.unlock()
+				}
+
+				try process.run()
+
+				Self.runningNetworksLock.lock()
+				Self.runningNetworks[NSNumber(value: process.processIdentifier)] = process
+				Self.runningNetworksLock.unlock()
+
+				for _ in 0..<150 {
+					if FileManager.default.fileExists(atPath: pidURL.path), process.isRunning {
+						return String(process.processIdentifier)
+					}
+
+					if process.isRunning == false {
+						throw ServiceError("Network failed to start: status \(process.terminationStatus), see \(Self.logPath)")
+					}
+
+					Thread.sleep(forTimeInterval: 0.1)
+				}
+
+				process.terminate()
+
+				throw ServiceError("Network did not start within the expected time, see \(Self.logPath)")
+			}
+		}
+	#endif
+
+	// MARK: Networks
+	#if APPSTORE && USE_AUTHORIZATION_HELPER
+		func getSerialization(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (CakedLib.AuthorizationHelperReply) -> Void) {
+			perform("get-serialization-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.getSerialization(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+				let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
+				let socketURL = pidFile.deletingLastPathComponent().appendingPathComponent("ctrl")
+
+				if socketURL.isPIDRunning().running == false {
+					throw ServiceError(String(localized: "VMNet serialization failed: network \(networkName) is not running"))
+				}
+
+				let client = try NetworksHandler.getVMNetControlClient(socketURL, runMode: .user)
+
+				defer {
+					_ = try? client.channel.close().wait()
+				}
+
+				let reply = try client.getSerialization(Vmnet_Empty()).response.wait()
+
+				guard reply.success else {
+					throw ServiceError(String(localized: "VMNet serialization failed: \(reply.reason)"))
+				}
+
+				return reply.data.base64EncodedString()
+			}
+		}
+
+		// The other network operations call `NetworksHandler`, the code behind the `caked networks` commands, in this process (root) on the
+		// cake home of the caller: `Utils.withCakeHome` puts it where the handlers look for it. A network is root's process, and its files
+		// and its control socket are not reachable from a sandboxed caller. The checks the commands make in `validate()` are made here.
+		private static let runMode = Utils.RunMode.user
+
+		private static func isReserved(_ networkName: String) -> Bool {
+			networkName == BridgeAttachement.defaultNetworkName || networkName == IMDSNetworkInterface.imdsNetworkName
+		}
+
+		func createNetwork(authorization authData: Data, cakeHome: String, networkName: String, options: [String: Any], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			nonisolated(unsafe) let options = options
+
+			perform("create-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.createNetwork(authorization:cakeHome:networkName:options:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				try Self.validateNetworkName(networkName)
+
+				let values = try Self.networkValues(options, allowMode: true)
+
+				defer {
+					Self.restoreOwnership(home: home, caller: caller)
+				}
+
+				return try Utils.withCakeHome(home) {
+					if Self.isReserved(networkName) {
+						throw ServiceError(String(localized: "Network \(networkName) is a reserved default network and cannot be used"))
+					}
+
+					if NetworksHandler.isPhysicalInterface(name: networkName) {
+						throw ServiceError(String(localized: "Network \(networkName) is a physical interface"))
+					}
+
+					// The defaults of `caked networks create`.
+					let network = VZSharedNetwork(
+						mode: values.mode ?? .shared,
+						netmask: values.netmask ?? "255.255.255.0",
+						dhcpStart: values.gateway ?? "192.168.105.1",
+						dhcpEnd: values.dhcpEnd ?? "192.168.105.254",
+						dhcpLease: values.dhcpLease ?? 300,
+						interfaceID: values.interfaceID ?? UUID().uuidString,
+						nat66Prefix: values.nat66Prefix ?? String.empty,
+						dns: values.dns ?? false
+					)
+
+					try network.validate(runMode: Self.runMode)
+
+					return try Self.json(NetworksHandler.create(networkName: networkName, network: network, runMode: Self.runMode))
+				}
+			}
+		}
+
+		func configureNetwork(authorization authData: Data, cakeHome: String, networkName: String, options: [String: Any], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			nonisolated(unsafe) let options = options
+
+			perform("configure-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.configureNetwork(authorization:cakeHome:networkName:options:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				try Self.validateNetworkName(networkName)
+
+				let values = try Self.networkValues(options, allowMode: false)
+
+				defer {
+					Self.restoreOwnership(home: home, caller: caller)
+				}
+
+				return try Utils.withCakeHome(home) {
+					if NetworksHandler.isPhysicalInterface(name: networkName) {
+						throw ServiceError(String(localized: "Unable to configure physical network \(networkName)"))
+					}
+
+					if Self.isReserved(networkName) {
+						throw ServiceError(String(localized: "Network \(networkName) is a reserved default network and cannot be configured"))
+					}
+
+					guard let existing = try NetworksHandler.sharedNetworks(runMode: Self.runMode).sharedNetworks[networkName] else {
+						throw ServiceError(String(localized: "Network \(networkName) does not exist"))
+					}
+
+					let netmask = values.netmask ?? existing.netmask
+					// Only a new start address given: the DHCP end defaults to the last address of the network.
+					let dhcpEnd = values.dhcpEnd ?? (values.gateway.flatMap { VZSharedNetwork.defaultDhcpEnd(dhcpStart: $0, netmask: netmask) } ?? existing.dhcpEnd)
+					let changed = VZSharedNetwork(
+						mode: existing.mode,
+						netmask: netmask,
+						dhcpStart: values.gateway ?? existing.dhcpStart,
+						dhcpEnd: dhcpEnd,
+						dhcpLease: values.dhcpLease ?? existing.dhcpLease,
+						interfaceID: values.interfaceID ?? existing.interfaceID,
+						nat66Prefix: values.nat66Prefix ?? existing.nat66Prefix,
+						dns: values.dns ?? existing.dns ?? false
+					)
+
+					if changed != existing {
+						try changed.validate(runMode: Self.runMode, excluding: networkName)
+					}
+
+					return try Self.json(NetworksHandler.configure(networkName: networkName, network: changed, runMode: Self.runMode))
+				}
+			}
+		}
+
+		func restartNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("restart-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.restartNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				try Self.validateNetworkName(networkName)
+
+				return try Utils.withCakeHome(home) {
+					guard try NetworksWrapper.validateNetwork(networkName: networkName, runMode: Self.runMode).active == 0 else {
+						throw ServiceError(String(localized: "Network \(networkName) is currently in use by one or more virtual machines"))
+					}
+
+					guard try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: Self.runMode).pidFile.isCakedRunning() else {
+						throw ServiceError(String(localized: "Network \(networkName) is not running"))
+					}
+
+					// A sentence, not a structure.
+					return try NetworksHandler.restartNetworkService(networkName: networkName, runMode: Self.runMode)
+				}
+			}
+		}
+
+		func stopNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("stop-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.stopNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				try Self.validateNetworkName(networkName)
+
+				return try Utils.withCakeHome(home) {
+					// Looking for the endpoint of a name that is no network would create its directory.
+					_ = try NetworksWrapper.validateNetwork(networkName: networkName, runMode: Self.runMode)
+
+					return try Self.json(NetworksHandler.stop(networkName: networkName, checkIfUsed: true, runMode: Self.runMode))
+				}
+			}
+		}
+
+		func deleteNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("delete-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.deleteNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				try Self.validateNetworkName(networkName)
+
+				defer {
+					Self.restoreOwnership(home: home, caller: caller)
+				}
+
+				return try Utils.withCakeHome(home) {
+					if NetworksHandler.isPhysicalInterface(name: networkName) {
+						throw ServiceError(String(localized: "Unable to delete physical network \(networkName)"))
+					}
+
+					// `NetworksHandler.delete` finds the two networks it derives itself in the configuration: it would "delete" nothing.
+					if Self.isReserved(networkName) {
+						throw ServiceError(String(localized: "Network \(networkName) is a reserved default network and cannot be deleted"))
+					}
+
+					return try Self.json(NetworksHandler.delete(networkName: networkName, runMode: Self.runMode))
+				}
+			}
+		}
+
+		func listNetwork(authorization authData: Data, cakeHome: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("list-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.listNetwork(authorization:cakeHome:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				return try Utils.withCakeHome(home) {
+					let result = NetworksHandler.networks(runMode: Self.runMode)
+
+					guard result.success else {
+						throw ServiceError(result.reason)
+					}
+
+					return try Self.json(result.networks.map { FlatBridgedNetwork($0) })
+				}
+			}
+		}
+
+		func getSharedNetworks(authorization authData: Data, cakeHome: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("get-shared-networks", authorization: authData, command: #selector(AuthorizationHelperProtocol.getSharedNetworks(authorization:cakeHome:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				// Reading creates the file when it does not exist yet.
+				defer {
+					Self.restoreOwnership(home: home, caller: caller)
+				}
+
+				return try Utils.withCakeHome(home) {
+					try Self.json(NetworksHandler.sharedNetworks(runMode: Self.runMode))
+				}
+			}
+		}
+
+		func setSharedNetworks(authorization authData: Data, cakeHome: String, configuration: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("set-shared-networks", authorization: authData, command: #selector(AuthorizationHelperProtocol.setSharedNetworks(authorization:cakeHome:configuration:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+				let config = try VZVMNetConfig(fromJSON: Data(configuration.utf8))
+
+				// Only the user networks are stored: the default and the imds networks are derived, and a client does not get to define them.
+				for (name, network) in config.userNetworks {
+					try Self.validateNetworkName(name)
+
+					if Self.isReserved(name) || NetworksHandler.isPhysicalInterface(name: name) {
+						throw ServiceError("Network \(name) is reserved")
+					}
+
+					guard network.mode == .shared || network.mode == .host else {
+						throw ServiceError("Network \(name) must be a shared or a host network")
+					}
+				}
+
+				defer {
+					Self.restoreOwnership(home: home, caller: caller)
+				}
+
+				return try Utils.withCakeHome(home) {
+					try NetworksHandler.setSharedNetworks(config, runMode: Self.runMode)
+
+					return String.empty
+				}
+			}
+		}
+
+		func infosNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("infos-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.infosNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				try Self.validateNetworkName(networkName)
+
+				return try Utils.withCakeHome(home) {
+					_ = try NetworksWrapper.validateNetwork(networkName: networkName, runMode: Self.runMode)
+
+					let result = NetworksHandler.status(networkName: networkName, runMode: Self.runMode)
+
+					guard result.success else {
+						throw ServiceError(result.reason)
+					}
+
+					return try Self.json(FlatBridgedNetwork(result.info))
+				}
+			}
+		}
+
+	#endif
 }

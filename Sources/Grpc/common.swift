@@ -61,16 +61,25 @@ extension Bundle {
 		return mustUseUnixTask
 	}
 
+	public static var isPermittedOperationInSandbox: Bool {
+		#if APPSTORE && USE_AUTHORIZATION_HELPER
+			true
+		#else
+			self.isApplicationSandboxed == false
+		#endif
+	}
+
 	public static var isApplicationSandboxed: Bool {
 		get {
 			guard let isSandboxed = _cacheIsSandboxed else {
 				_cacheIsSandboxed = Bundle.main.isSandboxed
-				
+
 				return _cacheIsSandboxed!
 			}
-			
+
 			return isSandboxed
-		} set {
+		}
+		set {
 			_cacheIsSandboxed = newValue
 		}
 	}
@@ -101,9 +110,10 @@ extension Bundle {
 
 extension FileManager {
 	public static var realHomeDirectoryForCurrentUser: URL {
-		let home: String = getpwuid(getuid()).flatMap { pw in
-			pw.pointee.pw_dir.map { String(cString: $0) }
-		} ?? NSHomeDirectory()
+		let home: String =
+			getpwuid(getuid()).flatMap { pw in
+				pw.pointee.pw_dir.map { String(cString: $0) }
+			} ?? NSHomeDirectory()
 
 		return URL(fileURLWithPath: home, isDirectory: true)
 	}
@@ -135,6 +145,30 @@ public struct Utils {
 		}
 
 		return false
+	}
+
+	private static let homeOverrideLock = NSRecursiveLock()
+
+	/// Runs `body` with `home` as the cake home, whatever the run mode. `getHome` caches its answer for the life of the process, which
+	/// is right for `caked` and wrong for a long-running process that works for several users in turn (the privileged helper, root,
+	/// working on the home of whoever called it): the home of the caller is put in the cache for the time of one call, then the
+	/// previous one is put back. One call at a time, as the cache is shared by all the threads.
+	public static func withCakeHome<T>(_ home: URL, _ body: () throws -> T) rethrows -> T {
+		homeOverrideLock.lock()
+
+		defer {
+			homeOverrideLock.unlock()
+		}
+
+		let saved = homeDirectories
+
+		homeDirectories = [false: home.absoluteURL, true: home.absoluteURL]
+
+		defer {
+			homeDirectories = saved
+		}
+
+		return try body()
 	}
 
 	/// Discards the cached home directory so a subsequent `getHome` call re-resolves it.
@@ -732,7 +766,7 @@ public func withAsyncResult<T>(builder: @escaping () async throws -> T) throws -
 			await pointer.initialize(to: try builder())
 		} catch {
 			#if DEBUG
-			Logger("Task").error("Error in withAsyncResult: \(error)")
+				Logger("Task").error("Error in withAsyncResult: \(error)")
 			#endif
 			err.pointee = error
 		}

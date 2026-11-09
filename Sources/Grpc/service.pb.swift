@@ -5286,6 +5286,8 @@ public nonisolated struct Caked_Caked: Sendable {
 
         public var active: Int32 = 0
 
+        public var nat66Prefix: String = String()
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -15042,7 +15044,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, Sw
 
 nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0\u{1}managed\0\u{1}dns\0\u{1}active\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0\u{1}managed\0\u{1}dns\0\u{1}active\0\u{1}nat66Prefix\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -15063,6 +15065,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
       case 11: try { try decoder.decodeSingularBoolField(value: &self.managed) }()
       case 12: try { try decoder.decodeSingularBoolField(value: &self.dns) }()
       case 13: try { try decoder.decodeSingularInt32Field(value: &self.active) }()
+      case 14: try { try decoder.decodeSingularStringField(value: &self.nat66Prefix) }()
       default: break
       }
     }
@@ -15108,6 +15111,9 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if self.active != 0 {
       try visitor.visitSingularInt32Field(value: self.active, fieldNumber: 13)
     }
+    if !self.nat66Prefix.isEmpty {
+      try visitor.visitSingularStringField(value: self.nat66Prefix, fieldNumber: 14)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -15125,6 +15131,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if lhs.managed != rhs.managed {return false}
     if lhs.dns != rhs.dns {return false}
     if lhs.active != rhs.active {return false}
+    if lhs.nat66Prefix != rhs.nat66Prefix {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

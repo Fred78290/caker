@@ -359,7 +359,7 @@ final class ComposeDNSTests: XCTestCase {
 	}
 
 	func testSharedNetworkDoesNotEnableDNSByDefault() {
-		let network = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "192.168.50.1", dhcpEnd: "192.168.50.254")
+		let network = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "192.168.50.1", dhcpEnd: "192.168.50.254", nat66Prefix: String.empty)
 
 		XCTAssertEqual(network.dns, false)
 		XCTAssertEqual(network.gateway, "192.168.50.1")

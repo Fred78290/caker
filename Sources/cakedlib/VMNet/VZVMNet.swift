@@ -251,8 +251,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 	}
 
 	public func restart() throws -> VZSharedNetwork {
-		let home: Home = try Home(runMode: runMode)
-		let networkConfig = try home.sharedNetworks()
+		let networkConfig = try NetworksHandler.sharedNetworks(runMode: runMode)
 
 		guard let network = networkConfig.sharedNetworks[self.networkName] else {
 			throw ServiceError(String(localized: "VMNet \(self.networkName) not found in configuration"))
@@ -492,8 +491,8 @@ public class VZVMNetImpl: VZVMNetCommon, @unchecked Sendable {
 			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd)
 			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask)
 
-			if let nat66Prefix = self.networkConfig.nat66Prefix {
-				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix)
+			if self.networkConfig.nat66Prefix.isEmpty == false {
+				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, self.networkConfig.nat66Prefix)
 			}
 		} else {
 			var dhcpStart = networkConfig.dhcpStart.toIPV4().address!

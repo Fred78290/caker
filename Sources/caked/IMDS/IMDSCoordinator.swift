@@ -172,7 +172,7 @@ public actor IMDSCoordinator {
 	/// sandboxed builds (needs `sudo`) — IMDS stays reachable at its real gateway address
 	/// regardless.
 	private func enableAddressAlias(internalPort: Int) async {
-		guard Bundle.isApplicationSandboxed == false else {
+		guard Bundle.isPermittedOperationInSandbox else {
 			return
 		}
 
@@ -225,7 +225,7 @@ public actor IMDSCoordinator {
 	}
 
 	private func disableAddressAlias() async {
-		guard Bundle.isApplicationSandboxed == false else {
+		guard Bundle.isPermittedOperationInSandbox else {
 			return
 		}
 

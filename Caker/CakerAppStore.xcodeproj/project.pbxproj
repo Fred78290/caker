@@ -407,6 +407,7 @@
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
 		9B737DCF2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */; };
+		9B78094F30A078CD007DC268 /* NetworkStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B78094E30A078B3007DC268 /* NetworkStarter.swift */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
 		9B80F5A430987C8A00E754ED /* DHCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B80F5A230987C8A00E754ED /* DHCPServer.swift */; };
@@ -421,7 +422,7 @@
 		9B8F3057309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3056309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist */; };
 		9B8F305A309CF98F0079ADB6 /* AuthorizationHelperConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8F3058309CF98F0079ADB6 /* AuthorizationHelperConnector.swift */; };
 		9B8F305B309CF98F0079ADB6 /* AuthorizationHelperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8F3059309CF98F0079ADB6 /* AuthorizationHelperProtocol.swift */; };
-		9B8F305D309CFD180079ADB6 /* helper in Copy Authorization */ = {isa = PBXBuildFile; fileRef = 9B8F304A309CF7060079ADB6 /* helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9B8F305D309CFD180079ADB6 /* AuthorizationHelper in Copy Authorization */ = {isa = PBXBuildFile; fileRef = 9B8F304A309CF7060079ADB6 /* AuthorizationHelper */; };
 		9B8F305F309CFD5D0079ADB6 /* com.aldunelabs.caker.authorization.plist in Copy Helper */ = {isa = PBXBuildFile; fileRef = 9B8F3056309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist */; };
 		9B8F3061309CFE0E0079ADB6 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F3060309CFE0E0079ADB6 /* Dynamic */; };
 		9B8F3063309CFE0E0079ADB6 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F3062309CFE0E0079ADB6 /* Algorithms */; };
@@ -474,6 +475,7 @@
 		9B8F30C5309D02440079ADB6 /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F30C4309D02440079ADB6 /* ZLib */; };
 		9B8F30C7309D02D00079ADB6 /* Antlr4Static in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F30C6309D02D00079ADB6 /* Antlr4Static */; };
 		9B8F30C9309D03630079ADB6 /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8F30C8309D03630079ADB6 /* Crypto */; };
+		9B8F30CC309D10000079ADB6 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
@@ -577,6 +579,7 @@
 		9BC1F99A2F6D475800A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9992F6D475800A83B33 /* Subprocess */; };
 		9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */; };
 		9BC697712FDC048E00A60AF7 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
+		9BCD2150309F961E0035F0CB /* NetworksWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCD214F309F96130035F0CB /* NetworksWrapper.swift */; };
 		9BCE820F3074DD6500414C1F /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCE820E3074DD6500414C1F /* Gzip */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
@@ -822,7 +825,6 @@
 		9BF2DA872FE5475D00218073 /* VirtualizationPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF2DA7D2FE5475D00218073 /* VirtualizationPrivate.h */; };
 		9BF2DA882FE5475D00218073 /* MobileDeviceEnums.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF2DA792FE5475D00218073 /* MobileDeviceEnums.h */; };
 		9BF2DA892FE5475D00218073 /* MobileDeviceSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF2DA7B2FE5475D00218073 /* MobileDeviceSPI.h */; };
-		9B8F30CC309D10000079ADB6 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9BF2DA8A2FE547B800218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9BF2DA8D2FE547BD00218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
 		9BF2DA902FE547C400218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */; };
@@ -949,12 +951,12 @@
 			remoteGlobalIDString = 9BA9CBC92FCD7B8000CEBFC0;
 			remoteInfo = cakectl.bundle;
 		};
-		9B8F30CA309D10000079ADB6 /* PBXContainerItemProxy */ = {
+		9B792377309DDB9F009D49B9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 9BF2DA742FE5470700218073;
-			remoteInfo = VirtualInstallSPI;
+			remoteGlobalIDString = 9B8F3049309CF7060079ADB6;
+			remoteInfo = helper;
 		};
 		9B8F3093309CFE0F0079ADB6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1066,10 +1068,10 @@
 		};
 		9B8F305C309CFCF30079ADB6 /* Copy Authorization */ = {
 			isa = PBXCopyFilesBuildPhase;
-			dstPath = Contents/MacOS;
+			dstPath = Contents/Helpers;
 			dstSubfolder = Wrapper;
 			files = (
-				9B8F305D309CFD180079ADB6 /* helper in Copy Authorization */,
+				9B8F305D309CFD180079ADB6 /* AuthorizationHelper in Copy Authorization */,
 			);
 			name = "Copy Authorization";
 		};
@@ -1445,6 +1447,7 @@
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDConsoleTextRunner.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
+		9B78094E30A078B3007DC268 /* NetworkStarter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStarter.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementNewItemView.swift; sourceTree = "<group>"; };
@@ -1466,7 +1469,7 @@
 		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
-		9B8F304A309CF7060079ADB6 /* helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B8F304A309CF7060079ADB6 /* AuthorizationHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AuthorizationHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B8F3051309CF7CD0079ADB6 /* helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = helper.swift; sourceTree = "<group>"; };
 		9B8F3052309CF7CD0079ADB6 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		9B8F3056309CF83C0079ADB6 /* com.aldunelabs.caker.authorization.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.authorization.plist; sourceTree = "<group>"; };
@@ -1599,6 +1602,7 @@
 		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
 		9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineTerminalView.swift; sourceTree = "<group>"; };
 		9BC1F6842F66B25A00A83B33 /* ColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWell.swift; sourceTree = "<group>"; };
+		9BCD214F309F96130035F0CB /* NetworksWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksWrapper.swift; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BCEEB89307A964E006D282F /* GlassedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassedSheet.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
@@ -2527,7 +2531,7 @@
 				9B29F8302FCAE4B700AEBCB8 /* Caker.app */,
 				9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.app */,
 				9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */,
-				9B8F304A309CF7060079ADB6 /* helper */,
+				9B8F304A309CF7060079ADB6 /* AuthorizationHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3089,11 +3093,12 @@
 				9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */,
 				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CB2DF4400A0092B196 /* MainApp.swift */,
+				9B78094E30A078B3007DC268 /* NetworkStarter.swift */,
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
+				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
 				9B6EC46230037FA400ABFDED /* IMDS */,
-				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
@@ -3249,6 +3254,7 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9BCD214F309F96130035F0CB /* NetworksWrapper.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9B8F3058309CF98F0079ADB6 /* AuthorizationHelperConnector.swift */,
 				9B8F3059309CF98F0079ADB6 /* AuthorizationHelperProtocol.swift */,
@@ -3491,6 +3497,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				9B792378309DDB9F009D49B9 /* PBXTargetDependency */,
 				9BA9CBD62FCD7D8500CEBFC0 /* PBXTargetDependency */,
 				9B29F79F2FCAE4B700AEBCB8 /* PBXTargetDependency */,
 				9BF2DA922FE547C400218073 /* PBXTargetDependency */,
@@ -3582,9 +3589,9 @@
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		9B8F3049309CF7060079ADB6 /* helper */ = {
+		9B8F3049309CF7060079ADB6 /* AuthorizationHelper */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "helper" */;
+			buildConfigurationList = 9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "AuthorizationHelper" */;
 			buildPhases = (
 				9B8F3046309CF7060079ADB6 /* Sources */,
 				9B8F3047309CF7060079ADB6 /* Frameworks */,
@@ -3595,9 +3602,8 @@
 			dependencies = (
 				9B8F3094309CFE0F0079ADB6 /* PBXTargetDependency */,
 				9B8F3097309CFE0F0079ADB6 /* PBXTargetDependency */,
-				9B8F30CB309D10000079ADB6 /* PBXTargetDependency */,
 			);
-			name = helper;
+			name = AuthorizationHelper;
 			packageProductDependencies = (
 				9B8F3060309CFE0E0079ADB6 /* Dynamic */,
 				9B8F3062309CFE0E0079ADB6 /* Algorithms */,
@@ -3648,7 +3654,7 @@
 				9B8F30C8309D03630079ADB6 /* Crypto */,
 			);
 			productName = helper;
-			productReference = 9B8F304A309CF7060079ADB6 /* helper */;
+			productReference = 9B8F304A309CF7060079ADB6 /* AuthorizationHelper */;
 			productType = "com.apple.product-type.tool";
 		};
 		9B96B00E2F4B68380069C970 /* CakerTests */ = {
@@ -3977,7 +3983,7 @@
 				9B29F79E2FCAE4B700AEBCB8 /* Caker */,
 				9B464B4E2D5A3E5C00164BF5 /* cakectl */,
 				9BEBC68D2DF43FEE0092B196 /* caked */,
-				9B8F3049309CF7060079ADB6 /* helper */,
+				9B8F3049309CF7060079ADB6 /* AuthorizationHelper */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
 				9BFE869C2F7E592B005CC9B2 /* caked.app */,
@@ -4611,6 +4617,7 @@
 				9BEBC6EF2DF4400A0092B196 /* RenameHandler.swift in Sources */,
 				9BB1491A2EC74B8B0094D950 /* PushHandler.swift in Sources */,
 				9BEBC6F02DF4400A0092B196 /* DuplicateHandler.swift in Sources */,
+				9B78094F30A078CD007DC268 /* NetworkStarter.swift in Sources */,
 				9BEBC6F12DF4400A0092B196 /* Logout.swift in Sources */,
 				9BEBC6F22DF4400A0092B196 /* ConfigureHandler.swift in Sources */,
 				9BDC052A2FEADAF100802A3C /* EnvInit.swift in Sources */,
@@ -4776,6 +4783,7 @@
 				9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */,
 				E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */,
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
+				9BCD2150309F961E0035F0CB /* NetworksWrapper.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
 				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
@@ -4908,10 +4916,10 @@
 			target = 9BA9CBC92FCD7B8000CEBFC0 /* cakectl.app */;
 			targetProxy = 9B6ECDE62FD1A78E00A51430 /* PBXContainerItemProxy */;
 		};
-		9B8F30CB309D10000079ADB6 /* PBXTargetDependency */ = {
+		9B792378309DDB9F009D49B9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BF2DA742FE5470700218073 /* VirtualInstallSPI */;
-			targetProxy = 9B8F30CA309D10000079ADB6 /* PBXContainerItemProxy */;
+			target = 9B8F3049309CF7060079ADB6 /* AuthorizationHelper */;
+			targetProxy = 9B792377309DDB9F009D49B9 /* PBXContainerItemProxy */;
 		};
 		9B8F3094309CFE0F0079ADB6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5035,7 +5043,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caker.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -5154,7 +5161,7 @@
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPSTORE USE_VIRTUAL_INSTALL_BACKEND USE_AUTHORIZATION_HELPER USE_SMAPPSERVICE DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPSTORE USE_VIRTUAL_INSTALL_BACKEND USE_AUTHORIZATION_HELPER USE_DHCP_SERVER USE_SMAPPSERVICE DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -5221,7 +5228,7 @@
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPSTORE USE_VIRTUAL_INSTALL_BACKEND USE_AUTHORIZATION_HELPER USE_SMAPPSERVICE";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPSTORE USE_VIRTUAL_INSTALL_BACKEND USE_AUTHORIZATION_HELPER USE_DHCP_SERVER USE_SMAPPSERVICE";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -5232,7 +5239,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
@@ -5263,7 +5269,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CODE_SIGN_FLAGS = "-i $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -5277,7 +5283,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
@@ -5346,10 +5352,11 @@
 			};
 			name = Release;
 		};
-		9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "helper" */ = {
+		9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "AuthorizationHelper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/helper.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
@@ -5368,29 +5375,26 @@
 				ENABLE_RESOURCE_ACCESS_USB = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.authorization;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "helper" */ = {
+		9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "AuthorizationHelper" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/helper.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
@@ -5413,12 +5417,12 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.authorization;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -5546,7 +5550,6 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
@@ -5577,7 +5580,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CODE_SIGN_FLAGS = "$(inherited) -i $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -5591,7 +5594,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
@@ -5786,11 +5789,11 @@
 			);
 			defaultConfigurationName = Release;
 		};
-		9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "helper" */ = {
+		9B8F3050309CF7060079ADB6 /* Build configuration list for PBXNativeTarget "AuthorizationHelper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "helper" */,
-				9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "helper" */,
+				9B8F304E309CF7060079ADB6 /* Debug configuration for PBXNativeTarget "AuthorizationHelper" */,
+				9B8F304F309CF7060079ADB6 /* Release configuration for PBXNativeTarget "AuthorizationHelper" */,
 			);
 			defaultConfigurationName = Release;
 		};

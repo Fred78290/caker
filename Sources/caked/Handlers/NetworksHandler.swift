@@ -14,6 +14,7 @@ import vmnet
 struct NetworksHandler: CakedCommand {
 	var request: Caked_NetworkRequest
 
+	// MARK: - Error handling
 	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
@@ -55,10 +56,11 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
+	// MARK: - Network commands
 	private func networks(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.list = CakedLib.NetworksHandler.networks(runMode: runMode).caked
+				$0.list = NetworksWrapper.networks(runMode: runMode).caked
 			}
 		}
 	}
@@ -66,7 +68,7 @@ struct NetworksHandler: CakedCommand {
 	private func status(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.status = CakedLib.NetworksHandler.status(networkName: self.request.name, runMode: runMode).caked
+				$0.status = NetworksWrapper.status(networkName: self.request.name, runMode: runMode).caked
 			}
 		}
 	}
@@ -74,7 +76,7 @@ struct NetworksHandler: CakedCommand {
 	private func create(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.created = CakedLib.NetworksHandler.create(networkName: self.request.create.name, network: self.request.create.toVZSharedNetwork(), runMode: runMode).caked
+				$0.created = NetworksWrapper.create(networkName: self.request.create.name, network: self.request.create.toVZSharedNetwork(), runMode: runMode).caked
 			}
 		}
 	}
@@ -82,7 +84,7 @@ struct NetworksHandler: CakedCommand {
 	private func stop(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.stopped = CakedLib.NetworksHandler.stop(networkName: self.request.name, checkIfUsed: true, runMode: runMode).caked
+				$0.stopped = NetworksWrapper.stop(networkName: self.request.name, checkIfUsed: true, runMode: runMode).caked
 			}
 		}
 	}
@@ -90,7 +92,7 @@ struct NetworksHandler: CakedCommand {
 	private func start(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.started = CakedLib.NetworksHandler.start(networkName: self.request.name, runMode: runMode).caked
+				$0.started = NetworksWrapper.start(networkName: self.request.name, runMode: runMode).caked
 			}
 		}
 	}
@@ -98,7 +100,7 @@ struct NetworksHandler: CakedCommand {
 	private func delete(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.delete = CakedLib.NetworksHandler.delete(networkName: self.request.name, runMode: runMode).caked
+				$0.delete = NetworksWrapper.delete(networkName: self.request.name, runMode: runMode).caked
 			}
 		}
 	}
@@ -106,11 +108,12 @@ struct NetworksHandler: CakedCommand {
 	private func configure(runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
-				$0.configured = CakedLib.NetworksHandler.configure(network: self.request.configure.toUsedNetworkConfig(), runMode: runMode).caked
+				$0.configured = NetworksWrapper.configure(network: self.request.configure.toUsedNetworkConfig(), runMode: runMode).caked
 			}
 		}
 	}
 
+	// MARK: - Network remote handling command
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		switch self.request.command {
 		case .infos:

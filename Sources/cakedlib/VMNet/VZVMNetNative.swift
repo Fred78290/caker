@@ -77,7 +77,8 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 			throw ServiceError(String(localized: "Failed to reconfigure network: \(status.description)"))
 		}
 
-		if let nat66Prefix = networkConfig.nat66Prefix {
+		if networkConfig.nat66Prefix.isEmpty == false {
+			let nat66Prefix = networkConfig.nat66Prefix
 			let parts = nat66Prefix.split(separator: "/")
 
 			guard let prefixStr = parts.first else {

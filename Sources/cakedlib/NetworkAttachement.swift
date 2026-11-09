@@ -91,25 +91,12 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		if #available(macOS 26.0, *), networkConfig != nil, NetworksHandler.vmnetNative {
 			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork(runMode: runMode)))
 		}
-		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
-	}
 
-	private func startNetworkSandboxed(socketURL: (socket: URL, pidFile: URL), runMode: Utils.RunMode) throws {
-		var arguments = ["networks", "start", networkName]
-
-		if Logger.LoggingLevel() > .info {
-			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
-		}
-
-		if runMode.isSystem {
-			arguments.append("--system")
-		}
-
-		try? socketURL.socket.delete()
-
-		try Bundle.runCakedWithUnixTask(with: arguments)
-
-		try socketURL.pidFile.waitPID()
+		#if APPSTORE
+			throw ServiceError(String(localized: "Unable to configure network"))
+		#else
+			return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
+		#endif
 	}
 
 	@available(macOS 26.0, *)
@@ -118,37 +105,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			throw ServiceError(String(localized: "Unable to configure network"))
 		}
 
-		var socketURL = try self.vmnetEndpoint(runMode: runMode)
-
-		if socketURL.pidFile.isPIDRunning().running == false {
-			if Bundle.mustUseUnixTask {
-				try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
-			} else {
-				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
-			}
-		}
-
-		let client = try NetworksHandler.getVMNetControlClient(socketURL.socket, runMode: runMode)
-
-		defer {
-			_ = try? client.channel.close().wait()
-		}
-
-		let reply = try client.getSerialization(Vmnet_Empty()).response.wait()
-
-		guard reply.success else {
-			throw ServiceError(String(localized: "VMNet serialization failed: \(reply.reason)"))
-		}
-
-		let serialization = try decodeXPCObject(reply.data)
-
-		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
-
-		guard let network = vmnet_network_create_with_serialization(serialization, &status) else {
-			throw ServiceError(String(localized: "Failed to create vmnet network with serialization, status: \(status.description)"))
-		}
-
-		return network
+		return try NetworksWrapper.createVMNetwork(networkName: networkName, runMode: runMode)
 	}
 
 	public func closed(side: VZVMNetHandlerClient.HandlerSide) {
@@ -182,102 +139,100 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		}
 	}
 
-	internal func vmnetEndpoint(runMode: Utils.RunMode) throws -> (socket: URL, pidFile: URL) {
-		let result: (socket: URL, pidFile: URL)
+	#if !APPSTORE
+		internal func vmnetEndpoint(runMode: Utils.RunMode) throws -> (socket: URL, pidFile: URL) {
+			let result: (socket: URL, pidFile: URL)
 
-		if runMode.isSystem {
-			result = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
-		} else {
-			let systemSocketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: .system)
-
-			if try systemSocketURL.socket.exists() == false {
+			if runMode.isSystem {
 				result = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 			} else {
-				result = systemSocketURL
-			}
-		}
+				let systemSocketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: .system)
 
-		// Clear socket
-		if try result.socket.exists() && result.pidFile.isPIDRunning().running == false {
-			try? FileManager.default.removeItem(at: result.socket)
-			try? FileManager.default.removeItem(at: result.pidFile)
-		}
-
-		return result
-	}
-
-	internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
-		var socketURL = try self.vmnetEndpoint(runMode: runMode)
-
-		if VMRunHandler.launchedFromService || runMode == .app {
-			if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
-				if Bundle.mustUseUnixTask {
-					try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
+				if try systemSocketURL.socket.exists() == false {
+					result = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 				} else {
+					result = systemSocketURL
+				}
+			}
+
+			// Clear socket
+			if try result.socket.exists() && result.pidFile.isPIDRunning().running == false {
+				try? FileManager.default.removeItem(at: result.socket)
+				try? FileManager.default.removeItem(at: result.pidFile)
+			}
+
+			return result
+		}
+
+		internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
+			var socketURL = try self.vmnetEndpoint(runMode: runMode)
+
+			if VMRunHandler.launchedFromService || runMode == .app {
+				if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
 					socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 				}
 			}
-		}
 
-		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.socket.path(percentEncoded: false))
+			let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.socket.path(percentEncoded: false))
 
-		(self.vmfd, self.hostfd) = try socketAddress.withSockAddr { _, len in
-			let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
+			(self.vmfd, self.hostfd) = try socketAddress.withSockAddr { _, len in
+				let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
 
-			defer {
-				fds.deallocate()
-			}
-
-			if socketpair(AF_UNIX, SOCK_DGRAM, 0, fds) != 0 {
-				throw ServiceError(String(localized: "unable to create socket with exit code \(String(errno: errno))"))
-			}
-
-			try setSocketBuffers(fd: fds[0], sizeBytes: Int(MoB))
-			try setSocketBuffers(fd: fds[1], sizeBytes: Int(MoB))
-
-			return (fds[0], fds[1])
-		}
-
-		if try socketURL.socket.exists() {
-			Logger(self).info("Use VZVMNet at: \(socketURL.socket.path(percentEncoded: false))")
-
-			let client = ClientBootstrap(group: Utilities.group)
-				.channelInitializer { inboundChannel in
-					// When the child channel is created, create a new pipe and add the handlers
-					return NIOPipeBootstrap(group: inboundChannel.eventLoop)
-						.takingOwnershipOfDescriptor(inputOutput: self.hostfd)
-						.flatMap { childChannel in
-							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: false, delegate: self)
-
-							return childChannel.pipeline.addHandler(guestHandler)
-								.flatMap {
-									inboundChannel.pipeline.addHandler(hostHandler)
-								}
-						}
+				defer {
+					fds.deallocate()
 				}
 
-			let futureChannel = client.connect(to: socketAddress)
-
-			futureChannel.whenComplete { result in
-				switch result {
-				case .success:
-					Logger(self).info("Network file handle connected to \(socketURL.socket.path(percentEncoded: false))")
-				case .failure(let error):
-					Logger(self).error("Network file handle failed to connect to \(socketURL.socket.path(percentEncoded: false)), \(error)")
+				if socketpair(AF_UNIX, SOCK_DGRAM, 0, fds) != 0 {
+					throw ServiceError(String(localized: "unable to create socket with exit code \(String(errno: errno))"))
 				}
+
+				try setSocketBuffers(fd: fds[0], sizeBytes: Int(MoB))
+				try setSocketBuffers(fd: fds[1], sizeBytes: Int(MoB))
+
+				return (fds[0], fds[1])
 			}
 
-			self.pipeChannel = try futureChannel.wait()
-		} else {
-			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
+			if try socketURL.socket.exists() {
+				Logger(self).info("Use VZVMNet at: \(socketURL.socket.path(percentEncoded: false))")
 
-			let pidURL = location.rootURL.appending(path: "\(self.networkName).pid")
-			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL, runMode: runMode)
-			self.pidURL = pidURL
+				let client = ClientBootstrap(group: Utilities.group)
+					.channelInitializer { inboundChannel in
+						// When the child channel is created, create a new pipe and add the handlers
+						return NIOPipeBootstrap(group: inboundChannel.eventLoop)
+							.takingOwnershipOfDescriptor(inputOutput: self.hostfd)
+							.flatMap { childChannel in
+								let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: false, delegate: self)
+
+								return childChannel.pipeline.addHandler(guestHandler)
+									.flatMap {
+										inboundChannel.pipeline.addHandler(hostHandler)
+									}
+							}
+					}
+
+				let futureChannel = client.connect(to: socketAddress)
+
+				futureChannel.whenComplete { result in
+					switch result {
+					case .success:
+						Logger(self).info("Network file handle connected to \(socketURL.socket.path(percentEncoded: false))")
+					case .failure(let error):
+						Logger(self).error("Network file handle failed to connect to \(socketURL.socket.path(percentEncoded: false)), \(error)")
+					}
+				}
+
+				self.pipeChannel = try futureChannel.wait()
+			} else {
+				Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
+
+				self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), runMode: runMode)
+				// The pid file of the network, which `NetworksHandler.stop(pidURL:)` finds the control socket of.
+				self.pidURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode).pidFile
+			}
+
+			return FileHandle(fileDescriptor: self.vmfd, closeOnDealloc: true)
 		}
-
-		return FileHandle(fileDescriptor: self.vmfd, closeOnDealloc: true)
-	}
+	#endif
 
 	public func stop(runMode: Utils.RunMode) {
 		if let process {
@@ -358,7 +313,7 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 			CakedKeyConfig.imdsEnabled.set(newValue)
 		}
 	}
-	
+
 	/// The AWS-style link-local address guests get a static route to (see CloudInit.swift).
 	/// Not on-link on the imds subnet itself — genuinely reaching it host-side needs a `pf`
 	/// address-alias redirect to `imdsGateway` (see `PFRedirect.enableAddressAlias`).
@@ -372,7 +327,7 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 			dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
 			dhcpLease: nil,
 			interfaceID: IMDSNetworkInterface.imdsNetworkName,
-			nat66Prefix: nil
+			nat66Prefix: String.empty
 		)
 		super.init(mode: .host, macAddress: macAddress, networkName: IMDSNetworkInterface.imdsNetworkName, networkConfig: networkConfig)
 	}
