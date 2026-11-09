@@ -574,6 +574,7 @@
 		9BD69DF72FCEE912005E24AF /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BD69DFD2FCEEAF3005E24AF /* cakectl.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BD69DF02FCEE8F1005E24AF /* cakectl.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BD6FC0630A21F0E00D38C5F /* NetworkStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */; };
 		9BD85B23303317ED00AD9100 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD85B22303317EA00AD9100 /* SplashScreenView.swift */; };
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
 		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
@@ -1588,6 +1589,7 @@
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BD69DF02FCEE8F1005E24AF /* cakectl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStarter.swift; sourceTree = "<group>"; };
 		9BD85B22303317EA00AD9100 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFixedWidthInteger.swift; sourceTree = "<group>"; };
 		9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSXKeyMapper.swift; sourceTree = "<group>"; };
@@ -3071,6 +3073,7 @@
 		9BEBC6CD2DF4400A0092B196 /* caked */ = {
 			isa = PBXGroup;
 			children = (
+				9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */,
 				9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */,
 				9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */,
 				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
@@ -4596,6 +4599,7 @@
 				9B602F9E2FAA56FA00055543 /* Routes.swift in Sources */,
 				9B602F9F2FAA56FA00055543 /* LXDImagesController.swift in Sources */,
 				9BEBC6E82DF4400A0092B196 /* ImagesManagement.swift in Sources */,
+				9BD6FC0630A21F0E00D38C5F /* NetworkStarter.swift in Sources */,
 				9BEBC6E92DF4400A0092B196 /* Exec.swift in Sources */,
 				9BEBC6EA2DF4400A0092B196 /* Configure.swift in Sources */,
 				9BEBC6EB2DF4400A0092B196 /* RunHandler.swift in Sources */,
