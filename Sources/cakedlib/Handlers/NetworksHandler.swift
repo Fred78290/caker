@@ -151,6 +151,13 @@ public struct UsedNetworkConfig {
 public struct NetworksHandler {
 	public static var hasVMNetEntitlement: Bool = Entitlement.hasVMNetworking()
 	public static var vmnetNative: Bool {
+		#if DEBUG
+			// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
+			guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
+				return false
+			}
+		#endif
+
 		if #available(macOS 26.0, *) {
 			return true
 		} else {
@@ -418,17 +425,13 @@ public struct NetworksHandler {
 	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> RunningNetworkProcess {
 		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
-		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : Home.cakedCommandName) else {
+		guard let executableURL = URL.binary(Home.cakedCommandName) else {
 			throw ServiceError(String(localized: "caked not found in path"))
 		}
 
 		var arguments: [String] = []
 		var runningArguments: [String]
 		let process = try Bundle.createProcessWithSharedFileHandle()
-
-		if phUseLimaVMNet == false {
-			arguments.append(contentsOf: ["networks", "run"])
-		}
 
 		if Logger.LoggingLevel() > .info {
 			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
@@ -466,7 +469,7 @@ public struct NetworksHandler {
 				arguments.append("--nat66-prefix=\(nat66Prefix)")
 			}
 
-			if phUseLimaVMNet == false, networkConfig.dns == true {
+			if networkConfig.dns == true {
 				arguments.append("--dns")
 			}
 		}
@@ -480,7 +483,9 @@ public struct NetworksHandler {
 		#if !APPSTORE
 			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
 			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
-			if direct == false, phUseLimaVMNet == false {
+			if direct == false {
+				let helperArguments = Array(arguments.dropFirst(2))
+				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 				let helperCanUsePID: Bool = {
 					guard let helperHome = try? Home(runMode: runMode) else {
 						return false
@@ -489,8 +494,6 @@ public struct NetworksHandler {
 					let pidPath = pidFile.resolvingSymlinksInPath().standardizedFileURL.path
 					return pidFile.pathExtension == "pid" && pidPath.hasPrefix(homePath + "/")
 				}()
-				let helperArguments = Array(arguments.dropFirst(2))
-				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 
 				if helperCanUsePID, let pid = try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.runNetwork(arguments: helperArguments, pidFile: pidFile, fileHandle: handle, runMode: runMode) }) {
 					logger.info("Network \(networkConfig.networkName) started by the privileged helper with PID=\(pid)")
@@ -1399,7 +1402,7 @@ public struct NetworksHandler {
 	}
 
 	public static func getVMNetControlClient(_ socketURL: URL, runMode: Utils.RunMode) throws -> Vmnet_VMNetServiceNIOClient {
-		let socketURL = socketURL.deletingLastPathComponent().appendingPathComponent("ctrl")
+		let socketURL = socketURL.deletingLastPathComponent().appendingPathComponent(VZVMNetCommon.networkSocketControl)
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		var clientConfiguration = ClientConnection.Configuration.default(
 			target: .unixDomainSocket(socketURL.path(percentEncoded: false)),

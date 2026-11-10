@@ -3073,16 +3073,16 @@
 		9BEBC6CD2DF4400A0092B196 /* caked */ = {
 			isa = PBXGroup;
 			children = (
-				9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */,
 				9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */,
 				9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */,
 				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CB2DF4400A0092B196 /* MainApp.swift */,
+				9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */,
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
+				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
 				9B9438E72FF17EBF00F69AB6 /* IMDS */,
-				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);

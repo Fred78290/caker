@@ -16,8 +16,8 @@ import vmnet
 public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 	var network_ref: vmnet_network_ref?
 
-	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
-		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, socketControl: URL, pidFile: URL, runMode: Utils.RunMode) {
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, socketControl: socketControl, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func reconfigure(networkConfig: VZSharedNetwork) throws {

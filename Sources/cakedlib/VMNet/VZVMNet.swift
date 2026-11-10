@@ -82,6 +82,8 @@ extension vmnet_return_t {
 }
 
 public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
+	public static var networkSocketControl = "ctrl"
+
 	/// Set by the process running the network.
 	public var reconfigureHandler: (@Sendable () async throws -> Void)?
 
@@ -158,6 +160,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 	internal let networkName: String
 	internal let logger = Logger("VZVMNetImpl")
 	internal let socketPath: URL
+	internal let socketControl: URL
 	internal let pidFile: URL
 	internal let serializationLock = NSLock()
 	internal var serialization: xpc_object_t? = nil
@@ -166,12 +169,13 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 	internal let socketGroup: gid_t
 	internal var networkConfig: VZSharedNetwork
 
-	public init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+	public init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, socketControl: URL, pidFile: URL, runMode: Utils.RunMode) {
 		self.eventLoop = on
 		self.networkName = networkName
 		self.networkConfig = networkConfig
 		self.pidFile = pidFile
 		self.socketPath = socketPath
+		self.socketControl = socketControl
 		self.runMode = runMode
 		self.trace = Logger.Level() >= Logger.LogLevel.trace
 		self.socketGroup = socketGroup
@@ -187,7 +191,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		}
 
 		let serviceProvider = GRPCVMNetService(owner: self)
-		let socketFile = socketPath.deletingLastPathComponent().appendingPathComponent("ctrl").path(percentEncoded: false)
+		let socketFile = self.socketControl.path(percentEncoded: false)
 
 		try? FileManager.default.removeItem(atPath: socketFile)
 
@@ -331,10 +335,10 @@ public class VZVMNetImpl: VZVMNetCommon, @unchecked Sendable {
 		}
 	}
 
-	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, socketControl: URL, pidFile: URL, runMode: Utils.RunMode) {
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.\(networkName)", qos: .userInitiated)
 
-		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, socketControl: socketControl, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func reconfigure(networkConfig: VZSharedNetwork) throws {

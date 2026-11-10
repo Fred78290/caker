@@ -1,10 +1,10 @@
+import CakeAgentLib
 import Darwin
 import Foundation
+import GRPCLib
 import NIO
 import Virtualization
 import vmnet
-import CakeAgentLib
-import GRPCLib
 
 public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 	private let fileDescriptor: CInt
@@ -21,9 +21,20 @@ public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 		}
 	}
 
-	public init(on: EventLoop, socketGroup: gid_t, inputOutput: CInt, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+	public init(
+		on: EventLoop,
+		socketGroup: gid_t,
+		inputOutput: CInt,
+		networkName: String,
+		networkConfig: VZSharedNetwork,
+		socketPath: URL,
+		socketControl: URL,
+		pidFile: URL,
+		runMode: Utils.RunMode
+	) {
 		self.fileDescriptor = inputOutput
-		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
+
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, socketControl: socketControl, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func write(data: Data) {

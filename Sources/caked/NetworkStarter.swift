@@ -85,6 +85,7 @@ extension Networks.VMNetOptions {
 
 		guard let vmfd = self.vmfd else {
 			let socketURL = try vmnetEndpoint(runMode: runMode)
+			let socketControl = socketURL.pidFile.deletingLastPathComponent().appendingPathComponent(VZVMNetCommon.networkSocketControl)
 
 			if CakedLib.NetworksHandler.vmnetNative {
 				let vzvmnet = VZVMNetNative(
@@ -93,6 +94,7 @@ extension Networks.VMNetOptions {
 					networkName: self.networkName,
 					networkConfig: network,
 					socketPath: socketURL.socket,
+					socketControl: socketControl,
 					pidFile: socketURL.pidFile,
 					runMode: runMode
 				)
@@ -105,6 +107,7 @@ extension Networks.VMNetOptions {
 					networkName: self.networkName,
 					networkConfig: network,
 					socketPath: socketURL.socket,
+					socketControl: socketControl,
 					pidFile: socketURL.pidFile,
 					runMode: runMode
 				)
@@ -130,6 +133,7 @@ extension Networks.VMNetOptions {
 			networkName: self.networkName,
 			networkConfig: network,
 			socketPath: pidUrl.deletingPathExtension().appendingPathExtension("sock"),
+			socketControl: pidUrl.deletingPathExtension().appendingPathExtension(VZVMNetCommon.networkSocketControl),
 			pidFile: pidUrl,
 			runMode: runMode)
 
@@ -403,9 +407,16 @@ struct NetworkStarter {
 
 		do {
 			let socketURL = try options.vmnetEndpoint(runMode: runMode)
+			let home = try Home(runMode: runMode)
+			let networkConfig = try home.sharedNetworks()
+			let sharedNetworks = networkConfig.sharedNetworks
 
 			if socketURL.pidFile.isCakedRunning() {
 				return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network already running"))
+			}
+
+			if isPhysicalInterface == false && sharedNetworks[networkName] == nil {
+				return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			if fork {
@@ -455,6 +466,13 @@ struct NetworkStarter {
 			}
 
 			func startWithHelper() throws -> Bool {
+				#if DEBUG
+					// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
+					guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
+						return false
+					}
+				#endif
+
 				#if APPSTORE
 					return false
 				#else
@@ -462,7 +480,7 @@ struct NetworkStarter {
 				#endif
 			}
 
-			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (try? Home(runMode: runMode).sharedNetworks().sharedNetworks[networkName])?.mode) {
+			if CakedLib.NetworksHandler.canManageNetworkWithoutRoot(mode: isPhysicalInterface ? .bridged : (sharedNetworks[networkName])?.mode) {
 				try startForkedNetwork()
 			} else if try startWithHelper() {
 				// Started as root by the privileged helper, which waited for the pid file.

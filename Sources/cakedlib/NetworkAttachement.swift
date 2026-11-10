@@ -6,8 +6,6 @@ import NIO
 import Virtualization
 import vmnet
 
-public var phUseLimaVMNet = false
-
 public protocol NetworkAttachement {
 	var networkName: String { get }
 	func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment)

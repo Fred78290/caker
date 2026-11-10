@@ -169,8 +169,10 @@ public final class SudoCaked {
 		self.process.terminationReason
 	}
 
-	/// Environment variable telling a setuid-root `caked` it was launched to run privileged: it then calls `setuid(0)` (see `becomeRootIfRequested()`).
-	public static let becomeRootEnvironmentKey = "CAKED_BECOME_ROOT"
+	#if USE_SETUID
+		/// Environment variable telling a setuid-root `caked` it was launched to run privileged: it then calls `setuid(0)` (see `becomeRootIfRequested()`).
+		public static let becomeRootEnvironmentKey = "CAKED_BECOME_ROOT"
+	#endif
 
 	/// How to start `binary` with root privileges.
 	public struct PrivilegedLaunch {
@@ -223,7 +225,24 @@ public final class SudoCaked {
 			throw ServiceError(String(localized: "\(binary.lastPathComponent) is not sudoable"))
 		}
 
-		arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path(percentEncoded: false)]
+		arguments = [
+			"--user=root",
+			"--group=#\(getegid())",
+			"--non-interactive",
+			"--preserve-env=CAKE_HOME",
+		]
+
+		#if DEBUG
+			arguments.append(contentsOf: [
+				"--preserve-env=CAKED_VMNET_DHCP",
+				"--preserve-env=CAKED_VMNET_NATIVE",
+			])
+		#endif
+
+		arguments.append(contentsOf: [
+			"--",
+			binary.path(percentEncoded: false),
+		])
 
 		if runMode.isSystem && binary.lastPathComponent == Home.cakedCommandName {
 			arguments.append("--system")

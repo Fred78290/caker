@@ -862,6 +862,26 @@
 			"target": "helper",
 			"configuration": "release",
 			"preLaunchTask": "swift: Build Release helper"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug AuthorizationHelper",
+			"target": "AuthorizationHelper",
+			"configuration": "debug",
+			"preLaunchTask": "swift: Build Debug AuthorizationHelper"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release AuthorizationHelper",
+			"target": "AuthorizationHelper",
+			"configuration": "release",
+			"preLaunchTask": "swift: Build Release AuthorizationHelper"
 		}
 	],
 	"compounds": [

@@ -44,9 +44,11 @@ public final class AuthorizationHelperReply: NSObject, NSSecureCoding, @unchecke
 
 @objc(AuthorizationHelperProtocol)
 public protocol AuthorizationHelperProtocol {
-	/// Start vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
-	@objc(startNetworkWithAuthorization:cakeHome:networkName:withReply:)
-	func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+	#if USE_DHCP_SERVER
+		/// Start vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
+		@objc(startNetworkWithAuthorization:cakeHome:networkName:withReply:)
+		func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+	#endif
 
 	/// Set DHCP Lease. `authData` must be an AuthorizationExternalForm embedded in a Data.
 	@objc(setDHCPLeaseWithAuthorization:leaseTime:withReply:)
@@ -103,56 +105,65 @@ public enum AuthorizationHelperCommon {
 		let authRightDescription: String
 	}
 
-	private static let commandInfo: [Selector: CommandInfo] = [
-		#selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.start-network",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to start named network with DHCP server.",
-				comment: "prompt shown when user is required to authorize to start vmnet network with DHCP server"
+	private static let commandInfo: [Selector: CommandInfo] = {
+		var commandInfo: [Selector: CommandInfo] = [
+			#selector(AuthorizationHelperProtocol.setDHCPLease(authorization:leaseTime:withReply:)): CommandInfo(
+				authRightName: "com.aldunelabs.caker.authorization.set-dhcp-lease",
+				authRightDefault: kAuthorizationRuleClassAllow,
+				authRightDescription: NSLocalizedString(
+					"Helper is trying to set global dhcp lease time for DHCP server.",
+					comment: "prompt shown when user is required to authorize to set global dhcp lease time for DHCP server"
+				)
+			),
+			#selector(AuthorizationHelperProtocol.imdsRedirect(authorization:externalAddress:internalAddress:internalPort:install:withReply:)): CommandInfo(
+				authRightName: "com.aldunelabs.caker.authorization.imds-redirect",
+				authRightDefault: kAuthorizationRuleClassAllow,
+				authRightDescription: NSLocalizedString(
+					"Helper is trying to install or remove imds redirect.",
+					comment: "prompt shown when user is required to authorize to install or remove imds redirect"
+				)
+			),
+			#selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:withReply:)): CommandInfo(
+				authRightName: "com.aldunelabs.caker.authorization.import-virtual-machine",
+				authRightDefault: kAuthorizationRuleClassAllow,
+				authRightDescription: NSLocalizedString(
+					"Helper is trying to import external virtual machine.",
+					comment: "prompt shown when user is required to authorize to import external virtual machine"
+				)
+			),
+			#selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)): CommandInfo(
+				authRightName: "com.aldunelabs.caker.authorization.run-network",
+				authRightDefault: kAuthorizationRuleClassAllow,
+				authRightDescription: NSLocalizedString(
+					"Helper is trying to run a network on a file descriptor.",
+					comment: "prompt shown when user is required to authorize to run a network on a file descriptor"
+				)
+			),
+			#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)): CommandInfo(
+				authRightName: "com.aldunelabs.caker.authorization.install-priviliged-files",
+				authRightDefault: kAuthorizationRuleClassAllow,
+				authRightDescription: NSLocalizedString(
+					"Helper is trying to install some priviliged files.",
+					comment: "prompt shown when user is required to authorize to install some priviliged files"
+				)
+			),
+		]
+
+		#if USE_DHCP_SERVER
+			commandInfo[
+				#selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:))
+			] = CommandInfo(
+				authRightName: "com.aldunelabs.caker.authorization.start-network",
+				authRightDefault: kAuthorizationRuleClassAllow,
+				authRightDescription: NSLocalizedString(
+					"Helper is trying to start named network with DHCP server.",
+					comment: "prompt shown when user is required to authorize to start vmnet network with DHCP server"
+				)
 			)
-		),
-		#selector(AuthorizationHelperProtocol.setDHCPLease(authorization:leaseTime:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.set-dhcp-lease",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to set global dhcp lease time for DHCP server.",
-				comment: "prompt shown when user is required to authorize to set global dhcp lease time for DHCP server"
-			)
-		),
-		#selector(AuthorizationHelperProtocol.imdsRedirect(authorization:externalAddress:internalAddress:internalPort:install:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.imds-redirect",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to install or remove imds redirect.",
-				comment: "prompt shown when user is required to authorize to install or remove imds redirect"
-			)
-		),
-		#selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.import-virtual-machine",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to import external virtual machine.",
-				comment: "prompt shown when user is required to authorize to import external virtual machine"
-			)
-		),
-		#selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.run-network",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to run a network on a file descriptor.",
-				comment: "prompt shown when user is required to authorize to run a network on a file descriptor"
-			)
-		),
-		#selector(AuthorizationHelperProtocol.installPriviligedFiles(authorization:cakerPath:withReply:)): CommandInfo(
-			authRightName: "com.aldunelabs.caker.authorization.install-priviliged-files",
-			authRightDefault: kAuthorizationRuleClassAllow,
-			authRightDescription: NSLocalizedString(
-				"Helper is trying to install some priviliged files.",
-				comment: "prompt shown when user is required to authorize to install some priviliged files"
-			)
-		),
-	]
+		#endif
+
+		return commandInfo
+	}()
 
 	/// For a given command selector, returns the associated authorization right name.
 	public static func authorizationRight(for command: Selector) -> String? {

@@ -182,12 +182,14 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 		return resolved
 	}
 
-	/// A network name is a single path component and can't be taken for an option.
-	private static func validateNetworkName(_ name: String) throws {
-		guard name.isEmpty == false, name.count <= 128, name.first != "-", name.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || "-_.".contains($0)) }), name != ".", name != ".." else {
-			throw ServiceError("Invalid network name '\(name)'")
+	#if USE_DHCP_SERVER
+		/// A network name is a single path component and can't be taken for an option.
+		private static func validateNetworkName(_ name: String) throws {
+			guard name.isEmpty == false, name.count <= 128, name.first != "-", name.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || "-_.".contains($0)) }), name != ".", name != ".." else {
+				throw ServiceError("Invalid network name '\(name)'")
+			}
 		}
-	}
+	#endif
 
 	private static func validateIPv4(_ address: String) throws {
 		var storage = in_addr()
@@ -333,51 +335,52 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 	}
 
 	// MARK: HelperToolProtocol implementation
+	#if USE_DHCP_SERVER
+		// IMPORTANT: NSXPCConnection can call these methods on any thread.  Each one checks its own authorization right,
+		// then runs its work on a concurrent queue so a slow operation doesn't hold the connection.
+		func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("start-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
 
-	// IMPORTANT: NSXPCConnection can call these methods on any thread.  Each one checks its own authorization right,
-	// then runs its work on a concurrent queue so a slow operation doesn't hold the connection.
-	func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-		perform("start-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
-			let home = try Self.validatedHome(cakeHome, caller: caller)
+				try Self.validateNetworkName(networkName)
 
-			try Self.validateNetworkName(networkName)
+				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
+				let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
 
-			let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
-			let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
-
-			if pidFile.isCakedRunning() {
-				return "Network \(networkName) is already running"
-			}
-
-			// The network is the process: it keeps running after the helper's reply, logging to the helper's log.
-			let log = Self.logFile()
-			let process = Process()
-
-			process.executableURL = caked
-			process.arguments = ["networks", "start", "--fork", "--home", home.path, networkName]
-			process.environment = Self.environment(home: home)
-			process.standardInput = FileHandle.nullDevice
-			process.standardOutput = log
-			process.standardError = log
-
-			try process.run()
-
-			// Ready once the network wrote its pid file; a process that exits before that failed.
-			for _ in 0..<150 {
-				if FileManager.default.fileExists(atPath: pidFile.path), process.isRunning {
-					return "Network \(networkName) started"
+				if pidFile.isCakedRunning() {
+					return "Network \(networkName) is already running"
 				}
 
-				if process.isRunning == false {
-					throw ServiceError("Network \(networkName) failed to start: status \(process.terminationStatus), see \(Self.logPath)")
+				// The network is the process: it keeps running after the helper's reply, logging to the helper's log.
+				let log = Self.logFile()
+				let process = Process()
+
+				process.executableURL = caked
+				process.arguments = ["networks", "start", "--fork", "--home", home.path, networkName]
+				process.environment = Self.environment(home: home)
+				process.standardInput = FileHandle.nullDevice
+				process.standardOutput = log
+				process.standardError = log
+
+				try process.run()
+
+				// Ready once the network wrote its pid file; a process that exits before that failed.
+				for _ in 0..<150 {
+					if FileManager.default.fileExists(atPath: pidFile.path), process.isRunning {
+						return "Network \(networkName) started"
+					}
+
+					if process.isRunning == false {
+						throw ServiceError("Network \(networkName) failed to start: status \(process.terminationStatus), see \(Self.logPath)")
+					}
+
+					Thread.sleep(forTimeInterval: 0.1)
 				}
 
-				Thread.sleep(forTimeInterval: 0.1)
+				throw ServiceError("Network \(networkName) did not start within the expected time, see \(Self.logPath)")
 			}
-
-			throw ServiceError("Network \(networkName) did not start within the expected time, see \(Self.logPath)")
 		}
-	}
+	#endif
 
 	func setDHCPLease(authorization authData: Data, leaseTime: Int32, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
 		perform("set-dhcp-lease", authorization: authData, command: #selector(AuthorizationHelperProtocol.setDHCPLease(authorization:leaseTime:withReply:)), reply: reply) { _ in
@@ -493,7 +496,8 @@ final class AuthorizationHelperTool: NSObject, NSXPCListenerDelegate, Authorizat
 			for _ in 0..<150 {
 				var attributes = stat()
 				if fstatat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, &attributes, AT_SYMLINK_NOFOLLOW) == 0,
-					attributes.st_mode & S_IFMT == S_IFREG, process.isRunning {
+					attributes.st_mode & S_IFMT == S_IFREG, process.isRunning
+				{
 					return String(process.processIdentifier)
 				}
 

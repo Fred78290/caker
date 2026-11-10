@@ -41,6 +41,7 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 # The privileged AuthorizationHelper is a launchd daemon registered through SMAppService: its plist lives in
 # Contents/Library/LaunchDaemons and its BundleProgram points at the binary in Contents/MacOS.
 if [ $APPSTORE -eq 0 ]; then
+	mkdir -p "${CAKER_APP}/Helpers"
 	mkdir -p "${CAKER_APP}/Library/LaunchDaemons"
 fi
 

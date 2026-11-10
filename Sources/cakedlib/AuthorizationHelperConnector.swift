@@ -242,14 +242,16 @@ public final class DirectAuthorizationHelperConnector: @unchecked Sendable {
 		}
 	}
 
-	public func startNetwork(networkName: String, runMode: Utils.RunMode) async throws -> StartedNetworkReply {
-		let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
-		let reason = try await call { helper, authorization, reply in
-			helper.startNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
-		}
+	#if USE_DHCP_SERVER
+		public func startNetwork(networkName: String, runMode: Utils.RunMode) async throws -> StartedNetworkReply {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+			let reason = try await call { helper, authorization, reply in
+				helper.startNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+			}
 
-		return StartedNetworkReply(name: networkName, started: true, reason: reason)
-	}
+			return StartedNetworkReply(name: networkName, started: true, reason: reason)
+		}
+	#endif
 
 	public func setDHCPLease(leaseTime: Int32) async throws -> String {
 		try await call { helper, authorization, reply in
