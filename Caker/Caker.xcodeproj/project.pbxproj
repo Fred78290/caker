@@ -570,6 +570,7 @@
 		9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEEB89307A964E006D282F /* GlassedSheet.swift */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
+		9BD685AD30A47D7F00031AE8 /* AuthorizationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD685AC30A47D7900031AE8 /* AuthorizationCommand.swift */; };
 		9BD69DF62FCEE912005E24AF /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9BD69DF72FCEE912005E24AF /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1588,6 +1589,7 @@
 		9BCEEB89307A964E006D282F /* GlassedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassedSheet.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
+		9BD685AC30A47D7900031AE8 /* AuthorizationCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizationCommand.swift; sourceTree = "<group>"; };
 		9BD69DF02FCEE8F1005E24AF /* cakectl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStarter.swift; sourceTree = "<group>"; };
 		9BD85B22303317EA00AD9100 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
@@ -2985,6 +2987,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8904303F4FBA007AFA2A /* Aliases.swift */,
+				9BD685AC30A47D7900031AE8 /* AuthorizationCommand.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9B612FA22FEC345B0045F79F /* CakeHome.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
@@ -4589,6 +4592,7 @@
 				9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */,
 				705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */,
 				9B21F6B43020FD2400289DB5 /* Provision.swift in Sources */,
+				9BD685AD30A47D7F00031AE8 /* AuthorizationCommand.swift in Sources */,
 				9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */,
 				9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */,
 				9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */,
