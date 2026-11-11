@@ -58,12 +58,10 @@ public struct Entitlement {
 	}
 
 	public static func hasVMNetworking() -> Bool {
-		#if DEBUG
-			// Disable vmnet entitlement for testing on macOS 26+ when the environment variable is set to "0"
-			guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0" else {
-				return false
-			}
-		#endif
+		// Disable vmnet entitlement for testing on macOS 26+ when the environment variable is set to "0"
+		guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
+			return false
+		}
 
 		if let value: Bool = try? Entitlement().hasVMNetworking() {
 			return value

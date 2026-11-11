@@ -151,12 +151,10 @@ public struct UsedNetworkConfig {
 public struct NetworksHandler {
 	public static var hasVMNetEntitlement: Bool = Entitlement.hasVMNetworking()
 	public static var vmnetNative: Bool {
-		#if DEBUG
-			// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
-			guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0" else {
-				return false
-			}
-		#endif
+		// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
+		guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
+			return false
+		}
 
 		if #available(macOS 26.0, *) {
 			return true
@@ -478,16 +476,12 @@ public struct NetworksHandler {
 		let logger = Logger(self)
 
 		var environment = try Utilities.environment(runMode: runMode)
-		#if DEBUG
-			let direct = (ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0") || NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
-		#else
-			let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
-		#endif
+		let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
 
 		#if USE_AUTHORIZATION_HELPER
 			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
 			// process here: a watcher tells this process (SIGUSR2) when the root process is gone, like the termination handler below.
-			if direct == false {
+			if direct == false && ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" {
 				let helperArguments = Array(arguments.dropFirst(2))
 				let handle = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 				let helperCanUsePID: Bool = {

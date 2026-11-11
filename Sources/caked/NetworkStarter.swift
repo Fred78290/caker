@@ -466,16 +466,11 @@ struct NetworkStarter {
 			}
 
 			func startWithHelper() throws -> Bool {
-				#if DEBUG
-					// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
-					guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0" else {
-						return false
-					}
-				#endif
-
-				#if APPSTORE
+				// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
+				guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
 					return false
-				#else
+				}
+
 				#if USE_AUTHORIZATION_HELPER
 					return try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil
 				#else
