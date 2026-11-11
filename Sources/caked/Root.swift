@@ -195,6 +195,10 @@ struct Root: ParsableCommand {
 			configuration.subcommands.append(CheckUpdate.self)
 		#endif
 
+		#if USE_AUTHORIZATION_HELPER
+			configuration.subcommands.append(AuthorizationCommand.self)
+		#endif
+
 		if try tryForkCommand() {
 			return
 		}
