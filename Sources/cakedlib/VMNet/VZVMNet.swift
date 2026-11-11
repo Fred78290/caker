@@ -501,11 +501,7 @@ public class VZVMNetImpl: VZVMNetCommon, @unchecked Sendable {
 				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix)
 			}
 		} else {
-			var dhcpStart = networkConfig.dhcpStart.toIPV4().address!
-
-			dhcpStart.storage += 1
-
-			xpc_dictionary_set_string(dict, vmnet_start_address_key, dhcpStart.description)
+			xpc_dictionary_set_string(dict, vmnet_start_address_key, networkConfig.dhcpStart)
 			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd)
 			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask)
 
