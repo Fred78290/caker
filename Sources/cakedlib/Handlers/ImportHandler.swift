@@ -282,7 +282,7 @@ public struct ImportHandler {
 						arguments.append("--importer-arg=\(key)=\(value)")
 					}
 
-					#if !APPSTORE
+					#if USE_AUTHORIZATION_HELPER
 						do {
 							// The helper adds the import command, the owner and the home itself, and refuses them from a client.
 							let helperArguments = arguments.dropFirst().filter { $0.hasPrefix("--uid=") == false && $0.hasPrefix("--gid=") == false }

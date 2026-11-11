@@ -476,7 +476,10 @@ struct NetworkStarter {
 				#if APPSTORE
 					return false
 				#else
+				#if USE_AUTHORIZATION_HELPER
 					return try DirectAuthorizationHelperConnector.viaHelperSync(runMode: runMode, { try await $0.startNetwork(networkName: networkName, runMode: runMode) }) != nil
+				#else
+					return false
 				#endif
 			}
 

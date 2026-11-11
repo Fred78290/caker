@@ -775,7 +775,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		Self.ensureCertificates()
 
-		#if !APPSTORE
+		#if USE_AUTHORIZATION_HELPER
 			if Bundle.isApplicationSandboxed == false {
 				while DirectAuthorizationHelperConnector.install() == false {
 					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
@@ -862,7 +862,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		#endif
 	}
 
-	#if !APPSTORE
+	#if !APPSTORE && USE_AUTHORIZATION_HELPER
 		/// The passwordless sudo rule pins `caked` by its digest, so it stops working when the app is updated. True when the rule exists,
 		/// no longer accepts the bundled `caked`, and could be written again (a bundle that isn't root-owned never gets a rule).
 		static var isSudoersRuleStale: Bool {
