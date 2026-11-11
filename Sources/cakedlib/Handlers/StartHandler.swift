@@ -214,7 +214,7 @@ public struct StartHandler {
 
 		let process = try Bundle.createProcessWithSharedFileHandle()
 
-		if startMode == .foreground || startMode == .attach {
+		if startMode == .attach {
 			let outputPipe = Pipe()
 			let errorPipe: Pipe = Pipe()
 
@@ -228,6 +228,10 @@ public struct StartHandler {
 
 			process.standardError = errorPipe
 			process.standardOutput = outputPipe
+			process.standardInput = FileHandle.standardInput
+		} else if startMode == .foreground {
+			process.standardError = FileHandle.standardError
+			process.standardOutput = FileHandle.standardOutput
 			process.standardInput = FileHandle.standardInput
 		} else if startMode == .service {
 			process.standardError = FileHandle.standardError
