@@ -158,7 +158,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 	internal let eventLoop: EventLoop
 	internal let networkName: String
-	internal let logger = Logger("VZVMNetImpl")
+	internal let logger: Logger
 	internal let socketPath: URL
 	internal let socketControl: URL
 	internal let pidFile: URL
@@ -179,6 +179,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		self.runMode = runMode
 		self.trace = Logger.Level() >= Logger.LogLevel.trace
 		self.socketGroup = socketGroup
+		self.logger = Logger(Self.self)
 	}
 
 	public func reconfigure(networkConfig: VZSharedNetwork) throws {

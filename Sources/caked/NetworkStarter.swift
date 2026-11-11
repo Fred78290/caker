@@ -468,7 +468,7 @@ struct NetworkStarter {
 			func startWithHelper() throws -> Bool {
 				#if DEBUG
 					// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
-					guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
+					guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0" else {
 						return false
 					}
 				#endif

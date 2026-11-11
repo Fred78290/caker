@@ -153,7 +153,7 @@ public struct NetworksHandler {
 	public static var vmnetNative: Bool {
 		#if DEBUG
 			// Disable macos26 vmnet features for testing on macOS 26+ when the environment variable is set to "0"
-			guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] != "0" else {
+			guard ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0" else {
 				return false
 			}
 		#endif
@@ -478,7 +478,11 @@ public struct NetworksHandler {
 		let logger = Logger(self)
 
 		var environment = try Utilities.environment(runMode: runMode)
-		let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
+		#if DEBUG
+			let direct = (ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0") || NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
+		#else
+			let direct = NetworksHandler.canManageNetworkWithoutRoot(mode: networkConfig.mode)
+		#endif
 
 		#if !APPSTORE
 			// The privileged helper runs it as root on a duplicate of the descriptor, without sudo. Nothing waits on a child
