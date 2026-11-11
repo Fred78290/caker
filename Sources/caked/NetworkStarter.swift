@@ -415,14 +415,14 @@ struct NetworkStarter {
 				return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network already running"))
 			}
 
-			if isPhysicalInterface == false && sharedNetworks[networkName] == nil {
-				return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network \(networkName) doesn't exists"))
-			}
-
 			if fork {
 				try startNetwork(options: options, runMode: runMode, socket: socketURL.socket, pidFile: socketURL.pidFile)
 
 				return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) ended"))
+			}
+
+			if isPhysicalInterface == false && sharedNetworks[networkName] == nil {
+				return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			let log = try CakedLib.NetworksHandler.vmnetFileLog(networkName: networkName, runMode: runMode)
