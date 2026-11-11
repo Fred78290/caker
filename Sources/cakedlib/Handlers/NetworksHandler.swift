@@ -427,14 +427,14 @@ public struct NetworksHandler {
 			throw ServiceError(String(localized: "caked not found in path"))
 		}
 
-		var arguments: [String] = []
+		var arguments: [String] = ["networks", "run"]
 		var runningArguments: [String]
 		let process = try Bundle.createProcessWithSharedFileHandle()
 
 		if Logger.LoggingLevel() > .info {
 			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 		}
-
+		
 		arguments.append("--mode=\(networkConfig.mode.rawValue)")
 
 		if Logger.Level() >= .debug {
