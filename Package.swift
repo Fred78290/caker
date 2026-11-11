@@ -9,7 +9,7 @@ let isAppStoreBuild = ProcessInfo.processInfo.environment["APPSTORE"] == "1"
 
 // The per-network DHCP server (and the DNS forwarding it relies on) is compiled in unless this is an App Store build.
 // `USE_DHCP_SERVER=1` forces it in (to try it in the sandboxed build), `USE_DHCP_SERVER=0` removes it from the code.
-let useDHCPServer = ProcessInfo.processInfo.environment["USE_DHCP_SERVER"].map { $0 == "1" } ?? !isAppStoreBuild
+let useDHCPServer = ProcessInfo.processInfo.environment["USE_DHCP_SERVER"] == "1"
 let dhcpServerSettings: [SwiftSetting] = useDHCPServer ? [.define("USE_DHCP_SERVER")] : []
 
 // The strict privilege checks (the passwordless sudo rule pinned by the SHA-256 of caked, a bundle that must be root-owned, a helper
@@ -19,6 +19,9 @@ let becomeParanoid = ProcessInfo.processInfo.environment["BECOME_PARANOID"] == "
 let becomeParanoidSettings: [SwiftSetting] = becomeParanoid ? [.define("BECOME_PARANOID")] : []
 let supportedVersions: [SupportedPlatform]
 let linkerSettings: [LinkerSetting]?
+
+let useAuthorizationHelper = ProcessInfo.processInfo.environment["USE_AUTHORIZATION_HELPER"] == "1"
+let useAuthorizationHelperSettings: [SwiftSetting] = useAuthorizationHelper ? [.define("USE_AUTHORIZATION_HELPER")] : []
 
 if isAppStoreBuild {
 	supportedVersions = [
@@ -39,6 +42,10 @@ if isAppStoreBuild {
 	]
 }
 
+let swiftSettings = dhcpServerSettings + becomeParanoidSettings + useAuthorizationHelperSettings
+
+print("swiftSettings: \(swiftSettings)")
+
 let package = Package(
 	name: "Caker",
 	platforms: supportedVersions,
@@ -46,10 +53,11 @@ let package = Package(
 		.executable(name: "caked", targets: ["caked"]),
 		.executable(name: "Caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
-		.executable(name: "AuthorizationHelper", targets: ["helper"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
-	],
+	] + (useAuthorizationHelper ? [
+		.executable(name: "AuthorizationHelper", targets: ["helper"]),
+	] : []),
 	dependencies: [
 		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
 		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "9d88e35a1a1ccc2e9a0a4d6fc6faeb266559a7c7"),
@@ -207,7 +215,7 @@ let package = Package(
 			.copy("PackerLite/Resources/fedora.packerlite.yaml"),
 			.copy("PackerLite/Resources/macos12.packerlite.yaml"),
 		],
-		swiftSettings: dhcpServerSettings + becomeParanoidSettings),
+		swiftSettings: swiftSettings),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "GRPCLib"),
 			.target(name: "CakedLib"),
@@ -229,7 +237,7 @@ let package = Package(
 		resources: [
 			.process("Resources"),
 		],
-		swiftSettings: becomeParanoidSettings,
+		swiftSettings: swiftSettings,
 		linkerSettings: [
 			.unsafeFlags([
 				"-Xlinker", "-rpath",
@@ -246,7 +254,7 @@ let package = Package(
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "Vapor", package: "vapor"),
 		],
-		swiftSettings: dhcpServerSettings,
+		swiftSettings: swiftSettings,
 		linkerSettings: linkerSettings),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
@@ -282,13 +290,6 @@ let package = Package(
 			.product(name: "Yams", package: "Yams"),
 		],
 		linkerSettings: linkerSettings),
-		.executableTarget(name: "helper", dependencies: [
-			.target(name: "GRPCLib"),
-			.target(name: "CakedLib"),
-			.product(name: "ArgumentParser", package: "swift-argument-parser"),
-			.product(name: "CakeAgentLib", package: "CakeAgent"),
-		],
-		swiftSettings: dhcpServerSettings + becomeParanoidSettings),
 		.testTarget(name: "CakerTests", dependencies: [
 			"GRPCLib",
 			"CakedLib",
@@ -297,8 +298,16 @@ let package = Package(
 			"caker"
 		], exclude: [
 			"echo.py",
-		], swiftSettings: dhcpServerSettings + becomeParanoidSettings)
-	],
+		], swiftSettings: swiftSettings)
+	] + (useAuthorizationHelper ? [
+		.executableTarget(name: "helper", dependencies: [
+			.target(name: "GRPCLib"),
+			.target(name: "CakedLib"),
+			.product(name: "ArgumentParser", package: "swift-argument-parser"),
+			.product(name: "CakeAgentLib", package: "CakeAgent"),
+		],
+		swiftSettings: swiftSettings),
+	] : []),
 	swiftLanguageModes: [
 		.v5
 	]

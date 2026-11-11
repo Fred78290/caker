@@ -1,19 +1,22 @@
-BASE_VERSION=${BASE_VERSION:-1.0}
-VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
-BUILDRELEASE=${BUILDRELEASE:-false}
-SPARKLE_PUBLIC_KEY=${SPARKLE_PUBLIC_KEY:-}
-DEVELOPER_ID=${DEVELOPER_ID:-}
-CODESIGN_REQUIREMENT=${CODESIGN_REQUIREMENT:-}
-RELEASE=${RELEASE:-0}
-APPSTORE=${APPSTORE:-0}
-USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
-SPARKLE_VERSION=2.10.0
-MINIMUM_SYSTEM_VERSION=${MINIMUM_SYSTEM_VERSION:-15.0}
+export BASE_VERSION=${BASE_VERSION:-1.0}
+export VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
+export BUILDRELEASE=${BUILDRELEASE:-false}
+export SPARKLE_PUBLIC_KEY=${SPARKLE_PUBLIC_KEY:-}
+export DEVELOPER_ID=${DEVELOPER_ID:-}
+export CODESIGN_REQUIREMENT=${CODESIGN_REQUIREMENT:-}
+export RELEASE=${RELEASE:-0}
+export APPSTORE=${APPSTORE:-0}
+export USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
+export USE_AUTHORIZATION_HELPER=${USE_AUTHORIZATION_HELPER:-0}
+export USE_DHCP_SERVER=${USE_DHCP_SERVER:-0}
+export SPARKLE_VERSION=2.10.0
+export MINIMUM_SYSTEM_VERSION=${MINIMUM_SYSTEM_VERSION:-15.0}
 
-CAKER_APP="${PKGDIR}/Contents"
-CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
-CAKECTL_APP="${CAKER_APP}/PlugIns/cakectl.app/Contents"
+export CAKER_APP="${PKGDIR}/Contents"
+export CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
+export CAKECTL_APP="${CAKER_APP}/PlugIns/cakectl.app/Contents"
 
+export PROJECT_ROOT
 pushd "${PROJECT_ROOT}/webui" > /dev/null
 npm install
 npm ci --no-audit --no-fund
@@ -40,7 +43,7 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 
 # The privileged AuthorizationHelper is a launchd daemon registered through SMAppService: its plist lives in
 # Contents/Library/LaunchDaemons and its BundleProgram points at the binary in Contents/MacOS.
-if [ $APPSTORE -eq 0 ]; then
+if [ ${USE_AUTHORIZATION_HELPER} -eq 1 ]; then
 	mkdir -p "${CAKER_APP}/Helpers"
 	mkdir -p "${CAKER_APP}/Library/LaunchDaemons"
 fi
@@ -105,7 +108,11 @@ cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"
 cp -c "${BINARYDIR}/cakectl" "${CAKECTL_APP}/MacOS/cakectl"
 cp -c "${BINARYDIR}/caked" "${CAKED_APP}/MacOS/caked"
 
-if [ $APPSTORE -eq 0 ]; then
+export CAKER_APP
+export CAKED_APP
+export CAKECTL_APP
+
+if [ ${USE_AUTHORIZATION_HELPER} -eq 1 ]; then
 	cp -c "${BINARYDIR}/AuthorizationHelper" "${CAKER_APP}/Helpers/AuthorizationHelper"
 	cp -c "${PROJECT_ROOT}/Resources/com.aldunelabs.caker.authorization.plist" "${CAKER_APP}/Library/LaunchDaemons/com.aldunelabs.caker.authorization.plist"
 fi
@@ -143,7 +150,7 @@ cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKECTL_APP}/Resources/ssh-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
-if [ $APPSTORE -eq 0 ]; then
+if [ ${APPSTORE} -eq 0 ]; then
 	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
@@ -153,7 +160,7 @@ else
 	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 fi
 
-if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
+if [ ${APPSTORE} -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 	if [[ "${BUILDRELEASE}" != "true" ]]; then
 		APPCAST_URL="https://caker.aldunelabs.com/appcast/appcast-prerelease.xml"
 	else
@@ -166,7 +173,7 @@ if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 	# Read by `caked check-update`/`cakectl check-update`, so they check the same channel as Caker.app
 	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKED_APP}/Info.plist"
 	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKECTL_APP}/Info.plist"
-elif [ $APPSTORE -eq 1 ]; then
+elif [ ${APPSTORE} -eq 1 ]; then
 	plutil -remove SUFeedURL "${CAKER_APP}/Info.plist" 2>/dev/null || true
 	plutil -remove SUPublicEDKey "${CAKER_APP}/Info.plist" 2>/dev/null || true
 	plutil -remove SUAllowsAutomaticUpdates "${CAKER_APP}/Info.plist" 2>/dev/null || true
@@ -186,7 +193,7 @@ plutil -replace LSMinimumSystemVersion -string "${MINIMUM_SYSTEM_VERSION}" "${CA
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 
-if [ "${APPSTORE}" -eq 1 ]; then
+if [ ${APPSTORE} -eq 1 ]; then
 	#codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 	#	--options runtime \
 	#	--timestamp \
@@ -297,14 +304,16 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.caked}" \
 			--force "${CAKED_APP}/MacOS/caked"
 
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--timestamp \
-			--identifier "com.aldunelabs.caker.authorization" \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/helper.entitlements" \
-			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.authorization}" \
-			--force "${CAKER_APP}/Helpers/AuthorizationHelper"
+		if [ ${USE_AUTHORIZATION_HELPER} -eq 1 ]; then
+			codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+				--options runtime \
+				--timestamp \
+				--identifier "com.aldunelabs.caker.authorization" \
+				--preserve-metadata=identifier,entitlements,flags \
+				--entitlements "${PROJECT_ROOT}/Resources/release/helper.entitlements" \
+				--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.authorization}" \
+				--force "${CAKER_APP}/Helpers/AuthorizationHelper"
+		fi
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -354,13 +363,15 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
 			--force "${CAKED_APP}/MacOS/caked"
 
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--timestamp \
-			--entitlements "${PROJECT_ROOT}/Resources/release/helper.entitlements" \
-			--preserve-metadata=identifier,entitlements,flags \
-			--identifier "com.aldunelabs.caker.authorization" \
-			--force "${CAKER_APP}/Helpers/AuthorizationHelper"
+		if [ ${USE_AUTHORIZATION_HELPER} -eq 1 ]; then
+			codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+				--options runtime \
+				--timestamp \
+				--entitlements "${PROJECT_ROOT}/Resources/release/helper.entitlements" \
+				--preserve-metadata=identifier,entitlements,flags \
+				--identifier "com.aldunelabs.caker.authorization" \
+				--force "${CAKER_APP}/Helpers/AuthorizationHelper"
+		fi
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -390,9 +401,12 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 	fi
 else
 	echo "Build unsigned debug binaries"
+	if [ ${USE_AUTHORIZATION_HELPER} -eq 1 ]; then
+		codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/helper.entitlements" --force "${CAKER_APP}/Helpers/AuthorizationHelper"
+	fi
+
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/cakectl.entitlements" --force "${CAKECTL_APP}/MacOS/cakectl"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caked.entitlements" --force "${CAKED_APP}/MacOS/caked"
-	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/helper.entitlements" --force "${CAKER_APP}/Helpers/AuthorizationHelper"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/libswiftCompatibilitySpan.dylib"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/Sparkle.framework/Versions/Current"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/MacOS/Caker"
