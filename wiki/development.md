@@ -41,7 +41,8 @@ Variables d'environnement lues par `Package.swift` :
 | Variable | Effet |
 |---|---|
 | `APPSTORE=1` | Build App Store : sandbox, sans Sparkle, sans serveur DHCP. |
-| `USE_DHCP_SERVER=1` / `0` | Force l'inclusion (ou retire) le serveur DHCP par réseau, présent par défaut hors App Store. |
+| `USE_DHCP_SERVER=1` | Inclut le serveur DHCP par réseau (désactivé par défaut ; les scripts de build signé debug et release l'activent). |
+| `USE_AUTHORIZATION_HELPER=1` | Compile et embarque l'assistant privilégié `AuthorizationHelper` (désactivé par défaut ; build signé debug et release uniquement). `caked authorization enable` ou `disable` l'enregistre. |
 | `BECOME_PARANOID=1` | Définit le drapeau `BECOME_PARANOID` : règle sudo épinglée par SHA-256, `caked` et son bundle appartenant à root, assistant qui n'exécute qu'un `caked` de root. Absent par défaut. |
 
 `BECOME_PARANOID=1` pilote aussi `.ci/create-pkg.sh` : le `postinstall` du paquet épingle alors l'empreinte et la rafraîchit pour chaque utilisateur. Pour un paquet strict, utilisez la même variable aux deux étapes :
@@ -218,7 +219,8 @@ Environment variables read by `Package.swift`:
 | Variable | Effect |
 |---|---|
 | `APPSTORE=1` | App Store build: sandboxed, no Sparkle, no DHCP server. |
-| `USE_DHCP_SERVER=1` / `0` | Forces the per-network DHCP server in (or removes it); it is on by default outside the App Store. |
+| `USE_DHCP_SERVER=1` | Includes the per-network DHCP server (off by default; the debug and release signed-build scripts turn it on). |
+| `USE_AUTHORIZATION_HELPER=1` | Compiles and ships the privileged `AuthorizationHelper` (off by default; signed debug and release builds only). `caked authorization enable` or `disable` registers it. |
 | `BECOME_PARANOID=1` | Defines the `BECOME_PARANOID` flag: sudo rule pinned by SHA-256, `caked` and its bundle owned by root, a helper that only runs a root-owned `caked`. Off by default. |
 
 `BECOME_PARANOID=1` also drives `.ci/create-pkg.sh`: the package's `postinstall` then pins the digest and refreshes it for every user. For a strict package, use the same variable for both steps:
