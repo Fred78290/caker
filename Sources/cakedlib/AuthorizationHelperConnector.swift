@@ -217,18 +217,22 @@ import CakeAgentLib
 		}
 
 		/// Unregisters the privileged helper daemon. Does nothing when it is not installed.
-		public static func uninstall() {
+		public static func uninstall() -> Bool {
 			let service = SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist")
 
 			guard service.status == .enabled else {
-				return
+				return true
 			}
 
 			do {
 				try service.unregister()
 			} catch {
 				Logger(self).error("Unable to unregister the privileged helper: \(error)")
+				
+				return false
 			}
+			
+			return true
 		}
 
 

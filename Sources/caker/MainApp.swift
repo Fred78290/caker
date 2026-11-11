@@ -136,7 +136,7 @@ struct MainAppParseArgument: ParsableCommand {
 	}
 }
 
-@main
+//@main
 struct MainApp: App {
 	static var app: MainApp! = nil
 
