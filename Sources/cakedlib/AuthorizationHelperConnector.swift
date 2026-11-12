@@ -264,6 +264,14 @@ import CakeAgentLib
 			}
 		}
 
+		public func checkConnectivity(runMode: Utils.RunMode) async throws -> String {
+			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
+
+			return try await call { helper, authorization, reply in
+				helper.checkConnectivity(authorization: authorization, cakeHome: home, withReply: reply)
+			}
+		}
+
 		#if USE_DHCP_SERVER
 			public func startNetwork(networkName: String, runMode: Utils.RunMode) async throws -> StartedNetworkReply {
 				let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)

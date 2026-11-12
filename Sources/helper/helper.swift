@@ -335,6 +335,14 @@
 		}
 
 		// MARK: HelperToolProtocol implementation
+		func checkConnectivity(authorization authData: Data, cakeHome: String, withReply reply: @escaping @Sendable (CakedLib.AuthorizationHelperReply) -> Void) {
+			perform("check-connectivity", authorization: authData, command: #selector(AuthorizationHelperProtocol.checkConnectivity(authorization:cakeHome:withReply:)), reply: reply) { caller in
+				let home = try Self.validatedHome(cakeHome, caller: caller)
+
+				return home.path(percentEncoded: false)
+			}
+		}
+
 		#if USE_DHCP_SERVER
 			// IMPORTANT: NSXPCConnection can call these methods on any thread.  Each one checks its own authorization right,
 			// then runs its work on a concurrent queue so a slow operation doesn't hold the connection.

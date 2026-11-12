@@ -45,6 +45,10 @@
 
 	@objc(AuthorizationHelperProtocol)
 	public protocol AuthorizationHelperProtocol {
+		/// Check connectivity. `authData` must be an AuthorizationExternalForm embedded in a Data.
+		@objc(checkConnectivityWithAuthorization:cakeHome:withReply:)
+		func checkConnectivity(authorization authData: Data, cakeHome: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+
 		#if USE_DHCP_SERVER
 			/// Start vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
 			@objc(startNetworkWithAuthorization:cakeHome:networkName:withReply:)
@@ -108,6 +112,15 @@
 
 		private static let commandInfo: [Selector: CommandInfo] = {
 			var commandInfo: [Selector: CommandInfo] = [
+				#selector(AuthorizationHelperProtocol.checkConnectivity(authorization:cakeHome:withReply:)): CommandInfo(
+					authRightName: "com.aldunelabs.caker.authorization.check-connectivity",
+					authRightDefault: kAuthorizationRuleClassAllow,
+					authRightDescription: NSLocalizedString(
+						"Helper is trying to check connectivity.",
+						comment: "prompt shown when user is required to authorize to check connectivity"
+					)
+				),
+
 				#selector(AuthorizationHelperProtocol.setDHCPLease(authorization:leaseTime:withReply:)): CommandInfo(
 					authRightName: "com.aldunelabs.caker.authorization.set-dhcp-lease",
 					authRightDefault: kAuthorizationRuleClassAllow,
