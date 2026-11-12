@@ -140,7 +140,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 			}
 
 			let storage = StorageLocation(home, runMode: self.owner.runMode)
-			
+
 			guard let location = try? storage.find(request.vmName) else {
 				self.owner.logger.error("Failed to find VM \(request.vmName) for lifecycle event \(request.event)")
 				return Vmnet_Empty()
@@ -150,7 +150,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 			return Vmnet_Empty()
 		}
-		
+
 	}
 
 	private var grpcServer: Server? = nil

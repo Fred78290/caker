@@ -990,7 +990,7 @@ extension URL: Purgeable {
 			main.sharedSupportPath,
 			main.resourcePath,
 			ProcessInfo.processInfo.environment["PATH"],
-			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"
+			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin",
 		])
 
 		return pathd.compactMap {
