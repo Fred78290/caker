@@ -3,6 +3,9 @@ import XCTest
 
 @testable import CakedLib
 
+// The pinned PID directory is compiled in only with `BECOME_PARANOID=1`.
+#if BECOME_PARANOID
+
 final class PIDFileSafetyTests: XCTestCase {
 	private var root: URL!
 
@@ -123,3 +126,5 @@ final class PIDFileSafetyTests: XCTestCase {
 		XCTAssertTrue(FileManager.default.fileExists(atPath: target.path), "only the link is removed")
 	}
 }
+
+#endif

@@ -272,7 +272,12 @@
 		private static func environment(home: URL) -> [String: String] {
 			// CAKED_NOFOLLOW_PATHS: the paths handed to caked were canonicalized by the helper, so caked must not resolve a symlink
 			// it finds in them (see `URL.openDirectoryWithoutFollowingSymlinks`).
-			["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path, "TART_HOME": home.path, URL.noFollowPathsEnvironmentKey: "1"]
+			var env = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path]
+			#if BECOME_PARANOID
+				env[URL.noFollowPathsEnvironmentKey] = "1"
+			#endif
+
+			return env
 		}
 
 		private static func logFile() -> FileHandle {
@@ -468,26 +473,40 @@
 
 				// Resolve aliases once, then validate and open the parent beneath an owned home.
 				// Keep that directory open through removal, child writes, readiness checks and cleanup.
-				let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
-				let pidURL = URL(fileURLWithPath: URL.canonicalPath(requested.deletingLastPathComponent().path(percentEncoded: false))).appendingPathComponent(requested.lastPathComponent)
-				let pidDirectory = FileHandle(fileDescriptor: try URL.openPIDDirectory(pidURL, beneath: home, owner: caller.uid), closeOnDealloc: true)
+				#if BECOME_PARANOID
+					let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
+					let pidURL = URL(fileURLWithPath: URL.canonicalPath(requested.deletingLastPathComponent().path(percentEncoded: false))).appendingPathComponent(requested.lastPathComponent)
+					let pidDirectory = FileHandle(fileDescriptor: try URL.openPIDDirectory(pidURL, beneath: home, owner: caller.uid), closeOnDealloc: true)
+				#else
+					let pidURL = URL(fileURLWithPath: pidFile).standardizedFileURL
+				#endif
 
 				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 				let log = Self.logFile()
 				let process = ProcessWithSharedFileHandle()
 
-				unlinkat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, 0)
+				#if BECOME_PARANOID
+					unlinkat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, 0)
+				#else
+					// A stale file from a previous run must not be taken for this network's readiness.
+					try? FileManager.default.removeItem(at: pidURL)
+				#endif
 
 				process.executableURL = caked
 				// The descriptor keeps the number it has here in the child.
 				process.arguments = ["networks", "run", "--home", home.path] + arguments + ["--fd=\(fileHandle.fileDescriptor)", "--pidfile=\(pidURL.path)"]
 				process.environment = Self.environment(home: home)
-				process.environment?[URL.pidDirectoryEnvironmentKey] = String(pidDirectory.fileDescriptor)
-				process.environment?[URL.pidPathEnvironmentKey] = pidURL.path(percentEncoded: false)
 				process.standardInput = FileHandle.nullDevice
 				process.standardOutput = log
 				process.standardError = log
-				process.sharedFileHandles = [fileHandle, pidDirectory]
+
+				#if BECOME_PARANOID
+					process.environment?[URL.pidDirectoryEnvironmentKey] = String(pidDirectory.fileDescriptor)
+					process.environment?[URL.pidPathEnvironmentKey] = pidURL.path(percentEncoded: false)
+					process.sharedFileHandles = [fileHandle, pidDirectory]
+				#else
+					process.sharedFileHandles = [fileHandle]
+				#endif
 
 				process.terminationHandler = { process in
 					Self.runningNetworksLock.lock()
@@ -502,12 +521,16 @@
 				Self.runningNetworksLock.unlock()
 
 				for _ in 0..<150 {
-					var attributes = stat()
-					if fstatat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, &attributes, AT_SYMLINK_NOFOLLOW) == 0,
-						attributes.st_mode & S_IFMT == S_IFREG, process.isRunning
-					{
-						return String(process.processIdentifier)
-					}
+					#if BECOME_PARANOID
+						var attributes = stat()
+						if fstatat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, &attributes, AT_SYMLINK_NOFOLLOW) == 0, attributes.st_mode & S_IFMT == S_IFREG, process.isRunning {
+							return String(process.processIdentifier)
+						}
+					#else
+						if FileManager.default.fileExists(atPath: pidURL.path(percentEncoded: false)), process.isRunning {
+							return String(process.processIdentifier)
+						}
+					#endif
 
 					if process.isRunning == false {
 						throw ServiceError("Network failed to start: status \(process.terminationStatus), see \(Self.logPath)")

@@ -124,7 +124,11 @@ extension Networks.VMNetOptions {
 
 		let pidUrl = URL(fileURLWithPath: pidFile)
 
-		pidUrl.removeWithoutFollowingSymlinks()
+		#if BECOME_PARANOID
+			pidUrl.removeWithoutFollowingSymlinks()
+		#else
+			try? pidUrl.delete()
+		#endif
 
 		let vzvmnet = VZVMNetFileHandle(
 			on: Utilities.group.next(),
@@ -164,8 +168,11 @@ struct NetworkStarter {
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
 		let logger = Logger(self)
-
-		pidFile.removeWithoutFollowingSymlinks()
+		#if BECOME_PARANOID
+			pidFile.removeWithoutFollowingSymlinks()
+		#else
+			try? pidFile.delete()
+		#endif
 		try socket.deleteIfFileExists()
 
 		let vzvmnet = try options.createVZVMNet(runMode: runMode)
@@ -278,7 +285,11 @@ struct NetworkStarter {
 		}
 
 		defer {
-			pidFile.removeWithoutFollowingSymlinks()
+			#if BECOME_PARANOID
+				pidFile.removeWithoutFollowingSymlinks()
+			#else
+				try? pidFile.delete()
+			#endif
 			try? socket.deleteIfFileExists()
 		}
 
@@ -389,8 +400,11 @@ struct NetworkStarter {
 			}
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")
-
-			pidFile.removeWithoutFollowingSymlinks()
+			#if BECOME_PARANOID
+				pidFile.removeWithoutFollowingSymlinks()
+			#else
+				try? pidFile.delete()
+			#endif
 			try? socket.deleteIfFileExists()
 			// Exit because vmnet scrash
 			Foundation.exit(1)

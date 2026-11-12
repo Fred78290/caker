@@ -220,7 +220,12 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 
 		let future = self.eventLoop.makeFutureWithTask {
 			self.logger.info("VMNet \(self.networkName) started on \(socketFile)")
-			try self.pidFile.writePIDWithoutFollowingSymlinks()
+
+			#if BECOME_PARANOID
+				try self.pidFile.writePIDWithoutFollowingSymlinks()
+			#else
+				try self.pidFile.writePID()
+			#endif
 
 			do {
 				startedHandler(self.networkConfig)
@@ -252,7 +257,11 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		try? server.close().wait()
 		self.semaphore.signal()
 
-		pidFile.removeWithoutFollowingSymlinks()
+		#if BECOME_PARANOID
+			pidFile.removeWithoutFollowingSymlinks()
+		#else
+			try? pidFile.delete()
+		#endif
 	}
 
 	public func restart() throws -> VZSharedNetwork {
