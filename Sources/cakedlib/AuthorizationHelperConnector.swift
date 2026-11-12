@@ -276,7 +276,7 @@ import CakeAgentLib
 			public func startNetwork(networkName: String, runMode: Utils.RunMode) async throws -> StartedNetworkReply {
 				let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
 				let reason = try await call { helper, authorization, reply in
-					helper.startNetwork(authorization: authorization, cakeHome: home, networkName: networkName, withReply: reply)
+					helper.startNetwork(authorization: authorization, cakeHome: home, networkName: networkName, logLevel: Logger.LoggingLevel().rawValue, withReply: reply)
 				}
 
 				return StartedNetworkReply(name: networkName, started: true, reason: reason)
@@ -293,7 +293,7 @@ import CakeAgentLib
 			let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
 
 			return try await call { helper, authorization, reply in
-				helper.importVirtualMachine(authorization: authorization, cakeHome: home, arguments: arguments, withReply: reply)
+				helper.importVirtualMachine(authorization: authorization, cakeHome: home, arguments: arguments, logLevel: Logger.LoggingLevel().rawValue, withReply: reply)
 			}
 		}
 

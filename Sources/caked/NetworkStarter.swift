@@ -444,14 +444,12 @@ struct NetworkStarter {
 			func startForkedNetwork() throws {
 				let cakedExecutableURL = try Bundle.main.caked()
 
-				var arguments: [String] = ["networks", "start", "--fork", options.networkName]
+				var arguments: [String] = ["networks", "start", "--fork", options.networkName, "--log-level=\(Logger.LoggingLevel().rawValue)"]
 				let process = try Bundle.createProcess()
 
 				if runMode.isSystem {
 					arguments.append("--system")
 				}
-
-				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 
 				process.executableURL = cakedExecutableURL
 				process.standardInput = nil
@@ -498,7 +496,7 @@ struct NetworkStarter {
 				// Started as root by the privileged helper, which waited for the pid file.
 				Logger(self).info("Network \(networkName) started by the privileged helper")
 			} else {
-				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
+				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName, "--log-level=\(Logger.LoggingLevel().rawValue)"], runMode: runMode, log: log).run().terminationStatus != 0 {
 					throw ServiceError(String(localized: "Failed to start networks \(options.networkName)"))
 				}
 

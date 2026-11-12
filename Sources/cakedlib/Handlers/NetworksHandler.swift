@@ -841,15 +841,11 @@ public struct NetworksHandler {
 
 		let executableURL = try Bundle.main.caked()
 
-		var arguments = ["networks", "start", "--fork", networkName]
+		var arguments = ["networks", "start", networkName, "--fork", "--log-level=\(Logger.LoggingLevel().rawValue)"]
 		let process = try Bundle.createProcess()
 		var runningArguments: [String]
 		let debug = Logger.Level() >= .debug
 		let logger = Logger(self)
-
-		if Logger.LoggingLevel() > .info {
-			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
-		}
 
 		if runMode.isSystem {
 			arguments.append("--system")

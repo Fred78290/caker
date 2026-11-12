@@ -9,6 +9,7 @@
 	import CakedLib
 	import Darwin
 	import Foundation
+	import Logging
 	import GRPCLib
 	import Security
 
@@ -356,8 +357,8 @@
 		#if USE_DHCP_SERVER
 			// IMPORTANT: NSXPCConnection can call these methods on any thread.  Each one checks its own authorization right,
 			// then runs its work on a concurrent queue so a slow operation doesn't hold the connection.
-			func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-				perform("start-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:)), reply: reply) { caller in
+			func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, logLevel: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+				perform("start-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:logLevel:withReply:)), reply: reply) { caller in
 					let home = try Self.validatedHome(cakeHome, caller: caller)
 
 					try Self.validateNetworkName(networkName)
@@ -374,7 +375,7 @@
 					let process = Process()
 
 					process.executableURL = caked
-					process.arguments = ["networks", "start", "--fork", "--home", home.path, networkName]
+					process.arguments = ["networks", "start", networkName, "--fork", "--home=\(home.path)", "--log-level=\(logLevel)"]
 					process.environment = Self.environment(home: home)
 					process.standardInput = FileHandle.nullDevice
 					process.standardOutput = log
@@ -437,8 +438,8 @@
 			}
 		}
 
-		func importVirtualMachine(authorization authData: Data, cakeHome: String, arguments: [String], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-			perform("import-virtual-machine", authorization: authData, command: #selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:withReply:)), reply: reply) { caller in
+		func importVirtualMachine(authorization authData: Data, cakeHome: String, arguments: [String], logLevel: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("import-virtual-machine", authorization: authData, command: #selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:logLevel:withReply:)), reply: reply) { caller in
 				let home = try Self.validatedHome(cakeHome, caller: caller)
 
 				// The import runs as root but the VM belongs to the caller: it can't choose another owner or home, nor
@@ -446,7 +447,15 @@
 				try ImportHandler.validatePrivilegedImportArguments(arguments)
 
 				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
-				let result = try Self.runAndCollect(caked, arguments: ["import", "--home", home.path, "--uid", String(caller.uid), "--gid", String(caller.gid)] + arguments, environment: Self.environment(home: home))
+				let result = try Self.runAndCollect(
+					caked,
+					arguments: [
+						"import",
+						"--home=\(home.path)",
+						"--uid=\(caller.uid)",
+						"--gid=\(caller.gid)",
+					] + arguments,
+					environment: Self.environment(home: home))
 
 				guard result.status == 0 else {
 					throw ServiceError(result.output.isEmpty ? "Import failed with status \(result.status)" : result.output)
@@ -499,7 +508,15 @@
 
 				process.executableURL = caked
 				// The descriptor keeps the number it has here in the child.
-				process.arguments = ["networks", "run", "--home", home.path] + arguments + ["--fd=\(fileHandle.fileDescriptor)", "--pidfile=\(pidURL.path)"]
+				process.arguments =
+					[
+						"networks",
+						"run",
+						"--home=\(home.path)",
+					] + arguments + [
+						"--fd=\(fileHandle.fileDescriptor)",
+						"--pidfile=\(pidURL.path)",
+					]
 				process.environment = Self.environment(home: home)
 				process.standardInput = FileHandle.nullDevice
 				process.standardOutput = log

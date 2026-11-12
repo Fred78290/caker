@@ -7,6 +7,7 @@
 #if USE_AUTHORIZATION_HELPER
 	import Foundation
 	import GRPCLib
+	import Logging
 
 	@objc(AuthorizationHelperReply)
 	public final class AuthorizationHelperReply: NSObject, NSSecureCoding, @unchecked Sendable, Codable {
@@ -51,8 +52,8 @@
 
 		#if USE_DHCP_SERVER
 			/// Start vmnet network with DHC server. `authData` must be an AuthorizationExternalForm embedded in a Data.
-			@objc(startNetworkWithAuthorization:cakeHome:networkName:withReply:)
-			func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+			@objc(startNetworkWithAuthorization:cakeHome:networkName:logLevel:withReply:)
+			func startNetwork(authorization authData: Data, cakeHome: String, networkName: String, logLevel: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 		#endif
 
 		/// Set DHCP Lease. `authData` must be an AuthorizationExternalForm embedded in a Data.
@@ -60,8 +61,8 @@
 		func setDHCPLease(authorization authData: Data, leaseTime: Int32, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
 		/// Import external virtual machine from multipass. `authData` must be an AuthorizationExternalForm embedded in a Data.
-		@objc(importVirtualMachineWithAuthorization:cakeHome:arguments:withReply:)
-		func importVirtualMachine(authorization authData: Data, cakeHome: String, arguments: [String], withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
+		@objc(importVirtualMachineWithAuthorization:cakeHome:arguments:logLevel:withReply:)
+		func importVirtualMachine(authorization authData: Data, cakeHome: String, arguments: [String], logLevel: String, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void)
 
 		/// Install or remove imds redirect. `authData` must be an AuthorizationExternalForm embedded in a Data.
 		@objc(imdsRedirectWithAuthorization:externalAddress:internalAddress:internalPort:install:withReply:)
@@ -137,7 +138,7 @@
 						comment: "prompt shown when user is required to authorize to install or remove imds redirect"
 					)
 				),
-				#selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:withReply:)): CommandInfo(
+				#selector(AuthorizationHelperProtocol.importVirtualMachine(authorization:cakeHome:arguments:logLevel:withReply:)): CommandInfo(
 					authRightName: "com.aldunelabs.caker.authorization.import-virtual-machine",
 					authRightDefault: kAuthorizationRuleClassAllow,
 					authRightDescription: NSLocalizedString(
@@ -165,7 +166,7 @@
 
 			#if USE_DHCP_SERVER
 				commandInfo[
-					#selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:withReply:))
+					#selector(AuthorizationHelperProtocol.startNetwork(authorization:cakeHome:networkName:logLevel:withReply:))
 				] = CommandInfo(
 					authRightName: "com.aldunelabs.caker.authorization.start-network",
 					authRightDefault: kAuthorizationRuleClassAllow,
