@@ -43,12 +43,13 @@ final class CakedKeyConfigTests: XCTestCase {
 		XCTAssertEqual(CakedKeyConfig.imdsEnabled.defaultValue as? Bool, true)
 		XCTAssertEqual(CakedKeyConfig.primaryName.defaultValue as? String, "primary")
 		XCTAssertEqual(CakedKeyConfig.composeDnsDomain.defaultValue as? String, "compose.internal")
+		XCTAssertEqual(CakedKeyConfig.useInternalDHCPServer.defaultValue as? Bool, true)
 
 		for key in [CakedKeyConfig.bridgedNetwork, .driver, .imageMirror, .passphrase, .privilegedMounts, .cakeHome] {
 			XCTAssertNil(key.defaultValue, key.rawValue)
 		}
 
-		XCTAssertEqual(CakedKeyConfig.allCases.filter(\.isBoolean), [.imdsEnabled])
+		XCTAssertEqual(CakedKeyConfig.allCases.filter(\.isBoolean), [.imdsEnabled, .useInternalDHCPServer])
 	}
 
 	func testUnsetKeysReturnTheirDefault() {

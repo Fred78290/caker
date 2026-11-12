@@ -20042,6 +20042,16 @@
         }
       }
     },
+    "Use internal DHCP server for networked virtual machines" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez le serveur DHCP interne pour les réseaux des machines virtuelles"
+          }
+        }
+      }
+    },
     "Use network ifnames" : {
       "localizations" : {
         "fr" : {

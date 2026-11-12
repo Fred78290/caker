@@ -18,6 +18,8 @@ public enum CakedKeyConfig: String, CaseIterable {
 	/// Default of `composeDnsDomain`: the domain the compose DNS resolver answers for.
 	public static let defaultComposeDnsDomain = "compose.internal"
 	public static let defaultNatNetwork = "192.168.32.0/24"
+	/// Default of `useInternalDHCPServer`: caked serves DHCP itself on its networks (when the build has it) until turned off.
+	public static let defaultUseInternalDHCPServer = true
 
 	case bridgedNetwork = "local.bridged-network"
 	case driver = "local.driver"
@@ -26,6 +28,7 @@ public enum CakedKeyConfig: String, CaseIterable {
 	case privilegedMounts = "local.privileged-mounts"
 	case primaryName = "client.primary-name"
 	case imdsEnabled = "client.imds-enabled"
+	case useInternalDHCPServer = "local.use-dhcp-server"
 	case cakeHome = "local.cake-home"
 	case composeDnsDomain = "local.compose-dns-domain"
 	case defaultNetwork = "local.default-network"
@@ -46,6 +49,8 @@ public enum CakedKeyConfig: String, CaseIterable {
 			return Self.defaultNatNetwork
 		case .bridgedNetwork, .driver, .imageMirror, .passphrase, .privilegedMounts, .cakeHome:
 			return nil
+		case .useInternalDHCPServer:
+			return Self.defaultUseInternalDHCPServer
 		}
 	}
 

@@ -205,6 +205,12 @@ public final class SudoCaked {
 		var environment = try Utilities.environment(runMode: runMode)
 		var arguments: [String] = []
 
+		// The setting lives in the user's defaults, which the root process can't read (root has its own app-group container):
+		// the launcher hands the choice down. An explicit CAKED_VMNET_DHCP from the caller wins.
+		if CakedKeyConfig.useInternalDHCPServer.bool() == false, ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] == nil {
+			environment["CAKED_VMNET_DHCP"] = "vmnet"
+		}
+
 		#if USE_SETUID
 			if canElevateDirectly(binary: binary) {
 				environment[becomeRootEnvironmentKey] = "1"
@@ -232,11 +238,13 @@ public final class SudoCaked {
 			"--preserve-env=CAKE_HOME",
 		]
 
+		// CAKED_VMNET_DHCP=vmnet only turns caked's own DHCP server off, so it is safe to pass in every build.
+		if environment["CAKED_VMNET_DHCP"] != nil {
+			arguments.append("--preserve-env=CAKED_VMNET_DHCP")
+		}
+
 		#if DEBUG
-			arguments.append(contentsOf: [
-				"--preserve-env=CAKED_VMNET_DHCP",
-				"--preserve-env=CAKED_VMNET_NATIVE",
-			])
+			arguments.append("--preserve-env=CAKED_VMNET_NATIVE")
 		#endif
 
 		arguments.append(contentsOf: [

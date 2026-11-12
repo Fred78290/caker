@@ -15,6 +15,7 @@ struct AdvancedSettingsView: View {
 	private static let imdsFirewallCommand = #"sudo sh -c 'echo "rdr pass inet proto tcp from any to 169.254.169.254 -> 192.168.169.1" > /etc/pf.anchors/caker-alias && echo "load anchor \"com.apple/caker-alias\" from \"/etc/pf.anchors/caker-alias\"" >> /etc/pf.conf && pfctl -e -f /etc/pf.conf'"#
 
 	@AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = CakedKeyConfig.defaultImdsEnabled
+	@AppStorage(CakedKeyConfig.useInternalDHCPServer.rawValue, store: .shared) var useInternalDHCPServer: Bool = CakedKeyConfig.defaultUseInternalDHCPServer
 
 	@State private var bridgedNetwork: String
 	@State private var defaultNatNetwork: String
@@ -51,6 +52,13 @@ struct AdvancedSettingsView: View {
 						}
 						.foregroundColor(validNatNetwork(defaultNatNetwork) ? .primary : .red)
 				}
+				
+				if Bundle.isApplicationSandboxed == false {
+					Toggle(isOn: $useInternalDHCPServer) {
+						Text("Use internal DHCP server for networked virtual machines")
+					}
+				}
+
 				LabeledContent("Bridged network") {
 					HStack {
 						Spacer()

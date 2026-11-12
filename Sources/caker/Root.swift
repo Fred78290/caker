@@ -11,6 +11,8 @@ import Foundation
 import GRPCLib
 import Logging
 
+// The helper is opt-in (USE_AUTHORIZATION_HELPER): without it there is nothing to register.
+#if USE_AUTHORIZATION_HELPER
 struct AuthorizationCommand: ParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "authorization",
@@ -67,15 +69,23 @@ struct AuthorizationCommand: ParsableCommand {
 	}
 }
 
+#endif
+
 @main
 struct Root: ParsableCommand {
 	nonisolated(unsafe)
 		static var configuration = CommandConfiguration(
 			commandName: "\(ProcessInfo.processInfo.processName)",
 			version: CI.version,
-			subcommands: [
-				AuthorizationCommand.self
-			])
+			subcommands: Root.subcommands)
+
+	private static var subcommands: [ParsableCommand.Type] {
+		#if USE_AUTHORIZATION_HELPER
+			return [AuthorizationCommand.self]
+		#else
+			return []
+		#endif
+	}
 
 	func run() throws {
 		MainApp.main()

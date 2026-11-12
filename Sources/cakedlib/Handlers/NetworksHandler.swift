@@ -167,7 +167,9 @@ public struct NetworksHandler {
 	/// `CAKED_VMNET_DHCP=vmnet` keeps vmnet's own DHCP, so nothing needs root then. A sandboxed process can't use sudo anyway.
 	static var dhcpServerNeedsRoot: Bool {
 		#if USE_DHCP_SERVER
-			return Bundle.isApplicationSandboxed == false && ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+			return Bundle.isApplicationSandboxed == false
+				&& CakedKeyConfig.useInternalDHCPServer.bool()
+				&& ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
 		#else
 			return false
 		#endif
@@ -217,7 +219,7 @@ public struct NetworksHandler {
 				return false
 			}
 
-			return ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
+			return CakedKeyConfig.useInternalDHCPServer.bool() && ProcessInfo.processInfo.environment["CAKED_VMNET_DHCP"] != "vmnet"
 		}
 	#endif
 
@@ -434,7 +436,7 @@ public struct NetworksHandler {
 		if Logger.LoggingLevel() > .info {
 			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 		}
-		
+
 		arguments.append("--mode=\(networkConfig.mode.rawValue)")
 
 		if Logger.Level() >= .debug {
