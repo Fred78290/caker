@@ -1348,7 +1348,9 @@ public struct Utilities {
 		var environment = ProcessInfo.processInfo.environment
 		let home = try Utils.getHome(runMode: runMode)
 
-		environment["TART_HOME"] = home.path(percentEncoded: false)
+		#if DEBUG
+			environment["TART_HOME"] = home.path(percentEncoded: false)
+		#endif
 
 		if environment["CAKE_HOME"] == nil {
 			environment["CAKE_HOME"] = home.path(percentEncoded: false)

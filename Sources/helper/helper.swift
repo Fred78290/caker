@@ -273,6 +273,11 @@
 			// CAKED_NOFOLLOW_PATHS: the paths handed to caked were canonicalized by the helper, so caked must not resolve a symlink
 			// it finds in them (see `URL.openDirectoryWithoutFollowingSymlinks`).
 			var env = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "CAKE_HOME": home.path]
+
+			#if DEBUG
+				env["TART_HOME"] = home.path(percentEncoded: false)
+			#endif
+
 			#if BECOME_PARANOID
 				env[URL.noFollowPathsEnvironmentKey] = "1"
 			#endif
