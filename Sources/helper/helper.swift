@@ -192,6 +192,16 @@
 			}
 		#endif
 
+		/// The log level a client asks the root child to use: one of `Logging.Logger.Level`'s raw values, nothing else, since it ends up
+		/// in the arguments of a process running as root.
+		private static func validatedLogLevel(_ level: String) throws -> String {
+			guard ["trace", "debug", "info", "notice", "warning", "error", "critical"].contains(level) else {
+				throw ServiceError("Invalid log level '\(level)'")
+			}
+
+			return level
+		}
+
 		private static func validateIPv4(_ address: String) throws {
 			var storage = in_addr()
 
@@ -300,6 +310,36 @@
 			return handle
 		}
 
+		/// The network's own log, `net.log` next to its socket and pid file, which is where `caked` writes it when the user starts the
+		/// network, so a network the helper started logs where the user looks (not in this daemon's log). The directory is writable by
+		/// the caller and this process is root: the file is opened without following a symlink (relative to the pinned directory when
+		/// there is one), must be a regular file with a single link, and is handed to the caller. Falls back to the helper's own log.
+		private static func networkLog(directory: URL, directoryDescriptor: CInt?, caller: Caller) -> FileHandle {
+			let name = "net.log"
+			// O_NONBLOCK: opening a FIFO planted under that name must fail instead of blocking this daemon.
+			let flags = O_WRONLY | O_CREAT | O_APPEND | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC
+			let descriptor: CInt
+
+			if let directoryDescriptor {
+				descriptor = openat(directoryDescriptor, name, flags, 0o644)
+			} else {
+				descriptor = open(directory.appendingPathComponent(name).path(percentEncoded: false), flags, 0o644)
+			}
+
+			var attributes = stat()
+
+			guard descriptor >= 0 else {
+				return logFile()
+			}
+
+			guard fstat(descriptor, &attributes) == 0, (attributes.st_mode & S_IFMT) == S_IFREG, attributes.st_nlink == 1, ftruncate(descriptor, 0) == 0, fchown(descriptor, caller.uid, caller.gid) == 0 else {
+				close(descriptor)
+				return logFile()
+			}
+
+			return FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+		}
+
 		/// Runs `executable` to completion and returns its status and output.
 		private static func runAndCollect(_ executable: URL, arguments: [String], environment: [String: String]) throws -> (status: Int32, output: String) {
 			let process = Process()
@@ -363,6 +403,7 @@
 
 					try Self.validateNetworkName(networkName)
 
+					let logLevel = try Self.validatedLogLevel(logLevel)
 					let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 					let pidFile = try Home(home, runMode: .user, createItIfNotExists: false).networkDirectory.appendingPathComponent(networkName, isDirectory: true).appendingPathComponent("pid")
 
@@ -370,8 +411,15 @@
 						return "Network \(networkName) is already running"
 					}
 
-					// The network is the process: it keeps running after the helper's reply, logging to the helper's log.
-					let log = Self.logFile()
+					// The network is the process: it keeps running after the helper's reply, logging to the network's own log.
+					let networkDirectory = pidFile.deletingLastPathComponent()
+					#if BECOME_PARANOID
+						let directoryDescriptor = try URL.openPIDDirectory(networkDirectory.appendingPathComponent("net.pid"), beneath: home, owner: caller.uid)
+						defer { close(directoryDescriptor) }
+						let log = Self.networkLog(directory: networkDirectory, directoryDescriptor: directoryDescriptor, caller: caller)
+					#else
+						let log = Self.networkLog(directory: networkDirectory, directoryDescriptor: nil, caller: caller)
+					#endif
 					let process = Process()
 
 					process.executableURL = caked
@@ -390,13 +438,13 @@
 						}
 
 						if process.isRunning == false {
-							throw ServiceError("Network \(networkName) failed to start: status \(process.terminationStatus), see \(Self.logPath)")
+							throw ServiceError("Network \(networkName) failed to start: status \(process.terminationStatus), see \(networkDirectory.appendingPathComponent("net.log").path)")
 						}
 
 						Thread.sleep(forTimeInterval: 0.1)
 					}
 
-					throw ServiceError("Network \(networkName) did not start within the expected time, see \(Self.logPath)")
+					throw ServiceError("Network \(networkName) did not start within the expected time, see \(networkDirectory.appendingPathComponent("net.log").path)")
 				}
 			}
 		#endif
@@ -446,11 +494,13 @@
 				// have root open a path or take an option it was not written for. Only a Multipass import needs root.
 				try ImportHandler.validatePrivilegedImportArguments(arguments)
 
+				let logLevel = try Self.validatedLogLevel(logLevel)
 				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
 				let result = try Self.runAndCollect(
 					caked,
 					arguments: [
 						"import",
+						"--log-level=\(logLevel)",
 						"--home=\(home.path)",
 						"--uid=\(caller.uid)",
 						"--gid=\(caller.gid)",
@@ -483,6 +533,10 @@
 					guard Self.runNetworkFlags.contains(argument) || (argument.contains("=") && Self.runNetworkOptions.contains(name)) else {
 						throw ServiceError("Argument \(argument) is not allowed")
 					}
+
+					if name == "--log-level" {
+						_ = try Self.validatedLogLevel(String(argument.dropFirst("--log-level=".count)))
+					}
 				}
 
 				// Resolve aliases once, then validate and open the parent beneath an owned home.
@@ -496,7 +550,11 @@
 				#endif
 
 				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
-				let log = Self.logFile()
+				#if BECOME_PARANOID
+					let log = Self.networkLog(directory: pidURL.deletingLastPathComponent(), directoryDescriptor: pidDirectory.fileDescriptor, caller: caller)
+				#else
+					let log = Self.networkLog(directory: pidURL.deletingLastPathComponent(), directoryDescriptor: nil, caller: caller)
+				#endif
 				let process = ProcessWithSharedFileHandle()
 
 				#if BECOME_PARANOID
@@ -555,7 +613,7 @@
 					#endif
 
 					if process.isRunning == false {
-						throw ServiceError("Network failed to start: status \(process.terminationStatus), see \(Self.logPath)")
+						throw ServiceError("Network failed to start: status \(process.terminationStatus), see \(pidURL.deletingLastPathComponent().appendingPathComponent("net.log").path)")
 					}
 
 					Thread.sleep(forTimeInterval: 0.1)
@@ -563,7 +621,7 @@
 
 				process.terminate()
 
-				throw ServiceError("Network did not start within the expected time, see \(Self.logPath)")
+				throw ServiceError("Network did not start within the expected time, see \(pidURL.deletingLastPathComponent().appendingPathComponent("net.log").path)")
 			}
 		}
 

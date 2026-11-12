@@ -433,9 +433,7 @@ public struct NetworksHandler {
 		var runningArguments: [String]
 		let process = try Bundle.createProcessWithSharedFileHandle()
 
-		if Logger.LoggingLevel() > .info {
-			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
-		}
+		arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 
 		arguments.append("--mode=\(networkConfig.mode.rawValue)")
 
@@ -593,9 +591,7 @@ public struct NetworksHandler {
 
 		arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.rawValue)"])
 
-		if Logger.LoggingLevel() > .info {
-			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
-		}
+		arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 
 		if runMode.isSystem {
 			arguments.append("--system")
