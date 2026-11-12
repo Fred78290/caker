@@ -207,7 +207,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
-		if VMRunHandler.launchedFromService || runMode == .app {
+		if VMRunHandler.launchedFromService || runMode == .app || ProcessInfo.processInfo.environment["CAKED_VMNET_NATIVE"] == "0" {
 			if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
 				if Bundle.mustUseUnixTask {
 					try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
