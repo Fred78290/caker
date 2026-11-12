@@ -5606,6 +5606,17 @@
         }
       }
     },
+    "Failed to create PID file at %@: errno=%d" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la création du fichier PID à %@ : errno=%d"
+          }
+        }
+      }
+    },
     "Failed to create template" : {
       "localizations" : {
         "fr" : {
@@ -6107,6 +6118,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec du démontage de %1$@ : %2$@"
+          }
+        }
+      }
+    },
+    "Failed to write PID file at %@: errno=%d" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l'écriture du fichier PID à %@ : errno=%d"
           }
         }
       }
@@ -10856,6 +10878,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucun compose.yml trouvé dans %@"
+          }
+        }
+      }
+    },
+    "No DHCP lease table found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune table de baux DHCP trouvée"
           }
         }
       }
@@ -17818,6 +17851,28 @@
         }
       }
     },
+    "The privileged helper is not available" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'assistant privilégié n'est pas disponible"
+          }
+        }
+      }
+    },
+    "The privileged helper was not authorized (%d)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'assistant privilégié n'a pas été autorisé (%d)"
+          }
+        }
+      }
+    },
     "The provided path is not a directory or a .vmx file." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18712,6 +18767,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Options de montage"
+          }
+        }
+      }
+    },
+    "Unable to authorize the privileged helper" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'autoriser l'assistant privilégié"
           }
         }
       }
