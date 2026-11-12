@@ -5,10 +5,10 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import CakeAgentLib
 import CakedLib
 import GRPCLib
 import SwiftUI
-import CakeAgentLib
 
 struct HomeView: View {
 	@Environment(\.appearsActive) private var appearsActive
@@ -71,8 +71,8 @@ struct HomeView: View {
 	var body: some View {
 		self.navigationView
 			.toolbar {
-				ToolbarItemGroup(placement: .navigation) {
-					connectButton
+				ToolbarItemGroup(placement: .primaryAction) {
+					self.connectButton
 
 					Button("Delete", systemImage: "trash") {
 						self.actionDelete()
@@ -81,10 +81,10 @@ struct HomeView: View {
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
 					}.disabled(self.plusButtonDisabled)
-				}
 
-				if self.selectedCategory == .virtualMachine {
-					ToolbarItem(placement: .automatic) {
+					Spacer()
+					
+					if self.selectedCategory == .virtualMachine {
 						Picker("View mode", selection: $navigationModel.virtualMachinesViewMode) {
 							ForEach(VirtualMachinesViewMode.allCases) { mode in
 								Image(systemName: mode.iconName)
@@ -96,10 +96,8 @@ struct HomeView: View {
 						.labelsHidden()
 						.frame(width: 76)
 					}
-				}
 
-				if self.haveDetailView {
-					ToolbarItem(placement: .automatic) {
+					if haveDetailView {
 						Button("Detail", systemImage: "sidebar.squares.right") {
 							self.mustShowDetailView.toggle()
 						}
@@ -261,9 +259,20 @@ struct HomeView: View {
 			return false
 		}
 
+		if self.selectedCategory == .templates && self.navigationModel.selectedTemplate == nil {
+			return false
+		}
+
+		if self.selectedCategory == .networks && self.navigationModel.selectedNetwork == nil {
+			return false
+		}
+
+		if self.selectedCategory == .compose && self.navigationModel.selectedComposeProject == nil {
+			return false
+		}
+
 		return true
 	}
-
 
 	var showDetailView: Bool {
 		switch self.selectedCategory {
@@ -379,13 +388,18 @@ struct HomeView: View {
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
 			.onChange(of: self.selectedCategory) { oldValue, newValue in
+				// The Detail button only exists for the VM list: don't leave the other categories without details.
+				self.mustShowDetailView = true
 				self.selectedCategoryDidChanged(oldValue, newValue)
 			}
 			.windowAccessor($window) {
 				if let window = $0 {
 					window.titlebarAppearsTransparent = true
-                    window.titleVisibility = .visible
-                    window.toolbarStyle = .unified
+					window.titleVisibility = .hidden
+					window.toolbarStyle = .unified
+					// The content extends under the transparent titlebar, so the area above the sidebar gets
+					// the sidebar's own background; the sidebar list insets itself below the traffic lights.
+					window.styleMask.insert(.fullSizeContentView)
 				}
 			}
 	}
@@ -585,5 +599,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(navigationModel: NavigationModel())
+	HomeView(navigationModel: NavigationModel())
 }

@@ -4,10 +4,22 @@
 # usage: ./scripts/run-signed.sh run sonoma-base
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
-KEYCHAIN_OPTIONS=${1:-}
+export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+export PKGDIR="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
+export KEYCHAIN_OPTIONS=${1:-}
+export BUILDDIR="${PROJECT_ROOT}/.release/release"
+export BINARYDIR="${PROJECT_ROOT}/.release/universal/release"
+export RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
+export ASSETS="${BUILDDIR}/assets"
+export RELEASE=1
+export APPSTORE=0
+export BECOME_PARANOID=0
+export USE_SMAPPSERVICE=1
+export USE_AUTHORIZATION_HELPER=1
+export USE_DHCP_SERVER=1
+export SWIFTCMD="xcrun swift"
+export MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
 
 if [ -f ${PROJECT_ROOT}/.env ]; then
 	source ${PROJECT_ROOT}/.env
@@ -18,16 +30,6 @@ if [ -n "${KEYCHAIN_OPTIONS}" ]; then
 else
 	KEYCHAIN_OPTIONS=
 fi
-
-BUILDDIR="${PROJECT_ROOT}/.release/release"
-BINARYDIR="${PROJECT_ROOT}/.release/universal/release"
-RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
-ASSETS="${BUILDDIR}/assets"
-RELEASE=1
-APPSTORE=0
-USE_SMAPPSERVICE=0
-SWIFTCMD="xcrun swift"
-MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
 
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 #sudo rm -rf ""${PROJECT_ROOT}/.debug"
@@ -56,7 +58,7 @@ done
 
 mkdir -p ${BINARYDIR}
 
-for FILE in Caker caked cakectl; do
+for FILE in Caker caked cakectl AuthorizationHelper; do
 	lipo -create "${PROJECT_ROOT}/.release/x86_64-apple-macosx/release/${FILE}" "${PROJECT_ROOT}/.release/arm64-apple-macosx/release/${FILE}" -output "${BINARYDIR}/${FILE}"
 done
 

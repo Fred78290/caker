@@ -183,12 +183,20 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
+		#if USE_SETUID
+			SudoCaked.dropSetuidPrivilegesIfUnauthorized()
+		#endif
+
 		#if !APPSTORE
 			configuration.subcommands.append(Relocate.self)
 		#endif
 
 		#if SPARKLE
 			configuration.subcommands.append(CheckUpdate.self)
+		#endif
+
+		#if USE_AUTHORIZATION_HELPER
+			configuration.subcommands.append(AuthorizationCommand.self)
 		#endif
 
 		if try tryForkCommand() {

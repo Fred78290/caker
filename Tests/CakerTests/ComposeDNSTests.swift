@@ -27,6 +27,44 @@ final class ComposeDNSTests: XCTestCase {
 		XCTAssertEqual(ComposeDNS.parseServiceName("MariaDB.MyApp.Compose.Internal."), ComposeDNS.ServiceName(service: "mariadb", project: "myapp"))
 	}
 
+	func testIsInDomainCoversTheWholeZoneEvenForNamesWeNeverOwn() {
+		let domain = ComposeDNS.domainSuffix
+
+		XCTAssertTrue(ComposeDNS.isInDomain("web.\(domain)"))
+		XCTAssertTrue(ComposeDNS.isInDomain("web.proj.\(domain)."))
+		XCTAssertTrue(ComposeDNS.isInDomain("WEB.Proj.\(domain)"))
+		// Not something parseQueryName accepts, but still inside the zone: answered NXDOMAIN locally, never forwarded.
+		XCTAssertNil(ComposeDNS.parseQueryName("a.b.c.\(domain)"))
+		XCTAssertTrue(ComposeDNS.isInDomain("a.b.c.\(domain)"))
+		XCTAssertNil(ComposeDNS.parseQueryName("..\(domain)"))
+		XCTAssertTrue(ComposeDNS.isInDomain("..\(domain)"))
+		XCTAssertTrue(ComposeDNS.isInDomain(domain))
+	}
+
+	func testIsInDomainRejectsNamesOutsideTheZone() {
+		// The negative cases must not depend on the domain configured on the machine running the tests.
+		let original: String? = CakedKeyConfig.composeDnsDomain.get()
+
+		defer {
+			if let original {
+				CakedKeyConfig.composeDnsDomain.set(original)
+			} else {
+				CakedKeyConfig.composeDnsDomain.removeObject()
+			}
+		}
+
+		CakedKeyConfig.composeDnsDomain.set(ComposeDNS.defaultDomainSuffix)
+
+		let domain = ComposeDNS.domainSuffix
+
+		XCTAssertEqual(domain, "compose.internal")
+		XCTAssertFalse(ComposeDNS.isInDomain("example.com"))
+		XCTAssertFalse(ComposeDNS.isInDomain("web.notcompose.internal"))
+		// A longer label ending the same way is a different zone, not a child of this one.
+		XCTAssertFalse(ComposeDNS.isInDomain("not\(domain)"))
+		XCTAssertFalse(ComposeDNS.isInDomain("\(domain).example.com"))
+	}
+
 	func testParseServiceNameRejectsWrongDomain() {
 		XCTAssertNil(ComposeDNS.parseServiceName("mariadb.myapp.example.com"))
 		XCTAssertNil(ComposeDNS.parseServiceName("mariadb.myapp.compose.internal.evil.com"))

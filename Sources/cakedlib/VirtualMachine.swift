@@ -1330,6 +1330,9 @@ extension VirtualMachine {
 			self.logger.info("VM \(self.location.name) started")
 			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
+
+			// Not started by StartHandler (record, provisioning, embedded in the app): nobody else tells the imds network.
+			VMLifecycleHooks.publish(.started(location: self.location, runMode: self.env.runMode))
 			break
 		case .failure(let error):
 			self.logger.error("VM \(self.location.name) failed to start: \(error)")
@@ -1490,6 +1493,12 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 			if stopGCD {
 				self.stopGrandCentralUpdate()
 			}
+		}
+
+		if stopGCD {
+			// Covers every way the VM ends in this process, a guest-initiated shutdown included. The process often
+			// exits right after, so this waits (briefly) for the network to answer rather than firing and forgetting.
+			VMLifecycleHooks.publish(.stopped(location: self.location, runMode: self.env.runMode), waitingUpTo: 2)
 		}
 	}
 }

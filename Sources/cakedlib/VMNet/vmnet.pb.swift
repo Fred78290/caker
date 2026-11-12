@@ -60,6 +60,54 @@ public nonisolated struct Vmnet_SerializationReply: Sendable {
   fileprivate var _reason: String? = nil
 }
 
+public nonisolated struct Vmnet_VMLifecycleEventRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var vmName: String = String()
+
+  public var event: Vmnet_VMLifecycleEventRequest.Event = .started
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public nonisolated enum Event: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public typealias RawValue = Int
+    case started // = 0
+    case stopped // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .started
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .started
+      case 1: self = .stopped
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .started: return 0
+      case .stopped: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+    // The compiler won't synthesize support with the UNRECOGNIZED case.
+    public static let allCases: [Vmnet_VMLifecycleEventRequest.Event] = [
+      .started,
+      .stopped,
+    ]
+
+  }
+
+  public init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate nonisolated let _protobuf_package = "vmnet"
@@ -125,4 +173,43 @@ nonisolated extension Vmnet_SerializationReply: SwiftProtobuf.Message, SwiftProt
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+nonisolated extension Vmnet_VMLifecycleEventRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VMLifecycleEventRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmName\0\u{1}event\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.vmName) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.event) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.vmName.isEmpty {
+      try visitor.visitSingularStringField(value: self.vmName, fieldNumber: 1)
+    }
+    if self.event != .started {
+      try visitor.visitSingularEnumField(value: self.event, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmnet_VMLifecycleEventRequest, rhs: Vmnet_VMLifecycleEventRequest) -> Bool {
+    if lhs.vmName != rhs.vmName {return false}
+    if lhs.event != rhs.event {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Vmnet_VMLifecycleEventRequest.Event: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0STARTED\0\u{1}STOPPED\0")
 }

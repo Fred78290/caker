@@ -4,33 +4,35 @@
 # usage: ./scripts/run-signed.sh run sonoma-base
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/build/appstore/Caker.app}"
-KEYCHAIN_OPTIONS=${1:-}
+export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+export PKGDIR="${PKGDIR:-${PROJECT_ROOT}/build/appstore/Caker.app}"
+export KEYCHAIN_OPTIONS=${1:-}
+export BUILDDIR="${PROJECT_ROOT}/.appstore/release"
+export BINARYDIR="${PROJECT_ROOT}/.appstore/universal/release"
+export RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
+export ASSETS="${BUILDDIR}/assets"
+export RELEASE=1
+export APPSTORE=1
+export BECOME_PARANOID=0
+export USE_SMAPPSERVICE=1
+export USE_AUTHORIZATION_HELPER=0
+export USE_DHCP_SERVER=0
+export BASE_VERSION=${BASE_VERSION:-1.0}
+export VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
+export SWIFTCMD="xcrun swift"
+export MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
+export MINIMUM_SYSTEM_VERSION=26.0
 
 if [ -f ${PROJECT_ROOT}/.env ]; then
 	source ${PROJECT_ROOT}/.env
 fi
 
 if [ -n "${KEYCHAIN_OPTIONS}" ]; then
-	KEYCHAIN_OPTIONS="--keychain ${KEYCHAIN_OPTIONS}"
+	export KEYCHAIN_OPTIONS="--keychain ${KEYCHAIN_OPTIONS}"
 else
-	KEYCHAIN_OPTIONS=
+	export KEYCHAIN_OPTIONS=
 fi
-
-BUILDDIR="${PROJECT_ROOT}/.appstore/release"
-BINARYDIR="${PROJECT_ROOT}/.appstore/universal/release"
-RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
-ASSETS="${BUILDDIR}/assets"
-RELEASE=1
-export APPSTORE=1
-USE_SMAPPSERVICE=1
-BASE_VERSION=${BASE_VERSION:-1.0}
-VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
-SWIFTCMD="xcrun swift"
-MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
-MINIMUM_SYSTEM_VERSION=26.0
 
 #sudo rm -rf "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 sudo rm -rf "${PKGDIR}"
@@ -65,11 +67,12 @@ done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
-OUTDIR="${PROJECT_ROOT}/build/appstore"
-PKGNAME="${PKGNAME:-Caker.pkg}"
-PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
+export OUTDIR="${PROJECT_ROOT}/build/appstore"
+export PKGNAME="${PKGNAME:-Caker.pkg}"
+export PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
 
 # Package the bundle build.inc.sh just assembled and signed (PKGDIR), wherever PKGDIR points.
+export DEVELOPER_ID=${DEVELOPER_ID:-}
 xattr -r -d com.apple.quarantine "${PKGDIR}" 2>/dev/null || true
 productbuild ${KEYCHAIN_OPTIONS} \
 	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \

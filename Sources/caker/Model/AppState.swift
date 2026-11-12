@@ -158,8 +158,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	@ObservationIgnored @AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 	@ObservationIgnored @AppStorage("HideDockIcon") var isDockIconHidden = false
 	@ObservationIgnored @AppStorage("ShowMenuIcon") var isMenuIconShown = true
-	@ObservationIgnored @AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = CakedKeyConfig.defaultImdsEnabled
 	@ObservationIgnored @AppStorage("VirtualMachinesViewMode") var virtualMachinesViewMode: VirtualMachinesViewMode = .mosaic
+
+	@ObservationIgnored @AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = CakedKeyConfig.defaultImdsEnabled
+	@ObservationIgnored @AppStorage(CakedKeyConfig.useInternalDHCPServer.rawValue, store: .shared) var useInternalDHCPServer: Bool = CakedKeyConfig.defaultUseInternalDHCPServer
 
 	private(set) var cakedServiceInstalled: Bool = false
 	private(set) var cakedServiceRunning: Bool = false
@@ -473,6 +475,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	func configureNetwork(network: BridgedNetwork) -> ConfiguredNetworkReply {
 		self.connectionManager.configureNetwork(network: network)
+	}
+
+	func statusNetwork(network: BridgedNetwork) -> NetworkInfoReply {
+		self.connectionManager.statusNetwork(network: network)
 	}
 
 	func startNetwork(networkName: String) -> StartedNetworkReply {

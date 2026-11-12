@@ -16,8 +16,8 @@ import vmnet
 public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 	var network_ref: vmnet_network_ref?
 
-	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
-		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, socketControl: URL, pidFile: URL, runMode: Utils.RunMode) {
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, socketControl: socketControl, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func reconfigure(networkConfig: VZSharedNetwork) throws {
@@ -98,6 +98,16 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 
 			guard result == .VMNET_SUCCESS else {
 				throw ServiceError(String(localized: "Failed to set NAT66 prefix (\(result.description))"))
+			}
+		}
+
+		// caked serves DHCP itself (one server and one lease table per network, see `DHCPServer`), and DNS when the
+		// network's resolver is on: vmnet's own services would answer the same broadcasts and bind the same port.
+		if NetworksHandler.usesCakerDHCP(networkConfig) {
+			vmnet_network_configuration_disable_dhcp(network_configuration)
+
+			if networkConfig.dns == true {
+				vmnet_network_configuration_disable_dns_proxy(network_configuration)
 			}
 		}
 

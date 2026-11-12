@@ -42,8 +42,8 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 		}
 	}
 
-	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
-		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, socketControl: URL, pidFile: URL, runMode: Utils.RunMode) {
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, socketControl: socketControl, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func write(data: Data) {

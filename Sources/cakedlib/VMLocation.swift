@@ -823,6 +823,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get MAC address for VM \(self.name)"), message: String(localized: "Any mac address or client ID is not configured"))
 		}
 
+		// Only the VM's own networks: a lease left on a network it no longer uses must not win.
+		let networkNames = config.qualifiedNetworks.map(\.network)
+
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
@@ -836,11 +839,13 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 					return runningIP
 				}
 			} else {
-				leases = try DHCPLeaseParser()
-
-				if let runningIP = leases[clientID] {
+				// No lease table yet (a fresh host, or caked's DHCP server hasn't granted a lease): keep waiting.
+				if let parser = try? DHCPLeaseParser(runMode: runMode, networks: networkNames), let runningIP = parser[clientID] {
 					return runningIP
 				}
+
+				// Either no table yet or no lease for this client yet: don't rescan every table in a tight loop.
+				Thread.sleep(forTimeInterval: 0.25)
 			}
 
 			count += 1
@@ -997,7 +1002,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let install_agent = String(
 			format: try loadBundledShellScript(named: "ssh-install-cakeagent", runMode: runMode),
 			config.configuredUser, CAKEAGENT_SNAPSHOT, "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, sshPublicKeys, caCert, serverPem, serverKey,
-			ComposeDNS.domainSuffix, BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"), "\(ComposeDNS.internalBindPort)")
+			AppStoreGuestDNS.sshFragment(domain: ComposeDNS.domainSuffix, ip: BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"), port: "\(ComposeDNS.internalBindPort)"))
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 

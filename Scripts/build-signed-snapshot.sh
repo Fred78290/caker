@@ -9,10 +9,10 @@ function cleanup() {
 export BASE_VERSION=${BASE_VERSION:-1.0}
 export VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-BUILD_DIR="${PROJECT_ROOT}/build"
-DMG_PATH="${BUILD_DIR}/Caker.dmg"
+export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+export BUILD_DIR="${PROJECT_ROOT}/build"
+export DMG_PATH="${BUILD_DIR}/Caker.dmg"
 
 export RUNNER_TEMP="${PROJECT_ROOT}/tmp"
 export PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"

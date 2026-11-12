@@ -13,6 +13,7 @@ service VMNetService {
   rpc GetSerialization(Empty) returns (SerializationReply);
   rpc Stop(Empty) returns (Empty);
   rpc Restart(Empty) returns (Empty);
+  rpc VMLifecycleEvent(VMLifecycleEventRequest) returns (Empty);
 }
 
 message Empty {}
@@ -21,4 +22,13 @@ message SerializationReply {
   bytes           data    = 1;
   bool            success = 2;
   optional string reason  = 3;
+}
+
+message VMLifecycleEventRequest {
+  enum Event {
+    STARTED   = 0;
+    STOPPED   = 1;
+  }
+  string vmName = 1;
+  Event  event  = 2;
 }

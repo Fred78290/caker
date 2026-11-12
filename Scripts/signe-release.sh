@@ -29,7 +29,7 @@ USE_SMAPPSERVICE=0
 
 mkdir -p ${BINARYDIR}
 
-for FILE in Caker caked cakectl; do
+for FILE in Caker caked cakectl AuthorizationHelper; do
 	lipo -create "${PROJECT_ROOT}/.release/x86_64-apple-macosx/release/${FILE}" "${PROJECT_ROOT}/.release/arm64-apple-macosx/release/${FILE}" -output "${BINARYDIR}/${FILE}"
 done
 

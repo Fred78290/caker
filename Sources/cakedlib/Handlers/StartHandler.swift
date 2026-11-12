@@ -43,8 +43,12 @@ public struct StartHandler {
 			let executableURL = try Bundle.main.caked()
 
 			let config: CakeConfig = try location.config()
-			var arguments: [String] = ["vmrun", location.configURL.absoluteURL.path(percentEncoded: false), "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
+			var arguments: [String] = [
+				"vmrun",
+				location.configURL.absoluteURL.path(percentEncoded: false),
+				"--log-level=\(Logger.LoggingLevel().rawValue)"
+			]
 
 			try config.startNetworkServices(runMode: runMode)
 
@@ -95,7 +99,7 @@ public struct StartHandler {
 
 				// Fires regardless of exit reason (clean stop, crash, kill) so daemon-side
 				// observers (e.g. IMDSCoordinator) never leak state for a VM that's gone.
-				VMLifecycleHooks.notify(.stopped(location: self.location, runMode: self.runMode))
+				VMLifecycleHooks.publish(.stopped(location: self.location, runMode: self.runMode))
 
 				if let promise = promise {
 					if process.terminationStatus == 0 {
@@ -116,7 +120,7 @@ public struct StartHandler {
 				config.runningIP = runningIP
 				try? config.save()
 
-				VMLifecycleHooks.notify(.started(location: location, runMode: runMode))
+				VMLifecycleHooks.publish(.started(location: location, runMode: runMode))
 
 				return runningIP
 			} catch {
@@ -214,7 +218,7 @@ public struct StartHandler {
 
 		let process = try Bundle.createProcessWithSharedFileHandle()
 
-		if startMode == .foreground || startMode == .attach {
+		if startMode == .attach {
 			let outputPipe = Pipe()
 			let errorPipe: Pipe = Pipe()
 
@@ -228,6 +232,10 @@ public struct StartHandler {
 
 			process.standardError = errorPipe
 			process.standardOutput = outputPipe
+			process.standardInput = FileHandle.standardInput
+		} else if startMode == .foreground {
+			process.standardError = FileHandle.standardError
+			process.standardOutput = FileHandle.standardOutput
 			process.standardInput = FileHandle.standardInput
 		} else if startMode == .service {
 			process.standardError = FileHandle.standardError
