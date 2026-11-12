@@ -1,3 +1,6 @@
+import ArgumentParser
+import CakeAgentLib
+import CakedLib
 //
 //  Root.swift
 //  Caker
@@ -5,9 +8,6 @@
 //  Created by Frederic BOLTZ on 05/03/2026.
 //
 import Foundation
-import ArgumentParser
-import CakeAgentLib
-import CakedLib
 import GRPCLib
 import Logging
 
@@ -39,19 +39,19 @@ struct AuthorizationCommand: ParsableCommand {
 			abstract: String(localized: "Enable privileged operations for Caker"),
 			discussion: String(localized: "Enables privileged operations for Caker.")
 		)
-		
+
 		func run() throws {
 			Logger.appendNewLine(self.format.renderSingle(HelperReply(success: DirectAuthorizationHelperConnector.install(), message: String(localized: "Privileged operations enabled successfully."))))
 		}
 	}
-	
+
 	struct Disable: ParsableCommand {
 		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 		var logLevel: CakeAgentLib.Logger.LogLevel = .info
-		
+
 		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 		var format: Format = .text
-		
+
 		mutating func validate() throws {
 			Logger.setLevel(logLevel)
 		}
@@ -60,7 +60,7 @@ struct AuthorizationCommand: ParsableCommand {
 			abstract: String(localized: "Disable privileged operations for Caker"),
 			discussion: String(localized: "Disables privileged operations for Caker.")
 		)
-		
+
 		func run() throws {
 			Logger.appendNewLine(self.format.renderSingle(HelperReply(success: DirectAuthorizationHelperConnector.uninstall(), message: String(localized: "Privileged operations disabled."))))
 		}
@@ -74,23 +74,36 @@ struct Root: ParsableCommand {
 			commandName: "\(ProcessInfo.processInfo.processName)",
 			version: CI.version,
 			subcommands: [
-				AuthorizationCommand.self,
+				AuthorizationCommand.self
 			])
 
+	func run() throws {
+		MainApp.main()
+	}
+
 	public static func main() async throws {
+		var parsed: ParsableCommand
+
 		do {
-			if var command = try? parseAsRoot() {
-				if var asyncCommand = command as? AsyncParsableCommand {
-					try await asyncCommand.run()
-				} else {
-					try command.run()
-				}
+			parsed = try parseAsRoot()
+		} catch let error as CleanExit {
+			// --help / --version
+			print(Root.message(for: error))
+			return
+		} catch {
+			// Unknown arguments (e.g. launched by Xcode or Finder): start the app
+			MainApp.main()
+			return
+		}
+
+		do {
+			if var asyncCommand = parsed as? AsyncParsableCommand {
+				try await asyncCommand.run()
 			} else {
-				CakeAgentLib.Logger("main").info("Caker is starting...")
-				MainApp.main()
+				try parsed.run()
 			}
 		} catch {
-			CakeAgentLib.Logger("main").error("Error: \(error.localizedDescription)")
+			CakeAgentLib.Logger("main").error("Error: \(error.localizedDescription), \(ProcessInfo.processInfo.arguments)")
 		}
-    }
+	}
 }
