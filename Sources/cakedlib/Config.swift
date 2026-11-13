@@ -841,7 +841,7 @@ extension VirtualMachineConfiguration {
 	}
 
 	public func startNetworkServices(runMode: Utils.RunMode) throws {
-		try NetworksHandler.startNetworkServices(networks: self.networks, runMode: runMode)
+		try NetworksHandler.startNetworkServices(networks: self.qualifiedNetworks, runMode: runMode)
 	}
 
 	public func collectNetworks(runMode: Utils.RunMode) throws -> [NetworkAttachement] {
