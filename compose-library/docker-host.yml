@@ -1,7 +1,7 @@
 # library-id: docker-host
 # library-name: Docker host
 # library-category: Containers
-# library-summary: An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group.
+# library-summary: An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group; ports 8080 and 8443 are forwarded to the host for published containers.
 # library-tags: docker, containers, compose, oci
 name: dockerhost
 services:
@@ -11,6 +11,9 @@ services:
     password: ubuntu
     disk: 40          # GiB
     nested: true
+    ports:
+      - "8080:8080"
+      - "8443:8443"
     deploy:
       resources:
         limits:
@@ -23,3 +26,9 @@ services:
     post_commands:
       - systemctl enable --now docker
       - usermod -aG docker ubuntu
+    write_files:
+      - path: /etc/motd.d/dockerhost.motd
+        content: |
+          Docker is ready. Ports 8080 and 8443 of this VM are forwarded to the host:
+          publish a container on one of them (docker run -p 8080:80 ...) to reach it on localhost.
+        permissions: "0644"

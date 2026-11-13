@@ -1,7 +1,7 @@
 # library-id: ubuntu-dev
 # library-name: Ubuntu dev box
 # library-category: Development
-# library-summary: A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use.
+# library-summary: A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use; ports 3000 and 8000 are forwarded to the host for dev servers.
 # library-tags: ubuntu, toolchain, git, python, sandbox
 name: devbox
 services:
@@ -11,6 +11,9 @@ services:
     password: ubuntu
     disk: 40          # GiB
     nested: true
+    ports:
+      - "3000:3000"
+      - "8000:8000"
     deploy:
       resources:
         limits:
@@ -33,5 +36,6 @@ services:
       - path: /etc/motd.d/devbox.motd
         content: |
           Dev box ready: build-essential, git, curl, jq, tmux, python3 (pip, venv).
+          Dev servers listening on 3000 or 8000 are reachable on the host's localhost.
           Log in with `cakectl sh compose-devbox-dev` or ssh ubuntu@<ip>.
         permissions: "0644"

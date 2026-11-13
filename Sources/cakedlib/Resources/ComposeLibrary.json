@@ -5,27 +5,27 @@
 			"id": "docker-host",
 			"name": "Docker host",
 			"category": "Containers",
-			"summary": "An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group.",
+			"summary": "An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group; ports 8080 and 8443 are forwarded to the host for published containers.",
 			"tags": [
 				"docker",
 				"containers",
 				"compose",
 				"oci"
 			],
-			"compose": "name: dockerhost\nservices:\n  docker:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 40          # GiB\n    nested: true\n    deploy:\n      resources:\n        limits:\n          cpus: \"4\"\n          memory: 4096M\n    package_update: true\n    packages:\n      - docker.io\n      - docker-compose-v2\n    post_commands:\n      - systemctl enable --now docker\n      - usermod -aG docker ubuntu\n"
+			"compose": "name: dockerhost\nservices:\n  docker:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 40          # GiB\n    nested: true\n    ports:\n      - \"8080:8080\"\n      - \"8443:8443\"\n    deploy:\n      resources:\n        limits:\n          cpus: \"4\"\n          memory: 4096M\n    package_update: true\n    packages:\n      - docker.io\n      - docker-compose-v2\n    post_commands:\n      - systemctl enable --now docker\n      - usermod -aG docker ubuntu\n    write_files:\n      - path: /etc/motd.d/dockerhost.motd\n        content: |\n          Docker is ready. Ports 8080 and 8443 of this VM are forwarded to the host:\n          publish a container on one of them (docker run -p 8080:80 ...) to reach it on localhost.\n        permissions: \"0644\"\n"
 		},
 		{
 			"id": "k3s",
 			"name": "k3s Kubernetes (single node)",
 			"category": "Containers",
-			"summary": "A single-node k3s cluster; the Kubernetes API is forwarded to the host on port 6443.",
+			"summary": "A single-node k3s cluster; the Kubernetes API is forwarded to the host on port 6443, and the ingress (Traefik) on 8080 and 8443.",
 			"tags": [
 				"kubernetes",
 				"k3s",
 				"k8s",
 				"containers"
 			],
-			"compose": "name: k3s\nservices:\n  server:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 30          # GiB\n    ports:\n      - \"6443:6443\"\n    deploy:\n      resources:\n        limits:\n          cpus: \"2\"\n          memory: 4096M\n    package_update: true\n    packages:\n      - curl\n    write_files:\n      - path: /etc/motd.d/k3s.motd\n        content: |\n          k3s is running. The kubeconfig is /etc/rancher/k3s/k3s.yaml: copy it to the host and\n          point its `server:` at this VM's address (or at localhost, port 6443 is forwarded).\n        permissions: \"0644\"\n    post_commands:\n      # The installer script is downloaded from get.k3s.io: read it before running this on anything that matters.\n      - curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=644 sh -\n"
+			"compose": "name: k3s\nservices:\n  server:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 30          # GiB\n    ports:\n      - \"6443:6443\"\n      - \"8080:80\"\n      - \"8443:443\"\n    deploy:\n      resources:\n        limits:\n          cpus: \"2\"\n          memory: 4096M\n    package_update: true\n    packages:\n      - curl\n    write_files:\n      - path: /etc/motd.d/k3s.motd\n        content: |\n          k3s is running. The kubeconfig is /etc/rancher/k3s/k3s.yaml: copy it to the host and\n          point its `server:` at this VM's address (or at localhost, port 6443 is forwarded).\n          The ingress controller answers on this VM's ports 80 and 443, forwarded to the host's 8080 and 8443.\n        permissions: \"0644\"\n    post_commands:\n      # The installer script is downloaded from get.k3s.io: read it before running this on anything that matters.\n      - curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=644 sh -\n"
 		},
 		{
 			"id": "mariadb-phpmyadmin",
@@ -71,7 +71,7 @@
 			"id": "ubuntu-dev",
 			"name": "Ubuntu dev box",
 			"category": "Development",
-			"summary": "A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use.",
+			"summary": "A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use; ports 3000 and 8000 are forwarded to the host for dev servers.",
 			"tags": [
 				"ubuntu",
 				"toolchain",
@@ -79,7 +79,7 @@
 				"python",
 				"sandbox"
 			],
-			"compose": "name: devbox\nservices:\n  dev:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 40          # GiB\n    nested: true\n    deploy:\n      resources:\n        limits:\n          cpus: \"4\"\n          memory: 4096M\n    package_update: true\n    package_upgrade: true\n    packages:\n      - build-essential\n      - git\n      - curl\n      - wget\n      - vim\n      - tmux\n      - jq\n      - unzip\n      - python3-pip\n      - python3-venv\n    write_files:\n      - path: /etc/motd.d/devbox.motd\n        content: |\n          Dev box ready: build-essential, git, curl, jq, tmux, python3 (pip, venv).\n          Log in with `cakectl sh compose-devbox-dev` or ssh ubuntu@<ip>.\n        permissions: \"0644\"\n"
+			"compose": "name: devbox\nservices:\n  dev:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 40          # GiB\n    nested: true\n    ports:\n      - \"3000:3000\"\n      - \"8000:8000\"\n    deploy:\n      resources:\n        limits:\n          cpus: \"4\"\n          memory: 4096M\n    package_update: true\n    package_upgrade: true\n    packages:\n      - build-essential\n      - git\n      - curl\n      - wget\n      - vim\n      - tmux\n      - jq\n      - unzip\n      - python3-pip\n      - python3-venv\n    write_files:\n      - path: /etc/motd.d/devbox.motd\n        content: |\n          Dev box ready: build-essential, git, curl, jq, tmux, python3 (pip, venv).\n          Dev servers listening on 3000 or 8000 are reachable on the host's localhost.\n          Log in with `cakectl sh compose-devbox-dev` or ssh ubuntu@<ip>.\n        permissions: \"0644\"\n"
 		},
 		{
 			"id": "rabbitmq",

@@ -78,6 +78,25 @@ final class ComposeLibraryTests: XCTestCase {
 		}
 	}
 
+	func testTemplatesThatServeSomethingForwardItsPortsToTheHost() throws {
+		let library = ComposeLibrary.loadBundled()
+		let expected: [String: (service: String, ports: [String])] = [
+			"docker-host": ("docker", ["8080:8080/tcp", "8443:8443/tcp"]),
+			"k3s": ("server", ["6443:6443/tcp", "8080:80/tcp", "8443:443/tcp"]),
+			"ubuntu-dev": ("dev", ["3000:3000/tcp", "8000:8000/tcp"]),
+		]
+
+		for (id, entry) in expected {
+			let compose = try XCTUnwrap(library.template(id: id)).composeFile()
+			let service = try XCTUnwrap(compose.services[entry.service], id)
+			let built = try service.toBuildOptions(name: "compose-\(compose.name)-\(entry.service)", composeNetworks: compose.networks)
+
+			defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
+
+			XCTAssertEqual(built.options.forwardedPorts.map { "\($0)" }.sorted(), entry.ports.sorted(), id)
+		}
+	}
+
 	// MARK: Search
 
 	func testSearchMatchesEveryWordAcrossFields() {
