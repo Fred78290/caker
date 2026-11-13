@@ -647,6 +647,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.hardwareModel = config.hardwareModel
 		self.provisioned = config.provisioned
 		self.imdsMacAddress = config.imdsMacAddress
+		self.imdsMacAddress = config.imdsMacAddress ?? VZMACAddress.randomLocallyAdministered().string
 	}
 
 	public func update(_ from: CakeConfig) {
@@ -847,7 +848,7 @@ extension VirtualMachineConfiguration {
 		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
 		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
 		// unavailable there.
-		if IMDSNetworkInterface.imdsEnabled && self.os == .linux {
+		if networks.first(where: { $0.isIMDSNetwor() }) == nil, IMDSNetworkInterface.imdsEnabled, self.os == .linux {
 			attachedNetworks.append(BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName, mode: .auto, macAddress: self.imdsMacAddress))
 		}
 
