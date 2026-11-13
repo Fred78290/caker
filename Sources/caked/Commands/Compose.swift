@@ -18,7 +18,7 @@ struct Compose: ParsableCommand {
 		commandName: "compose",
 		abstract: String(localized: "Manage VMs from a compose.yml file"),
 		discussion: String(localized: "Reads compose.yml (or docker-compose.yml) and manages VMs as services."),
-		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeRm.self, ComposeEdit.self, ComposeInit.self]
+		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeRm.self, ComposeEdit.self, ComposeInit.self, ComposeLibraryCommand.self]
 	)
 }
 

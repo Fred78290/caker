@@ -22,6 +22,7 @@
 
 /* Begin PBXBuildFile section */
 		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		35444E38E19276E7CA76130A /* ComposeLibrary.json in Resources */ = {isa = PBXBuildFile; fileRef = 40118DF6C3D8A867C1A249AD /* ComposeLibrary.json */; };
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
@@ -37,7 +38,9 @@
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		7EBCF7017495C220912EF643 /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
+		AC1CA5D1FADAA7BBE61ADC85 /* ComposeLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E631A1910D2104DCC601C5 /* ComposeLibraryView.swift */; };
 		99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		61FA2FC27A05C275CFB592E4 /* ComposeLibrary.json in Resources */ = {isa = PBXBuildFile; fileRef = 40118DF6C3D8A867C1A249AD /* ComposeLibrary.json */; };
 		9AC1EA3DEA5CA70E93E5CA4D /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D777B8DF669779B5A4A93A72 /* CakerEnvTests.swift */; };
 		9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001DC9300189A80048894C /* TemplateDetailView.swift */; };
 		9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E8B300191920048894C /* RemoteDetailView.swift */; };
@@ -541,6 +544,7 @@
 		9BDC05342FEADB0E00802A3C /* Up.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05312FEADB0E00802A3C /* Up.swift */; };
 		9BDC05352FEADB0E00802A3C /* Down.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC052F2FEADB0E00802A3C /* Down.swift */; };
 		9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */; };
+		802CE90ABB8EDBA72C8EBF07 /* ComposeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C9B97AB76F002BE94CAE4E /* ComposeLibrary.swift */; };
 		9BDD14D2306A7E3E0091E8DC /* PackerLiteTemplateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDD14CA306A7E3E0091E8DC /* PackerLiteTemplateResolverTests.swift */; };
 		9BDD14D3306A7E3E0091E8DC /* VMImageCatalogResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDD14CD306A7E3E0091E8DC /* VMImageCatalogResolutionTests.swift */; };
 		9BDD14D4306A7E3E0091E8DC /* LXDOperationsTaskMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDD14C9306A7E3E0091E8DC /* LXDOperationsTaskMergeTests.swift */; };
@@ -806,9 +810,11 @@
 		E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */; };
 		E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */; };
 		E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		03C3DA178567FA433F22F9A2 /* ComposeLibrary.json in Resources */ = {isa = PBXBuildFile; fileRef = 40118DF6C3D8A867C1A249AD /* ComposeLibrary.json */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		EC403890050087209287101F /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
 		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
+		93CB405B609544A713FF8469 /* ComposeLibraryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24757C25D2900F8987CD4867 /* ComposeLibraryCommand.swift */; };
 		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 /* End PBXBuildFile section */
 
@@ -1016,15 +1022,18 @@
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
+		31E631A1910D2104DCC601C5 /* ComposeLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
 		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
 		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
 		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
+		40118DF6C3D8A867C1A249AD /* ComposeLibrary.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ComposeLibrary.json; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
+		24757C25D2900F8987CD4867 /* ComposeLibraryCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryCommand.swift; sourceTree = "<group>"; };
 		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
 		7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreGuestDNS.swift; sourceTree = "<group>"; };
@@ -1508,6 +1517,7 @@
 		9BDC05302FEADB0E00802A3C /* EnvInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvInit.swift; sourceTree = "<group>"; };
 		9BDC05312FEADB0E00802A3C /* Up.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Up.swift; sourceTree = "<group>"; };
 		9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeFile.swift; sourceTree = "<group>"; };
+		11C9B97AB76F002BE94CAE4E /* ComposeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibrary.swift; sourceTree = "<group>"; };
 		9BDD14C0306A7E3E0091E8DC /* ActionRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorderTests.swift; sourceTree = "<group>"; };
 		9BDD14C1306A7E3E0091E8DC /* BuildOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptionsTests.swift; sourceTree = "<group>"; };
 		9BDD14C2306A7E3E0091E8DC /* CachedImageKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKindTests.swift; sourceTree = "<group>"; };
@@ -1938,6 +1948,7 @@
 				9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */,
 				A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */,
 				22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */,
+				40118DF6C3D8A867C1A249AD /* ComposeLibrary.json */,
 				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
 			path = Resources;
@@ -2669,6 +2680,7 @@
 			isa = PBXGroup;
 			children = (
 				110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */,
+				31E631A1910D2104DCC601C5 /* ComposeLibraryView.swift */,
 				DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */,
 				070CEA8AC4D83C5669773CE7 /* ComposeView.swift */,
 				9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */,
@@ -3078,6 +3090,7 @@
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
 				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
+				11C9B97AB76F002BE94CAE4E /* ComposeLibrary.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
@@ -3134,6 +3147,7 @@
 			isa = PBXGroup;
 			children = (
 				42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */,
+				24757C25D2900F8987CD4867 /* ComposeLibraryCommand.swift */,
 				9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */,
 				9B37938A2FD5694500D3D54C /* Sandbox.swift */,
 				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
@@ -3751,6 +3765,7 @@
 				9B2D37A6304AD80500204614 /* macos12.packerlite.yaml in Resources */,
 				4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */,
 				99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */,
+				61FA2FC27A05C275CFB592E4 /* ComposeLibrary.json in Resources */,
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
 				9BA60F0B30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E1E00811513A1CE91AE10A /* ssh-install-cakeagent.sh in Resources */,
@@ -3764,6 +3779,7 @@
 				A5E1553A68783A018C527152 /* ssh-install-cakeagent.sh in Resources */,
 				FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */,
 				E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */,
+				03C3DA178567FA433F22F9A2 /* ComposeLibrary.json in Resources */,
 				9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */,
 				9B5611A13013502C00E9FA7D /* agent.svg in Resources */,
 				9B5611A23013502C00E9FA7D /* AppIcon.icns in Resources */,
@@ -3828,6 +3844,7 @@
 				9BA60F0A30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E11EA33732CD288C94C810 /* ssh-install-cakeagent.sh in Resources */,
 				062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */,
+				35444E38E19276E7CA76130A /* ComposeLibrary.json in Resources */,
 			);
 		};
 		CFBB16579F6DEACF77882EAF /* Resources */ = {
@@ -4086,6 +4103,7 @@
 				DD18FD82084E8F0B3A5B3130 /* ComposeEditorView.swift in Sources */,
 				70F97BECEED1C4B704A9EA72 /* ComposeView.swift in Sources */,
 				7EBCF7017495C220912EF643 /* ComposeDetailView.swift in Sources */,
+				AC1CA5D1FADAA7BBE61ADC85 /* ComposeLibraryView.swift in Sources */,
 				9B29F7EC2FCAE4B700AEBCB8 /* NetworkWizard.swift in Sources */,
 				9B29F7ED2FCAE4B700AEBCB8 /* HomeView.swift in Sources */,
 				9B29F7EE2FCAE4B700AEBCB8 /* SideBarView.swift in Sources */,
@@ -4431,6 +4449,7 @@
 				9BDC05252FEADADE00802A3C /* CakerEnv.swift in Sources */,
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
+				802CE90ABB8EDBA72C8EBF07 /* ComposeLibrary.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
 				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
@@ -4530,6 +4549,7 @@
 				9B943B612FF3084F00F69AB6 /* vmnet.grpc.swift in Sources */,
 				9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */,
 				ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */,
+				93CB405B609544A713FF8469 /* ComposeLibraryCommand.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
 				9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */,

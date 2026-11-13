@@ -1,0 +1,36 @@
+# library-id: postgres
+# library-name: PostgreSQL
+# library-category: Database
+# library-summary: PostgreSQL from the Ubuntu archive, listening on every interface with an application role and database.
+# library-tags: postgres, postgresql, sql, database
+name: postgres
+services:
+  db:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: app
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+    package_update: true
+    packages:
+      - postgresql
+      - postgresql-contrib
+    post_commands:
+      - sed -i "s/^#\?listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+      - echo "host all all 0.0.0.0/0 scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf
+      - systemctl restart postgresql
+      # The values come from `environment:` above (written to /etc/environment).
+      - |
+        . /etc/environment
+        su postgres -c "psql -c \"CREATE ROLE $POSTGRES_USER LOGIN PASSWORD '$POSTGRES_PASSWORD'\""
+        su postgres -c "createdb -O $POSTGRES_USER $POSTGRES_DB"

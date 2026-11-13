@@ -125,6 +125,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	/// Bumped whenever a compose action (up/down/rm) completes so `ComposeView` reloads sooner than
 	/// its next poll tick — mirrors `cacheReloadToken`.
 	var composeReloadToken: Int = 0
+	/// Bumped by the toolbar's "Library" button; `ComposeView` opens the compose template library when it changes.
+	var composeLibraryToken: Int = 0
 	var documents: VirtualMachineDocumentStates = [:]
 	var virtualMachinesViewMode: VirtualMachinesViewMode = AppState.shared.virtualMachinesViewMode {
 		didSet {

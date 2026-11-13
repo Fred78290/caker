@@ -14,7 +14,7 @@ import Yams
 /// `CakedLib` as a plain native target.
 private final class ComposeResourceBundleMarker {}
 
-private let composeResourceBundle: Bundle = {
+let composeResourceBundle: Bundle = {
 	#if SWIFT_PACKAGE
 		return Bundle.module
 	#else

@@ -82,6 +82,13 @@ struct HomeView: View {
 						self.actionPlus()
 					}.disabled(self.plusButtonDisabled)
 
+					if self.selectedCategory == .compose {
+						Button("Library", systemImage: "books.vertical") {
+							self.navigationModel.composeLibraryToken += 1
+						}
+						.help("Browse the compose template library")
+					}
+
 					Spacer()
 					
 					if self.selectedCategory == .virtualMachine {

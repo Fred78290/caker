@@ -22046,6 +22046,576 @@
           }
         }
       }
+    },
+    "Browse and clone ready-to-use compose templates" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcourir et cloner des modèles compose prêts à l'emploi"
+          }
+        }
+      }
+    },
+    "A library of compose.yml templates for what developers set up most often (databases, web stacks, a Docker host…). It ships with Caker and `library sync` updates it from the GitHub repository into the cake home." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une bibliothèque de modèles compose.yml pour ce que les développeurs installent le plus souvent (bases de données, piles web, un hôte Docker…). Elle est fournie avec Caker et `library sync` la met à jour depuis le dépôt GitHub dans le cake home."
+          }
+        }
+      }
+    },
+    "Library options" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de la bibliothèque"
+          }
+        }
+      }
+    },
+    "List the templates of the library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister les modèles de la bibliothèque"
+          }
+        }
+      }
+    },
+    "Lists the templates, optionally only those of a category or matching every search word (in the id, name, summary, category or tags)." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste les modèles, éventuellement ceux d'une catégorie ou correspondant à chaque mot recherché (dans l'id, le nom, le résumé, la catégorie ou les étiquettes)."
+          }
+        }
+      }
+    },
+    "Only the templates of this category" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uniquement les modèles de cette catégorie"
+          }
+        }
+      }
+    },
+    "Words to search for" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mots à rechercher"
+          }
+        }
+      }
+    },
+    "No template matches." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun modèle ne correspond."
+          }
+        }
+      }
+    },
+    "Print a template" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher un modèle"
+          }
+        }
+      }
+    },
+    "Prints the compose.yml of a template without writing anything, to read it before cloning it." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche le compose.yml d'un modèle sans rien écrire, pour le lire avant de le cloner."
+          }
+        }
+      }
+    },
+    "Id of the template, as listed by `library list`" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Id du modèle, tel que listé par `library list`"
+          }
+        }
+      }
+    },
+    "Create a compose.yml from a template" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un compose.yml à partir d'un modèle"
+          }
+        }
+      }
+    },
+    "Writes the template as compose.yml in the current directory (or at --output). Edit it, then run `compose up`. With --name the project is renamed, including the compose DNS names its services use to find each other." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écrit le modèle en tant que compose.yml dans le répertoire courant (ou à --output). Modifiez-le, puis lancez `compose up`. Avec --name le projet est renommé, y compris les noms DNS compose que ses services utilisent pour se trouver."
+          }
+        }
+      }
+    },
+    "Name of the compose project" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom du projet compose"
+          }
+        }
+      }
+    },
+    "File to write, or directory to write compose.yml into" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichier à écrire, ou répertoire où écrire compose.yml"
+          }
+        }
+      }
+    },
+    "Overwrite an existing file" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écraser un fichier existant"
+          }
+        }
+      }
+    },
+    "Edit it, then run `compose up` to start your services." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifiez-le, puis lancez `compose up` pour démarrer vos services."
+          }
+        }
+      }
+    },
+    "Update the library from the GitHub repository" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour la bibliothèque depuis le dépôt GitHub"
+          }
+        }
+      }
+    },
+    "Downloads the library published on the main branch of the Caker repository into the cake home, where it replaces the copy bundled with this version. Until the templates are published there, the bundled copy stays in use." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharge la bibliothèque publiée sur la branche main du dépôt Caker dans le cake home, où elle remplace la copie fournie avec cette version. Tant que les modèles n'y sont pas publiés, la copie fournie reste utilisée."
+          }
+        }
+      }
+    },
+    "The compose library is up to date (%d templates)." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque compose est à jour (%d modèles)."
+          }
+        }
+      }
+    },
+    "The compose library was updated (%d templates)." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque compose a été mise à jour (%d modèles)."
+          }
+        }
+      }
+    },
+    "added" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ajoutés"
+          }
+        }
+      }
+    },
+    "updated" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mis à jour"
+          }
+        }
+      }
+    },
+    "removed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "supprimés"
+          }
+        }
+      }
+    },
+    "No template '%@' in the compose library. Available: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun modèle '%@' dans la bibliothèque compose. Disponibles : %@"
+          }
+        }
+      }
+    },
+    "'%@' is not a valid project name: use lowercase letters, digits and hyphens" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' n'est pas un nom de projet valide : utilisez des minuscules, des chiffres et des tirets"
+          }
+        }
+      }
+    },
+    "The compose library uses format %d, this version understands up to %d: update Caker" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque compose utilise le format %d, cette version comprend jusqu'au %d : mettez Caker à jour"
+          }
+        }
+      }
+    },
+    "Compose library template id '%@' is not valid" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'id de modèle de bibliothèque compose '%@' n'est pas valide"
+          }
+        }
+      }
+    },
+    "Compose library template id '%@' is used twice" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'id de modèle de bibliothèque compose '%@' est utilisé deux fois"
+          }
+        }
+      }
+    },
+    "Compose library template '%@' has no name or category" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle de bibliothèque compose '%@' n'a ni nom ni catégorie"
+          }
+        }
+      }
+    },
+    "Compose library template '%@' is not a valid compose file: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle de bibliothèque compose '%@' n'est pas un fichier compose valide : %@"
+          }
+        }
+      }
+    },
+    "Compose library template '%@' defines no service" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle de bibliothèque compose '%@' ne définit aucun service"
+          }
+        }
+      }
+    },
+    "The compose library is not published on GitHub yet: the copy bundled with this version is used" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque compose n'est pas encore publiée sur GitHub : la copie fournie avec cette version est utilisée"
+          }
+        }
+      }
+    },
+    "Failed to download the compose library from GitHub" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du téléchargement de la bibliothèque compose depuis GitHub"
+          }
+        }
+      }
+    },
+    "Failed to download the compose library from GitHub (HTTP %d)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du téléchargement de la bibliothèque compose depuis GitHub (HTTP %d)"
+          }
+        }
+      }
+    },
+    "The downloaded compose library is not valid: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque compose téléchargée n'est pas valide : %@"
+          }
+        }
+      }
+    },
+    "Unable to find the cake home to store the compose library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de trouver le cake home pour stocker la bibliothèque compose"
+          }
+        }
+      }
+    },
+    "Compose template library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliothèque de modèles compose"
+          }
+        }
+      }
+    },
+    "Sync" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher"
+          }
+        }
+      }
+    },
+    "Category" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Catégorie"
+          }
+        }
+      }
+    },
+    "All categories" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toutes les catégories"
+          }
+        }
+      }
+    },
+    "Synced from GitHub on %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisée depuis GitHub le %@"
+          }
+        }
+      }
+    },
+    "Bundled with Caker" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fournie avec Caker"
+          }
+        }
+      }
+    },
+    "No template matches" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun modèle ne correspond"
+          }
+        }
+      }
+    },
+    "Services: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services : %@"
+          }
+        }
+      }
+    },
+    "Read a template before starting it: it installs packages and runs commands in the new VMs." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lisez un modèle avant de le démarrer : il installe des paquets et exécute des commandes dans les nouvelles VM."
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer"
+          }
+        }
+      }
+    },
+    "Save as…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer sous…"
+          }
+        }
+      }
+    },
+    "Use template" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser le modèle"
+          }
+        }
+      }
+    },
+    "Library updated: %d templates (%d added, %d updated, %d removed)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliothèque mise à jour : %d modèles (%d ajoutés, %d mis à jour, %d supprimés)"
+          }
+        }
+      }
+    },
+    "The library is up to date" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque est à jour"
+          }
+        }
+      }
+    },
+    "Save %@ as a compose file" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer %@ en tant que fichier compose"
+          }
+        }
+      }
+    },
+    "Library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliothèque"
+          }
+        }
+      }
+    },
+    "Browse the compose template library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcourir la bibliothèque de modèles compose"
+          }
+        }
+      }
+    },
+    "Browse the template library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcourir la bibliothèque de modèles"
+          }
+        }
+      }
+    },
+    "From the library: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depuis la bibliothèque : %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.3"

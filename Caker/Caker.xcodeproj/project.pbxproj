@@ -26,6 +26,7 @@
 		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
 		19C69B9644E8133BFF5BD130 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
 		1ABE4CCBA6204E3183685314 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		324C10CA6B51B84CDA60D0A1 /* ComposeLibrary.json in Resources */ = {isa = PBXBuildFile; fileRef = 2996764C85A9F3F4CD926850 /* ComposeLibrary.json */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */; };
@@ -34,6 +35,7 @@
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1276B7682990108E5C70CEB6 /* CachedImageKind.swift */; };
 		50B325E5494C4C8396E606DB /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		A563206BFB54B02AEA437397 /* ComposeLibrary.json in Resources */ = {isa = PBXBuildFile; fileRef = 2996764C85A9F3F4CD926850 /* ComposeLibrary.json */; };
 		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		6C35D6F42A709BA2C8E7C99E /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
@@ -41,9 +43,11 @@
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
+		9DB351EF1F52485D3D4A0230 /* ComposeLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */; };
 		8D19AE739219331A241BE422 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		91C2CE30A7DA428FBABEB441 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		98EBC5DEAAE746B3A32CD787 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		D45BF97995AADD4CE271020B /* ComposeLibrary.json in Resources */ = {isa = PBXBuildFile; fileRef = 2996764C85A9F3F4CD926850 /* ComposeLibrary.json */; };
 		9B001A0A300023EF0048894C /* com.aldunelabs.caker.caked.plist in LaunchAgent */ = {isa = PBXBuildFile; fileRef = 9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */; };
 		9B001B8E3001703F0048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001B8D3001703F0048894C /* TemplateDetailView.swift */; };
 		9B001E2B30018DC00048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E2A30018DC00048894C /* RemoteDetailView.swift */; };
@@ -597,6 +601,7 @@
 		9BDC05A22FEADB6900802A3C /* Down.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC059D2FEADB6900802A3C /* Down.swift */; };
 		9BDC05A32FEADB6900802A3C /* EnvInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC059E2FEADB6900802A3C /* EnvInit.swift */; };
 		9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC06562FEADF2B00802A3C /* ComposeFile.swift */; };
+		A9452BFC8CA1EDBE39800554 /* ComposeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504B0E2431C13909F09D81FC /* ComposeLibrary.swift */; };
 		9BDD14AA306A58820091E8DC /* ActionRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDD1498306A58820091E8DC /* ActionRecorderTests.swift */; };
 		9BDD14AB306A58820091E8DC /* VMLocationLogURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDD14A7306A58820091E8DC /* VMLocationLogURLTests.swift */; };
 		9BDD14AC306A58820091E8DC /* VNCVirtualMachineViewCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDD14A8306A58820091E8DC /* VNCVirtualMachineViewCaptureTests.swift */; };
@@ -870,6 +875,7 @@
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
+		F91906CBB193D754B7162A64 /* ComposeLibraryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1109,6 +1115,7 @@
 		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
 		0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnvTests.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
+		D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
 		1276B7682990108E5C70CEB6 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
 		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
@@ -1116,10 +1123,12 @@
 		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
+		2996764C85A9F3F4CD926850 /* ComposeLibrary.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ComposeLibrary.json; sourceTree = "<group>"; };
 		2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
+		2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryCommand.swift; sourceTree = "<group>"; };
 		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
@@ -1613,6 +1622,7 @@
 		9BDC059E2FEADB6900802A3C /* EnvInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvInit.swift; sourceTree = "<group>"; };
 		9BDC059F2FEADB6900802A3C /* Up.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Up.swift; sourceTree = "<group>"; };
 		9BDC06562FEADF2B00802A3C /* ComposeFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeFile.swift; sourceTree = "<group>"; };
+		504B0E2431C13909F09D81FC /* ComposeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibrary.swift; sourceTree = "<group>"; };
 		9BDD1498306A58820091E8DC /* ActionRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorderTests.swift; sourceTree = "<group>"; };
 		9BDD1499306A58820091E8DC /* BuildOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptionsTests.swift; sourceTree = "<group>"; };
 		9BDD149A306A58820091E8DC /* CachedImageKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKindTests.swift; sourceTree = "<group>"; };
@@ -2104,6 +2114,7 @@
 				9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */,
 				A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */,
 				22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */,
+				2996764C85A9F3F4CD926850 /* ComposeLibrary.json */,
 				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
 			path = Resources;
@@ -2849,6 +2860,7 @@
 				DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */,
 				070CEA8AC4D83C5669773CE7 /* ComposeView.swift */,
 				110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */,
+				D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -3252,6 +3264,7 @@
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
 				9BDC06562FEADF2B00802A3C /* ComposeFile.swift */,
+				504B0E2431C13909F09D81FC /* ComposeLibrary.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
@@ -3308,6 +3321,7 @@
 			isa = PBXGroup;
 			children = (
 				42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */,
+				2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */,
 				9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */,
 				9B3792E02FD5687200D3D54C /* Sandbox.swift */,
 				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
@@ -3993,6 +4007,7 @@
 				9B2D37B7304AD81600204614 /* ubuntu.packerlite.yaml in Resources */,
 				8D19AE739219331A241BE422 /* VMImages.json in Resources */,
 				1ABE4CCBA6204E3183685314 /* compose-template.yml in Resources */,
+				324C10CA6B51B84CDA60D0A1 /* ComposeLibrary.json in Resources */,
 				9B32F9793025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */,
 				9B32F97A3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */,
 				9BE7F1B630309FA00006F53F /* macos27.packerlite.yaml in Resources */,
@@ -4018,6 +4033,7 @@
 			files = (
 				91C2CE30A7DA428FBABEB441 /* VMImages.json in Resources */,
 				50B325E5494C4C8396E606DB /* compose-template.yml in Resources */,
+				A563206BFB54B02AEA437397 /* ComposeLibrary.json in Resources */,
 				9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */,
 				9B561266301350FB00E9FA7D /* agent.svg in Resources */,
 				9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */,
@@ -4086,6 +4102,7 @@
 				9B9ADA673095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */,
 				98EBC5DEAAE746B3A32CD787 /* compose-template.yml in Resources */,
+				D45BF97995AADD4CE271020B /* ComposeLibrary.json in Resources */,
 			);
 		};
 		CFBB16579F6DEACF77882EAF /* Resources */ = {
@@ -4332,6 +4349,7 @@
 				11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */,
 				AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */,
 				7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */,
+				9DB351EF1F52485D3D4A0230 /* ComposeLibraryView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
@@ -4688,6 +4706,7 @@
 				9BDC05932FEADB4400802A3C /* CakerEnv.swift in Sources */,
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */,
+				A9452BFC8CA1EDBE39800554 /* ComposeLibrary.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
 				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
@@ -4776,6 +4795,7 @@
 				9B9117782EC9D4510017791D /* RawDisk.swift in Sources */,
 				9B3792E12FD5687200D3D54C /* Sandbox.swift in Sources */,
 				ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */,
+				F91906CBB193D754B7162A64 /* ComposeLibraryCommand.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
 				9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */,

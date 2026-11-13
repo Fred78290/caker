@@ -1,0 +1,30 @@
+# library-id: redis
+# library-name: Redis
+# library-category: Database
+# library-summary: Redis from the Ubuntu archive, reachable from the host and from the other VMs, protected by a password.
+# library-tags: redis, cache, key-value, database
+name: redis
+services:
+  redis:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: change-me
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    package_update: true
+    packages:
+      - redis-server
+    post_commands:
+      - sed -i 's/^bind .*/bind 0.0.0.0 -::*/' /etc/redis/redis.conf
+      - |
+        . /etc/environment
+        echo "requirepass $REDIS_PASSWORD" >> /etc/redis/redis.conf
+      - systemctl restart redis-server
