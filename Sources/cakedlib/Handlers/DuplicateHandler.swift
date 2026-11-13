@@ -44,13 +44,7 @@ public struct DuplicateHandler {
 				let config = try fromLocation.config()
 				config.resetMacAddress()
 				config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
-
-				// Clear rather than reset in place: a duplicated VM otherwise inherits the
-				// source's imdsMacAddress verbatim, colliding on the shared IMDS network if
-				// both run concurrently. Clearing lets ensureImdsMacAddress() generate a
-				// fresh one the next time it's needed (cloud-init regeneration just below
-				// for cloud-init VMs, or lazily at first boot otherwise).
-				config.imdsMacAddress = nil
+				config.imdsMacAddress = VZMACAddress.randomLocallyAdministered().string
 
 				try config.save()
 

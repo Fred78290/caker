@@ -163,7 +163,7 @@ public struct StartHandler {
 
 		// Collect autotstart networks
 		var networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
-			try element.0.networks.forEach { network in
+			try element.0.qualifiedNetworks.forEach { network in
 				if result.contains(network) == false {
 					let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: network.network, runMode: runMode)
 
@@ -174,20 +174,22 @@ public struct StartHandler {
 			}
 		}
 
-		// The IMDS network isn't part of any VM's `config.networks` (it's attached
-		// separately, unconditionally, for every Linux VM — see VirtualMachine.swift), so
-		// it's never picked up by the loop above. When IMDS is enabled (off by default —
-		// see IMDSNetworkInterface.imdsEnabled), always pre-start it here too, regardless
-		// of whether this particular autostart batch happens to include a Linux VM:
+		// A Linux VM's `qualifiedNetworks` already contains the IMDS network when IMDS is
+		// enabled, so the loop above picks it up for those VMs. When IMDS is enabled (off
+		// by default — see IMDSNetworkInterface.imdsEnabled), still pre-start it here when
+		// the loop didn't collect it, regardless of whether this particular autostart
+		// batch happens to include a Linux VM:
 		// IMDSCoordinator can bind its server as soon as any Linux VM registers, including
 		// ones started later outside this batch (e.g. via `cakectl start`) — if the network
 		// isn't already up by then, that bind fails.
 		if IMDSNetworkInterface.imdsEnabled {
-			let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
-			let imdsSocketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)
+			if networks.first(where: { $0.network == IMDSNetworkInterface.imdsNetworkName } ) == nil {
+				let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
+				let imdsSocketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)
 
-			if try imdsSocketURL.socket.exists() == false || (try imdsSocketURL.socket.exists() && imdsSocketURL.pidFile.isPIDRunning().running == false) {
-				networks.append(imdsNetwork)
+				if try imdsSocketURL.socket.exists() == false || (try imdsSocketURL.socket.exists() && imdsSocketURL.pidFile.isPIDRunning().running == false) {
+					networks.append(imdsNetwork)
+				}
 			}
 		}
 
