@@ -151,7 +151,7 @@ public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Sendab
 		}
 	}
 
-	public var caked: Caked_Caked.Configuration.DiskFormat {
+	public var caked: Caked.Configuration.DiskFormat {
 		if #available(macOS 26, *) {
 			switch self {
 			case .asif:
@@ -184,7 +184,7 @@ public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Sendab
 		}
 	}
 
-	public init(_ from: Caked_Caked.Configuration.DiskFormat) {
+	public init(_ from: Caked.Configuration.DiskFormat) {
 		if #available(macOS 26, *) {
 			if from == .asifDisk {
 				self = .asif
@@ -313,6 +313,7 @@ public protocol VirtualMachineConfiguration {
 	var ecid: Data? /*VZMacMachineIdentifier*/ { set get }
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
 	var provisioned: Bool { set get }
+	var imdsMacAddress: String? { set get }
 }
 
 extension Caked.Configuration.VirtualizedOS {
@@ -609,6 +610,10 @@ extension VirtualMachineConfiguration {
 
 			if let hardwareModel {
 				$0.hardwareModel = hardwareModel
+			}
+			
+			if let imdsMacAddress {
+				$0.imdsMacAddress = imdsMacAddress
 			}
 		}
 	}

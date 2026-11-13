@@ -393,6 +393,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var ecid: Data?
 	public var hardwareModel: Data?
 	public var provisioned: Bool
+	public var imdsMacAddress: String?
 
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
@@ -445,6 +446,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.ecid = from.ecid
 		self.hardwareModel = from.hardwareModel
 		self.provisioned = from.provisioned
+		self.imdsMacAddress = from.imdsMacAddress
 	}
 
 	public init(_ from: Caked.Configuration) {
@@ -515,6 +517,10 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		}
 		
 		self.provisioned = from.provisioned
+		
+		if from.hasImdsMacAddress {
+			self.imdsMacAddress = from.imdsMacAddress
+		}
 	}
 }
 

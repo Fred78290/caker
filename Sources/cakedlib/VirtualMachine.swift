@@ -262,20 +262,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		runMode: Utils.RunMode
 	) throws {
 		let suspendable = config.suspendable && config.os == .darwin
-		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
+		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
 		var communicationDevices: CommunicationDevices? = nil
-
-		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
-		// IMDS binds an unprivileged port on this network's gateway either way, reachable
-		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
-		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
-		// unavailable there.
-		if IMDSNetworkInterface.imdsEnabled {
-			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
-		}
-
 		let configuration = VZVirtualMachineConfiguration()
 		let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
 		let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()

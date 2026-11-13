@@ -14,6 +14,12 @@ enum ConfigFileName: String {
 
 public typealias DisplaySize = [String: Int]
 
+extension BridgeAttachement {
+	public var isIMDSNetwork: Bool {
+		self.network == IMDSNetworkInterface.imdsNetworkName
+	}
+}
+
 extension DisplaySize {
 	public var cgSize: CGSize {
 		CGSize(width: CGFloat(width), height: CGFloat(height))
@@ -417,22 +423,6 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["composeService"] as? String }
 	}
 
-	/// Returns the persisted IMDS MAC address, generating and saving one on first use.
-	/// Must be called before generating cloud-init network config so the guest's netplan
-	/// and the VM's attached IMDS network device always agree on the same MAC.
-	public func ensureImdsMacAddress() throws -> VZMACAddress {
-		if let stored = self.imdsMacAddress, let mac = VZMACAddress(string: stored) {
-			return mac
-		}
-
-		let mac = VZMACAddress.randomLocallyAdministered()
-
-		self.imdsMacAddress = mac.string
-		try self.save()
-
-		return mac
-	}
-
 	public var sockets: [SocketDevice] {
 		set { self.cake["sockets"] = newValue.map { $0.description } }
 		get {
@@ -517,6 +507,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		memorySize: UInt64,
 		memorySizeMin: UInt64,
 		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
+		imdsMacAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
 		screenSize: ViewSize
 	) {
 		self.locationURL = location
@@ -528,6 +519,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.cpuCountMin = cpuCountMin
 		self.memorySizeMin = memorySizeMin
 		self.macAddress = macAddress.string
+		self.imdsMacAddress = imdsMacAddress.string
 		self.cpuCount = cpuCountMin
 		self.memorySize = memorySize
 		self.memorySizeMin = memorySizeMin
@@ -547,13 +539,23 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 	}
 
 	public init(location: URL) throws {
+		var needSave = false
+
 		self.locationURL = location
 		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.cake.rawValue))
 
+		if self.imdsMacAddress == nil {
+			self.imdsMacAddress = VZMACAddress.randomLocallyAdministered().string
+			needSave = true
+		}
+
 		if self.cake["vncPassword"] == nil {
 			self.cake["vncPassword"] = UUID().uuidString
+			needSave = true
+		}
 
+		if needSave {
 			try? self.save()
 		}
 	}
@@ -581,6 +583,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.display = ViewSize(width: options.screenSize.width, height: options.screenSize.height)
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 		self.rootDisk = options.root
+		self.imdsMacAddress = VZMACAddress.randomLocallyAdministered().string
 
 		if self.os == .darwin {
 			self.cpuCount = max(options.cpu, self.cpuCountMin)
@@ -643,6 +646,8 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
 		self.provisioned = config.provisioned
+		// A source without one (a config from an older caked/caker, or never loaded from disk) gets one here, so that the
+		self.imdsMacAddress = config.imdsMacAddress ?? VZMACAddress.randomLocallyAdministered().string
 	}
 
 	public func update(_ from: CakeConfig) {
@@ -684,9 +689,9 @@ extension CakeConfig {
 		}
 
 		// Deliberately does NOT touch imdsMacAddress: the guest's cloud-init netplan
-		// matches on that MAC (see ensureImdsMacAddress()'s doc comment), so it can only
-		// be safely changed by a caller that also rebuilds cloud-init afterward (see
-		// DuplicateHandler, which clears imdsMacAddress explicitly right before doing so).
+		// matches on that MAC, so it can only be safely changed by a caller that also
+		// rebuilds cloud-init afterward (see DuplicateHandler, which assigns a new
+		// imdsMacAddress right before doing so).
 		// Callers that just need to resolve a live primary-MAC collision (VMRunHandler)
 		// must not silently desync the already-baked guest network config.
 	}
@@ -697,7 +702,7 @@ extension CakeConfig {
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
 		case .windows:
 			#if APPSTORE
-				throw ServiceError(String(localized: "Windows 11 ISO installation is not supported in the App Store version of Caked. Please use the direct download version from https://caked.app/download"))
+				throw ServiceError(String(localized: "Windows 11 ISO installation is not supported in the App Store version of Caked. Please use the direct download version from https://caker.aldunelabs.com/download"))
 			#else
 				return WindowsPlatform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
 			#endif
@@ -829,6 +834,7 @@ extension VirtualMachineConfiguration {
 		let networks = self.networks
 		var attachedNetworks: [BridgeAttachement] = []
 
+		// Ensure that nat is always the first network interface, so that the VM can reach the internet and download packages during provisioning.
 		if let nat = networks.first(where: { $0.isNAT() }) {
 			attachedNetworks.append(nat)
 		} else {
@@ -836,6 +842,15 @@ extension VirtualMachineConfiguration {
 		}
 
 		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))
+
+		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
+		// IMDS binds an unprivileged port on this network's gateway either way, reachable
+		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
+		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
+		// unavailable there.
+		if networks.first(where: { $0.isIMDSNetwor() }) == nil, IMDSNetworkInterface.imdsEnabled, self.os == .linux {
+			attachedNetworks.append(BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName, mode: .auto, macAddress: self.imdsMacAddress))
+		}
 
 		return attachedNetworks
 	}
@@ -852,6 +867,7 @@ extension VirtualMachineConfiguration {
 
 		return try networks.compactMap { inf in
 			let macAddress: VZMACAddress
+
 			if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
 				macAddress = mac
 			} else if inf.isNAT(), let mac = self.getMacAddress() {
@@ -863,7 +879,11 @@ extension VirtualMachineConfiguration {
 			}
 
 			if let networkConfig = sharedNetworks[inf.network] {
-				return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
+				if inf.isIMDSNetwork {
+					return IMDSNetworkInterface(macAddress: macAddress)
+				} else {
+					return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
+				}
 			} else {
 				func foundInterface() throws -> VZBridgedNetworkInterface? {
 					let network: String

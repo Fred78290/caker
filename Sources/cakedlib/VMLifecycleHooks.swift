@@ -14,8 +14,7 @@ import Synchronization
 public enum VMLifecycleEvent: Sendable {
 	/// A VM was started (or found already running at daemon startup) and its main-network
 	/// IP has been resolved. `runMode` is included so a handler can independently reload
-	/// the VM's `CakeConfig` (e.g. to read `imdsMacAddress`, which may only just have been
-	/// persisted by the child process at this point).
+	/// the VM's `CakeConfig` (e.g. to read `imdsMacAddress`) from disk.
 	case started(location: VMLocation, runMode: Utils.RunMode)
 
 	/// The VM's `caked vmrun` process has exited, for any reason (clean stop, crash, kill).

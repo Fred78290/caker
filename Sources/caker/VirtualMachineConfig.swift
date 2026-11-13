@@ -142,6 +142,16 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.macAddress) == true ? self.macAddress : nil
 	}
 
+	var imdsMacAddress: String? = nil {
+		didSet {
+			changedFields?.insert(\.imdsMacAddress)
+		}
+	}
+
+	var imdsMacAddressIfChanged: String? {
+		self.changedFields?.contains(\.imdsMacAddress) == true ? self.imdsMacAddress : nil
+	}
+
 	var autostart: Bool = false {
 		didSet {
 			changedFields?.insert(\.autostart)
@@ -525,7 +535,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.memorySize = 512 * MoB
 		self.diskSize = 20 * GiB
 		self.initialDiskSize = 20 * GiB
-		self.macAddress = String.empty
+		self.macAddress = VZMACAddress.randomLocallyAdministered().string
+		self.imdsMacAddress = VZMACAddress.randomLocallyAdministered().string
 		self.autostart = false
 		self.suspendable = false
 		self.ifname = true
@@ -579,6 +590,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.memorySizeMin = config.memorySizeMin
 		self.memorySize = config.memorySize
 		self.macAddress = config.macAddress
+		self.imdsMacAddress = config.imdsMacAddress
 		self.source = config.source
 		self.osName = config.osName
 		self.osRelease = config.osRelease
@@ -644,6 +656,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		config.memorySizeMin = self.memorySizeMin
 		config.memorySize = self.memorySize
 		config.macAddress = self.macAddress
+		config.imdsMacAddress = self.imdsMacAddress
 		config.dynamicPortForwarding = self.dynamicPortForwarding
 		config.displayRefit = self.displayRefit
 		config.instanceID = self.instanceID

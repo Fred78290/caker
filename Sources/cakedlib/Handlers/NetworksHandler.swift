@@ -1183,12 +1183,6 @@ public struct NetworksHandler {
 					}
 				}
 
-				// Config doesn't include imds network, but if the VM is running and has imds enabled, we need to count it as a reference.
-				// Assume that a network interface is connected to the imds network.
-				if IMDSNetworkInterface.imdsEnabled {
-					reference(IMDSNetworkInterface.imdsNetworkName)
-				}
-
 				config.qualifiedNetworks.forEach { network in
 					reference(network.network)
 				}

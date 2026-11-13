@@ -149,7 +149,7 @@ extension Dictionary where Key == String, Value: Codable {
 	}
 }
 
-typealias LazyDictionary = Dictionary<String, Any>
+typealias LazyDictionary = [String: Any]
 
 extension LazyDictionary {
 	init(contentsOf: URL) throws {
@@ -228,28 +228,29 @@ struct NetworkConfig: Codable {
 				let ns = NameServer(search: nil, addresses: [BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")])
 
 				self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress), setName: name, nameservers: ns, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+			} else if network.network == IMDSNetworkInterface.imdsNetworkName {
+				let routes = Bundle.isApplicationSandboxed ? nil : [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
+				self.network.ethernets[name] = Interface(
+					match: Match(macAddress: network.macAddress),
+					setName: name,
+					dhcp4: true,
+					dhcp6: false,
+					dhcpIdentifier: "mac",
+					optional: true,
+					critical: false,
+					localLink: ["ipv4"],
+					routes: routes
+				)
 			} else if network.mode == nil || network.mode == .auto {
-				self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
+				self.network.ethernets[name] = Interface(
+					match: Match(macAddress: network.macAddress),
+					setName: name,
+					dhcp4: true,
+					dhcp6: true,
+					dhcpIdentifier: "mac",
+					dhcp4Overrides: .init(routeMetric: 200),
+					dhcp6Overrides: .init(routeMetric: 200))
 			}
-		}
-
-		// Add IMDS interface for Linux VMs with a static route to 169.254.169.254. Available
-		// in sandboxed builds too — see VirtualMachine.swift's matching comment.
-		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
-			let routes = Bundle.isApplicationSandboxed ? nil : [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
-			let imdsMac = try config.ensureImdsMacAddress()
-			let imdsName = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
-			self.network.ethernets[imdsName] = Interface(
-				match: Match(macAddress: imdsMac.string),
-				setName: imdsName,
-				dhcp4: true,
-				dhcp6: false,
-				dhcpIdentifier: "mac",
-				optional: true,
-				critical: false,
-				localLink: ["ipv4"],
-				routes: routes
-			)
 		}
 	}
 
