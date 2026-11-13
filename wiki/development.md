@@ -47,6 +47,8 @@ swift test --filter ComposeLibraryTests
 
 `ComposeLibraryTests` fait passer chaque service de chaque modèle par `toBuildOptions`, ce qui détecte un YAML invalide ou un champ que `compose up` ne sait pas honorer. Un modèle désigne ses pairs par leur nom DNS compose (`<service>.<projet>.compose.internal`) : le projet doit être le sien, ce que le test vérifie aussi (`clone --name` renomme ces références).
 
+Un modèle qui sert quelque chose doit rediriger ses ports vers l'hôte avec `ports:` (et `sockets:` pour un socket unix, comme le socket Docker de `docker-host`) : sans cela le service n'est joignable que depuis le réseau des VM. Les redirections de `docker-host`, `k3s` et `ubuntu-dev` sont verrouillées par `ComposeLibraryTests`.
+
 ## Options de compilation
 
 Variables d'environnement lues par `Package.swift` :
@@ -237,6 +239,8 @@ swift test --filter ComposeLibraryTests
 ```
 
 `ComposeLibraryTests` runs every service of every template through `toBuildOptions`, which catches invalid YAML or a field `compose up` can't honour. A template names its peers by their compose DNS name (`<service>.<project>.compose.internal`): the project must be its own, which the test also checks (`clone --name` renames those references).
+
+A template that serves something must forward its ports to the host with `ports:` (and `sockets:` for a unix socket, like `docker-host`'s Docker socket): without it the service is only reachable from the VM network. The forwards of `docker-host`, `k3s` and `ubuntu-dev` are pinned by `ComposeLibraryTests`.
 
 ## Build options
 

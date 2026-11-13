@@ -193,6 +193,10 @@ The project then appears in the list, with a count of running services ("2/2 run
 
 ![Compose project detail](images/caker-app/16-compose-project-detail.png)
 
+You don't have to start from a blank file. The toolbar's **Library** button opens a catalog of ready-to-use templates for what developers set up most often: a Docker host, a single-node k3s cluster, PostgreSQL, Redis, RabbitMQ, MariaDB with phpMyAdmin, LAMP and LEMP stacks, Node.js with Redis, Flask with PostgreSQL, and a plain Ubuntu dev box. Search or filter by category, read the YAML in the preview, then **Use template** opens it in the Compose editor, or **Save as…** writes it to a file. **Sync** refreshes the catalog from the Caker repository on GitHub; until then the copy bundled with the app is used. From a terminal, `cakectl compose library list`, `show` and `clone` do the same.
+
+Templates that serve something forward their ports to your Mac, so the stack is reachable on `localhost` right away: PostgreSQL on 5432, the k3s API on 6443, a web stack on 8080. The Docker host template goes one step further and forwards the guest's Docker socket to `~/.docker/run/docker.sock`, so pointing `DOCKER_HOST` at it is enough for the `docker` command on your Mac to drive the engine inside the VM. Read a template before starting it: it installs packages and runs commands in the new VMs.
+
 Services can reach each other by name: in the example, phpMyAdmin connects to `mariadb.myapp.compose.internal`. Any running VM, Compose or not, can be reached as `<vm-name>.compose.internal`. The domain can be changed in **Settings → Advanced**.
 
 ---
