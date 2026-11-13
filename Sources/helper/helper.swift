@@ -390,7 +390,7 @@
 			perform("check-connectivity", authorization: authData, command: #selector(AuthorizationHelperProtocol.checkConnectivity(authorization:cakeHome:withReply:)), reply: reply) { caller in
 				let home = try Self.validatedHome(cakeHome, caller: caller)
 
-				return home.path(percentEncoded: false)
+				return String(localized: "Authorization successful, your cake home is: \(home.path(percentEncoded: false))")
 			}
 		}
 

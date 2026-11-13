@@ -245,6 +245,17 @@
         }
       }
     },
+    "\"Authorization successful, your cake home is: %@\"" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisation réussie, cake home est : %@"
+          }
+        }
+      }
+    },
     "(default as flag: %@)" : {
       "extractionState" : "manual",
       "localizations" : {
