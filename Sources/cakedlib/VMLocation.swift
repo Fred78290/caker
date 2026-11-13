@@ -895,7 +895,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 					Logger(self).debug("Agent of VM \(self.name) answered with no IP address yet, attempt \(count)")
 				case .failure(let error):
-					Logger(self).debug("Agent of VM \(self.name) failed, attempt \(count): \(error)")
+					Logger(self).trace("Agent of VM \(self.name) failed, attempt \(count): \(error)")
 				}
 			} catch {
 				Logger(self).debug("Agent of VM \(self.name) not reachable, attempt \(count): \(error)")
