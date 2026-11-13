@@ -164,7 +164,7 @@ public struct StartHandler {
 		// Collect autotstart networks
 		var networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
 			try element.0.qualifiedNetworks.forEach { network in
-				if result.contains(network) == false {
+				if result.contains(where: { $0.network == network.network && $0.mode == network.mode }) == false {
 					let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: network.network, runMode: runMode)
 
 					if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
