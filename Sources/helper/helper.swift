@@ -515,78 +515,133 @@
 			}
 		}
 
-		/// `caked networks run` options a client may choose. Anything else (and any value outside `--option=value`) is refused.
-		private static let runNetworkOptions: Set<String> = ["--mode", "--interface-id", "--interface", "--gateway", "--dhcp-end", "--netmask", "--nat66-prefix", "--log-level"]
-		private static let runNetworkFlags: Set<String> = ["--debug", "--dns"]
+		/// The `caked networks run` arguments for what a client asks. It runs as root, so every value is checked against what it must
+		/// be (an address, a UUID, an interface name, a log level, ...) and nothing else reaches the command line: an option the client
+		/// doesn't know can't be added, and an empty value means "not set".
+		static func runNetworkArguments(_ networkConfig: [String: String], home: URL, descriptor: Int32, pidFile: URL) throws -> [String] {
+			let allowed: Set<String> = ["mode", "name", "netmask", "dhcp-start", "dhcp-end", "interface-id", "nat66-prefix", "dns", "log-level"]
+
+			if let unknown = networkConfig.keys.first(where: { allowed.contains($0) == false }) {
+				throw ServiceError("Network option '\(unknown)' is not allowed")
+			}
+
+			func value(_ key: String) -> String? {
+				guard let value = networkConfig[key], value.isEmpty == false else {
+					return nil
+				}
+
+				return value
+			}
+
+			guard let mode = VMNetMode(rawValue: value("mode") ?? "shared") else {
+				throw ServiceError("Invalid network mode '\(value("mode") ?? "")'")
+			}
+
+			let level = try Self.validatedLogLevel(value("log-level") ?? "info")
+			var arguments: [String] = [
+				"networks",
+				"run",
+				"--home=\(home.path)",
+				"--log-level=\(level)",
+				"--mode=\(mode.rawValue)",
+				"--fd=\(descriptor)",
+				"--pidfile=\(pidFile.path(percentEncoded: false))",
+			]
+
+			if level == "debug" || level == "trace" {
+				arguments.append("--debug")
+			}
+
+			if let interfaceID = value("interface-id") {
+				guard UUID(uuidString: interfaceID) != nil else {
+					throw ServiceError("Invalid interface id '\(interfaceID)'")
+				}
+
+				arguments.append("--interface-id=\(interfaceID)")
+			}
+
+			if mode == .bridged {
+				guard let name = value("name") else {
+					throw ServiceError("interface is required for bridged mode")
+				}
+
+				guard name.count <= 32, name.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "." || $0 == "_" || $0 == "-") }) else {
+					throw ServiceError("Invalid interface name '\(name)'")
+				}
+
+				arguments.append("--interface=\(name)")
+			} else {
+				for (key, option) in [("dhcp-start", "--gateway"), ("dhcp-end", "--dhcp-end"), ("netmask", "--netmask")] {
+					if let address = value(key) {
+						try Self.validateIPv4(address)
+						arguments.append("\(option)=\(address)")
+					}
+				}
+
+				if let prefix = value("nat66-prefix") {
+					let parts = prefix.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+					var storage = in6_addr()
+
+					guard parts.count <= 2, inet_pton(AF_INET6, String(parts[0]), &storage) == 1, parts.count == 1 || (UInt8(parts[1]).map { $0 <= 128 } ?? false) else {
+						throw ServiceError("Invalid NAT66 prefix '\(prefix)'")
+					}
+
+					arguments.append("--nat66-prefix=\(prefix)")
+				}
+
+				if let dns = value("dns") {
+					guard dns == "true" || dns == "false" else {
+						throw ServiceError("Invalid dns value '\(dns)'")
+					}
+
+					if dns == "true" {
+						arguments.append("--dns")
+					}
+				}
+			}
+
+			return arguments
+		}
 
 		/// Networks started for a client, kept so their `Process` is reaped and not released while running.
 		private static let runningNetworks = NSMutableDictionary()
 		private static let runningNetworksLock = NSLock()
 
-		func runNetwork(authorization authData: Data, cakeHome: String, arguments: [String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
-			perform("run-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:arguments:pidFile:fileHandle:withReply:)), reply: reply) { caller in
+		func runNetwork(authorization authData: Data, cakeHome: String, networkConfig: [String: String], pidFile: String, fileHandle: FileHandle, withReply reply: @escaping @Sendable (AuthorizationHelperReply) -> Void) {
+			perform("run-network", authorization: authData, command: #selector(AuthorizationHelperProtocol.runNetwork(authorization:cakeHome:networkConfig:pidFile:fileHandle:withReply:)), reply: reply) { caller in
 				let home = try Self.validatedHome(cakeHome, caller: caller)
+				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
+				let process = ProcessWithSharedFileHandle()
 
-				for argument in arguments {
-					let name = argument.split(separator: "=", maxSplits: 1).first.map(String.init) ?? argument
-
-					guard Self.runNetworkFlags.contains(argument) || (argument.contains("=") && Self.runNetworkOptions.contains(name)) else {
-						throw ServiceError("Argument \(argument) is not allowed")
-					}
-
-					if name == "--log-level" {
-						_ = try Self.validatedLogLevel(String(argument.dropFirst("--log-level=".count)))
-					}
-				}
-
-				// Resolve aliases once, then validate and open the parent beneath an owned home.
-				// Keep that directory open through removal, child writes, readiness checks and cleanup.
 				#if BECOME_PARANOID
 					let requested = URL(fileURLWithPath: pidFile).standardizedFileURL
 					let pidURL = URL(fileURLWithPath: URL.canonicalPath(requested.deletingLastPathComponent().path(percentEncoded: false))).appendingPathComponent(requested.lastPathComponent)
 					let pidDirectory = FileHandle(fileDescriptor: try URL.openPIDDirectory(pidURL, beneath: home, owner: caller.uid), closeOnDealloc: true)
-				#else
-					let pidURL = URL(fileURLWithPath: pidFile).standardizedFileURL
-				#endif
-
-				let caked = try self.trustedCaked(alsoOwnedBy: caller.uid)
-				#if BECOME_PARANOID
 					let log = Self.networkLog(directory: pidURL.deletingLastPathComponent(), directoryDescriptor: pidDirectory.fileDescriptor, caller: caller)
-				#else
-					let log = Self.networkLog(directory: pidURL.deletingLastPathComponent(), directoryDescriptor: nil, caller: caller)
-				#endif
-				let process = ProcessWithSharedFileHandle()
+					let sharedFileHandles = [fileHandle, pidDirectory]
+					var environment = Self.environment(home: home)
 
-				#if BECOME_PARANOID
+					environment[URL.pidDirectoryEnvironmentKey] = String(pidDirectory.fileDescriptor)
+					environment[URL.pidPathEnvironmentKey] = pidURL.path(percentEncoded: false)
 					unlinkat(pidDirectory.fileDescriptor, pidURL.lastPathComponent, 0)
 				#else
+					let pidURL = URL(fileURLWithPath: pidFile).standardizedFileURL
+					let log = Self.networkLog(directory: pidURL.deletingLastPathComponent(), directoryDescriptor: nil, caller: caller)
+					let sharedFileHandles = [fileHandle]
+					let environment = Self.environment(home: home)
 					// A stale file from a previous run must not be taken for this network's readiness.
 					try? FileManager.default.removeItem(at: pidURL)
 				#endif
 
+				let arguments = try Self.runNetworkArguments(networkConfig, home: home, descriptor: fileHandle.fileDescriptor, pidFile: pidURL)
+
 				process.executableURL = caked
-				// The descriptor keeps the number it has here in the child.
-				process.arguments =
-					[
-						"networks",
-						"run",
-						"--home=\(home.path)",
-					] + arguments + [
-						"--fd=\(fileHandle.fileDescriptor)",
-						"--pidfile=\(pidURL.path)",
-					]
-				process.environment = Self.environment(home: home)
+				process.arguments = arguments
 				process.standardInput = FileHandle.nullDevice
 				process.standardOutput = log
 				process.standardError = log
-
-				#if BECOME_PARANOID
-					process.environment?[URL.pidDirectoryEnvironmentKey] = String(pidDirectory.fileDescriptor)
-					process.environment?[URL.pidPathEnvironmentKey] = pidURL.path(percentEncoded: false)
-					process.sharedFileHandles = [fileHandle, pidDirectory]
-				#else
-					process.sharedFileHandles = [fileHandle]
-				#endif
+				process.sharedFileHandles = sharedFileHandles
+				process.environment = environment
 
 				process.terminationHandler = { process in
 					Self.runningNetworksLock.lock()
