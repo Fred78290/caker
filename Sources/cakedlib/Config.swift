@@ -646,7 +646,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
 		self.provisioned = config.provisioned
-		self.imdsMacAddress = config.imdsMacAddress
+		// A source without one (a config from an older caked/caker, or never loaded from disk) gets one here, so that the
 		self.imdsMacAddress = config.imdsMacAddress ?? VZMACAddress.randomLocallyAdministered().string
 	}
 
