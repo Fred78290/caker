@@ -93,8 +93,21 @@ final class ComposeLibraryTests: XCTestCase {
 
 			defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
 
-			XCTAssertEqual(built.options.forwardedPorts.map { "\($0)" }.sorted(), entry.ports.sorted(), id)
+			XCTAssertEqual(built.options.forwardedPorts.map { "\($0)" }.filter { $0.contains(".sock") == false }.sorted(), entry.ports.sorted(), id)
 		}
+	}
+
+	func testDockerHostForwardsTheDockerSocket() throws {
+		let compose = try XCTUnwrap(ComposeLibrary.loadBundled().template(id: "docker-host")).composeFile()
+		let service = try XCTUnwrap(compose.services["docker"])
+		let built = try service.toBuildOptions(name: "compose-dockerhost-docker", composeNetworks: compose.networks)
+
+		defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
+
+		let sockets = built.options.forwardedPorts.map { "\($0)" }.filter { $0.contains(".sock") }
+
+		XCTAssertEqual(sockets.count, 1)
+		XCTAssertTrue(sockets[0].contains("~/.docker/run/docker.sock") && sockets[0].contains("/var/run/docker.sock"), sockets[0])
 	}
 
 	// MARK: Search

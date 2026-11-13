@@ -5,14 +5,14 @@
 			"id": "docker-host",
 			"name": "Docker host",
 			"category": "Containers",
-			"summary": "An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group; ports 8080 and 8443 are forwarded to the host for published containers.",
+			"summary": "An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group; ports 8080 and 8443 and the Docker socket are forwarded to the host.",
 			"tags": [
 				"docker",
 				"containers",
 				"compose",
 				"oci"
 			],
-			"compose": "name: dockerhost\nservices:\n  docker:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 40          # GiB\n    nested: true\n    ports:\n      - \"8080:8080\"\n      - \"8443:8443\"\n    deploy:\n      resources:\n        limits:\n          cpus: \"4\"\n          memory: 4096M\n    package_update: true\n    packages:\n      - docker.io\n      - docker-compose-v2\n    post_commands:\n      - systemctl enable --now docker\n      - usermod -aG docker ubuntu\n    write_files:\n      - path: /etc/motd.d/dockerhost.motd\n        content: |\n          Docker is ready. Ports 8080 and 8443 of this VM are forwarded to the host:\n          publish a container on one of them (docker run -p 8080:80 ...) to reach it on localhost.\n        permissions: \"0644\"\n"
+			"compose": "name: dockerhost\nservices:\n  docker:\n    image: ubuntu:24.04\n    user: ubuntu\n    password: ubuntu\n    disk: 40          # GiB\n    nested: true\n    ports:\n      - \"8080:8080\"\n      - \"8443:8443\"\n    sockets:\n      - \"~/.docker/run/docker.sock:/var/run/docker.sock\"\n    deploy:\n      resources:\n        limits:\n          cpus: \"4\"\n          memory: 4096M\n    package_update: true\n    packages:\n      - docker.io\n      - docker-compose-v2\n    post_commands:\n      - systemctl enable --now docker\n      - usermod -aG docker ubuntu\n    write_files:\n      - path: /etc/motd.d/dockerhost.motd\n        content: |\n          Docker is ready. Ports 8080 and 8443 of this VM are forwarded to the host:\n          publish a container on one of them (docker run -p 8080:80 ...) to reach it on localhost.\n          The Docker socket is forwarded to ~/.docker/run/docker.sock on the host: use it with\n          `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` (it gives root-equivalent access to this VM).\n        permissions: \"0644\"\n"
 		},
 		{
 			"id": "k3s",
