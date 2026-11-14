@@ -1,0 +1,82 @@
+# library-id: gitea
+# library-name: Gitea
+# library-category: Development
+# library-summary: A self-hosted Git forge (Gitea with SQLite and its built-in SSH server); the web UI is forwarded on 3000 and Git over SSH on 2222.
+# library-tags: gitea, git, forge, ci, self-hosted
+name: gitea
+services:
+  gitea:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    ports:
+      - 3000:3000     # web UI
+      - 2222:2222     # Git over SSH (Gitea's built-in server)
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - git
+      - curl
+    write_files:
+      # Gitea isn't in the Ubuntu archive: the official release binary is installed below (the
+      # version is pinned here, bump it to upgrade). With INSTALL_LOCK false the first visit shows
+      # Gitea's install page, where you create the administrator account.
+      - path: /etc/gitea/app.ini
+        content: |
+          APP_NAME = Gitea
+          RUN_USER = git
+          RUN_MODE = prod
+          WORK_PATH = /var/lib/gitea
+
+          [server]
+          HTTP_PORT = 3000
+          START_SSH_SERVER = true
+          SSH_LISTEN_PORT = 2222
+          SSH_PORT = 2222
+
+          [database]
+          DB_TYPE = sqlite3
+          PATH = /var/lib/gitea/data/gitea.db
+
+          [security]
+          INSTALL_LOCK = false
+        permissions: '0660'
+      - path: /etc/systemd/system/gitea.service
+        content: |
+          [Unit]
+          Description=Gitea
+          After=network.target
+
+          [Service]
+          User=git
+          Group=git
+          WorkingDirectory=/var/lib/gitea
+          ExecStart=/usr/local/bin/gitea web --config /etc/gitea/app.ini
+          Restart=always
+          Environment=USER=git HOME=/home/git GITEA_WORK_DIR=/var/lib/gitea
+
+          [Install]
+          WantedBy=multi-user.target
+        permissions: '0644'
+      - path: /etc/motd.d/gitea.motd
+        content: |
+          Gitea: open http://localhost:3000 on the host (forwarded) and finish the install page.
+          Git over SSH uses port 2222. After the install, tighten the config:
+          sudo chmod 750 /etc/gitea && sudo chmod 640 /etc/gitea/app.ini
+        permissions: '0644'
+    post_commands:
+      - |
+        arch=$(dpkg --print-architecture)
+        curl -fsSL -o /usr/local/bin/gitea "https://dl.gitea.com/gitea/1.22.6/gitea-1.22.6-linux-$arch"
+        chmod 755 /usr/local/bin/gitea
+      - adduser --system --shell /bin/bash --gecos 'Git Version Control' --group --disabled-password --home /home/git git
+      - mkdir -p /var/lib/gitea/custom /var/lib/gitea/data /var/lib/gitea/log
+      - chown -R git:git /var/lib/gitea
+      - chown root:git /etc/gitea && chmod 770 /etc/gitea && chown git:git /etc/gitea/app.ini
+      - systemctl daemon-reload
+      - systemctl enable --now gitea

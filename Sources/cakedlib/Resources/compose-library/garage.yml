@@ -1,0 +1,91 @@
+# library-id: garage
+# library-name: Garage S3 storage
+# library-category: Storage
+# library-summary: A single-node Garage object store with an S3-compatible API, a bucket and an access key created at first boot; the S3 API is forwarded on 3900 and the admin API on 3903.
+# library-tags: garage, s3, object-storage, self-hosted
+name: garage
+services:
+  garage:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 30          # GiB
+    ports:
+      - 3900:3900     # S3 API
+      - 3903:3903     # admin API
+    environment:
+      GARAGE_BUCKET: myapp-data
+      GARAGE_KEY_NAME: myapp-key
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - curl
+      - openssl
+    write_files:
+      - path: /etc/systemd/system/garage.service
+        content: |
+          [Unit]
+          Description=Garage object store
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Environment=RUST_LOG=garage=info
+          ExecStart=/usr/local/bin/garage server
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+        permissions: '0644'
+      - path: /etc/motd.d/garage.motd
+        content: |
+          Garage S3 API: http://localhost:3900 (region "garage", path-style requests).
+          The access key and secret of the first boot are in /root/garage-key.txt (sudo cat it);
+          the bucket is GARAGE_BUCKET from the compose file. Try it with the AWS CLI:
+          AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... aws --endpoint-url http://localhost:3900 --region garage s3 ls
+        permissions: '0644'
+    post_commands:
+      # Not in the Ubuntu archive: the official static binary (version pinned here), whose architecture names differ from dpkg's.
+      - |
+        case "$(dpkg --print-architecture)" in
+          arm64) target=aarch64 ;;
+          *) target=x86_64 ;;
+        esac
+        curl -fsSL -o /usr/local/bin/garage "https://garagehq.deuxfleurs.fr/_releases/v1.0.1/$target-unknown-linux-musl/garage"
+        chmod 755 /usr/local/bin/garage
+      - |
+        mkdir -p /var/lib/garage/meta /var/lib/garage/data
+        cat > /etc/garage.toml <<TOML
+        metadata_dir = "/var/lib/garage/meta"
+        data_dir = "/var/lib/garage/data"
+        db_engine = "sqlite"
+        replication_factor = 1
+        rpc_bind_addr = "127.0.0.1:3901"
+        rpc_secret = "$(openssl rand -hex 32)"
+
+        [s3_api]
+        s3_region = "garage"
+        api_bind_addr = "0.0.0.0:3900"
+
+        [admin]
+        api_bind_addr = "0.0.0.0:3903"
+        admin_token = "$(openssl rand -base64 32)"
+        TOML
+        chmod 600 /etc/garage.toml
+      - systemctl daemon-reload
+      - systemctl enable --now garage
+      # A single node needs a layout before it accepts data, then the bucket and a key allowed on it.
+      - |
+        . /etc/environment
+        for i in $(seq 1 30); do garage status >/dev/null 2>&1 && break; sleep 2; done
+        node=$(garage node id -q | cut -d@ -f1)
+        garage layout assign -z dc1 -c 10G "$node"
+        garage layout apply --version 1
+        garage bucket create "$GARAGE_BUCKET"
+        garage key create "$GARAGE_KEY_NAME" > /root/garage-key.txt
+        garage bucket allow --read --write --owner "$GARAGE_BUCKET" --key "$GARAGE_KEY_NAME"
+        chmod 600 /root/garage-key.txt
