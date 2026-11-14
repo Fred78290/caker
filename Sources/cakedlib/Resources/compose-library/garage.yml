@@ -50,13 +50,18 @@ services:
         permissions: '0644'
     post_commands:
       # Not in the Ubuntu archive: the official static binary (version pinned here), whose architecture names differ from dpkg's.
+      # Garage publishes no checksums, so the SHA-256 pinned here are those of the v1.0.1 files as downloaded when this template
+      # was written; the install is refused when the download differs. Update both when bumping the version.
       - |
+        set -e
         case "$(dpkg --print-architecture)" in
-          arm64) target=aarch64 ;;
-          *) target=x86_64 ;;
+          arm64) target=aarch64; sha=768e3adb246e408c7bd8b9c092f2e3563c28c6c9c63acfb4c7b638eae25bea7a ;;
+          *) target=x86_64; sha=3444d69063a91a1b4fb771a47f056db53c44f51d51e4eb58fb357fe62fe26f26 ;;
         esac
-        curl -fsSL -o /usr/local/bin/garage "https://garagehq.deuxfleurs.fr/_releases/v1.0.1/$target-unknown-linux-musl/garage"
-        chmod 755 /usr/local/bin/garage
+        curl -fsSL -o /tmp/garage.download "https://garagehq.deuxfleurs.fr/_releases/v1.0.1/$target-unknown-linux-musl/garage"
+        echo "$sha  /tmp/garage.download" | sha256sum -c -
+        install -m 755 /tmp/garage.download /usr/local/bin/garage
+        rm -f /tmp/garage.download
       - |
         mkdir -p /var/lib/garage/meta /var/lib/garage/data
         cat > /etc/garage.toml <<TOML

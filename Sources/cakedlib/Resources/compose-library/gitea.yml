@@ -70,10 +70,19 @@ services:
           sudo chmod 750 /etc/gitea && sudo chmod 640 /etc/gitea/app.ini
         permissions: '0644'
     post_commands:
+      # The binary is checked against a pinned SHA-256 (the ones Gitea publishes next to each file) before it is installed:
+      # when the check fails nothing is installed and the service doesn't start. Update both when bumping the version.
       - |
+        set -e
         arch=$(dpkg --print-architecture)
-        curl -fsSL -o /usr/local/bin/gitea "https://dl.gitea.com/gitea/1.22.6/gitea-1.22.6-linux-$arch"
-        chmod 755 /usr/local/bin/gitea
+        case "$arch" in
+          arm64) sha=135b9946c1624f1b567373efc550cdb6d4aa1beff040c3d3ff1295f68bafd2f5 ;;
+          *) sha=fd77f1a0273c85a0950207c1cfa6753a9fa57604e4ab1382484b191cc919ce15 ;;
+        esac
+        curl -fsSL -o /tmp/gitea.download "https://dl.gitea.com/gitea/1.22.6/gitea-1.22.6-linux-$arch"
+        echo "$sha  /tmp/gitea.download" | sha256sum -c -
+        install -m 755 /tmp/gitea.download /usr/local/bin/gitea
+        rm -f /tmp/gitea.download
       - adduser --system --shell /bin/bash --gecos 'Git Version Control' --group --disabled-password --home /home/git git
       - mkdir -p /var/lib/gitea/custom /var/lib/gitea/data /var/lib/gitea/log
       - chown -R git:git /var/lib/gitea

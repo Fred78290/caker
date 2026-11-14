@@ -23,7 +23,8 @@ services:
       - systemctl enable --now docker
       - mkdir -p /srv/vaultwarden
       # Only Caddy talks to it, over the compose network; the web vault needs HTTPS, which Caddy provides.
-      - docker run -d --name vaultwarden --restart always -p 80:80 -v /srv/vaultwarden:/data -e DOMAIN=https://localhost:8443 vaultwarden/server:latest
+      # The image tag is pinned (not :latest) so the stack stays reproducible: bump it on purpose.
+      - docker run -d --name vaultwarden --restart always -p 80:80 -v /srv/vaultwarden:/data -e DOMAIN=https://localhost:8443 vaultwarden/server:1.37.5
 
   # Caddy terminates HTTPS with its own local CA ("tls internal") and proxies to the vaultwarden VM
   # by its compose DNS name. The browser warns about the certificate until you trust Caddy's root:
@@ -50,6 +51,8 @@ services:
       - path: /etc/caddy/Caddyfile.vault
         content: |
           localhost:8443 {
+          	# Listen on every interface, not only loopback, so the forwarded port always reaches it.
+          	bind 0.0.0.0
           	tls internal
           	reverse_proxy vaultwarden.vault.compose.internal:80
           }
