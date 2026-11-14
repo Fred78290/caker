@@ -1,0 +1,93 @@
+# library-id: nodejs-redis
+# library-name: Node.js + Redis
+# library-category: Web
+# library-summary: A small Node.js HTTP app (hit counter) running as a systemd service, backed by a Redis VM.
+# library-tags: nodejs, node, redis, javascript, web
+name: nodeapp
+services:
+  cache:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    package_update: true
+    packages:
+      - redis-server
+    post_commands:
+      # Development setup: Redis answers every VM on the network without a password.
+      - sed -i 's/^bind .*/bind 0.0.0.0 -::*/' /etc/redis/redis.conf
+      - sed -i 's/^protected-mode yes/protected-mode no/' /etc/redis/redis.conf
+      - systemctl restart redis-server
+
+  app:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    ports:
+      - "3000:3000"
+    depends_on:
+      - cache
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1024M
+    package_update: true
+    packages:
+      - nodejs
+      - npm
+    write_files:
+      - path: /opt/app/package.json
+        content: |
+          { "name": "app", "version": "1.0.0", "private": true, "dependencies": { "redis": "^4.7.0" } }
+        permissions: "0644"
+      # `cache.nodeapp.compose.internal` is the cache service's compose DNS name (<service>.<project>.<domain>).
+      - path: /opt/app/server.js
+        content: |
+          const http = require('http');
+          const { createClient } = require('redis');
+          // Fail commands fast while Redis is down (instead of queueing them); the client keeps reconnecting on its own.
+          const redis = createClient({
+            url: 'redis://cache.nodeapp.compose.internal:6379',
+            disableOfflineQueue: true,
+          });
+          // Without an 'error' listener, any client error is an unhandled event and terminates the process.
+          redis.on('error', (err) => console.error('Redis error:', err.message));
+          redis.on('reconnecting', () => console.log('Reconnecting to Redis...'));
+          redis.connect().catch((err) => console.error('Redis connect failed:', err.message));
+
+          http.createServer(async (req, res) => {
+            try {
+              const hits = await redis.incr('hits');
+              res.end(`Hello from Node.js, ${hits} hits\n`);
+            } catch (err) {
+              console.error('Redis command failed:', err.message);
+              res.statusCode = 503;
+              res.end('Cache unavailable\n');
+            }
+          }).listen(3000);
+        permissions: "0644"
+      - path: /etc/systemd/system/app.service
+        content: |
+          [Unit]
+          Description=Node.js app
+          After=network-online.target
+
+          [Service]
+          WorkingDirectory=/opt/app
+          ExecStart=/usr/bin/node server.js
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+        permissions: "0644"
+    post_commands:
+      - cd /opt/app && npm install --omit=dev
+      - systemctl daemon-reload
+      - systemctl enable --now app

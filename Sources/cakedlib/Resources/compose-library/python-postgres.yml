@@ -1,0 +1,90 @@
+# library-id: python-postgres
+# library-name: Python (Flask) + PostgreSQL
+# library-category: Web
+# library-summary: A small Flask app (hit counter) running as a systemd service, backed by a PostgreSQL VM.
+# library-tags: python, flask, postgres, postgresql, web
+name: pyapp
+services:
+  db:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: app
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+    package_update: true
+    packages:
+      - postgresql
+    post_commands:
+      - sed -i "s/^#\?listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+      - for f in /etc/postgresql/*/main/pg_hba.conf; do echo "host all all 0.0.0.0/0 scram-sha-256" >> "$f"; done
+      - systemctl restart postgresql
+      - |
+        . /etc/environment
+        su postgres -c "psql -c \"CREATE ROLE $POSTGRES_USER LOGIN PASSWORD '$POSTGRES_PASSWORD'\""
+        su postgres -c "createdb -O $POSTGRES_USER $POSTGRES_DB"
+
+  app:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1024M
+    package_update: true
+    packages:
+      - python3-flask
+      - python3-psycopg2
+    write_files:
+      # `db.pyapp.compose.internal` is the db service's compose DNS name (<service>.<project>.<domain>).
+      - path: /opt/app/app.py
+        content: |
+          import psycopg2
+          from flask import Flask
+
+          app = Flask(__name__)
+
+          def connection():
+              return psycopg2.connect(host="db.pyapp.compose.internal", user="app", password="change-me", dbname="app")
+
+          @app.route("/")
+          def index():
+              with connection() as conn, conn.cursor() as cur:
+                  cur.execute("CREATE TABLE IF NOT EXISTS hits (n integer)")
+                  cur.execute("INSERT INTO hits VALUES (1)")
+                  cur.execute("SELECT count(*) FROM hits")
+                  return "Hello from Flask, %d hits\n" % cur.fetchone()[0]
+
+          app.run(host="0.0.0.0", port=5000)
+        permissions: "0644"
+      - path: /etc/systemd/system/app.service
+        content: |
+          [Unit]
+          Description=Flask app
+          After=network-online.target
+
+          [Service]
+          WorkingDirectory=/opt/app
+          ExecStart=/usr/bin/python3 app.py
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+        permissions: "0644"
+    post_commands:
+      - systemctl daemon-reload
+      - systemctl enable --now app

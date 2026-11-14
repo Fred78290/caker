@@ -30,6 +30,8 @@ struct ComposeEditorView: View {
 	let runMode: Utils.RunMode
 	let existingProject: ComposeReplyList.ComposeInfo?
 	var onSaved: (() -> Void)? = nil
+	/// Text of a new project's editor instead of `ComposeFile.template` — a template picked in the library.
+	var templateName: String? = nil
 
 	@State private var text: String
 	@State private var parseError: String? = nil
@@ -37,12 +39,13 @@ struct ComposeEditorView: View {
 	@State private var showQuickAdd: Bool = false
 	@State private var validationTask: Task<Void, Never>? = nil
 
-	init(client: CakedServiceClient?, runMode: Utils.RunMode, existingProject: ComposeReplyList.ComposeInfo? = nil, onSaved: (() -> Void)? = nil) {
+	init(client: CakedServiceClient?, runMode: Utils.RunMode, existingProject: ComposeReplyList.ComposeInfo? = nil, initialText: String? = nil, templateName: String? = nil, onSaved: (() -> Void)? = nil) {
 		self.client = client
 		self.runMode = runMode
 		self.existingProject = existingProject
+		self.templateName = templateName
 		self.onSaved = onSaved
-		self._text = State(initialValue: Self.seedText(for: existingProject))
+		self._text = State(initialValue: initialText ?? Self.seedText(for: existingProject))
 	}
 
 	private var isNewProject: Bool { self.existingProject == nil }
@@ -81,6 +84,10 @@ struct ComposeEditorView: View {
 				if let existingProject {
 					Text(existingProject.name)
 						.font(.system(size: 11, design: .monospaced))
+						.foregroundStyle(.secondary)
+				} else if let templateName {
+					Text(String(format: String(localized: "From the library: %@"), templateName))
+						.font(.system(size: 11))
 						.foregroundStyle(.secondary)
 				}
 			}

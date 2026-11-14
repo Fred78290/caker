@@ -1,0 +1,34 @@
+# library-id: rabbitmq
+# library-name: RabbitMQ
+# library-category: Messaging
+# library-summary: RabbitMQ with the management UI; AMQP is forwarded on 5672 and the web console on 15672.
+# library-tags: rabbitmq, amqp, queue, messaging
+name: rabbitmq
+services:
+  broker:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_USER: admin
+      RABBITMQ_PASSWORD: change-me
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+    package_update: true
+    packages:
+      - rabbitmq-server
+    post_commands:
+      - systemctl enable --now rabbitmq-server
+      - rabbitmq-plugins enable rabbitmq_management
+      - |
+        . /etc/environment
+        rabbitmqctl add_user "$RABBITMQ_USER" "$RABBITMQ_PASSWORD"
+        rabbitmqctl set_user_tags "$RABBITMQ_USER" administrator
+        rabbitmqctl set_permissions -p / "$RABBITMQ_USER" ".*" ".*" ".*"

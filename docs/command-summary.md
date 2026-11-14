@@ -54,13 +54,14 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 
 ### Compose
 
-- groupe `compose` : `up`, `down`, `ps`, `rm`, `ls`, `init`. Gère des stacks multi-VM définies dans un fichier `compose.yml`. Voir [Compose](compose) pour la référence complète.
+- groupe `compose` : `up`, `down`, `ps`, `rm`, `ls`, `init`, `library`. Gère des stacks multi-VM définies dans un fichier `compose.yml`. Voir [Compose](compose) pour la référence complète.
   - `up [-f file] [--wait-ip-timeout N] [services...]` — crée et démarre les services dans l'ordre de `depends_on`.
   - `down [-f file] [--force] [services...]` — arrête les services dans l'ordre inverse.
   - `ps [-f file] [services...]` — affiche le statut des services.
   - `rm [-f file] [--stop] [--force] [services...]` — supprime les VM de service et désenregistre le projet.
   - `ls` — liste tous les projets compose enregistrés (`cakectl` uniquement).
   - `init [-f/--force]` — écrit un modèle `compose.yml` commenté dans le répertoire courant.
+  - `library [list|show|clone|sync]` — bibliothèque de modèles `compose.yml` (locale, sans passer par `caked`) ; voir [Compose](compose).
 
 ### Environnements `.cakerenv`
 
@@ -475,13 +476,14 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 ### Compose
 
-- `compose` group: `up`, `down`, `ps`, `rm`, `ls`, `init`. Manage multi-VM stacks defined in a `compose.yml` file. See [Compose](compose) for full reference.
+- `compose` group: `up`, `down`, `ps`, `rm`, `ls`, `init`, `library`. Manage multi-VM stacks defined in a `compose.yml` file. See [Compose](compose) for full reference.
   - `up [-f file] [--wait-ip-timeout N] [services...]` — create and start services in `depends_on` order.
   - `down [-f file] [--force] [services...]` — stop services in reverse order.
   - `ps [-f file] [services...]` — show service status.
   - `rm [-f file] [--stop] [--force] [services...]` — remove service VMs and unregister the project.
   - `ls` — list all registered compose projects (`cakectl` only).
   - `init [-f/--force]` — write a commented `compose.yml` template in the current directory.
+  - `library [list|show|clone|sync]` — library of `compose.yml` templates (local, does not go through `caked`); see [Compose](compose).
 
 ### `.cakerenv` environments
 

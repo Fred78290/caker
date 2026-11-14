@@ -1,0 +1,38 @@
+# library-id: docker-host
+# library-name: Docker host
+# library-category: Containers
+# library-summary: An Ubuntu VM running the Docker engine and the compose plugin, with the default user in the docker group; ports 8080 and 8443 and the Docker socket are forwarded to the host.
+# library-tags: docker, containers, compose, oci
+name: dockerhost
+services:
+  docker:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 40          # GiB
+    nested: true
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    sockets:
+      - "~/.docker/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4096M
+    package_update: true
+    packages:
+      - docker.io
+      - docker-compose-v2
+    post_commands:
+      - systemctl enable --now docker
+      - usermod -aG docker ubuntu
+    write_files:
+      - path: /etc/motd.d/dockerhost.motd
+        content: |
+          Docker is ready. Ports 8080 and 8443 of this VM are forwarded to the host:
+          publish a container on one of them (docker run -p 8080:80 ...) to reach it on localhost.
+          The Docker socket is forwarded to ~/.docker/run/docker.sock on the host: use it with
+          `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` (it gives root-equivalent access to this VM).
+        permissions: "0644"
