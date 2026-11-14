@@ -155,6 +155,16 @@ struct ApplicationSettingsView: View {
 		#endif
 	}
 
+	private func showError(_ message: String, _ error: Error) {
+		let alert = NSGlassEffectAlert()
+
+		alert.messageText = message
+		alert.informativeText = error.localizedDescription
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "OK"))
+		alert.runModal()
+	}
+
 	/// On while Caker is a login item, including when it still waits for the user's approval.
 	private var openAtLogin: Binding<Bool> {
 		Binding {
@@ -169,13 +179,7 @@ struct ApplicationSettingsView: View {
 					try service.unregister()
 				}
 			} catch {
-				let alert = NSGlassEffectAlert()
-
-				alert.messageText = String(localized: "Unable to change the login item")
-				alert.informativeText = error.localizedDescription
-				alert.alertStyle = .warning
-				alert.addButton(withTitle: String(localized: "OK"))
-				alert.runModal()
+				self.showError(String(localized: "Unable to change the login item"), error)
 			}
 
 			self.loginItemStatus = service.status
@@ -188,13 +192,17 @@ struct ApplicationSettingsView: View {
 			Binding {
 				self.helperStatus == .enabled || self.helperStatus == .requiresApproval
 			} set: { newValue in
-				if newValue {
-					UserDefaults.standard.removeObject(forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
-					_ = DirectAuthorizationHelperConnector.install()
-				} else {
-					if DirectAuthorizationHelperConnector.uninstall() {
+				do {
+					if newValue {
+						try DirectAuthorizationHelperConnector.registerDaemon()
+						UserDefaults.standard.removeObject(forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
+					} else {
+						// Remember the choice only once the daemon is really unregistered.
+						try DirectAuthorizationHelperConnector.unregisterDaemon()
 						UserDefaults.standard.set(true, forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
 					}
+				} catch {
+					self.showError(String(localized: "Unable to change the privileged helper registration"), error)
 				}
 
 				self.helperStatus = DirectAuthorizationHelperConnector.daemonStatus
