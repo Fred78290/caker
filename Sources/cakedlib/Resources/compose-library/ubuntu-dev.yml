@@ -1,7 +1,7 @@
 # library-id: ubuntu-dev
 # library-name: Ubuntu dev box
 # library-category: Development
-# library-summary: A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use; ports 3000 and 8000 are forwarded to the host for dev servers.
+# library-summary: A single Ubuntu 26.04 VM with the usual build tools, Git and Python ready to use; ports 3000 and 8000 are forwarded to the host for dev servers.
 # library-tags: ubuntu, toolchain, git, python, sandbox
 name: devbox
 services:
