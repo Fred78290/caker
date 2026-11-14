@@ -111,6 +111,10 @@ final class ComposeLibraryTests: XCTestCase {
 			"docker-host": ("docker", ["8080:8080/tcp", "8443:8443/tcp"]),
 			"k3s": ("server", ["6443:6443/tcp", "8080:80/tcp", "8443:443/tcp"]),
 			"ubuntu-dev": ("dev", ["3000:3000/tcp", "8000:8000/tcp"]),
+			"gitea": ("gitea", ["3000:3000/tcp", "2222:2222/tcp"]),
+			"nextcloud": ("nextcloud", ["8080:80/tcp"]),
+			"vaultwarden-caddy": ("caddy", ["8443:8443/tcp"]),
+			"garage": ("garage", ["3900:3900/tcp", "3903:3903/tcp"]),
 		]
 
 		for (id, entry) in expected {
@@ -122,6 +126,39 @@ final class ComposeLibraryTests: XCTestCase {
 
 			XCTAssertEqual(built.options.forwardedPorts.map { "\($0)" }.filter { $0.contains(".sock") == false }.sorted(), entry.ports.sorted(), id)
 		}
+	}
+
+	/// Their scripts are multi-line (heredocs, loops) inside YAML block scalars: the generated cloud-init document must still parse,
+	/// keep one `runcmd` entry per `post_commands` entry, and keep the heredoc terminators at the start of a line.
+	func testSelfHostedTemplatesProduceValidCloudInitScripts() throws {
+		let library = ComposeLibrary.loadBundled()
+
+		for id in ["gitea", "nextcloud", "vaultwarden-caddy", "garage"] {
+			let compose = try XCTUnwrap(library.template(id: id)).composeFile()
+
+			for (name, service) in compose.services {
+				let built = try service.toBuildOptions(name: "compose-\(compose.name)-\(name)", composeNetworks: compose.networks)
+
+				defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
+
+				let userData = try XCTUnwrap(built.options.userData, "\(id)/\(name)")
+				let document = try XCTUnwrap(try Yams.load(yaml: String(contentsOfFile: userData, encoding: .utf8)) as? [String: Any], "\(id)/\(name)")
+				let commands = try XCTUnwrap(document["runcmd"] as? [Any], "\(id)/\(name)")
+
+				XCTAssertEqual(commands.count, service.postCommands?.count ?? 0, "\(id)/\(name)")
+
+				for case let script as String in commands where script.contains("<<") {
+					let terminator = try XCTUnwrap(script.components(separatedBy: "<<").last?.split(whereSeparator: \.isNewline).first.map(String.init), "\(id)/\(name)")
+
+					XCTAssertTrue(script.split(whereSeparator: \.isNewline).contains { $0 == terminator }, "heredoc \(terminator) is not closed at the start of a line in \(id)/\(name)")
+				}
+			}
+		}
+
+		let garage = try XCTUnwrap(library.template(id: "garage")).composeFile()
+		let scripts = (garage.services["garage"]?.postCommands ?? []).joined(separator: "\n")
+
+		XCTAssertTrue(scripts.contains("garage layout apply --version 1") && scripts.contains("garage bucket allow"))
 	}
 
 	func testDockerHostForwardsTheDockerSocket() throws {

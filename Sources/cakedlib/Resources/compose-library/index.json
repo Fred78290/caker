@@ -2,15 +2,19 @@
 	"version": 1,
 	"templates": [
 		"docker-host",
+		"garage",
+		"gitea",
 		"k3s",
 		"lamp",
 		"lemp",
 		"mariadb-phpmyadmin",
+		"nextcloud",
 		"nodejs-redis",
 		"postgres",
 		"python-postgres",
 		"rabbitmq",
 		"redis",
-		"ubuntu-dev"
+		"ubuntu-dev",
+		"vaultwarden-caddy"
 	]
 }

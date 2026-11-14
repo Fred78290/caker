@@ -25,6 +25,9 @@ services:
     post_commands:
       - sed -i 's/^bind .*/bind 0.0.0.0/' /etc/redis/redis.conf
       - |
-        . /etc/environment
+        # Read the raw values instead of sourcing /etc/environment: sourcing would split a value with a space
+        # and expand a `$` in it.
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        REDIS_PASSWORD=$(envval REDIS_PASSWORD)
         echo "requirepass $REDIS_PASSWORD" >> /etc/redis/redis.conf
       - systemctl restart redis-server

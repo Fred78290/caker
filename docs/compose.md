@@ -374,13 +374,17 @@ Modèles fournis :
 | `postgres` | Database | PostgreSQL from the Ubuntu archive, listening on every interface with an application role and database. |
 | `redis` | Database | Redis from the Ubuntu archive, reachable from the host and from the other VMs, protected by a password. |
 | `ubuntu-dev` | Development | A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use; ports 3000 and 8000 are forwarded to the host for dev servers. |
+| `gitea` | Development | A self-hosted Git forge (Gitea with SQLite and its built-in SSH server); the web UI is forwarded on 3000 and Git over SSH on 2222. |
 | `rabbitmq` | Messaging | RabbitMQ with the management UI; AMQP is forwarded on 5672 and the web console on 15672. |
+| `vaultwarden-caddy` | Security | A Vaultwarden password manager (Bitwarden-compatible) on one VM and a Caddy reverse proxy with a local HTTPS certificate on another; HTTPS is forwarded on 8443. |
+| `garage` | Storage | A single-node Garage object store with an S3-compatible API, a bucket and an access key created at first boot; the S3 API is forwarded on 3900 and the admin API on 3903. |
+| `nextcloud` | Storage | A Nextcloud file-sync and collaboration server from the official snap, with an administrator account; the web UI is forwarded on 8080. |
 | `lamp` | Web | Apache with PHP on one VM and MariaDB on another, wired together through compose DNS. |
 | `lemp` | Web | Nginx with PHP-FPM on one VM and MariaDB on another, wired together through compose DNS. |
 | `nodejs-redis` | Web | A small Node.js HTTP app (hit counter) running as a systemd service, backed by a Redis VM. |
 | `python-postgres` | Web | A small Flask app (hit counter) running as a systemd service, backed by a PostgreSQL VM. |
 
-Les modèles qui servent quelque chose redirigent leurs ports vers l'hôte avec `ports:` (PostgreSQL 5432, Redis 6379, RabbitMQ 5672/15672, les piles web 8080 ou 3000, l'API Kubernetes de `k3s` 6443 et son ingress 8080/8443, les ports 8080/8443 de `docker-host` pour les conteneurs publiés, 3000/8000 de `ubuntu-dev` pour les serveurs de développement). `docker-host` redirige aussi le socket Docker de l'invité vers `~/.docker/run/docker.sock` sur l'hôte avec `sockets:` : `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` suffit alors pour que le client `docker` du Mac pilote le moteur de la VM (cet accès équivaut à root dans la VM). Caker crée le répertoire du socket s'il n'existe pas ; ce chemin est aussi celui de Docker Desktop, il ne faut donc pas faire tourner les deux ensemble.
+Les modèles qui servent quelque chose redirigent leurs ports vers l'hôte avec `ports:` (PostgreSQL 5432, Redis 6379, RabbitMQ 5672/15672, les piles web 8080 ou 3000, l'API Kubernetes de `k3s` 6443 et son ingress 8080/8443, les ports 8080/8443 de `docker-host` pour les conteneurs publiés, 3000/8000 de `ubuntu-dev` pour les serveurs de développement, Gitea 3000 et 2222 pour Git en SSH, Nextcloud 8080, Vaultwarden derrière Caddy en HTTPS sur 8443, l'API S3 de Garage 3900 et son API d'administration 3903). `docker-host` redirige aussi le socket Docker de l'invité vers `~/.docker/run/docker.sock` sur l'hôte avec `sockets:` : `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` suffit alors pour que le client `docker` du Mac pilote le moteur de la VM (cet accès équivaut à root dans la VM). Caker crée le répertoire du socket s'il n'existe pas ; ce chemin est aussi celui de Docker Desktop, il ne faut donc pas faire tourner les deux ensemble.
 
 Les modèles sont des points de départ non validés sur une machine de chaque famille : lisez-les avant `compose up`, ils installent des paquets et exécutent des commandes dans les nouvelles VM. Pour ajouter un modèle, voir [Développement](development).
 
@@ -840,13 +844,17 @@ Bundled templates:
 | `postgres` | Database | PostgreSQL from the Ubuntu archive, listening on every interface with an application role and database. |
 | `redis` | Database | Redis from the Ubuntu archive, reachable from the host and from the other VMs, protected by a password. |
 | `ubuntu-dev` | Development | A single Ubuntu 24.04 VM with the usual build tools, Git and Python ready to use; ports 3000 and 8000 are forwarded to the host for dev servers. |
+| `gitea` | Development | A self-hosted Git forge (Gitea with SQLite and its built-in SSH server); the web UI is forwarded on 3000 and Git over SSH on 2222. |
 | `rabbitmq` | Messaging | RabbitMQ with the management UI; AMQP is forwarded on 5672 and the web console on 15672. |
+| `vaultwarden-caddy` | Security | A Vaultwarden password manager (Bitwarden-compatible) on one VM and a Caddy reverse proxy with a local HTTPS certificate on another; HTTPS is forwarded on 8443. |
+| `garage` | Storage | A single-node Garage object store with an S3-compatible API, a bucket and an access key created at first boot; the S3 API is forwarded on 3900 and the admin API on 3903. |
+| `nextcloud` | Storage | A Nextcloud file-sync and collaboration server from the official snap, with an administrator account; the web UI is forwarded on 8080. |
 | `lamp` | Web | Apache with PHP on one VM and MariaDB on another, wired together through compose DNS. |
 | `lemp` | Web | Nginx with PHP-FPM on one VM and MariaDB on another, wired together through compose DNS. |
 | `nodejs-redis` | Web | A small Node.js HTTP app (hit counter) running as a systemd service, backed by a Redis VM. |
 | `python-postgres` | Web | A small Flask app (hit counter) running as a systemd service, backed by a PostgreSQL VM. |
 
-Templates that serve something forward their ports to the host with `ports:` (PostgreSQL 5432, Redis 6379, RabbitMQ 5672/15672, the web stacks 8080 or 3000, the `k3s` Kubernetes API 6443 and its ingress 8080/8443, `docker-host`'s 8080/8443 for published containers, `ubuntu-dev`'s 3000/8000 for dev servers). `docker-host` also forwards the guest's Docker socket to `~/.docker/run/docker.sock` on the host with `sockets:`, so `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` is all the Mac's `docker` client needs to drive the VM's engine (that access is root-equivalent inside the VM). Caker creates the socket's directory when it is missing; the path is also Docker Desktop's, so don't run both together.
+Templates that serve something forward their ports to the host with `ports:` (PostgreSQL 5432, Redis 6379, RabbitMQ 5672/15672, the web stacks 8080 or 3000, the `k3s` Kubernetes API 6443 and its ingress 8080/8443, `docker-host`'s 8080/8443 for published containers, `ubuntu-dev`'s 3000/8000 for dev servers, Gitea's 3000 and 2222 for Git over SSH, Nextcloud's 8080, Vaultwarden behind Caddy on HTTPS 8443, Garage's S3 API 3900 and admin API 3903). `docker-host` also forwards the guest's Docker socket to `~/.docker/run/docker.sock` on the host with `sockets:`, so `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` is all the Mac's `docker` client needs to drive the VM's engine (that access is root-equivalent inside the VM). Caker creates the socket's directory when it is missing; the path is also Docker Desktop's, so don't run both together.
 
 The templates are starting points that have not been booted on a machine of every family: read one before `compose up`, it installs packages and runs commands in the new VMs. To add a template, see [Development](development).
 
