@@ -776,7 +776,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		Self.ensureCertificates()
 
 		#if USE_AUTHORIZATION_HELPER
-			if Bundle.isApplicationSandboxed == false {
+			// The user can turn the helper off in Settings: then `sudo` is used and nothing is registered here.
+			if Bundle.isApplicationSandboxed == false && UserDefaults.standard.bool(forKey: DirectAuthorizationHelperConnector.disabledByUserKey) {
+				Self.ensurePrivilegedBootstrapFiles()
+				Self.askUserToInstallCakedAgent()
+			} else if Bundle.isApplicationSandboxed == false {
 				while DirectAuthorizationHelperConnector.install() == false {
 					// The helper isn't approved yet: tell the user to approve it in System Settings, then quit.
 					NSApplication.shared.setActivationPolicy(.regular)

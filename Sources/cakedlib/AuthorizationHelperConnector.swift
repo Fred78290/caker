@@ -179,6 +179,9 @@ import CakeAgentLib
 			}
 		}
 
+		/// `UserDefaults` key set when the user turned the helper off in Settings: the app then doesn't register it again at launch.
+		public static let disabledByUserKey = "AuthorizationHelperDisabled"
+
 		/// State of the helper daemon registered by `install()`.
 		public static var daemonStatus: SMAppService.Status {
 			SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist").status
@@ -220,7 +223,8 @@ import CakeAgentLib
 		public static func uninstall() -> Bool {
 			let service = SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist")
 
-			guard service.status == .enabled else {
+			// A daemon still waiting for approval is registered too.
+			guard service.status == .enabled || service.status == .requiresApproval else {
 				return true
 			}
 
