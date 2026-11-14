@@ -144,9 +144,8 @@ final class ComposeLibraryTests: XCTestCase {
 
 				defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
 
-				// A bare service (an empty managed node) has nothing to configure, so no user-data either.
 				guard let userData = built.options.userData else {
-					XCTAssertTrue((service.postCommands ?? []).isEmpty && (service.packages ?? []).isEmpty && (service.writeFiles ?? []).isEmpty, "\(id)/\(name) has cloud-init settings but no user-data")
+					XCTAssertTrue((service.postCommands ?? []).isEmpty && (service.packages ?? []).isEmpty && (service.writeFiles ?? []).isEmpty && (service.environment?.lines ?? []).isEmpty, "\(id)/\(name) has cloud-init settings but no user-data")
 					continue
 				}
 				let document = try XCTUnwrap(try Yams.load(yaml: String(contentsOfFile: userData, encoding: .utf8)) as? [String: Any], "\(id)/\(name)")
