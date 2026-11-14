@@ -11,13 +11,13 @@ services:
     password: ubuntu
     disk: 10          # GiB
     ports:
-      - "6379:6379"
+      - 6379:6379
     environment:
       REDIS_PASSWORD: change-me
     deploy:
       resources:
         limits:
-          cpus: "1"
+          cpus: 1
           memory: 1024M
     package_update: true
     packages:

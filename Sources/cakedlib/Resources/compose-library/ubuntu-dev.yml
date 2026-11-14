@@ -6,18 +6,18 @@
 name: devbox
 services:
   dev:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 40          # GiB
     nested: true
     ports:
-      - "3000:3000"
-      - "8000:8000"
+      - 3000:3000
+      - 8000:8000
     deploy:
       resources:
         limits:
-          cpus: "4"
+          cpus: 4
           memory: 4096M
     package_update: true
     package_upgrade: true
@@ -32,10 +32,11 @@ services:
       - unzip
       - python3-pip
       - python3-venv
+      - snapd
     write_files:
       - path: /etc/motd.d/devbox.motd
         content: |
           Dev box ready: build-essential, git, curl, jq, tmux, python3 (pip, venv).
           Dev servers listening on 3000 or 8000 are reachable on the host's localhost.
           Log in with `cakectl sh compose-devbox-dev` or ssh ubuntu@<ip>.
-        permissions: "0644"
+        permissions: '0644'

@@ -17,7 +17,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 2048M
     package_update: true
     packages:
@@ -35,13 +35,13 @@ services:
     password: ubuntu
     disk: 10          # GiB
     ports:
-      - "8080:80"
+      - 8080:80
     depends_on:
       - db
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 1024M
     package_update: true
     packages:
@@ -62,7 +62,7 @@ services:
                   fastcgi_pass unix:/run/php/php8.3-fpm.sock;
               }
           }
-        permissions: "0644"
+        permissions: '0644'
       # `db.lemp.compose.internal` is the db service's compose DNS name (<service>.<project>.<domain>).
       - path: /var/www/html/index.php
         content: |
@@ -76,7 +76,7 @@ services:
           }
           echo '<hr>';
           phpinfo();
-        permissions: "0644"
+        permissions: '0644'
     post_commands:
       - cp /root/lemp-site.conf /etc/nginx/sites-available/default
       - nginx -t && systemctl restart nginx

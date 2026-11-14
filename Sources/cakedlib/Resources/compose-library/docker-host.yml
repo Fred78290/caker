@@ -12,14 +12,14 @@ services:
     disk: 40          # GiB
     nested: true
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - 8080:8080
+      - 8443:8443
     sockets:
-      - "~/.docker/run/docker.sock:/var/run/docker.sock"
+      - ~/.docker/run/docker.sock:/var/run/docker.sock
     deploy:
       resources:
         limits:
-          cpus: "4"
+          cpus: 4
           memory: 4096M
     package_update: true
     packages:
@@ -35,4 +35,4 @@ services:
           publish a container on one of them (docker run -p 8080:80 ...) to reach it on localhost.
           The Docker socket is forwarded to ~/.docker/run/docker.sock on the host: use it with
           `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` (it gives root-equivalent access to this VM).
-        permissions: "0644"
+        permissions: '0644'

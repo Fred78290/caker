@@ -17,7 +17,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 2048M
     package_update: true
     packages:
@@ -35,13 +35,13 @@ services:
     password: ubuntu
     disk: 10          # GiB
     ports:
-      - "8080:80"
+      - 8080:80
     depends_on:
       - db
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 1024M
     package_update: true
     packages:

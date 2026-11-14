@@ -11,15 +11,15 @@ services:
     password: ubuntu
     disk: 10          # GiB
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - 5672:5672
+      - 15672:15672
     environment:
       RABBITMQ_USER: admin
       RABBITMQ_PASSWORD: change-me
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 2048M
     package_update: true
     packages:

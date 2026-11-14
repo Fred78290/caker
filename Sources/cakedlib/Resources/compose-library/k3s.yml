@@ -11,13 +11,13 @@ services:
     password: ubuntu
     disk: 30          # GiB
     ports:
-      - "6443:6443"
-      - "8080:80"
-      - "8443:443"
+      - 6443:6443
+      - 8080:80
+      - 8443:443
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 4096M
     package_update: true
     packages:
@@ -28,7 +28,7 @@ services:
           k3s is running. The kubeconfig is /etc/rancher/k3s/k3s.yaml: copy it to the host and
           point its `server:` at this VM's address (or at localhost, port 6443 is forwarded).
           The ingress controller answers on this VM's ports 80 and 443, forwarded to the host's 8080 and 8443.
-        permissions: "0644"
+        permissions: '0644'
     post_commands:
       # The installer script is downloaded from get.k3s.io: read it before running this on anything that matters.
       # It is saved to a file and run only if the download succeeded: piped into sh, a failed curl would feed sh

@@ -17,7 +17,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 2048M
     package_update: true
     packages:
@@ -37,13 +37,13 @@ services:
     password: ubuntu
     disk: 10          # GiB
     ports:
-      - "5000:5000"
+      - 5000:5000
     depends_on:
       - db
     deploy:
       resources:
         limits:
-          cpus: "2"
+          cpus: 2
           memory: 1024M
     package_update: true
     packages:
@@ -70,7 +70,7 @@ services:
                   return "Hello from Flask, %d hits\n" % cur.fetchone()[0]
 
           app.run(host="0.0.0.0", port=5000)
-        permissions: "0644"
+        permissions: '0644'
       - path: /etc/systemd/system/app.service
         content: |
           [Unit]
@@ -84,7 +84,7 @@ services:
 
           [Install]
           WantedBy=multi-user.target
-        permissions: "0644"
+        permissions: '0644'
     post_commands:
       - systemctl daemon-reload
       - systemctl enable --now app
