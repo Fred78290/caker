@@ -1,0 +1,104 @@
+# library-id: k3s-cluster
+# library-name: k3s Kubernetes (multi-node)
+# library-category: Containers
+# library-summary: A k3s control-plane VM and two agent VMs that join it through compose DNS; the API is forwarded to the host on port 6443.
+# library-tags: kubernetes, k3s, k8s, cluster, multi-node
+name: k3s-cluster
+services:
+  server:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 30          # GiB
+    ports:
+      - 6443:6443
+      - 8080:80
+      - 8443:443
+    environment:
+      # Shared by the server and every agent: change it in the three services together.
+      K3S_TOKEN: change-me-cluster-token
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 4096M
+    package_update: true
+    packages:
+      - curl
+    write_files:
+      - path: /etc/motd.d/k3s.motd
+        content: |
+          k3s control plane. kubectl get nodes lists the two agents once they have joined.
+          The kubeconfig is /etc/rancher/k3s/k3s.yaml: copy it to the host and keep its `server:` on localhost (6443 is forwarded).
+        permissions: '0644'
+    post_commands:
+      # The installer script is downloaded from get.k3s.io: read it before running this on anything that matters.
+      # It is saved to a file first: piped into sh, a failed curl would feed sh an empty script, which exits 0.
+      - |
+        set -e
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        K3S_TOKEN=$(envval K3S_TOKEN)
+        curl -fsSL https://get.k3s.io -o /tmp/install-k3s.sh
+        K3S_TOKEN="$K3S_TOKEN" K3S_KUBECONFIG_MODE=644 sh /tmp/install-k3s.sh
+  agent1:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    depends_on:
+      - server
+    environment:
+      K3S_TOKEN: change-me-cluster-token
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - curl
+    post_commands:
+      - |
+        set -e
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        K3S_TOKEN=$(envval K3S_TOKEN)
+        server=https://server.k3s-cluster.compose.internal:6443
+        ready=
+        for i in $(seq 1 60); do
+          if curl -ksf "$server/ping" >/dev/null; then ready=1; break; fi
+          sleep 5
+        done
+        [ -n "$ready" ] || { echo "the k3s server did not answer on $server" >&2; exit 1; }
+        curl -fsSL https://get.k3s.io -o /tmp/install-k3s.sh
+        K3S_URL="$server" K3S_TOKEN="$K3S_TOKEN" sh /tmp/install-k3s.sh
+  agent2:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    depends_on:
+      - server
+    environment:
+      K3S_TOKEN: change-me-cluster-token
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - curl
+    post_commands:
+      - |
+        set -e
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        K3S_TOKEN=$(envval K3S_TOKEN)
+        server=https://server.k3s-cluster.compose.internal:6443
+        ready=
+        for i in $(seq 1 60); do
+          if curl -ksf "$server/ping" >/dev/null; then ready=1; break; fi
+          sleep 5
+        done
+        [ -n "$ready" ] || { echo "the k3s server did not answer on $server" >&2; exit 1; }
+        curl -fsSL https://get.k3s.io -o /tmp/install-k3s.sh
+        K3S_URL="$server" K3S_TOKEN="$K3S_TOKEN" sh /tmp/install-k3s.sh

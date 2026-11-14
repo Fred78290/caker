@@ -115,6 +115,9 @@ final class ComposeLibraryTests: XCTestCase {
 			"nextcloud": ("nextcloud", ["8080:80/tcp"]),
 			"vaultwarden-caddy": ("caddy", ["8443:8443/tcp"]),
 			"garage": ("garage", ["3900:3900/tcp", "3903:3903/tcp"]),
+			"k3s-cluster": ("server", ["6443:6443/tcp", "8080:80/tcp", "8443:443/tcp"]),
+			"prometheus-grafana": ("monitor", ["9090:9090/tcp", "3000:3000/tcp"]),
+			"postgres-patroni": ("lb", ["5000:5000/tcp", "5001:5001/tcp", "7000:7000/tcp"]),
 		]
 
 		for (id, entry) in expected {
@@ -133,7 +136,7 @@ final class ComposeLibraryTests: XCTestCase {
 	func testSelfHostedTemplatesProduceValidCloudInitScripts() throws {
 		let library = ComposeLibrary.loadBundled()
 
-		for id in ["gitea", "nextcloud", "vaultwarden-caddy", "garage"] {
+		for id in ["gitea", "nextcloud", "vaultwarden-caddy", "garage", "ansible-lab", "k3s-cluster", "prometheus-grafana", "postgres-patroni"] {
 			let compose = try XCTUnwrap(library.template(id: id)).composeFile()
 
 			for (name, service) in compose.services {
@@ -141,9 +144,13 @@ final class ComposeLibraryTests: XCTestCase {
 
 				defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
 
-				let userData = try XCTUnwrap(built.options.userData, "\(id)/\(name)")
+				// A bare service (an empty managed node) has nothing to configure, so no user-data either.
+				guard let userData = built.options.userData else {
+					XCTAssertTrue((service.postCommands ?? []).isEmpty && (service.packages ?? []).isEmpty && (service.writeFiles ?? []).isEmpty, "\(id)/\(name) has cloud-init settings but no user-data")
+					continue
+				}
 				let document = try XCTUnwrap(try Yams.load(yaml: String(contentsOfFile: userData, encoding: .utf8)) as? [String: Any], "\(id)/\(name)")
-				let commands = try XCTUnwrap(document["runcmd"] as? [Any], "\(id)/\(name)")
+				let commands = (document["runcmd"] as? [Any]) ?? []
 
 				XCTAssertEqual(commands.count, service.postCommands?.count ?? 0, "\(id)/\(name)")
 
@@ -159,6 +166,34 @@ final class ComposeLibraryTests: XCTestCase {
 		let scripts = (garage.services["garage"]?.postCommands ?? []).joined(separator: "\n")
 
 		XCTAssertTrue(scripts.contains("garage layout apply --version 1") && scripts.contains("garage bucket allow"))
+	}
+
+	/// The multi-VM templates name their peers through compose DNS and need them running first: a dependency missing from
+	/// `depends_on` would start a VM before the one it joins or resolves.
+	func testMultiNodeTemplatesStartTheirPeersFirst() throws {
+		let expectedOrder: [String: [[String]]] = [
+			"k3s-cluster": [["server"], ["agent1", "agent2"]],
+			"postgres-patroni": [["etcd"], ["pg1"], ["pg2"], ["lb"]],
+			"prometheus-grafana": [["node1", "node2"], ["monitor"]],
+			"ansible-lab": [["web1", "web2"], ["controller"]],
+		]
+
+		for (id, stages) in expectedOrder {
+			let compose = try XCTUnwrap(ComposeLibrary.loadBundled().template(id: id)).composeFile()
+			let order = try compose.startOrder().map(\.name)
+
+			for (stage, names) in stages.enumerated() {
+				for name in names {
+					let position = try XCTUnwrap(order.firstIndex(of: name), "\(id)/\(name)")
+
+					for earlier in stages[..<stage].joined() {
+						XCTAssertLessThan(try XCTUnwrap(order.firstIndex(of: earlier)), position, "\(id): \(earlier) must start before \(name)")
+					}
+				}
+			}
+
+			XCTAssertEqual(Set(order), Set(stages.joined()), id)
+		}
 	}
 
 	func testDockerHostForwardsTheDockerSocket() throws {

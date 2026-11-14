@@ -1,0 +1,95 @@
+# library-id: ansible-lab
+# library-name: Ansible lab
+# library-category: DevOps
+# library-summary: An Ansible control node with two managed Ubuntu nodes, an inventory using compose DNS names and a sample playbook that installs nginx.
+# library-tags: ansible, automation, devops, lab, configuration-management
+name: ansible-lab
+services:
+  web1:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+  web2:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+  controller:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    depends_on:
+      - web1
+      - web2
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - ansible
+      - sshpass
+    write_files:
+      - path: /opt/lab/ansible.cfg
+        content: |
+          [defaults]
+          inventory = /opt/lab/inventory.ini
+          host_key_checking = False
+        permissions: '0644'
+      # The managed nodes use the account and password given to them above: change both places together.
+      - path: /opt/lab/inventory.ini
+        content: |
+          [web]
+          web1.ansible-lab.compose.internal
+          web2.ansible-lab.compose.internal
+
+          [all:vars]
+          ansible_user=ubuntu
+          ansible_password=ubuntu
+          ansible_become_password=ubuntu
+          ansible_python_interpreter=/usr/bin/python3
+        permissions: '0600'
+      - path: /opt/lab/site.yml
+        content: |
+          - hosts: web
+            become: true
+            tasks:
+              - name: Install nginx
+                ansible.builtin.apt:
+                  name: nginx
+                  state: present
+                  update_cache: true
+              - name: Publish a page
+                ansible.builtin.copy:
+                  content: "Hello from {{ inventory_hostname }}\n"
+                  dest: /var/www/html/index.html
+              - name: Start nginx
+                ansible.builtin.service:
+                  name: nginx
+                  state: started
+                  enabled: true
+        permissions: '0644'
+      - path: /etc/motd.d/ansible-lab.motd
+        content: |
+          Ansible lab: everything is in /opt/lab (ansible.cfg, inventory.ini, site.yml).
+            cd /opt/lab && ansible all -m ping
+            cd /opt/lab && ansible-playbook site.yml
+          The managed nodes are web1 and web2 (compose DNS names in the inventory). Add more by copying a service.
+        permissions: '0644'
+    post_commands:
+      - chown -R ubuntu:ubuntu /opt/lab
+      # Best effort: shows right away whether the managed nodes answer.
+      - su ubuntu -c 'cd /opt/lab && ansible all -m ping' || true

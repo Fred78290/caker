@@ -378,6 +378,10 @@ Modèles fournis :
 | `rabbitmq` | Messaging | RabbitMQ with the management UI; AMQP is forwarded on 5672 and the web console on 15672. |
 | `vaultwarden-caddy` | Security | A Vaultwarden password manager (Bitwarden-compatible) on one VM and a Caddy reverse proxy with a local HTTPS certificate on another; HTTPS is forwarded on 8443. |
 | `garage` | Storage | A single-node Garage object store with an S3-compatible API, a bucket and an access key created at first boot; the S3 API is forwarded on 3900 and the admin API on 3903. |
+| `ansible-lab` | DevOps | An Ansible control node with two managed Ubuntu nodes, an inventory using compose DNS names and a sample playbook that installs nginx. |
+| `k3s-cluster` | Containers | A k3s control-plane VM and two agent VMs that join it through compose DNS; the API is forwarded on 6443, the ingress on 8080 and 8443. |
+| `prometheus-grafana` | Monitoring | Prometheus and Grafana on one VM scraping node_exporter on itself and on two other VMs; Prometheus is forwarded on 9090 and Grafana on 3000. |
+| `postgres-patroni` | Database | Two PostgreSQL nodes managed by Patroni with an etcd store, and an HAProxy VM that routes port 5000 to the primary (5001 to the replicas, 7000 for its status page). |
 | `nextcloud` | Storage | A Nextcloud file-sync and collaboration server from the official snap, with an administrator account; the web UI is forwarded on 8080. |
 | `lamp` | Web | Apache with PHP on one VM and MariaDB on another, wired together through compose DNS. |
 | `lemp` | Web | Nginx with PHP-FPM on one VM and MariaDB on another, wired together through compose DNS. |
@@ -848,6 +852,10 @@ Bundled templates:
 | `rabbitmq` | Messaging | RabbitMQ with the management UI; AMQP is forwarded on 5672 and the web console on 15672. |
 | `vaultwarden-caddy` | Security | A Vaultwarden password manager (Bitwarden-compatible) on one VM and a Caddy reverse proxy with a local HTTPS certificate on another; HTTPS is forwarded on 8443. |
 | `garage` | Storage | A single-node Garage object store with an S3-compatible API, a bucket and an access key created at first boot; the S3 API is forwarded on 3900 and the admin API on 3903. |
+| `ansible-lab` | DevOps | An Ansible control node with two managed Ubuntu nodes, an inventory using compose DNS names and a sample playbook that installs nginx. |
+| `k3s-cluster` | Containers | A k3s control-plane VM and two agent VMs that join it through compose DNS; the API is forwarded on 6443, the ingress on 8080 and 8443. |
+| `prometheus-grafana` | Monitoring | Prometheus and Grafana on one VM scraping node_exporter on itself and on two other VMs; Prometheus is forwarded on 9090 and Grafana on 3000. |
+| `postgres-patroni` | Database | Two PostgreSQL nodes managed by Patroni with an etcd store, and an HAProxy VM that routes port 5000 to the primary (5001 to the replicas, 7000 for its status page). |
 | `nextcloud` | Storage | A Nextcloud file-sync and collaboration server from the official snap, with an administrator account; the web UI is forwarded on 8080. |
 | `lamp` | Web | Apache with PHP on one VM and MariaDB on another, wired together through compose DNS. |
 | `lemp` | Web | Nginx with PHP-FPM on one VM and MariaDB on another, wired together through compose DNS. |
