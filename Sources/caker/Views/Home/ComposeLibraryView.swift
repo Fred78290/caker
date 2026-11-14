@@ -231,7 +231,9 @@ struct ComposeLibraryView: View {
 			Button("Use template") {
 				if let template = self.selectedTemplate {
 					self.dismiss()
-					self.onUse(template)
+					DispatchQueue.main.async {
+						self.onUse(template)
+					}
 				}
 			}
 			.withButtonStyle(.borderedProminent)
