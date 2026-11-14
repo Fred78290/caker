@@ -217,6 +217,7 @@ Quelques extensions VM Caker supplémentaires, toutes facultatives :
 - `disk_format` — format du disque de la VM (`raw`, etc.) ; par défaut, le format par défaut de Caker.
 - `ifnames` — noms d'interfaces réseau prévisibles dans l'invité ; `true` par défaut.
 - `dynamic_port_forwarding` — active la redirection de ports dynamique ; `false` par défaut.
+- `ssh_password_auth` — autorise l'authentification SSH par mot de passe pour le compte de l'invité (`ssh_pwauth` de cloud-init) ; `false` par défaut, auquel cas seule une clé SSH permet de se connecter.
 - `ssh_authorized_key` — une clé publique SSH (`ssh-ed25519 AAAA…`) **ou le chemin d'un fichier** qui la contient (`~` est développé). Un chemin est lu et nettoyé dès le chargement du fichier : un fichier introuvable fait échouer `compose up` immédiatement, avant qu'aucune VM de la stack ne soit construite.
 
 Quand `user`/`password` sont omis, l'invité est créé avec `admin`/`admin`.
@@ -416,7 +417,7 @@ Fonctionnement interne détaillé, mise en garde sur la portée non testée de b
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
+| Extensions VM | Non | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `ssh_password_auth`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | `deploy.replicas`, `deploy.resources.reservations` | Appliqués | Acceptés, non appliqués — une seule VM par service, seules les `limits` sont utilisées |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
@@ -691,6 +692,7 @@ A few more optional Caker VM extensions:
 - `disk_format` — the VM's disk format (`raw`, etc.); defaults to Caker's default format.
 - `ifnames` — predictable network interface names inside the guest; `true` by default.
 - `dynamic_port_forwarding` — turns on dynamic port forwarding; `false` by default.
+- `ssh_password_auth` — allows SSH password authentication for the guest account (cloud-init's `ssh_pwauth`); `false` by default, in which case only an SSH key can log in.
 - `ssh_authorized_key` — an SSH public key (`ssh-ed25519 AAAA…`) **or the path to a file** holding one (`~` is expanded). A path is read and trimmed as soon as the file is loaded: a missing file makes `compose up` fail immediately, before any VM in the stack is built.
 
 When `user`/`password` are omitted, the guest is created with `admin`/`admin`.
@@ -890,7 +892,7 @@ For the full mechanism, and the one caveat worth knowing (VM-to-VM traffic on th
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
+| VM extensions | No | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `ssh_password_auth`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `deploy.replicas`, `deploy.resources.reservations` | Enforced | Accepted, not applied — one VM per service, only `limits` are used |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |

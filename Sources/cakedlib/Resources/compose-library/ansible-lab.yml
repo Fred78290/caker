@@ -9,6 +9,7 @@ services:
     image: ubuntu:24.04
     user: ubuntu
     password: ubuntu
+    ssh_password_auth: true   # the controller logs in with the password (see the inventory)
     disk: 10          # GiB
     deploy:
       resources:
@@ -19,6 +20,7 @@ services:
     image: ubuntu:24.04
     user: ubuntu
     password: ubuntu
+    ssh_password_auth: true   # the controller logs in with the password (see the inventory)
     disk: 10          # GiB
     deploy:
       resources:

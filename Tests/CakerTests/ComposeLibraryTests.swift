@@ -195,6 +195,26 @@ final class ComposeLibraryTests: XCTestCase {
 		}
 	}
 
+	/// The controller logs in to the managed nodes with the account password: without `ssh_password_auth` cloud-init
+	/// writes `ssh_pwauth: false` and the nodes refuse it.
+	func testAnsibleLabManagedNodesAllowSSHPasswordAuthentication() throws {
+		let compose = try XCTUnwrap(ComposeLibrary.loadBundled().template(id: "ansible-lab")).composeFile()
+
+		for name in ["web1", "web2"] {
+			let service = try XCTUnwrap(compose.services[name])
+			let built = try service.toBuildOptions(name: "compose-\(compose.name)-\(name)", composeNetworks: compose.networks)
+
+			defer { built.cleanup.forEach { try? FileManager.default.removeItem(at: $0) } }
+
+			XCTAssertEqual(service.sshPasswordAuth, true, name)
+			XCTAssertTrue(built.options.clearPassword, name)
+		}
+
+		let plain = ComposeService()
+
+		XCTAssertFalse(try plain.toBuildOptions(name: "compose-x-y", composeNetworks: nil).options.clearPassword, "off unless asked for")
+	}
+
 	func testDockerHostForwardsTheDockerSocket() throws {
 		let compose = try XCTUnwrap(ComposeLibrary.loadBundled().template(id: "docker-host")).composeFile()
 		let service = try XCTUnwrap(compose.services["docker"])

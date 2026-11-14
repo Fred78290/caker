@@ -222,6 +222,16 @@ services:
             user haproxy
             group haproxy
 
+          # The backends are named: look them up again while running, so a recreated node (new address) is found
+          # without restarting HAProxy. 127.0.0.53 is the systemd-resolved stub, which forwards compose names to compose DNS.
+          resolvers compose
+            nameserver stub 127.0.0.53:53
+            accepted_payload_size 512
+            resolve_retries 3
+            timeout resolve 1s
+            timeout retry 1s
+            hold valid 10s
+
           defaults
             mode tcp
             timeout connect 5s
@@ -234,8 +244,8 @@ services:
             option httpchk GET /primary
             http-check expect status 200
             default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-            server pg1 pg1.patroni.compose.internal:5432 check port 8008
-            server pg2 pg2.patroni.compose.internal:5432 check port 8008
+            server pg1 pg1.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
+            server pg2 pg2.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
 
           # Port 5001: the replicas.
           listen replicas
@@ -244,8 +254,8 @@ services:
             option httpchk GET /replica
             http-check expect status 200
             default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-            server pg1 pg1.patroni.compose.internal:5432 check port 8008
-            server pg2 pg2.patroni.compose.internal:5432 check port 8008
+            server pg1 pg1.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
+            server pg2 pg2.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
 
           listen stats
             mode http
