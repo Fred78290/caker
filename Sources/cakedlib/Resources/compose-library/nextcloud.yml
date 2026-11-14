@@ -33,8 +33,11 @@ services:
       - snap wait system seed.loaded
       - snap install nextcloud
       - |
-        . /etc/environment
-        nextcloud.manual-install "$NEXTCLOUD_ADMIN_USER" "$NEXTCLOUD_ADMIN_PASSWORD"
+        # /etc/environment holds the raw values: read them with grep rather than sourcing the file, which would
+        # split a password with a space and expand a `$` in it.
+        admin_user=$(grep '^NEXTCLOUD_ADMIN_USER=' /etc/environment | cut -d= -f2-)
+        admin_password=$(grep '^NEXTCLOUD_ADMIN_PASSWORD=' /etc/environment | cut -d= -f2-)
+        nextcloud.manual-install "$admin_user" "$admin_password"
       # The host reaches it as localhost:8080 (forwarded port) or through the VM's address.
       - nextcloud.occ config:system:set trusted_domains 1 --value=localhost
       - nextcloud.occ config:system:set trusted_domains 2 --value=localhost:8080

@@ -85,12 +85,19 @@ services:
       - systemctl enable --now garage
       # A single node needs a layout before it accepts data, then the bucket and a key allowed on it.
       - |
+        set -e
         . /etc/environment
-        for i in $(seq 1 30); do garage status >/dev/null 2>&1 && break; sleep 2; done
+        ready=
+        for i in $(seq 1 30); do
+          if garage status >/dev/null 2>&1; then ready=1; break; fi
+          sleep 2
+        done
+        [ -n "$ready" ] || { echo "garage did not become ready" >&2; exit 1; }
         node=$(garage node id -q | cut -d@ -f1)
         garage layout assign -z dc1 -c 10G "$node"
         garage layout apply --version 1
         garage bucket create "$GARAGE_BUCKET"
-        garage key create "$GARAGE_KEY_NAME" > /root/garage-key.txt
+        # Written aside and renamed, so a failed key creation never leaves an empty credential file behind.
+        (umask 077; garage key create "$GARAGE_KEY_NAME" > /root/garage-key.txt.new)
+        mv /root/garage-key.txt.new /root/garage-key.txt
         garage bucket allow --read --write --owner "$GARAGE_BUCKET" --key "$GARAGE_KEY_NAME"
-        chmod 600 /root/garage-key.txt
