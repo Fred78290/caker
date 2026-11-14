@@ -219,26 +219,44 @@ import CakeAgentLib
 			return true
 		}
 
-		/// Unregisters the privileged helper daemon. Does nothing when it is not installed.
-		public static func uninstall() -> Bool {
+		/// Registers the privileged helper daemon and throws what `SMAppService` reports when it can't, unlike `install()`, which only logs it.
+		/// A daemon that now waits for the user's approval is not an error: the status says so, and System Settings is opened on Login Items.
+		public static func registerDaemon() throws {
+			let service = SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist")
+
+			if service.status != .enabled && service.status != .requiresApproval {
+				try service.register()
+			}
+
+			if service.status == .requiresApproval {
+				SMAppService.openSystemSettingsLoginItems()
+			}
+		}
+
+		/// Unregisters the privileged helper daemon and throws what `SMAppService` reports when it can't. Does nothing when it is not registered.
+		public static func unregisterDaemon() throws {
 			let service = SMAppService.daemon(plistName: "com.aldunelabs.caker.authorization.plist")
 
 			// A daemon still waiting for approval is registered too.
 			guard service.status == .enabled || service.status == .requiresApproval else {
-				return true
+				return
 			}
 
-			do {
-				try service.unregister()
-			} catch {
-				Logger(self).error("Unable to unregister the privileged helper: \(error)")
-				
-				return false
-			}
-			
-			return true
+			try service.unregister()
 		}
 
+		/// Unregisters the privileged helper daemon. Does nothing when it is not installed.
+		public static func uninstall() -> Bool {
+			do {
+				try unregisterDaemon()
+			} catch {
+				Logger(self).error("Unable to unregister the privileged helper: \(error)")
+
+				return false
+			}
+
+			return true
+		}
 
 		/// Runs `body` against the shared helper connection. Returns `nil` when the helper is not an option here (sandboxed,
 		/// App Store build, system run mode, or helper unreachable), so the caller can use `sudo` instead; real failures are thrown.
