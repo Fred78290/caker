@@ -114,6 +114,29 @@ public final class DHCPResponder: Sendable {
 	}
 }
 
+/// The host interface a DHCP server captures on: its name and hardware address.
+struct DHCPBinding: Equatable, Sendable {
+	let interface: String
+	let hardwareAddress: [UInt8]
+}
+
+/// When a DHCP capture has to be re-opened.
+///
+/// vmnet creates a network's bridge when the first guest attaches and removes it when the last one detaches, and a BPF
+/// descriptor is attached to one interface *instance*: once that bridge is gone the descriptor is dead for good, even
+/// if a bridge with the same name and address comes back with the next guest. Left alone, the server would keep
+/// "listening" on the old bridge and no VM would get an address until the whole network was restarted.
+enum DHCPBindingHealth {
+	/// - Parameters:
+	///   - bound: the interface the capture was opened on.
+	///   - current: the interface that carries the gateway address now (`nil`: none does, the bridge is gone).
+	///   - descriptorAttached: whether the BPF descriptor still reports an interface (it doesn't once the bridge is destroyed).
+	///   - readFailed: whether reading the descriptor failed for good.
+	static func needsRebind(bound: DHCPBinding, current: DHCPBinding?, descriptorAttached: Bool, readFailed: Bool) -> Bool {
+		readFailed || descriptorAttached == false || current != bound
+	}
+}
+
 #if USE_DHCP_SERVER
 
 public enum DHCPServerError: Error, CustomStringConvertible {
@@ -138,9 +161,16 @@ public enum DHCPServerError: Error, CustomStringConvertible {
 /// port 67), which is what ISC dhcpd and dnsmasq do on BSD, and writes complete Ethernet frames back. Several
 /// networks therefore run side by side, each only seeing its own bridge. Needs root for `/dev/bpf*`.
 public final class DHCPServer: Sendable {
+	/// Set by the read handler when reading the capture fails for good (the bridge it was attached to is gone).
+	private final class ReadFailure: Sendable {
+		let flag = Mutex(false)
+	}
+
 	private struct Running {
 		let fd: Int32
 		let source: DispatchSourceRead
+		let binding: DHCPBinding
+		let failure: ReadFailure
 	}
 
 	private let responder: DHCPResponder
@@ -314,11 +344,21 @@ public final class DHCPServer: Sendable {
 		let responder = self.responder
 		let logger = self.logger
 		let buffer = UnsafeMutableRawPointer.allocate(byteCount: bufferLength, alignment: 8)
+		let failure = ReadFailure()
 
 		source.setEventHandler {
 			let count = read(fd, buffer, bufferLength)
 
-			guard count > 0 else { return }
+			guard count > 0 else {
+				// A descriptor whose bridge was destroyed reads as an error (ENXIO) and stays readable: stop watching it
+				// (it would otherwise spin) and let the supervisor re-open the capture.
+				if count < 0, errno != EINTR, errno != EAGAIN {
+					failure.flag.withLock { $0 = true }
+					source.cancel()
+				}
+
+				return
+			}
 
 			var offset = 0
 
@@ -346,7 +386,7 @@ public final class DHCPServer: Sendable {
 			close(fd)
 		}
 
-		self.running.withLock { $0 = Running(fd: fd, source: source) }
+		self.running.withLock { $0 = Running(fd: fd, source: source, binding: DHCPBinding(interface: name, hardwareAddress: hardware), failure: failure) }
 		source.activate()
 		self.logger.info("DHCP server for \(self.bindAddress) listening on \(name)")
 	}
@@ -405,14 +445,81 @@ public final class DHCPServer: Sendable {
 		}
 	}
 
-	public func shutdown() async {
-		self.logger.info("Stopping DHCP server for \(self.bindAddress)")
+	/// Serves until cancelled, re-opening the capture whenever the bridge it was attached to goes away.
+	///
+	/// A network's bridge only exists while a guest is attached (see `DHCPBindingHealth`), so the server has to follow
+	/// it: attach as soon as the bridge exists, notice when it is gone or replaced, and attach again to the next one.
+	/// `startWithRetry` alone binds once and never looks back, which left a network without DHCP after all its VMs had
+	/// been stopped until the network was restarted.
+	public func run(retryDelayNanoseconds: UInt64 = 1_000_000_000, checkIntervalNanoseconds: UInt64 = 1_000_000_000) async throws {
+		var lastFailure: String? = nil
+
+		while true {
+			try Task.checkCancellation()
+
+			if self.running.withLock({ $0 != nil }) {
+				guard self.isBindingStale() else {
+					try await Task.sleep(nanoseconds: checkIntervalNanoseconds)
+					continue
+				}
+
+				self.logger.info("The bridge of \(self.bindAddress) changed or is gone: DHCP will attach to the next one")
+				self.detach()
+			}
+
+			do {
+				try self.start()
+
+				lastFailure = nil
+			} catch {
+				// The bridge not being there is the normal state while no guest runs. Anything else (no /dev/bpf, a
+				// bridge that isn't ready yet) is retried too, logged once per distinct reason.
+				if case DHCPServerError.interfaceNotFound = error {
+					lastFailure = nil
+				} else if lastFailure != "\(error)" {
+					lastFailure = "\(error)"
+					self.logger.warn("DHCP server for \(self.bindAddress) can't attach, retrying: \(error)")
+				}
+
+				try await Task.sleep(nanoseconds: retryDelayNanoseconds)
+			}
+		}
+	}
+
+	/// Whether the capture must be re-opened: its bridge was destroyed, replaced, or no longer carries the gateway.
+	private func isBindingStale() -> Bool {
+		guard let running = self.running.withLock({ $0 }) else {
+			return false
+		}
+
+		var linkType: UInt32 = 0
+		let readFailed = running.failure.flag.withLock { $0 }
+		let current = Self.interfaceName(forIPv4: self.bindAddress).flatMap { name in
+			Self.hardwareAddress(ofInterface: name).map { DHCPBinding(interface: name, hardwareAddress: $0) }
+		}
+
+		return DHCPBindingHealth.needsRebind(
+			bound: running.binding,
+			current: current,
+			// Once the bridge is destroyed the kernel detaches the descriptor from it and this ioctl fails. After a
+			// read failure the source is cancelled and the descriptor closed (its number may be reused): don't probe it.
+			descriptorAttached: readFailed ? false : ioctl(running.fd, BPF.getLinkType, &linkType) == 0,
+			readFailed: readFailed)
+	}
+
+	/// Closes the current capture, if any.
+	private func detach() {
 		let running = self.running.withLock { value -> Running? in
 			defer { value = nil }
 			return value
 		}
 
 		running?.source.cancel()
+	}
+
+	public func shutdown() async {
+		self.logger.info("Stopping DHCP server for \(self.bindAddress)")
+		self.detach()
 	}
 }
 

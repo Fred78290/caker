@@ -200,13 +200,14 @@ struct NetworkStarter {
 						dhcpServer = try Self.makeDHCPServer(networkName: options.networkName, network: network, runMode: runMode)
 
 						if let server = dhcpServer {
-							// Kept so `stopServices` can cancel it: the retry loop waits for a bridge that only exists once a guest
-							// attaches, and must not start a server after the services were stopped or replaced.
+							// Kept so `stopServices` can cancel it. `run` follows the network's bridge, which only exists while a
+							// guest is attached: it attaches when one shows up, and again after all of them were stopped and a new
+							// one starts. It must not outlive the services (stopped or replaced), hence the cancellation.
 							dhcpStartTask = Task {
 								logger.info("Starting the DHCP server of network \(options.networkName)")
 
 								do {
-									try await server.startWithRetry()
+									try await server.run()
 								} catch is CancellationError {
 									logger.debug("DHCP server of network \(options.networkName) was cancelled")
 								} catch {
