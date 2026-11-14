@@ -5,6 +5,8 @@
 //  Created by Frederic BOLTZ on 11/07/2025.
 //
 
+import CakedLib
+import ServiceManagement
 import SwiftUI
 
 extension Binding where Value == Bool {
@@ -22,6 +24,11 @@ struct ApplicationSettingsView: View {
 	@AppStorage("ShowMenuIcon") var isMenuIconShown = true
 
 	@State private var state: AppState = AppState.shared
+	@State private var loginItemStatus: SMAppService.Status = SMAppService.mainApp.status
+
+	#if USE_AUTHORIZATION_HELPER
+		@State private var helperStatus: SMAppService.Status = DirectAuthorizationHelperConnector.daemonStatus
+	#endif
 	
 	var body: some View {
 		Form {
@@ -64,6 +71,54 @@ struct ApplicationSettingsView: View {
 			}
 
 			Section {
+				Toggle(isOn: self.openAtLogin) {
+					Label("Open Caker at login", systemImage: "power")
+				}
+
+				if self.loginItemStatus == .requiresApproval {
+					HStack {
+						Text("Approval required in System Settings > General > Login Items & Extensions.")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+						Spacer()
+						Button("Open Login Items") {
+							SMAppService.openSystemSettingsLoginItems()
+						}
+					}
+				}
+			} header: {
+				Label("Startup", systemImage: "power")
+			}
+
+			#if USE_AUTHORIZATION_HELPER
+				if Bundle.isApplicationSandboxed == false {
+					Section {
+						Toggle(isOn: self.helperRegistered) {
+							Label("Register the privileged helper", systemImage: "lock.shield")
+						}
+
+						if self.helperStatus == .requiresApproval {
+							HStack {
+								Text("Approval required in System Settings > General > Login Items & Extensions.")
+									.font(.caption)
+									.foregroundStyle(.secondary)
+								Spacer()
+								Button("Open Login Items") {
+									SMAppService.openSystemSettingsLoginItems()
+								}
+							}
+						}
+					} header: {
+						Label("Authorization helper registration", systemImage: "lock.shield")
+					} footer: {
+						Text("Lets Caker run privileged operations, such as vmnet networks, without asking for sudo.")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
+				}
+			#endif
+
+			Section {
 				HStack {
 					Spacer()
 					Button(action: { MainUIAppDelegate.ensurePrivilegedBootstrapFiles() }) {
@@ -83,7 +138,77 @@ struct ApplicationSettingsView: View {
 		.formStyle(.grouped)
 		.scrollDisabled(true)
 		.fixedSize(horizontal: false, vertical: true)
+		.onAppear {
+			self.refreshStatuses()
+		}
+		.onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+			// The user may have approved the item in System Settings.
+			self.refreshStatuses()
+		}
 	}
+
+	private func refreshStatuses() {
+		self.loginItemStatus = SMAppService.mainApp.status
+
+		#if USE_AUTHORIZATION_HELPER
+			self.helperStatus = DirectAuthorizationHelperConnector.daemonStatus
+		#endif
+	}
+
+	private func showError(_ message: String, _ error: Error) {
+		let alert = NSGlassEffectAlert()
+
+		alert.messageText = message
+		alert.informativeText = error.localizedDescription
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "OK"))
+		alert.runModal()
+	}
+
+	/// On while Caker is a login item, including when it still waits for the user's approval.
+	private var openAtLogin: Binding<Bool> {
+		Binding {
+			self.loginItemStatus == .enabled || self.loginItemStatus == .requiresApproval
+		} set: { newValue in
+			let service = SMAppService.mainApp
+
+			do {
+				if newValue {
+					try service.register()
+				} else {
+					try service.unregister()
+				}
+			} catch {
+				self.showError(String(localized: "Unable to change the login item"), error)
+			}
+
+			self.loginItemStatus = service.status
+		}
+	}
+
+	#if USE_AUTHORIZATION_HELPER
+		/// On while the daemon is registered, including when it still waits for the user's approval.
+		private var helperRegistered: Binding<Bool> {
+			Binding {
+				self.helperStatus == .enabled || self.helperStatus == .requiresApproval
+			} set: { newValue in
+				do {
+					if newValue {
+						try DirectAuthorizationHelperConnector.registerDaemon()
+						UserDefaults.standard.removeObject(forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
+					} else {
+						// Remember the choice only once the daemon is really unregistered.
+						try DirectAuthorizationHelperConnector.unregisterDaemon()
+						UserDefaults.standard.set(true, forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
+					}
+				} catch {
+					self.showError(String(localized: "Unable to change the privileged helper registration"), error)
+				}
+
+				self.helperStatus = DirectAuthorizationHelperConnector.daemonStatus
+			}
+		}
+	#endif
 }
 
 private struct AppearanceTile: View {
