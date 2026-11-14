@@ -31,6 +31,11 @@ services:
       - systemctl restart postgresql
       # The values come from `environment:` above (written to /etc/environment).
       - |
-        . /etc/environment
+        # Read the raw values instead of sourcing /etc/environment: sourcing would split a value with a space
+        # and expand a `$` in it.
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        POSTGRES_USER=$(envval POSTGRES_USER)
+        POSTGRES_PASSWORD=$(envval POSTGRES_PASSWORD)
+        POSTGRES_DB=$(envval POSTGRES_DB)
         su postgres -c "psql -c \"CREATE ROLE $POSTGRES_USER LOGIN PASSWORD '$POSTGRES_PASSWORD'\""
         su postgres -c "createdb -O $POSTGRES_USER $POSTGRES_DB"

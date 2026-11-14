@@ -26,7 +26,12 @@ services:
       - sed -i "s/^bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
       - systemctl restart mariadb
       - |
-        . /etc/environment
+        # Read the raw values instead of sourcing /etc/environment: sourcing would split a value with a space
+        # and expand a `$` in it.
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        MYSQL_DATABASE=$(envval MYSQL_DATABASE)
+        MYSQL_USER=$(envval MYSQL_USER)
+        MYSQL_PASSWORD=$(envval MYSQL_PASSWORD)
         mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE; CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%'; FLUSH PRIVILEGES;"
 
   web:
