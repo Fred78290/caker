@@ -25,6 +25,7 @@ struct ComposeView: View {
 	@State private var projects: [ComposeReplyList.ComposeInfo] = []
 	@State private var loadError: String? = nil
 	@State private var editorTarget: EditorTarget? = nil
+	@State private var libraryPresented: Bool = false
 	/// Projects with a start/stop/delete in flight: their row buttons are disabled until it is done and the
 	/// list has been reloaded, so a second action can't be started on top of the first.
 	@State private var busyProjects: [String: ComposeAction] = [:]
@@ -55,11 +56,13 @@ struct ComposeView: View {
 	enum EditorTarget: Identifiable {
 		case new
 		case edit(ComposeReplyList.ComposeInfo)
+		case template(ComposeLibraryTemplate)
 
 		var id: String {
 			switch self {
 			case .new: return "new"
 			case .edit(let project): return project.name
+			case .template(let template): return "template-\(template.id)"
 			}
 		}
 	}
@@ -71,7 +74,13 @@ struct ComposeView: View {
 					if let loadError {
 						ContentUnavailableView("Unable to load compose projects", systemImage: "exclamationmark.triangle", description: Text(loadError))
 					} else {
-						ContentUnavailableView("List empty", systemImage: "tray")
+						ContentUnavailableView {
+							Label("List empty", systemImage: "tray")
+						} actions: {
+							Button("Browse the template library") {
+								self.libraryPresented = true
+							}
+						}
 					}
 				}.frame(width: geom.size.width)
 			} else {
@@ -88,18 +97,39 @@ struct ComposeView: View {
 		.onChange(of: self.navigationModel.composeReloadToken) {
 			self.refresh()
 		}
+		.onChange(of: self.navigationModel.composeLibraryToken) {
+			self.libraryPresented = true
+		}
+		.glassedSheet(isPresented: self.$libraryPresented) {
+			ComposeLibraryView { template in
+				// The library sheet is dismissed first: two sheets can't be swapped in the same pass.
+				DispatchQueue.main.async {
+					self.editorTarget = .template(template)
+				}
+			}
+			.colorSchemeForColor()
+		}
 		.glassedSheet(item: self.$editorTarget) { target in
 			let existingProject: ComposeReplyList.ComposeInfo? = {
 				switch target {
-				case .new: return nil
+				case .new, .template: return nil
 				case .edit(let project): return project
 				}
+			}()
+			let template: ComposeLibraryTemplate? = {
+				if case .template(let template) = target {
+					return template
+				}
+
+				return nil
 			}()
 
 			ComposeEditorView(
 				client: AppState.shared.connectionManager.serviceClient,
 				runMode: AppState.shared.connectionManager.connectionMode.runMode,
-				existingProject: existingProject
+				existingProject: existingProject,
+				initialText: template?.compose,
+				templateName: template?.name
 			) {
 				self.navigationModel.composeReloadToken += 1
 			}

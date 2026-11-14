@@ -130,7 +130,7 @@ boot_command:
 
   - title: Configure the clock
     commands: 
-      - <locate text="Configure the clock|Select your time zone">
+      - <locate text="Configure the clock|Select your time zone" timeout=30>
       - <enter>
 
   - title: Partition disks - use guided partitioning on the entire disk

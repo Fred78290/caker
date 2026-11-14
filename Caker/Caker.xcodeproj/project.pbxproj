@@ -34,7 +34,6 @@
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1276B7682990108E5C70CEB6 /* CachedImageKind.swift */; };
 		50B325E5494C4C8396E606DB /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
-		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		6C35D6F42A709BA2C8E7C99E /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
@@ -75,7 +74,6 @@
 		9B11BFF13084B4E1005BBCBD /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */; };
 		9B11BFF23084B4E1005B7A02 /* WindowsArchitecture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */; };
 		9B11BFF23084B4E1005BBCBD /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */; };
-		9B11BFFD3084C577005BBCBD /* windows.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B11BFFC3084C577005BBCBD /* windows.png */; };
 		9B11C0023084B4E1005BBCBD /* WindowsGPUDriverBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11C0013084B4E1005BBCBD /* WindowsGPUDriverBinaries.swift */; };
 		9B11C0063084B4E1005BBCBD /* WindowsAudioDriverBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11C0053084B4E1005BBCBD /* WindowsAudioDriverBinaries.swift */; };
 		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
@@ -156,14 +154,10 @@
 		9B2BFAC32DFED25E000045C3 /* VirtualMachineSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAAE2DFED25E000045C3 /* VirtualMachineSettingsView.swift */; };
 		9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */; };
 		9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAAB2DFED25E000045C3 /* MountView.swift */; };
-		9B2D376F30471A3D00204614 /* ubuntu-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D376E30471A3D00204614 /* ubuntu-server.packerlite.yaml */; };
-		9B2D377030471A3E00204614 /* ubuntu-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D376E30471A3D00204614 /* ubuntu-server.packerlite.yaml */; };
 		9B2D37743048547300204614 /* ProvisionVariablesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37733048547300204614 /* ProvisionVariablesView.swift */; };
 		9B2D37753048547300204614 /* ProvisionVariableDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37713048547300204614 /* ProvisionVariableDetailView.swift */; };
 		9B2D37763048547300204614 /* ProvisionVariableNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37723048547300204614 /* ProvisionVariableNewItemView.swift */; };
 		9B2D377A3048556200204614 /* ProvisionVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37793048556200204614 /* ProvisionVariable.swift */; };
-		9B2D37B7304AD81600204614 /* ubuntu.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D37B6304AD81500204614 /* ubuntu.packerlite.yaml */; };
-		9B2D37B8304AD81600204614 /* ubuntu.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D37B6304AD81500204614 /* ubuntu.packerlite.yaml */; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA482E0BDB5600256A9D /* FileHelpers.swift */; };
 		9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4B2E0BF2B600256A9D /* RangeIntegerStyle.swift */; };
@@ -171,16 +165,6 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
-		9B32F9793025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9773025C31F0099D3A5 /* opensuse.packerlite.yaml */; };
-		9B32F97A3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */; };
-		9B32F97B3025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9763025C31F0099D3A5 /* fedora.packerlite.yaml */; };
-		9B32F97C3025C31F0099D3A5 /* centos.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */; };
-		9B32F97D3025C31F0099D3A5 /* redhat.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9783025C31F0099D3A5 /* redhat.packerlite.yaml */; };
-		9B32F97E3025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9773025C31F0099D3A5 /* opensuse.packerlite.yaml */; };
-		9B32F97F3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */; };
-		9B32F9803025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9763025C31F0099D3A5 /* fedora.packerlite.yaml */; };
-		9B32F9813025C31F0099D3A5 /* centos.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */; };
-		9B32F9823025C31F0099D3A5 /* redhat.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9783025C31F0099D3A5 /* redhat.packerlite.yaml */; };
 		9B32F98B3025E9780099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98A3025E96E0099D3A5 /* ProvisionHandler.swift */; };
 		9B32F98D302604800099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98C302604790099D3A5 /* ProvisionHandler.swift */; };
 		9B32F994302624DA0099D3A5 /* Provision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F993302624D70099D3A5 /* Provision.swift */; };
@@ -260,8 +244,6 @@
 		9B48B663302BD0F600B18C35 /* CakeHomeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B662302BD0F600B18C35 /* CakeHomeHandler.swift */; };
 		9B48B665302BD16600B18C35 /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B664302BD16600B18C35 /* RenameHandler.swift */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
-		9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
-		9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
 		9B561266301350FB00E9FA7D /* agent.svg in Resources */ = {isa = PBXBuildFile; fileRef = 9B561238301350FB00E9FA7D /* agent.svg */; };
 		9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B561239301350FB00E9FA7D /* AppIcon.icns */; };
@@ -269,31 +251,6 @@
 		9B561269301350FB00E9FA7D /* Document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123B301350FB00E9FA7D /* Document.icns */; };
 		9B56126A301350FB00E9FA7D /* MenuBarIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123C301350FB00E9FA7D /* MenuBarIcon.png */; };
 		9B56126B301350FB00E9FA7D /* Prompt.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123D301350FB00E9FA7D /* Prompt.png */; };
-		9B56126C301350FB00E9FA7D /* almalinux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123F301350FB00E9FA7D /* almalinux.png */; };
-		9B56126D301350FB00E9FA7D /* alpine.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561240301350FB00E9FA7D /* alpine.png */; };
-		9B56126E301350FB00E9FA7D /* arch-linux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561241301350FB00E9FA7D /* arch-linux.png */; };
-		9B56126F301350FB00E9FA7D /* backtrack.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561242301350FB00E9FA7D /* backtrack.png */; };
-		9B561270301350FB00E9FA7D /* centos.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561243301350FB00E9FA7D /* centos.png */; };
-		9B561271301350FB00E9FA7D /* debian.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561244301350FB00E9FA7D /* debian.png */; };
-		9B561272301350FB00E9FA7D /* elementary-os.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561245301350FB00E9FA7D /* elementary-os.png */; };
-		9B561273301350FB00E9FA7D /* fedora.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561246301350FB00E9FA7D /* fedora.png */; };
-		9B561274301350FB00E9FA7D /* gentoo.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561247301350FB00E9FA7D /* gentoo.png */; };
-		9B561275301350FB00E9FA7D /* knoppix.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561248301350FB00E9FA7D /* knoppix.png */; };
-		9B561276301350FB00E9FA7D /* kubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561249301350FB00E9FA7D /* kubuntu.png */; };
-		9B561277301350FB00E9FA7D /* linux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124A301350FB00E9FA7D /* linux.png */; };
-		9B561278301350FB00E9FA7D /* lubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124B301350FB00E9FA7D /* lubuntu.png */; };
-		9B561279301350FB00E9FA7D /* mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124C301350FB00E9FA7D /* mac.png */; };
-		9B56127A301350FB00E9FA7D /* mandriva.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124D301350FB00E9FA7D /* mandriva.png */; };
-		9B56127B301350FB00E9FA7D /* mint.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124E301350FB00E9FA7D /* mint.png */; };
-		9B56127C301350FB00E9FA7D /* openwrt.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124F301350FB00E9FA7D /* openwrt.png */; };
-		9B56127D301350FB00E9FA7D /* pop-os.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561250301350FB00E9FA7D /* pop-os.png */; };
-		9B56127E301350FB00E9FA7D /* red-hat.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561251301350FB00E9FA7D /* red-hat.png */; };
-		9B56127F301350FB00E9FA7D /* slackware.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561252301350FB00E9FA7D /* slackware.png */; };
-		9B561280301350FB00E9FA7D /* suse.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561253301350FB00E9FA7D /* suse.png */; };
-		9B561281301350FB00E9FA7D /* syllable.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561254301350FB00E9FA7D /* syllable.png */; };
-		9B561282301350FB00E9FA7D /* ubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561255301350FB00E9FA7D /* ubuntu.png */; };
-		9B561283301350FB00E9FA7D /* webos.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561256301350FB00E9FA7D /* webos.png */; };
-		9B561284301350FB00E9FA7D /* xubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561257301350FB00E9FA7D /* xubuntu.png */; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
 		9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */; };
@@ -373,16 +330,6 @@
 		9B839A75305C2B6800558A5C /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B839A72305C263900558A5C /* NSGlassEffectAlert.swift */; };
 		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
-		9B8F3F62301F3E74001FA32A /* macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F58301F3DCA001FA32A /* macos15.packerlite.yaml */; };
-		9B8F3F63301F3E74001FA32A /* macos14.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F59301F3DCA001FA32A /* macos14.packerlite.yaml */; };
-		9B8F3F64301F3E74001FA32A /* macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F5B301F3DCA001FA32A /* macos13.packerlite.yaml */; };
-		9B8F3F65301F3E74001FA32A /* macos12.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F57301F3DCA001FA32A /* macos12.packerlite.yaml */; };
-		9B8F3F66301F3E74001FA32A /* macos26.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F5A301F3DCA001FA32A /* macos26.packerlite.yaml */; };
-		9B8F3F67301F3E74001FA32A /* macos14.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F59301F3DCA001FA32A /* macos14.packerlite.yaml */; };
-		9B8F3F68301F3E74001FA32A /* macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F5B301F3DCA001FA32A /* macos13.packerlite.yaml */; };
-		9B8F3F69301F3E74001FA32A /* macos12.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F57301F3DCA001FA32A /* macos12.packerlite.yaml */; };
-		9B8F3F6A301F3E74001FA32A /* macos26.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F5A301F3DCA001FA32A /* macos26.packerlite.yaml */; };
-		9B8F3F6B301F3E74001FA32A /* macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F58301F3DCA001FA32A /* macos15.packerlite.yaml */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
@@ -565,6 +512,98 @@
 		9BC1F6852F66B25C00A83B33 /* ColorWell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F6842F66B25A00A83B33 /* ColorWell.swift */; };
 		9BC1F9982F6D469A00A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9972F6D469A00A83B33 /* Subprocess */; };
 		9BC1F99A2F6D475800A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9992F6D475800A83B33 /* Subprocess */; };
+		9BC4DC9C30A868C400FEFAE5 /* docker-host.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */; };
+		9BC4DC9D30A868C400FEFAE5 /* index.json in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6B30A8687100FEFAE5 /* index.json */; };
+		9BC4DC9E30A868C400FEFAE5 /* k3s.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6C30A8687100FEFAE5 /* k3s.yml */; };
+		9BC4DC9F30A868C400FEFAE5 /* lamp.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6D30A8687100FEFAE5 /* lamp.yml */; };
+		9BC4DCA030A868C400FEFAE5 /* lemp.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6E30A8687100FEFAE5 /* lemp.yml */; };
+		9BC4DCA130A868C400FEFAE5 /* mariadb-phpmyadmin.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6F30A8687100FEFAE5 /* mariadb-phpmyadmin.yml */; };
+		9BC4DCA230A868C400FEFAE5 /* nodejs-redis.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7030A8687100FEFAE5 /* nodejs-redis.yml */; };
+		9BC4DCA330A868C400FEFAE5 /* postgres.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7130A8687100FEFAE5 /* postgres.yml */; };
+		9BC4DCA430A868C400FEFAE5 /* python-postgres.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7230A8687100FEFAE5 /* python-postgres.yml */; };
+		9BC4DCA530A868C400FEFAE5 /* rabbitmq.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7330A8687100FEFAE5 /* rabbitmq.yml */; };
+		9BC4DCA630A868C400FEFAE5 /* redis.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7430A8687100FEFAE5 /* redis.yml */; };
+		9BC4DCA730A868C400FEFAE5 /* ubuntu-dev.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7530A8687100FEFAE5 /* ubuntu-dev.yml */; };
+		9BC4DCA930A8691800FEFAE5 /* docker-host.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */; };
+		9BC4DCAA30A8691800FEFAE5 /* index.json in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6B30A8687100FEFAE5 /* index.json */; };
+		9BC4DCAB30A8691800FEFAE5 /* k3s.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6C30A8687100FEFAE5 /* k3s.yml */; };
+		9BC4DCAC30A8691800FEFAE5 /* lamp.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6D30A8687100FEFAE5 /* lamp.yml */; };
+		9BC4DCAD30A8691800FEFAE5 /* lemp.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6E30A8687100FEFAE5 /* lemp.yml */; };
+		9BC4DCAE30A8691800FEFAE5 /* mariadb-phpmyadmin.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6F30A8687100FEFAE5 /* mariadb-phpmyadmin.yml */; };
+		9BC4DCAF30A8691800FEFAE5 /* nodejs-redis.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7030A8687100FEFAE5 /* nodejs-redis.yml */; };
+		9BC4DCB030A8691800FEFAE5 /* postgres.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7130A8687100FEFAE5 /* postgres.yml */; };
+		9BC4DCB130A8691800FEFAE5 /* python-postgres.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7230A8687100FEFAE5 /* python-postgres.yml */; };
+		9BC4DCB230A8691800FEFAE5 /* rabbitmq.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7330A8687100FEFAE5 /* rabbitmq.yml */; };
+		9BC4DCB330A8691800FEFAE5 /* redis.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7430A8687100FEFAE5 /* redis.yml */; };
+		9BC4DCB430A8691800FEFAE5 /* ubuntu-dev.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7530A8687100FEFAE5 /* ubuntu-dev.yml */; };
+		9BC4DCB630A8694F00FEFAE5 /* docker-host.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */; };
+		9BC4DCB730A8694F00FEFAE5 /* index.json in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6B30A8687100FEFAE5 /* index.json */; };
+		9BC4DCB830A8694F00FEFAE5 /* k3s.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6C30A8687100FEFAE5 /* k3s.yml */; };
+		9BC4DCB930A8694F00FEFAE5 /* lamp.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6D30A8687100FEFAE5 /* lamp.yml */; };
+		9BC4DCBA30A8694F00FEFAE5 /* lemp.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6E30A8687100FEFAE5 /* lemp.yml */; };
+		9BC4DCBB30A8694F00FEFAE5 /* mariadb-phpmyadmin.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC6F30A8687100FEFAE5 /* mariadb-phpmyadmin.yml */; };
+		9BC4DCBC30A8694F00FEFAE5 /* nodejs-redis.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7030A8687100FEFAE5 /* nodejs-redis.yml */; };
+		9BC4DCBD30A8694F00FEFAE5 /* postgres.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7130A8687100FEFAE5 /* postgres.yml */; };
+		9BC4DCBE30A8694F00FEFAE5 /* python-postgres.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7230A8687100FEFAE5 /* python-postgres.yml */; };
+		9BC4DCBF30A8694F00FEFAE5 /* rabbitmq.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7330A8687100FEFAE5 /* rabbitmq.yml */; };
+		9BC4DCC030A8694F00FEFAE5 /* redis.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7430A8687100FEFAE5 /* redis.yml */; };
+		9BC4DCC130A8694F00FEFAE5 /* ubuntu-dev.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BC4DC7530A8687100FEFAE5 /* ubuntu-dev.yml */; };
+		9BC4DCC330A86D8000FEFAE5 /* alpine.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
+		9BC4DCC430A86D8000FEFAE5 /* centos.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */; };
+		9BC4DCC530A86D8000FEFAE5 /* debian.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */; };
+		9BC4DCC630A86D8000FEFAE5 /* fedora-server.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
+		9BC4DCC730A86D8000FEFAE5 /* fedora.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9763025C31F0099D3A5 /* fedora.packerlite.yaml */; };
+		9BC4DCC830A86D8000FEFAE5 /* macos12.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F57301F3DCA001FA32A /* macos12.packerlite.yaml */; };
+		9BC4DCC930A86D8000FEFAE5 /* macos13.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F5B301F3DCA001FA32A /* macos13.packerlite.yaml */; };
+		9BC4DCCA30A86D8000FEFAE5 /* macos14.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F59301F3DCA001FA32A /* macos14.packerlite.yaml */; };
+		9BC4DCCB30A86D8000FEFAE5 /* macos15.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F58301F3DCA001FA32A /* macos15.packerlite.yaml */; };
+		9BC4DCCC30A86D8000FEFAE5 /* macos26.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F5A301F3DCA001FA32A /* macos26.packerlite.yaml */; };
+		9BC4DCCD30A86D8000FEFAE5 /* macos27.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9BE7F1B430309FA00006F53F /* macos27.packerlite.yaml */; };
+		9BC4DCCE30A86D8000FEFAE5 /* opensuse.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9773025C31F0099D3A5 /* opensuse.packerlite.yaml */; };
+		9BC4DCCF30A86D8000FEFAE5 /* redhat.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9783025C31F0099D3A5 /* redhat.packerlite.yaml */; };
+		9BC4DCD030A86D8000FEFAE5 /* ubuntu-server.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B2D376E30471A3D00204614 /* ubuntu-server.packerlite.yaml */; };
+		9BC4DCD130A86D8000FEFAE5 /* ubuntu.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B2D37B6304AD81500204614 /* ubuntu.packerlite.yaml */; };
+		9BC4DCD330A86DC500FEFAE5 /* alpine.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
+		9BC4DCD430A86DC500FEFAE5 /* centos.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */; };
+		9BC4DCD530A86DC500FEFAE5 /* debian.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */; };
+		9BC4DCD630A86DC500FEFAE5 /* fedora-server.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
+		9BC4DCD730A86DC500FEFAE5 /* fedora.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9763025C31F0099D3A5 /* fedora.packerlite.yaml */; };
+		9BC4DCD830A86DC500FEFAE5 /* macos12.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F57301F3DCA001FA32A /* macos12.packerlite.yaml */; };
+		9BC4DCD930A86DC500FEFAE5 /* macos13.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F5B301F3DCA001FA32A /* macos13.packerlite.yaml */; };
+		9BC4DCDA30A86DC500FEFAE5 /* macos14.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F59301F3DCA001FA32A /* macos14.packerlite.yaml */; };
+		9BC4DCDB30A86DC500FEFAE5 /* macos15.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F58301F3DCA001FA32A /* macos15.packerlite.yaml */; };
+		9BC4DCDC30A86DC500FEFAE5 /* macos26.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B8F3F5A301F3DCA001FA32A /* macos26.packerlite.yaml */; };
+		9BC4DCDD30A86DC500FEFAE5 /* macos27.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9BE7F1B430309FA00006F53F /* macos27.packerlite.yaml */; };
+		9BC4DCDE30A86DC500FEFAE5 /* opensuse.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9773025C31F0099D3A5 /* opensuse.packerlite.yaml */; };
+		9BC4DCDF30A86DC500FEFAE5 /* redhat.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B32F9783025C31F0099D3A5 /* redhat.packerlite.yaml */; };
+		9BC4DCE030A86DC500FEFAE5 /* ubuntu-server.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B2D376E30471A3D00204614 /* ubuntu-server.packerlite.yaml */; };
+		9BC4DCE130A86DC500FEFAE5 /* ubuntu.packerlite.yaml in PackerLite */ = {isa = PBXBuildFile; fileRef = 9B2D37B6304AD81500204614 /* ubuntu.packerlite.yaml */; };
+		9BC4DCE330A86E8C00FEFAE5 /* almalinux.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56123F301350FB00E9FA7D /* almalinux.png */; };
+		9BC4DCE430A86E8C00FEFAE5 /* alpine.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561240301350FB00E9FA7D /* alpine.png */; };
+		9BC4DCE530A86E8C00FEFAE5 /* arch-linux.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561241301350FB00E9FA7D /* arch-linux.png */; };
+		9BC4DCE630A86E8C00FEFAE5 /* backtrack.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561242301350FB00E9FA7D /* backtrack.png */; };
+		9BC4DCE730A86E8C00FEFAE5 /* centos.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561243301350FB00E9FA7D /* centos.png */; };
+		9BC4DCE830A86E8C00FEFAE5 /* debian.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561244301350FB00E9FA7D /* debian.png */; };
+		9BC4DCE930A86E8C00FEFAE5 /* elementary-os.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561245301350FB00E9FA7D /* elementary-os.png */; };
+		9BC4DCEA30A86E8C00FEFAE5 /* fedora.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561246301350FB00E9FA7D /* fedora.png */; };
+		9BC4DCEB30A86E8C00FEFAE5 /* gentoo.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561247301350FB00E9FA7D /* gentoo.png */; };
+		9BC4DCEC30A86E8C00FEFAE5 /* knoppix.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561248301350FB00E9FA7D /* knoppix.png */; };
+		9BC4DCED30A86E8C00FEFAE5 /* kubuntu.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561249301350FB00E9FA7D /* kubuntu.png */; };
+		9BC4DCEE30A86E8C00FEFAE5 /* linux.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56124A301350FB00E9FA7D /* linux.png */; };
+		9BC4DCEF30A86E8C00FEFAE5 /* lubuntu.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56124B301350FB00E9FA7D /* lubuntu.png */; };
+		9BC4DCF030A86E8C00FEFAE5 /* mac.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56124C301350FB00E9FA7D /* mac.png */; };
+		9BC4DCF130A86E8C00FEFAE5 /* mandriva.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56124D301350FB00E9FA7D /* mandriva.png */; };
+		9BC4DCF230A86E8C00FEFAE5 /* mint.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56124E301350FB00E9FA7D /* mint.png */; };
+		9BC4DCF330A86E8C00FEFAE5 /* openwrt.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B56124F301350FB00E9FA7D /* openwrt.png */; };
+		9BC4DCF430A86E8C00FEFAE5 /* pop-os.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561250301350FB00E9FA7D /* pop-os.png */; };
+		9BC4DCF530A86E8C00FEFAE5 /* red-hat.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561251301350FB00E9FA7D /* red-hat.png */; };
+		9BC4DCF630A86E8C00FEFAE5 /* slackware.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561252301350FB00E9FA7D /* slackware.png */; };
+		9BC4DCF730A86E8C00FEFAE5 /* suse.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561253301350FB00E9FA7D /* suse.png */; };
+		9BC4DCF830A86E8C00FEFAE5 /* syllable.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561254301350FB00E9FA7D /* syllable.png */; };
+		9BC4DCF930A86E8C00FEFAE5 /* ubuntu.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561255301350FB00E9FA7D /* ubuntu.png */; };
+		9BC4DCFA30A86E8C00FEFAE5 /* webos.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561256301350FB00E9FA7D /* webos.png */; };
+		9BC4DCFB30A86E8C00FEFAE5 /* windows.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B11BFFC3084C577005BBCBD /* windows.png */; };
+		9BC4DCFC30A86E8C00FEFAE5 /* xubuntu.png in Icons */ = {isa = PBXBuildFile; fileRef = 9B561257301350FB00E9FA7D /* xubuntu.png */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEEB89307A964E006D282F /* GlassedSheet.swift */; };
@@ -573,7 +612,7 @@
 		9BD685AD30A47D7F00031AE8 /* AuthorizationCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD685AC30A47D7900031AE8 /* AuthorizationCommand.swift */; };
 		9BD69DF62FCEE912005E24AF /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9BD69DF72FCEE912005E24AF /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
-		9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BD69DFB2FCEE977005E24AF /* cakectl in Cakectl */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BD69DFD2FCEEAF3005E24AF /* cakectl.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BD69DF02FCEE8F1005E24AF /* cakectl.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BD6FC0630A21F0E00D38C5F /* NetworkStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD6FC0530A21F0600D38C5F /* NetworkStarter.swift */; };
 		9BD85B23303317ED00AD9100 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD85B22303317EA00AD9100 /* SplashScreenView.swift */; };
@@ -620,8 +659,6 @@
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE7F199302CAC690006F53F /* ProvisionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE7F198302CAC600006F53F /* ProvisionOptions.swift */; };
-		9BE7F1B530309FA00006F53F /* macos27.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B430309FA00006F53F /* macos27.packerlite.yaml */; };
-		9BE7F1B630309FA00006F53F /* macos27.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B430309FA00006F53F /* macos27.packerlite.yaml */; };
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
 		9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */; };
@@ -850,14 +887,16 @@
 		9BFD5B193057338800517B3E /* TaskEntryRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B183057338800517B3E /* TaskEntryRepresentation.swift */; };
 		9BFD5B1D3057349600517B3E /* Tasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1C3057349600517B3E /* Tasks.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
-		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BFE86A72F7E59DC005CC9B2 /* caked in Caked */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE87182F7E6202005CC9B2 /* caked.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9DB351EF1F52485D3D4A0230 /* ComposeLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */; };
 		A199C421AA7B30AB6695C4A5 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */; };
 		A424451134385526A101CD0D /* CakedKeyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */; };
 		A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */; };
 		A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */; };
+		A9452BFC8CA1EDBE39800554 /* ComposeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504B0E2431C13909F09D81FC /* ComposeLibrary.swift */; };
 		AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */; };
 		AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
 		C67C4C7F7CAAA38DDCDB6738 /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
@@ -866,10 +905,10 @@
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
 		D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */; };
-		D43FC446B6C30CD981F6FA33 /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
+		F91906CBB193D754B7162A64 /* ComposeLibraryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1068,13 +1107,154 @@
 			files = (
 			);
 		};
-		9BD69DFA2FCEE968005E24AF /* CopyFiles */ = {
+		9BC4DC9B30A8689800FEFAE5 /* Compose Library */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "compose-library";
+			dstSubfolder = Resources;
+			files = (
+				9BC4DC9C30A868C400FEFAE5 /* docker-host.yml in Compose Library */,
+				9BC4DC9D30A868C400FEFAE5 /* index.json in Compose Library */,
+				9BC4DC9E30A868C400FEFAE5 /* k3s.yml in Compose Library */,
+				9BC4DC9F30A868C400FEFAE5 /* lamp.yml in Compose Library */,
+				9BC4DCA030A868C400FEFAE5 /* lemp.yml in Compose Library */,
+				9BC4DCA130A868C400FEFAE5 /* mariadb-phpmyadmin.yml in Compose Library */,
+				9BC4DCA230A868C400FEFAE5 /* nodejs-redis.yml in Compose Library */,
+				9BC4DCA330A868C400FEFAE5 /* postgres.yml in Compose Library */,
+				9BC4DCA430A868C400FEFAE5 /* python-postgres.yml in Compose Library */,
+				9BC4DCA530A868C400FEFAE5 /* rabbitmq.yml in Compose Library */,
+				9BC4DCA630A868C400FEFAE5 /* redis.yml in Compose Library */,
+				9BC4DCA730A868C400FEFAE5 /* ubuntu-dev.yml in Compose Library */,
+			);
+			name = "Compose Library";
+		};
+		9BC4DCA830A868F000FEFAE5 /* Compose Library */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "compose-library";
+			dstSubfolder = Resources;
+			files = (
+				9BC4DCA930A8691800FEFAE5 /* docker-host.yml in Compose Library */,
+				9BC4DCAA30A8691800FEFAE5 /* index.json in Compose Library */,
+				9BC4DCAB30A8691800FEFAE5 /* k3s.yml in Compose Library */,
+				9BC4DCAC30A8691800FEFAE5 /* lamp.yml in Compose Library */,
+				9BC4DCAD30A8691800FEFAE5 /* lemp.yml in Compose Library */,
+				9BC4DCAE30A8691800FEFAE5 /* mariadb-phpmyadmin.yml in Compose Library */,
+				9BC4DCAF30A8691800FEFAE5 /* nodejs-redis.yml in Compose Library */,
+				9BC4DCB030A8691800FEFAE5 /* postgres.yml in Compose Library */,
+				9BC4DCB130A8691800FEFAE5 /* python-postgres.yml in Compose Library */,
+				9BC4DCB230A8691800FEFAE5 /* rabbitmq.yml in Compose Library */,
+				9BC4DCB330A8691800FEFAE5 /* redis.yml in Compose Library */,
+				9BC4DCB430A8691800FEFAE5 /* ubuntu-dev.yml in Compose Library */,
+			);
+			name = "Compose Library";
+		};
+		9BC4DCB530A8693000FEFAE5 /* Compose Library */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "compose-library";
+			dstSubfolder = Resources;
+			files = (
+				9BC4DCB630A8694F00FEFAE5 /* docker-host.yml in Compose Library */,
+				9BC4DCB730A8694F00FEFAE5 /* index.json in Compose Library */,
+				9BC4DCB830A8694F00FEFAE5 /* k3s.yml in Compose Library */,
+				9BC4DCB930A8694F00FEFAE5 /* lamp.yml in Compose Library */,
+				9BC4DCBA30A8694F00FEFAE5 /* lemp.yml in Compose Library */,
+				9BC4DCBB30A8694F00FEFAE5 /* mariadb-phpmyadmin.yml in Compose Library */,
+				9BC4DCBC30A8694F00FEFAE5 /* nodejs-redis.yml in Compose Library */,
+				9BC4DCBD30A8694F00FEFAE5 /* postgres.yml in Compose Library */,
+				9BC4DCBE30A8694F00FEFAE5 /* python-postgres.yml in Compose Library */,
+				9BC4DCBF30A8694F00FEFAE5 /* rabbitmq.yml in Compose Library */,
+				9BC4DCC030A8694F00FEFAE5 /* redis.yml in Compose Library */,
+				9BC4DCC130A8694F00FEFAE5 /* ubuntu-dev.yml in Compose Library */,
+			);
+			name = "Compose Library";
+		};
+		9BC4DCC230A86D5800FEFAE5 /* PackerLite */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = packerlite;
+			dstSubfolder = Resources;
+			files = (
+				9BC4DCC330A86D8000FEFAE5 /* alpine.packerlite.yaml in PackerLite */,
+				9BC4DCC430A86D8000FEFAE5 /* centos.packerlite.yaml in PackerLite */,
+				9BC4DCC530A86D8000FEFAE5 /* debian.packerlite.yaml in PackerLite */,
+				9BC4DCC630A86D8000FEFAE5 /* fedora-server.packerlite.yaml in PackerLite */,
+				9BC4DCC730A86D8000FEFAE5 /* fedora.packerlite.yaml in PackerLite */,
+				9BC4DCC830A86D8000FEFAE5 /* macos12.packerlite.yaml in PackerLite */,
+				9BC4DCC930A86D8000FEFAE5 /* macos13.packerlite.yaml in PackerLite */,
+				9BC4DCCA30A86D8000FEFAE5 /* macos14.packerlite.yaml in PackerLite */,
+				9BC4DCCB30A86D8000FEFAE5 /* macos15.packerlite.yaml in PackerLite */,
+				9BC4DCCC30A86D8000FEFAE5 /* macos26.packerlite.yaml in PackerLite */,
+				9BC4DCCD30A86D8000FEFAE5 /* macos27.packerlite.yaml in PackerLite */,
+				9BC4DCCE30A86D8000FEFAE5 /* opensuse.packerlite.yaml in PackerLite */,
+				9BC4DCCF30A86D8000FEFAE5 /* redhat.packerlite.yaml in PackerLite */,
+				9BC4DCD030A86D8000FEFAE5 /* ubuntu-server.packerlite.yaml in PackerLite */,
+				9BC4DCD130A86D8000FEFAE5 /* ubuntu.packerlite.yaml in PackerLite */,
+			);
+			name = PackerLite;
+		};
+		9BC4DCD230A86DA700FEFAE5 /* PackerLite */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = packerlite;
+			dstSubfolder = Resources;
+			files = (
+				9BC4DCD330A86DC500FEFAE5 /* alpine.packerlite.yaml in PackerLite */,
+				9BC4DCD430A86DC500FEFAE5 /* centos.packerlite.yaml in PackerLite */,
+				9BC4DCD530A86DC500FEFAE5 /* debian.packerlite.yaml in PackerLite */,
+				9BC4DCD630A86DC500FEFAE5 /* fedora-server.packerlite.yaml in PackerLite */,
+				9BC4DCD730A86DC500FEFAE5 /* fedora.packerlite.yaml in PackerLite */,
+				9BC4DCD830A86DC500FEFAE5 /* macos12.packerlite.yaml in PackerLite */,
+				9BC4DCD930A86DC500FEFAE5 /* macos13.packerlite.yaml in PackerLite */,
+				9BC4DCDA30A86DC500FEFAE5 /* macos14.packerlite.yaml in PackerLite */,
+				9BC4DCDB30A86DC500FEFAE5 /* macos15.packerlite.yaml in PackerLite */,
+				9BC4DCDC30A86DC500FEFAE5 /* macos26.packerlite.yaml in PackerLite */,
+				9BC4DCDD30A86DC500FEFAE5 /* macos27.packerlite.yaml in PackerLite */,
+				9BC4DCDE30A86DC500FEFAE5 /* opensuse.packerlite.yaml in PackerLite */,
+				9BC4DCDF30A86DC500FEFAE5 /* redhat.packerlite.yaml in PackerLite */,
+				9BC4DCE030A86DC500FEFAE5 /* ubuntu-server.packerlite.yaml in PackerLite */,
+				9BC4DCE130A86DC500FEFAE5 /* ubuntu.packerlite.yaml in PackerLite */,
+			);
+			name = PackerLite;
+		};
+		9BC4DCE230A86E7400FEFAE5 /* Icons */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = icons;
+			dstSubfolder = Resources;
+			files = (
+				9BC4DCE330A86E8C00FEFAE5 /* almalinux.png in Icons */,
+				9BC4DCE430A86E8C00FEFAE5 /* alpine.png in Icons */,
+				9BC4DCE530A86E8C00FEFAE5 /* arch-linux.png in Icons */,
+				9BC4DCE630A86E8C00FEFAE5 /* backtrack.png in Icons */,
+				9BC4DCE730A86E8C00FEFAE5 /* centos.png in Icons */,
+				9BC4DCE830A86E8C00FEFAE5 /* debian.png in Icons */,
+				9BC4DCE930A86E8C00FEFAE5 /* elementary-os.png in Icons */,
+				9BC4DCEA30A86E8C00FEFAE5 /* fedora.png in Icons */,
+				9BC4DCEB30A86E8C00FEFAE5 /* gentoo.png in Icons */,
+				9BC4DCEC30A86E8C00FEFAE5 /* knoppix.png in Icons */,
+				9BC4DCED30A86E8C00FEFAE5 /* kubuntu.png in Icons */,
+				9BC4DCEE30A86E8C00FEFAE5 /* linux.png in Icons */,
+				9BC4DCEF30A86E8C00FEFAE5 /* lubuntu.png in Icons */,
+				9BC4DCF030A86E8C00FEFAE5 /* mac.png in Icons */,
+				9BC4DCF130A86E8C00FEFAE5 /* mandriva.png in Icons */,
+				9BC4DCF230A86E8C00FEFAE5 /* mint.png in Icons */,
+				9BC4DCF330A86E8C00FEFAE5 /* openwrt.png in Icons */,
+				9BC4DCF430A86E8C00FEFAE5 /* pop-os.png in Icons */,
+				9BC4DCF530A86E8C00FEFAE5 /* red-hat.png in Icons */,
+				9BC4DCF630A86E8C00FEFAE5 /* slackware.png in Icons */,
+				9BC4DCF730A86E8C00FEFAE5 /* suse.png in Icons */,
+				9BC4DCF830A86E8C00FEFAE5 /* syllable.png in Icons */,
+				9BC4DCF930A86E8C00FEFAE5 /* ubuntu.png in Icons */,
+				9BC4DCFA30A86E8C00FEFAE5 /* webos.png in Icons */,
+				9BC4DCFB30A86E8C00FEFAE5 /* windows.png in Icons */,
+				9BC4DCFC30A86E8C00FEFAE5 /* xubuntu.png in Icons */,
+			);
+			name = Icons;
+		};
+		9BD69DFA2FCEE968005E24AF /* Cakectl */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
 			dstSubfolder = Executables;
 			files = (
-				9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */,
+				9BD69DFB2FCEE977005E24AF /* cakectl in Cakectl */,
 			);
+			name = Cakectl;
 		};
 		9BE569EB2DFEF9720086B9C7 /* Bundle */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -1094,13 +1274,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		9BFE86A52F7E59C8005CC9B2 /* CopyFiles */ = {
+		9BFE86A52F7E59C8005CC9B2 /* Caked */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
 			dstSubfolder = Executables;
 			files = (
-				9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */,
+				9BFE86A72F7E59DC005CC9B2 /* caked in Caked */,
 			);
+			name = Caked;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -1117,9 +1298,11 @@
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
 		2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
+		2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryCommand.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
+		504B0E2431C13909F09D81FC /* ComposeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibrary.swift; sourceTree = "<group>"; };
 		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
@@ -1584,6 +1767,18 @@
 		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
 		9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineTerminalView.swift; sourceTree = "<group>"; };
 		9BC1F6842F66B25A00A83B33 /* ColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWell.swift; sourceTree = "<group>"; };
+		9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "docker-host.yml"; sourceTree = "<group>"; };
+		9BC4DC6B30A8687100FEFAE5 /* index.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = index.json; sourceTree = "<group>"; };
+		9BC4DC6C30A8687100FEFAE5 /* k3s.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = k3s.yml; sourceTree = "<group>"; };
+		9BC4DC6D30A8687100FEFAE5 /* lamp.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = lamp.yml; sourceTree = "<group>"; };
+		9BC4DC6E30A8687100FEFAE5 /* lemp.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = lemp.yml; sourceTree = "<group>"; };
+		9BC4DC6F30A8687100FEFAE5 /* mariadb-phpmyadmin.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "mariadb-phpmyadmin.yml"; sourceTree = "<group>"; };
+		9BC4DC7030A8687100FEFAE5 /* nodejs-redis.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "nodejs-redis.yml"; sourceTree = "<group>"; };
+		9BC4DC7130A8687100FEFAE5 /* postgres.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = postgres.yml; sourceTree = "<group>"; };
+		9BC4DC7230A8687100FEFAE5 /* python-postgres.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "python-postgres.yml"; sourceTree = "<group>"; };
+		9BC4DC7330A8687100FEFAE5 /* rabbitmq.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = rabbitmq.yml; sourceTree = "<group>"; };
+		9BC4DC7430A8687100FEFAE5 /* redis.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = redis.yml; sourceTree = "<group>"; };
+		9BC4DC7530A8687100FEFAE5 /* ubuntu-dev.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "ubuntu-dev.yml"; sourceTree = "<group>"; };
 		9BCE821030753FB200414C1F /* cakectl.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = cakectl.plist; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BCEEB89307A964E006D282F /* GlassedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassedSheet.swift; sourceTree = "<group>"; };
@@ -1834,6 +2029,7 @@
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
+		D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryView.swift; sourceTree = "<group>"; };
 		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
 		DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
@@ -2101,10 +2297,11 @@
 		61D20D54533FC5B65DAD0E65 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B424710990B7411A855EC5AD /* VMImages.json */,
 				9B9ADA663095DC4800567445 /* cloudinit-install-cakeagent.sh */,
 				A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */,
 				22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */,
-				B424710990B7411A855EC5AD /* VMImages.json */,
+				9BC4DC7630A8687100FEFAE5 /* compose-library */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -2829,7 +3026,12 @@
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */,
+				DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */,
+				D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */,
+				070CEA8AC4D83C5669773CE7 /* ComposeView.swift */,
 				9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */,
+				2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */,
 				9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */,
 				9BB033782FF6AFE500F4612F /* ImportVirtualMachineView.swift */,
 				9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */,
@@ -2839,16 +3041,12 @@
 				9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */,
 				9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */,
 				9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */,
+				94A112BBD0363BE74540B818 /* TasksView.swift */,
 				9B001B8D3001703F0048894C /* TemplateDetailView.swift */,
 				9B9C4E922E23C92900C13D23 /* TemplatesView.swift */,
+				61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */,
 				9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */,
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
-				61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */,
-				94A112BBD0363BE74540B818 /* TasksView.swift */,
-				2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */,
-				DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */,
-				070CEA8AC4D83C5669773CE7 /* ComposeView.swift */,
-				110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2972,6 +3170,25 @@
 				9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */,
 			);
 			path = options;
+			sourceTree = "<group>";
+		};
+		9BC4DC7630A8687100FEFAE5 /* compose-library */ = {
+			isa = PBXGroup;
+			children = (
+				9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */,
+				9BC4DC6B30A8687100FEFAE5 /* index.json */,
+				9BC4DC6C30A8687100FEFAE5 /* k3s.yml */,
+				9BC4DC6D30A8687100FEFAE5 /* lamp.yml */,
+				9BC4DC6E30A8687100FEFAE5 /* lemp.yml */,
+				9BC4DC6F30A8687100FEFAE5 /* mariadb-phpmyadmin.yml */,
+				9BC4DC7030A8687100FEFAE5 /* nodejs-redis.yml */,
+				9BC4DC7130A8687100FEFAE5 /* postgres.yml */,
+				9BC4DC7230A8687100FEFAE5 /* python-postgres.yml */,
+				9BC4DC7330A8687100FEFAE5 /* rabbitmq.yml */,
+				9BC4DC7430A8687100FEFAE5 /* redis.yml */,
+				9BC4DC7530A8687100FEFAE5 /* ubuntu-dev.yml */,
+			);
+			path = "compose-library";
 			sourceTree = "<group>";
 		};
 		9BDA13A52EE6D42300357544 /* Keymapper */ = {
@@ -3252,6 +3469,7 @@
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
 				9BDC06562FEADF2B00802A3C /* ComposeFile.swift */,
+				504B0E2431C13909F09D81FC /* ComposeLibrary.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
@@ -3308,6 +3526,7 @@
 			isa = PBXGroup;
 			children = (
 				42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */,
+				2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */,
 				9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */,
 				9B3792E02FD5687200D3D54C /* Sandbox.swift */,
 				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
@@ -3476,6 +3695,9 @@
 				9B464A502D5A3DA000164BF5 /* Sources */,
 				9B464A512D5A3DA000164BF5 /* Frameworks */,
 				9B464A522D5A3DA000164BF5 /* Resources */,
+				9BC4DCE230A86E7400FEFAE5 /* Icons */,
+				9BC4DC9B30A8689800FEFAE5 /* Compose Library */,
+				9BC4DCC230A86D5800FEFAE5 /* PackerLite */,
 				9BE569EB2DFEF9720086B9C7 /* Bundle */,
 				9B9FE66E309A42F10006B008 /* Copy Authorization */,
 				9B9FE66C309A428C0006B008 /* Copy Helper */,
@@ -3683,8 +3905,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.app" */;
 			buildPhases = (
+				9BD69DFA2FCEE968005E24AF /* Cakectl */,
 				9BD69DEE2FCEE8F1005E24AF /* Resources */,
-				9BD69DFA2FCEE968005E24AF /* CopyFiles */,
+				9BC4DCB530A8693000FEFAE5 /* Compose Library */,
 				9BD69DFC2FCEE989005E24AF /* Localization */,
 				9B773E4F2FE92DE300C69B33 /* Set version */,
 			);
@@ -3847,13 +4070,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.app" */;
 			buildPhases = (
-				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
+				9BFE86A52F7E59C8005CC9B2 /* Caked */,
 				9B06995A2FB1A15E00FEAE13 /* Resources */,
+				9BC4DCA830A868F000FEFAE5 /* Compose Library */,
+				9BC4DCD230A86DA700FEFAE5 /* PackerLite */,
+				9B001A10300025710048894C /* Profile */,
 				9B1836552FB0E28F00D150FD /* WebUI */,
 				9B06995F2FB1A1E400FEAE13 /* Localization */,
 				9B773E4E2FE92DD500C69B33 /* Set version */,
 				9B001A083000034A0048894C /* LaunchAgent */,
-				9B001A10300025710048894C /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -3990,26 +4215,11 @@
 		9B06995A2FB1A15E00FEAE13 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				9B2D37B7304AD81600204614 /* ubuntu.packerlite.yaml in Resources */,
 				8D19AE739219331A241BE422 /* VMImages.json in Resources */,
 				1ABE4CCBA6204E3183685314 /* compose-template.yml in Resources */,
-				9B32F9793025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */,
-				9B32F97A3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */,
-				9BE7F1B630309FA00006F53F /* macos27.packerlite.yaml in Resources */,
-				9B32F97B3025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
-				9B2D376F30471A3D00204614 /* ubuntu-server.packerlite.yaml in Resources */,
 				9B9ADA693095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */,
-				9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
-				D43FC446B6C30CD981F6FA33 /* fedora-server.packerlite.yaml in Resources */,
-				9B32F97C3025C31F0099D3A5 /* centos.packerlite.yaml in Resources */,
-				9B32F97D3025C31F0099D3A5 /* redhat.packerlite.yaml in Resources */,
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
-				9B8F3F67301F3E74001FA32A /* macos14.packerlite.yaml in Resources */,
-				9B8F3F68301F3E74001FA32A /* macos13.packerlite.yaml in Resources */,
-				9B8F3F69301F3E74001FA32A /* macos12.packerlite.yaml in Resources */,
-				9B8F3F6A301F3E74001FA32A /* macos26.packerlite.yaml in Resources */,
-				9B8F3F6B301F3E74001FA32A /* macos15.packerlite.yaml in Resources */,
 				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
 			);
 		};
@@ -4025,50 +4235,9 @@
 				9B561269301350FB00E9FA7D /* Document.icns in Resources */,
 				9B56126A301350FB00E9FA7D /* MenuBarIcon.png in Resources */,
 				9B56126B301350FB00E9FA7D /* Prompt.png in Resources */,
-				9B56126C301350FB00E9FA7D /* almalinux.png in Resources */,
-				9B56126D301350FB00E9FA7D /* alpine.png in Resources */,
-				9B2D377030471A3E00204614 /* ubuntu-server.packerlite.yaml in Resources */,
 				9B9ADA683095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */,
-				9B56126E301350FB00E9FA7D /* arch-linux.png in Resources */,
-				9B56126F301350FB00E9FA7D /* backtrack.png in Resources */,
-				9B561270301350FB00E9FA7D /* centos.png in Resources */,
-				9B561271301350FB00E9FA7D /* debian.png in Resources */,
-				9B561272301350FB00E9FA7D /* elementary-os.png in Resources */,
-				9B561273301350FB00E9FA7D /* fedora.png in Resources */,
-				9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
-				9B32F97E3025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */,
-				9B32F97F3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */,
-				9B32F9803025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
-				660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */,
-				9B32F9813025C31F0099D3A5 /* centos.packerlite.yaml in Resources */,
-				9B32F9823025C31F0099D3A5 /* redhat.packerlite.yaml in Resources */,
-				9BE7F1B530309FA00006F53F /* macos27.packerlite.yaml in Resources */,
-				9B561274301350FB00E9FA7D /* gentoo.png in Resources */,
-				9B561275301350FB00E9FA7D /* knoppix.png in Resources */,
-				9B561276301350FB00E9FA7D /* kubuntu.png in Resources */,
-				9B561277301350FB00E9FA7D /* linux.png in Resources */,
-				9B561278301350FB00E9FA7D /* lubuntu.png in Resources */,
-				9B561279301350FB00E9FA7D /* mac.png in Resources */,
-				9B56127A301350FB00E9FA7D /* mandriva.png in Resources */,
-				9B56127B301350FB00E9FA7D /* mint.png in Resources */,
-				9B8F3F62301F3E74001FA32A /* macos15.packerlite.yaml in Resources */,
-				9B8F3F63301F3E74001FA32A /* macos14.packerlite.yaml in Resources */,
-				9B8F3F64301F3E74001FA32A /* macos13.packerlite.yaml in Resources */,
-				9B8F3F65301F3E74001FA32A /* macos12.packerlite.yaml in Resources */,
-				9B8F3F66301F3E74001FA32A /* macos26.packerlite.yaml in Resources */,
-				9B56127C301350FB00E9FA7D /* openwrt.png in Resources */,
-				9B56127D301350FB00E9FA7D /* pop-os.png in Resources */,
-				9B56127E301350FB00E9FA7D /* red-hat.png in Resources */,
-				9B56127F301350FB00E9FA7D /* slackware.png in Resources */,
-				9B561280301350FB00E9FA7D /* suse.png in Resources */,
-				9B11BFFD3084C577005BBCBD /* windows.png in Resources */,
-				9B561281301350FB00E9FA7D /* syllable.png in Resources */,
-				9B2D37B8304AD81600204614 /* ubuntu.packerlite.yaml in Resources */,
 				9B9FE670309A43520006B008 /* com.aldunelabs.caker.authorization.plist in Resources */,
-				9B561282301350FB00E9FA7D /* ubuntu.png in Resources */,
-				9B561283301350FB00E9FA7D /* webos.png in Resources */,
-				9B561284301350FB00E9FA7D /* xubuntu.png in Resources */,
 				9B5FA35F2F8D5AE80077EF64 /* InfoPlist.xcstrings in Resources */,
 			);
 		};
@@ -4096,12 +4265,12 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9B001A10300025710048894C /* Run Script */ = {
+		9B001A10300025710048894C /* Profile */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"${SOURCE_ROOT}/../Resources/caked.provisionprofile",
 			);
-			name = "Run Script";
+			name = Profile;
 			outputPaths = (
 				"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
 			);
@@ -4332,6 +4501,7 @@
 				11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */,
 				AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */,
 				7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */,
+				9DB351EF1F52485D3D4A0230 /* ComposeLibraryView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
@@ -4688,6 +4858,7 @@
 				9BDC05932FEADB4400802A3C /* CakerEnv.swift in Sources */,
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */,
+				A9452BFC8CA1EDBE39800554 /* ComposeLibrary.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
 				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
@@ -4776,6 +4947,7 @@
 				9B9117782EC9D4510017791D /* RawDisk.swift in Sources */,
 				9B3792E12FD5687200D3D54C /* Sandbox.swift in Sources */,
 				ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */,
+				F91906CBB193D754B7162A64 /* ComposeLibraryCommand.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
 				9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */,

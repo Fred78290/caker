@@ -1,0 +1,16 @@
+{
+	"version": 1,
+	"templates": [
+		"docker-host",
+		"k3s",
+		"lamp",
+		"lemp",
+		"mariadb-phpmyadmin",
+		"nodejs-redis",
+		"postgres",
+		"python-postgres",
+		"rabbitmq",
+		"redis",
+		"ubuntu-dev"
+	]
+}
