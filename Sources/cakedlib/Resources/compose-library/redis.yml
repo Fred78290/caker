@@ -23,7 +23,7 @@ services:
     packages:
       - redis-server
     post_commands:
-      - sed -i 's/^bind .*/bind 0.0.0.0 -::*/' /etc/redis/redis.conf
+      - sed -i 's/^bind .*/bind 0.0.0.0/' /etc/redis/redis.conf
       - |
         . /etc/environment
         echo "requirepass $REDIS_PASSWORD" >> /etc/redis/redis.conf
