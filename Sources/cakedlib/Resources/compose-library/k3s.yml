@@ -33,4 +33,4 @@ services:
       # The installer script is downloaded from get.k3s.io: read it before running this on anything that matters.
       # It is saved to a file and run only if the download succeeded: piped into sh, a failed curl would feed sh
       # an empty script, which exits 0 and reports a successful installation.
-      - f=$(mktemp) && curl -sfL https://get.k3s.io -o "$f" && K3S_KUBECONFIG_MODE=644 sh "$f"; rc=$?; rm -f "$f"; exit $rc
+      - curl -fsSL https://get.k3s.io -o /tmp/install-k3s.sh && K3S_KUBECONFIG_MODE=644 sh /tmp/install-k3s.sh
