@@ -197,7 +197,7 @@ let package = Package(
 		resources: [
 			.copy("Resources/VMImages.json"),
 			.copy("Resources/compose-template.yml"),
-			.copy("Resources/ComposeLibrary.json"),
+			.copy("Resources/compose-library"),
 			.copy("Resources/cloudinit-install-cakeagent.sh"),
 			.copy("Resources/ssh-install-cakeagent.sh"),
 			.copy("PackerLite/Resources/ubuntu-server.packerlite.yaml"),

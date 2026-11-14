@@ -48,8 +48,8 @@ services:
       - sed -i "s/^bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
       - systemctl restart mariadb
       # Runs before the root password is set below, while root can still log in over the unix socket.
-      - mysql -u root -e "CREATE USER IF NOT EXISTS '$(grep ^MYSQL_USER= /etc/environment | cut -d= -f2)'@'%' IDENTIFIED BY '$(grep ^MYSQL_PASSWORD= /etc/environment | cut -d= -f2)'; GRANT ALL PRIVILEGES ON $(grep ^MYSQL_DATABASE= /etc/environment | cut -d= -f2).* TO '$(grep ^MYSQL_USER= /etc/environment | cut -d= -f2)'@'%'; FLUSH PRIVILEGES;"
-      - mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)'; CREATE DATABASE IF NOT EXISTS $(grep MYSQL_DATABASE /etc/environment | cut -d= -f2); GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+      - mysql -u root -e "CREATE USER IF NOT EXISTS '$(grep ^MYSQL_USER= /etc/environment | cut -d= -f2)'@'%' IDENTIFIED BY '$(grep ^MYSQL_PASSWORD= /etc/environment | cut -d= -f2-)'; GRANT ALL PRIVILEGES ON $(grep ^MYSQL_DATABASE= /etc/environment | cut -d= -f2).* TO '$(grep ^MYSQL_USER= /etc/environment | cut -d= -f2)'@'%'; FLUSH PRIVILEGES;"
+      - mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2-)'; CREATE DATABASE IF NOT EXISTS $(grep MYSQL_DATABASE /etc/environment | cut -d= -f2); GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2-)' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 
   # phpMyAdmin (web) — the phpmyadmin package is debconf-interactive by default (which webserver to
   # auto-configure, whether to run its own local dbconfig-common setup) and would hang waiting for

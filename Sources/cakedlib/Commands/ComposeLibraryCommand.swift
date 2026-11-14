@@ -120,7 +120,7 @@ public struct ComposeLibraryShow: ParsableCommand {
 	public func run() throws {
 		let template = try ComposeLibraryCommand.template(self.id)
 
-		Logger.appendNewLine(self.options.format == .json ? self.options.format.renderSingle(template) : template.compose)
+		Logger.appendNewLine(self.options.format == .json ? self.options.format.renderSingle(template) : ((try? template.composeText(projectName: nil)) ?? template.compose))
 	}
 }
 

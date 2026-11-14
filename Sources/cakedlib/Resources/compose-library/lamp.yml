@@ -1,9 +1,9 @@
-# library-id: lemp
-# library-name: LEMP stack
+# library-id: lamp
+# library-name: LAMP stack
 # library-category: Web
-# library-summary: Nginx with PHP-FPM on one VM and MariaDB on another, wired together through compose DNS.
-# library-tags: lemp, nginx, php, mariadb, web
-name: lemp
+# library-summary: Apache with PHP on one VM and MariaDB on another, wired together through compose DNS.
+# library-tags: lamp, apache, php, mariadb, web
+name: lamp
 services:
   db:
     image: ubuntu:24.04
@@ -45,33 +45,24 @@ services:
           memory: 1024M
     package_update: true
     packages:
-      - nginx
-      - php-fpm
+      - apache2
+      - libapache2-mod-php
       - php-mysql
     write_files:
-      # Staged outside /etc/nginx so the package's own default site can't clash with it; copied in below.
-      - path: /root/lemp-site.conf
-        content: |
-          server {
-              listen 80 default_server;
-              root /var/www/html;
-              index index.php index.html;
-              location / { try_files $uri $uri/ =404; }
-              location ~ \.php$ {
-                  include snippets/fastcgi-php.conf;
-                  fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-              }
-          }
-        permissions: "0644"
-      # `db.lemp.compose.internal` is the db service's compose DNS name (<service>.<project>.<domain>).
+      # `db.lamp.compose.internal` is the db service's compose DNS name (<service>.<project>.<domain>).
       - path: /var/www/html/index.php
         content: |
           <?php
-          $db = @new mysqli('db.lemp.compose.internal', 'app', 'change-me', 'app');
-          echo $db->connect_errno ? 'Database: ' . $db->connect_error : 'Database: connected, MariaDB ' . $db->server_info;
+          mysqli_report(MYSQLI_REPORT_OFF);
+          try {
+              $db = new mysqli('db.lamp.compose.internal', 'app', 'change-me', 'app');
+              echo $db->connect_errno ? 'Database: ' . htmlspecialchars($db->connect_error) : 'Database: connected, MariaDB ' . $db->server_info;
+          } catch (Throwable $e) {
+              echo 'Database: ' . htmlspecialchars($e->getMessage());
+          }
           echo '<hr>';
           phpinfo();
         permissions: "0644"
     post_commands:
-      - cp /root/lemp-site.conf /etc/nginx/sites-available/default
-      - nginx -t && systemctl restart nginx
+      - rm -f /var/www/html/index.html
+      - systemctl restart apache2

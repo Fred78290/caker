@@ -27,7 +27,7 @@ services:
       - postgresql-contrib
     post_commands:
       - sed -i "s/^#\?listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
-      - echo "host all all 0.0.0.0/0 scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf
+      - for f in /etc/postgresql/*/main/pg_hba.conf; do echo "host all all 0.0.0.0/0 scram-sha-256" >> "$f"; done
       - systemctl restart postgresql
       # The values come from `environment:` above (written to /etc/environment).
       - |

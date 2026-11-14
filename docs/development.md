@@ -42,14 +42,15 @@ L'interface Web fait de même via `GET /1.0/vm-images` (une extension Caker de l
 
 ## Bibliothèque de modèles compose
 
-`Sources/cakedlib/ComposeLibrary.swift` charge la bibliothèque de modèles `compose.yml` (`ComposeLibrary.json`) exactement comme `VMImageCatalog` charge `VMImages.json` : `<CAKE_HOME>/ComposeLibrary.json` s'il est valide (copie synchronisée), sinon la ressource embarquée. `ComposeLibrary.refreshFromGitHub()` (`compose library sync`, bouton « Synchroniser » de `ComposeLibraryView`) la télécharge depuis la branche `main` ; tant que le fichier n'y est pas publié, la réponse 404 est signalée et la copie embarquée est utilisée. Une bibliothèque téléchargée est refusée en bloc si un modèle est invalide (`validate()` : ids uniques, YAML qui se décode en `ComposeFile`, au moins un service).
+`Sources/cakedlib/ComposeLibrary.swift` charge la bibliothèque de modèles `compose.yml` comme `VMImageCatalog` charge `VMImages.json`, mais un modèle est un fichier : le dossier `Sources/cakedlib/Resources/compose-library/` contient un `<id>.yml` par modèle et un `index.json` qui liste leurs ids. `<CAKE_HOME>/compose-library/` (copie synchronisée, écrite par un `sync` : il contient alors `index.json`) a la priorité sur le dossier embarqué ; un modèle illisible y est ignoré sans écarter les autres. `ComposeLibrary.refreshFromGitHub()` (`compose library sync`, bouton « Synchroniser » de `ComposeLibraryView`) télécharge `index.json` puis chaque `<id>.yml` depuis la branche `main` ; tant que le dossier n'y est pas publié, la réponse 404 est signalée et la copie embarquée est utilisée. Une bibliothèque téléchargée est refusée en bloc si un modèle est invalide (ids valides et uniques, YAML qui se décode en `ComposeFile`, au moins un service) ; chaque id de l'index devient un nom de fichier, il est donc validé avant tout accès au disque.
 
-Pour ajouter ou modifier un modèle, éditer `compose-library/<id>.yml` (un `compose.yml` dont les premières lignes sont des commentaires `# library-id/name/category/summary/tags`) puis régénérer le JSON et le valider :
+Pour ajouter ou modifier un modèle, éditer `Sources/cakedlib/Resources/compose-library/<id>.yml` (un `compose.yml` dont les premières lignes sont des commentaires `# library-id/name/category/summary/tags`, retirés du texte que `clone` écrit), ajouter son id à `index.json` (c'est ce que le `sync` télécharge) et valider :
 
 ```bash
-python3 Scripts/build-compose-library.py
 swift test --filter ComposeLibraryTests
 ```
+
+Le test vérifie aussi que `index.json` liste exactement les fichiers du dossier.
 
 `ComposeLibraryTests` fait passer chaque service de chaque modèle par `toBuildOptions`, ce qui détecte un YAML invalide ou un champ que `compose up` ne sait pas honorer. Un modèle désigne ses pairs par leur nom DNS compose (`<service>.<projet>.compose.internal`) : le projet doit être le sien, ce que le test vérifie aussi (`clone --name` renomme ces références).
 
@@ -235,14 +236,15 @@ The web UI does the same through `GET /1.0/vm-images` (a Caker extension of the 
 
 ## Compose template library
 
-`Sources/cakedlib/ComposeLibrary.swift` loads the library of `compose.yml` templates (`ComposeLibrary.json`) exactly like `VMImageCatalog` loads `VMImages.json`: `<CAKE_HOME>/ComposeLibrary.json` when valid (the synced copy), otherwise the bundled resource. `ComposeLibrary.refreshFromGitHub()` (`compose library sync`, the "Sync" button of `ComposeLibraryView`) downloads it from the `main` branch; until the file is published there, the 404 is reported and the bundled copy is used. A downloaded library is refused as a whole when one template is invalid (`validate()`: unique ids, YAML that decodes to a `ComposeFile`, at least one service).
+`Sources/cakedlib/ComposeLibrary.swift` loads the library of `compose.yml` templates like `VMImageCatalog` loads `VMImages.json`, except that a template is a file: the `Sources/cakedlib/Resources/compose-library/` folder holds one `<id>.yml` per template and an `index.json` listing their ids. `<CAKE_HOME>/compose-library/` (the synced copy, written by a `sync`: it then holds `index.json`) takes precedence over the bundled folder; a template that can't be read there is skipped without discarding the others. `ComposeLibrary.refreshFromGitHub()` (`compose library sync`, the "Sync" button of `ComposeLibraryView`) downloads `index.json` and then each `<id>.yml` from the `main` branch; until the folder is published there, the 404 is reported and the bundled copy is used. A downloaded library is refused as a whole when one template is invalid (valid and unique ids, YAML that decodes to a `ComposeFile`, at least one service); every id of the index becomes a file name, so it is validated before anything touches the disk.
 
-To add or change a template, edit `compose-library/<id>.yml` (a `compose.yml` whose first lines are `# library-id/name/category/summary/tags` comments), then regenerate the JSON and check it:
+To add or change a template, edit `Sources/cakedlib/Resources/compose-library/<id>.yml` (a `compose.yml` whose first lines are `# library-id/name/category/summary/tags` comments, removed from the text `clone` writes), add its id to `index.json` (it is what `sync` downloads) and check it:
 
 ```bash
-python3 Scripts/build-compose-library.py
 swift test --filter ComposeLibraryTests
 ```
+
+The test also checks that `index.json` lists exactly the files of the folder.
 
 `ComposeLibraryTests` runs every service of every template through `toBuildOptions`, which catches invalid YAML or a field `compose up` can't honour. A template names its peers by their compose DNS name (`<service>.<project>.compose.internal`): the project must be its own, which the test also checks (`clone --name` renames those references).
 

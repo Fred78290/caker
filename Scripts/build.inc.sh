@@ -32,13 +32,19 @@ rm -Rf "${PKGDIR}" 2>/dev/null || sudo --non-interactive rm -Rf "${PKGDIR}" || t
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/MacOS" \
 	"${CAKER_APP}/Resources" \
+	"${CAKER_APP}/Resources/packerlite" \
+	"${CAKER_APP}/Resources/icons" \
+	"${CAKER_APP}/Resources/compose-library" \
 	"${CAKER_APP}/PlugIns" \
 	\
 	"${CAKED_APP}/Resources" \
+	"${CAKED_APP}/Resources/packerlite" \
+	"${CAKED_APP}/Resources/compose-library" \
 	"${CAKED_APP}/MacOS" \
 	"${CAKED_APP}/Library/LaunchAgents" \
 	\
 	"${CAKECTL_APP}/Resources" \
+	"${CAKECTL_APP}/Resources/compose-library" \
 	"${CAKECTL_APP}/MacOS"
 
 # The privileged AuthorizationHelper is a launchd daemon registered through SMAppService: its plist lives in
@@ -94,12 +100,6 @@ if [ $APPSTORE -eq 0 ]; then
 	cp "$(find "$(xcode-select -p)" -name 'libswiftCompatibilitySpan*' | grep 'macosx/libswiftCompatibilitySpan.dylib')" "${CAKER_APP}/Frameworks/"
 fi
 
-cp "${PROJECT_ROOT}/Sources/caker/Resources/"* "${CAKER_APP}/Resources"
-cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKED_APP}/Resources"
-cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKER_APP}/Resources"
-
-cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
-
 if [ $USE_SMAPPSERVICE -eq 1 ]; then
 	cp "${PROJECT_ROOT}/Resources/com.aldunelabs.caker.caked.plist" "${CAKED_APP}/Library/LaunchAgents/com.aldunelabs.caker.caked.plist"
 fi
@@ -107,10 +107,6 @@ fi
 cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"
 cp -c "${BINARYDIR}/cakectl" "${CAKECTL_APP}/MacOS/cakectl"
 cp -c "${BINARYDIR}/caked" "${CAKED_APP}/MacOS/caked"
-
-export CAKER_APP
-export CAKED_APP
-export CAKECTL_APP
 
 if [ ${USE_AUTHORIZATION_HELPER} -eq 1 ]; then
 	cp -c "${BINARYDIR}/AuthorizationHelper" "${CAKER_APP}/Helpers/AuthorizationHelper"
@@ -123,35 +119,36 @@ cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${CAKER_APP}/Resources/MenuBarIcon.png"
 cp -c "${ASSETS}/AppIcon.icns" "${CAKER_APP}/Resources/AppIcon.icns"
 cp -c "${ASSETS}/Assets.car" "${CAKER_APP}/Resources/Assets.car"
 
+cp -c "${PROJECT_ROOT}/Sources/caker/Resources/"* "${CAKER_APP}/Resources/"
 cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${CAKER_APP}/Resources/Prompt.png"
-cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/"
+cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/icons/"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKER_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKER_APP}/Resources/compose-template.yml"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ComposeLibrary.json" "${CAKER_APP}/Resources/ComposeLibrary.json"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-library"/* "${CAKER_APP}/Resources/compose-library/"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKER_APP}/Resources/cloudinit-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKER_APP}/Resources/ssh-install-cakeagent.sh"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKER_APP}/Resources/"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKER_APP}/Resources/packerlite/"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKED_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKED_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKED_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKED_APP}/Resources/compose-template.yml"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ComposeLibrary.json" "${CAKED_APP}/Resources/ComposeLibrary.json"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-library"/* "${CAKED_APP}/Resources/compose-library"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKED_APP}/Resources/cloudinit-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKED_APP}/Resources/ssh-install-cakeagent.sh"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKED_APP}/Resources/"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKED_APP}/Resources/packerlite/"
+cp -c "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKECTL_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKECTL_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKECTL_APP}/Resources/VMImages.json"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKECTL_APP}/Resources/compose-template.yml"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ComposeLibrary.json" "${CAKECTL_APP}/Resources/ComposeLibrary.json"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-library"/* "${CAKECTL_APP}/Resources/compose-library/"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/cloudinit-install-cakeagent.sh" "${CAKECTL_APP}/Resources/cloudinit-install-cakeagent.sh"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/ssh-install-cakeagent.sh" "${CAKECTL_APP}/Resources/ssh-install-cakeagent.sh"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
 if [ ${APPSTORE} -eq 0 ]; then
 	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"

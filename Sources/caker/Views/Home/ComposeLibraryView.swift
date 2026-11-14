@@ -186,7 +186,7 @@ struct ComposeLibraryView: View {
 				}
 
 				ScrollView([.vertical, .horizontal]) {
-					Text(template.compose)
+					Text((try? template.composeText(projectName: nil)) ?? template.compose)
 						.font(.system(size: 11, design: .monospaced))
 						.textSelection(.enabled)
 						.frame(maxWidth: .infinity, alignment: .leading)
@@ -257,7 +257,7 @@ struct ComposeLibraryView: View {
 		Task {
 			do {
 				let result = try await ComposeLibrary.refreshFromGitHub()
-
+				
 				await MainActor.run {
 					self.library = ComposeLibrary.reloadIfChanged()
 					self.syncFailed = false
@@ -268,7 +268,7 @@ struct ComposeLibraryView: View {
 			} catch {
 				await MainActor.run {
 					self.syncFailed = true
-					self.syncMessage = error.localizedDescription
+					self.syncMessage = error.reason
 					self.isSyncing = false
 				}
 			}

@@ -382,17 +382,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			return
 		}
 
+
 		do {
 			let group = Utilities.group.next()
 			var forwardedPorts: [TunnelAttachement] = self.config.forwardedPorts
 			var symlinks: [URL: URL] = [:]
-
-			// The forwarder binds a unix socket without creating its directory (e.g. `~/.docker/run`): make sure it exists.
-			for tunnel in forwardedPorts {
-				if let unixDomain = tunnel.unixDomain {
-					try? FileManager.default.createDirectory(at: URL(fileURLWithPath: unixDomain.host.expandingTildeInPath).deletingLastPathComponent(), withIntermediateDirectories: true)
-				}
-			}
 
 			// If the app is sandboxed, we can't create unix socket outside sandbox but symlink works
 			if Bundle.isApplicationSandboxed {
@@ -423,6 +417,13 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 					symlinks[sandboxedTarget] = symlinkTarget
 
 					return TunnelAttachement(host: sandboxedTarget.path(percentEncoded: false), guest: unixDomain.guest)
+				}
+			} else {
+				// The forwarder binds a unix socket without creating its directory (e.g. `~/.docker/run`): make sure it exists.
+				for tunnel in forwardedPorts {
+					if let unixDomain = tunnel.unixDomain {
+						try? FileManager.default.createDirectory(at: URL(fileURLWithPath: unixDomain.host.expandingTildeInPath).deletingLastPathComponent(), withIntermediateDirectories: true)
+					}
 				}
 			}
 

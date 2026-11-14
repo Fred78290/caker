@@ -52,13 +52,26 @@ services:
         content: |
           const http = require('http');
           const { createClient } = require('redis');
-          const redis = createClient({ url: 'redis://cache.nodeapp.compose.internal:6379' });
-          redis.connect().then(() => {
-            http.createServer(async (req, res) => {
+          // Fail commands fast while Redis is down (instead of queueing them); the client keeps reconnecting on its own.
+          const redis = createClient({
+            url: 'redis://cache.nodeapp.compose.internal:6379',
+            disableOfflineQueue: true,
+          });
+          // Without an 'error' listener, any client error is an unhandled event and terminates the process.
+          redis.on('error', (err) => console.error('Redis error:', err.message));
+          redis.on('reconnecting', () => console.log('Reconnecting to Redis...'));
+          redis.connect().catch((err) => console.error('Redis connect failed:', err.message));
+
+          http.createServer(async (req, res) => {
+            try {
               const hits = await redis.incr('hits');
               res.end(`Hello from Node.js, ${hits} hits\n`);
-            }).listen(3000);
-          });
+            } catch (err) {
+              console.error('Redis command failed:', err.message);
+              res.statusCode = 503;
+              res.end('Cache unavailable\n');
+            }
+          }).listen(3000);
         permissions: "0644"
       - path: /etc/systemd/system/app.service
         content: |

@@ -142,12 +142,16 @@ public enum PackerLiteTemplateResolver {
 	}
 
 	private static func bundledTemplateContent(named resourceName: String, orThrow notFoundError: String) throws -> String {
-		guard let url = Bundle.main.url(forResource: resourceName, withExtension: "yaml") else {
-			guard let url = resourceBundle.url(forResource: resourceName, withExtension: "yaml") else {
-				throw ServiceError(notFoundError)
-			}
+		// The app bundles (`build.inc.sh`, Xcode's "PackerLite" copy phase) keep the templates in a
+		// `packerlite` folder of `Resources`; the SwiftPM resource bundle has them flat, because a
+		// `.copy` can't rename a folder. Try the folder first, then the flat name, in each bundle.
+		func find(in bundle: Bundle) -> URL? {
+			bundle.url(forResource: "packerlite/\(resourceName)", withExtension: "yaml") ?? bundle.url(forResource: resourceName, withExtension: "yaml")
+		}
 
-			return try String(contentsOf: url, encoding: .utf8)
+		// `??` is lazy: `resourceBundle` is only touched when `Bundle.main` has no such template.
+		guard let url = find(in: Bundle.main) ?? find(in: resourceBundle) else {
+			throw ServiceError(notFoundError)
 		}
 
 		return try String(contentsOf: url, encoding: .utf8)

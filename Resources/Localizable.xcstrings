@@ -3283,6 +3283,17 @@
         }
       }
     },
+    "Compose library template '%@' declares the id '%@': it must match its file name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle « %1$@ » de la bibliothèque compose déclare l'id « %2$@ » : il doit correspondre au nom de son fichier"
+          }
+        }
+      }
+    },
     "Compose library template '%@' defines no service" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3290,6 +3301,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le modèle de bibliothèque compose '%@' ne définit aucun service"
+          }
+        }
+      }
+    },
+    "Compose library template '%@' has no '# library-%@:' line" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle « %1$@ » de la bibliothèque compose n'a pas de ligne « # library-%2$@: »"
           }
         }
       }
@@ -18066,6 +18088,28 @@
         }
       }
     },
+    "The compose library index is not valid: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'index de la bibliothèque compose n'est pas valide : %@"
+          }
+        }
+      }
+    },
+    "The compose library index lists no template" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'index de la bibliothèque compose ne liste aucun modèle"
+          }
+        }
+      }
+    },
     "The compose library is not published on GitHub yet: the copy bundled with this version is used" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -18084,6 +18128,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La bibliothèque compose est à jour (%d modèles)."
+          }
+        }
+      }
+    },
+    "The compose library template '%@' is listed on GitHub but missing there" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle « %@ » de la bibliothèque compose est listé sur GitHub mais y est absent"
+          }
+        }
+      }
+    },
+    "The compose library template '%@' is not valid UTF-8 text" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le modèle « %@ » de la bibliothèque compose n'est pas un texte UTF-8 valide"
           }
         }
       }

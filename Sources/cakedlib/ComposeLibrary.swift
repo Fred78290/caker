@@ -3,19 +3,26 @@
 //  CakedLib
 //
 //  A library of ready-to-use `compose.yml` templates for what developers set up most often (a
-//  database, a web stack, a Docker host, ...). It follows `VMImageCatalog`'s lifecycle:
+//  database, a web stack, a Docker host, ...). Each template is one plain, editable `.yml` file; it
+//  follows `VMImageCatalog`'s lifecycle:
 //
-//  - the library ships inside the binary (`ComposeLibrary.json`, built from `compose-library/*.yml`
-//    by `Scripts/build-compose-library.py`), so it works offline and before a first sync;
+//  - the library ships inside the binary as the `compose-library` folder (`<id>.yml` files plus an
+//    `index.json` listing their ids), so it works offline and before a first sync;
 //  - `refreshFromGitHub()` (`cakectl compose library sync`, the library window of Caker.app)
-//    downloads the copy published on the `main` branch of the repository into
-//    `<CAKE_HOME>/ComposeLibrary.json`;
-//  - a valid copy in `<CAKE_HOME>` wins over the bundled one, and is re-read when it changes.
+//    downloads the index and the templates published on the `main` branch of the repository into
+//    `<CAKE_HOME>/compose-library/`;
+//  - once synced, that folder wins over the bundled one and is re-read when a file in it changes, so
+//    a template there can be edited by hand (until the next sync overwrites it).
+//
+//  A template file starts with `# library-<field>: <value>` comment lines (id, name, category,
+//  summary, tags): the metadata the library lists. They are not part of the compose text that
+//  `clone` writes.
 //
 //  Until the templates are merged into `main`, the download answers 404: `refreshFromGitHub()` then
 //  fails with an explicit message and the bundled copy keeps being used.
 //
 
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import Synchronization
@@ -28,7 +35,7 @@ public struct ComposeLibraryTemplate: Codable, Sendable, Hashable, Identifiable 
 	public let category: String
 	public let summary: String
 	public let tags: [String]
-	/// The complete `compose.yml` text, comments included.
+	/// The `compose.yml` text, comments included but without the `# library-*` metadata lines.
 	public let compose: String
 
 	public init(id: String, name: String, category: String, summary: String, tags: [String] = [], compose: String) {
@@ -38,6 +45,66 @@ public struct ComposeLibraryTemplate: Codable, Sendable, Hashable, Identifiable 
 		self.summary = summary
 		self.tags = tags
 		self.compose = compose
+	}
+
+	/// Reads a template file: the leading `# library-<field>: <value>` lines are the metadata, the rest
+	/// is the compose text. `expectedID` is the file name without its extension, which the id must match.
+	public static func parse(_ text: String, id expectedID: String? = nil) throws -> ComposeLibraryTemplate {
+		let prefix = "# library-"
+		var meta: [String: String] = [:]
+		var body: [Substring] = []
+
+		for line in text.split(separator: "\n", omittingEmptySubsequences: false) {
+			if body.isEmpty, line.hasPrefix(prefix), let colon = line.firstIndex(of: ":") {
+				let key = String(line[line.index(line.startIndex, offsetBy: prefix.count)..<colon])
+
+				meta[key] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespacesAndNewlines)
+			} else {
+				body.append(line)
+			}
+		}
+
+		for field in ["id", "name", "category", "summary", "tags"] where meta[field] == nil {
+			throw ServiceError(String(format: String(localized: "Compose library template '%@' has no '# library-%@:' line"), expectedID ?? meta["id"] ?? "?", field))
+		}
+
+		if let expectedID, meta["id"] != expectedID {
+			throw ServiceError(String(format: String(localized: "Compose library template '%@' declares the id '%@': it must match its file name"), expectedID, meta["id"] ?? ""))
+		}
+
+		return ComposeLibraryTemplate(
+			id: meta["id"]!,
+			name: meta["name"]!,
+			category: meta["category"]!,
+			summary: meta["summary"]!,
+			tags: meta["tags"]!.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { $0.isEmpty == false },
+			compose: body.joined(separator: "\n").trimmingCharacters(in: .newlines) + "\n"
+		)
+	}
+
+	/// A template is only trusted when it is well formed and parses as a compose file.
+	public func validate() throws {
+		guard self.id.range(of: #"^[a-z0-9]([a-z0-9-]{0,46}[a-z0-9])?$"#, options: .regularExpression) != nil else {
+			throw ServiceError(String(format: String(localized: "Compose library template id '%@' is not valid"), self.id))
+		}
+
+		guard self.name.isEmpty == false, self.category.isEmpty == false else {
+			throw ServiceError(String(format: String(localized: "Compose library template '%@' has no name or category"), self.id))
+		}
+
+		let compose: ComposeFile
+
+		do {
+			compose = try self.composeFile()
+		} catch {
+			throw ServiceError(String(format: String(localized: "Compose library template '%@' is not a valid compose file: %@"), self.id, error.reason))
+		}
+
+		guard compose.services.isEmpty == false else {
+			throw ServiceError(String(format: String(localized: "Compose library template '%@' defines no service"), self.id))
+		}
+
+		try ComposeLibrary.validateProjectName(compose.name)
 	}
 
 	/// The parsed definition, as `compose up` would read it (minus the `ssh_authorized_key` file lookup).
@@ -55,38 +122,48 @@ public struct ComposeLibraryTemplate: Codable, Sendable, Hashable, Identifiable 
 		((try? self.composeFile())?.services.keys.sorted()) ?? []
 	}
 
-	/// The template's text with the project renamed. Besides `name:`, a template refers to its own
-	/// project in the compose DNS names of its services (`db.lamp.compose.internal`) and in VM names
-	/// (`compose-lamp-db`), so those follow the new name too.
-	public func composeText(projectName newName: String?) throws -> String {
-		guard let newName else {
-			return self.compose
-		}
-
-		try ComposeLibrary.validateProjectName(newName)
-
+	/// The template's text for a clone. Besides `name:`, a template refers to its own project in the
+	/// compose DNS names of its services (`db.lamp.compose.internal`) and in VM names
+	/// (`compose-lamp-db`), so those follow a new project name. The domain of those DNS names is the
+	/// configured one (`ComposeDNS.domainSuffix`), not the `compose.internal` the files are written with,
+	/// whether the project is renamed or not.
+	public func composeText(projectName newName: String?, domain: String = ComposeDNS.domainSuffix) throws -> String {
 		let oldName = self.projectName
 		var text = self.compose
 
-		if let range = text.range(of: #"(?m)^name:[ \t]*.*$"#, options: .regularExpression) {
-			text.replaceSubrange(range, with: "name: \(newName)")
-		} else {
-			text = "name: \(newName)\n" + text
+		if let newName {
+			try ComposeLibrary.validateProjectName(newName)
+
+			if let range = text.range(of: #"(?m)^name:[ \t]*.*$"#, options: .regularExpression) {
+				text.replaceSubrange(range, with: "name: \(newName)")
+			} else {
+				text = "name: \(newName)\n" + text
+			}
+
+			if oldName != newName {
+				text = text.replacingOccurrences(of: ".\(oldName).", with: ".\(newName).")
+				text = text.replacingOccurrences(of: "compose-\(oldName)-", with: "compose-\(newName)-")
+			}
 		}
 
-		if oldName != newName {
-			text = text.replacingOccurrences(of: ".\(oldName).", with: ".\(newName).")
-			text = text.replacingOccurrences(of: "compose-\(oldName)-", with: "compose-\(newName)-")
+		if domain != ComposeDNS.defaultDomainSuffix {
+			let project = newName ?? oldName
+
+			text = text.replacingOccurrences(of: ".\(project).\(ComposeDNS.defaultDomainSuffix)", with: ".\(project).\(domain)")
 		}
 
 		return text
 	}
 }
 
-public struct ComposeLibrary: Codable, Sendable {
-	/// The format this build understands. A newer library asks for a newer caker.
+public struct ComposeLibrary: Sendable {
+	/// The format of `index.json` this build understands. A newer library asks for a newer caker.
 	public static let supportedVersion = 1
-	public static let fileName = "ComposeLibrary.json"
+	/// The folder holding the templates, in the app bundle and in `<CAKE_HOME>`, and on GitHub.
+	public static let directoryName = "compose-library"
+	/// Lists the ids of the templates of a folder; GitHub offers no cheap way to list a directory.
+	public static let indexFileName = "index.json"
+	public static let templateExtension = "yml"
 
 	public let version: Int
 	public let templates: [ComposeLibraryTemplate]
@@ -142,41 +219,78 @@ public struct ComposeLibrary: Codable, Sendable {
 		var seen = Set<String>()
 
 		for template in self.templates {
-			guard template.id.range(of: #"^[a-z0-9]([a-z0-9-]{0,46}[a-z0-9])?$"#, options: .regularExpression) != nil else {
-				throw ServiceError(String(format: String(localized: "Compose library template id '%@' is not valid"), template.id))
-			}
+			try template.validate()
 
 			guard seen.insert(template.id).inserted else {
 				throw ServiceError(String(format: String(localized: "Compose library template id '%@' is used twice"), template.id))
 			}
-
-			guard template.name.isEmpty == false, template.category.isEmpty == false else {
-				throw ServiceError(String(format: String(localized: "Compose library template '%@' has no name or category"), template.id))
-			}
-
-			let compose: ComposeFile
-
-			do {
-				compose = try template.composeFile()
-			} catch {
-				throw ServiceError(String(format: String(localized: "Compose library template '%@' is not a valid compose file: %@"), template.id, error.localizedDescription))
-			}
-
-			guard compose.services.isEmpty == false else {
-				throw ServiceError(String(format: String(localized: "Compose library template '%@' defines no service"), template.id))
-			}
-
-			try Self.validateProjectName(compose.name)
 		}
+	}
+
+	// MARK: Index
+
+	/// `index.json`: the format version and the ids of the templates (`<id>.yml`) of a folder.
+	struct Index: Codable {
+		let version: Int
+		let templates: [String]
+	}
+
+	/// The ids listed by an `index.json`. Every id becomes a file name, so each one is checked against
+	/// the template id format before anything touches the file system — an index from the network
+	/// can't name `../something`.
+	static func parseIndex(_ data: Data) throws -> [String] {
+		let index: Index
+
+		do {
+			index = try JSONDecoder().decode(Index.self, from: data)
+		} catch {
+			throw ServiceError(String(format: String(localized: "The compose library index is not valid: %@"), error.reason))
+		}
+
+		guard index.version <= supportedVersion else {
+			throw ServiceError(String(format: String(localized: "The compose library uses format %d, this version understands up to %d: update Caker"), index.version, supportedVersion))
+		}
+
+		guard index.templates.isEmpty == false else {
+			throw ServiceError(String(localized: "The compose library index lists no template"))
+		}
+
+		var seen = Set<String>()
+
+		for id in index.templates {
+			guard id.range(of: #"^[a-z0-9]([a-z0-9-]{0,46}[a-z0-9])?$"#, options: .regularExpression) != nil else {
+				throw ServiceError(String(format: String(localized: "Compose library template id '%@' is not valid"), id))
+			}
+
+			guard seen.insert(id).inserted else {
+				throw ServiceError(String(format: String(localized: "Compose library template id '%@' is used twice"), id))
+			}
+		}
+
+		return index.templates
 	}
 
 	// MARK: Loading
 
-	/// The loaded library and the modification date of the `<CAKE_HOME>/ComposeLibrary.json` copy it
-	/// was read with (nil: none), which `reloadIfChanged()` compares against.
+	/// The loaded library and the signature of the `<CAKE_HOME>/compose-library` folder it was read
+	/// with (nil: none), which `reloadIfChanged()` compares against.
 	private struct Loaded: Sendable {
 		let library: ComposeLibrary
-		let overrideDate: Date?
+		let signature: Signature?
+	}
+
+	/// What `reloadIfChanged()` compares: the folder's own modification date and, for every entry in it,
+	/// its name, modification date and size. Keeping each entry (instead of only the latest date) means
+	/// that editing or removing a file changes the signature even when another one is newer.
+	private struct Signature: Equatable, Sendable {
+		struct Entry: Equatable, Sendable {
+			let name: String
+			let date: Date?
+			let size: UInt64?
+		}
+
+		let directory: Date
+		let entries: [Entry]
 	}
 
 	private static let storage: Mutex<Loaded> = Mutex(load())
@@ -185,53 +299,114 @@ public struct ComposeLibrary: Codable, Sendable {
 		storage.withLock { $0.library }
 	}
 
-	/// `shared`, re-read first when the copy in `<CAKE_HOME>` was added, changed or removed since it
-	/// was loaded (a long-running caked, or a `sync` run by another process).
+	/// `shared`, re-read first when the folder in `<CAKE_HOME>` or a template in it was added, changed
+	/// or removed since it was loaded (a long-running caked, a `sync` run by another process, a hand edit).
 	public static func reloadIfChanged() -> ComposeLibrary {
-		reloadIfChanged(overrideURL: cakeHomeLibraryURL(createHomeIfNeeded: false))
+		reloadIfChanged(overrideURL: cakeHomeLibraryDirectory(createHomeIfNeeded: false))
 	}
 
-	/// `internal` so tests can point it at a temporary file instead of the real `<CAKE_HOME>`.
+	/// `internal` so tests can point it at a temporary folder instead of the real `<CAKE_HOME>`.
 	static func reloadIfChanged(overrideURL: URL?) -> ComposeLibrary {
-		let date = modificationDate(overrideURL)
+		let date = signature(overrideURL)
 
 		return storage.withLock { loaded in
-			if loaded.overrideDate != date {
-				loaded = Loaded(library: load(overrideURL: overrideURL) ?? loadBundled(), overrideDate: date)
+			if loaded.signature != date {
+				loaded = Loaded(library: load(overrideURL: overrideURL) ?? loadBundled(), signature: date)
 			}
 
 			return loaded.library
 		}
 	}
 
-	/// Raw JSON on the `main` branch — kept in sync with `Sources/cakedlib/Resources/ComposeLibrary.json`.
-	public static let githubLibraryURL = URL(string: "https://raw.githubusercontent.com/Fred78290/caker/main/Sources/cakedlib/Resources/ComposeLibrary.json")!
+	/// Raw files on the `main` branch — kept in sync with `Sources/cakedlib/Resources/compose-library`.
+	public static let githubLibraryBaseURL = URL(string: "https://raw.githubusercontent.com/Fred78290/caker/main/Sources/cakedlib/Resources/compose-library/")!
 
 	/// Where the synced copy lives.
-	public static func cakeHomeLibraryURL(createHomeIfNeeded: Bool) -> URL? {
+	public static func cakeHomeLibraryDirectory(createHomeIfNeeded: Bool) -> URL? {
 		guard let home = try? Utils.getHome(runMode: .app, createItIfNotExists: createHomeIfNeeded) else {
 			return nil
 		}
 
-		return home.appendingPathComponent(Self.fileName, isDirectory: false)
+		return home.appendingPathComponent(Self.directoryName, isDirectory: true)
 	}
 
 	/// When the library was last synced from GitHub; nil while the bundled copy is in use.
 	public static var syncedDate: Date? {
-		modificationDate(cakeHomeLibraryURL(createHomeIfNeeded: false))
+		cakeHomeLibraryDirectory(createHomeIfNeeded: false).flatMap { modificationDate($0.appendingPathComponent(Self.indexFileName)) }
 	}
 
+	/// The templates of a folder, sorted by category then id, and what could not be read: a file whose
+	/// metadata is missing, whose id isn't its name, or that isn't a valid compose file.
+	static func templates(in directory: URL) -> (templates: [ComposeLibraryTemplate], errors: [String: Error]) {
+		var templates: [ComposeLibraryTemplate] = []
+		var errors: [String: Error] = [:]
+		let files = ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []).filter { $0.pathExtension == templateExtension }
+
+		for file in files {
+			do {
+				let template = try ComposeLibraryTemplate.parse(String(contentsOf: file, encoding: .utf8), id: file.deletingPathExtension().lastPathComponent)
+
+				try template.validate()
+				templates.append(template)
+			} catch {
+				errors[file.lastPathComponent] = error
+			}
+		}
+
+		templates.sort {
+			let order = $0.category.localizedCaseInsensitiveCompare($1.category)
+
+			return order == .orderedSame ? $0.id < $1.id : order == .orderedAscending
+		}
+
+		return (templates, errors)
+	}
+
+	/// The synced folder, or nil when there is none, it wasn't written by a sync (no `index.json`) or
+	/// nothing in it is usable. A template that can't be read is skipped (and logged) rather than
+	/// discarding the others: a file edited by hand is user state, not a packaging invariant.
 	private static func load(overrideURL: URL?) -> ComposeLibrary? {
-		guard let url = overrideURL, FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else {
+		guard let directory = overrideURL, let indexData = try? Data(contentsOf: directory.appendingPathComponent(indexFileName)) else {
 			return nil
 		}
 
-		// A damaged or outdated copy in <CAKE_HOME> is user state, not a packaging invariant: ignore it.
-		guard let library = try? JSONDecoder().decode(ComposeLibrary.self, from: Data(contentsOf: url)), (try? library.validate()) != nil else {
+		// A synced folder is only used when its index is readable and of a format this build understands
+		// (a newer library asks for a newer caker): otherwise the bundled copy is used.
+		do {
+			_ = try parseIndex(indexData)
+		} catch {
+			Logger("ComposeLibrary").warn("Ignoring \(directory.path(percentEncoded: false)): \(error.reason)")
+
 			return nil
 		}
 
-		return library
+		let loaded = templates(in: directory)
+
+		for (file, error) in loaded.errors.sorted(by: { $0.key < $1.key }) {
+			Logger("ComposeLibrary").warn("Ignoring \(file) in \(directory.path(percentEncoded: false)): \(error.reason)")
+		}
+
+		return loaded.templates.isEmpty ? nil : ComposeLibrary(templates: loaded.templates)
+	}
+
+	/// The folder's modification date plus the name, modification date and size of each entry, sorted
+	/// by name: an added, removed or edited file changes it, whatever the other files' dates are.
+	private static func signature(_ directory: URL?) -> Signature? {
+		guard let directory, let date = modificationDate(directory) else {
+			return nil
+		}
+
+		let entries = ((try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []).map { entry in
+			let attributes = try? FileManager.default.attributesOfItem(atPath: entry.path(percentEncoded: false))
+
+			return Signature.Entry(
+				name: entry.lastPathComponent,
+				date: attributes?[.modificationDate] as? Date,
+				size: (attributes?[.size] as? NSNumber)?.uint64Value
+			)
+		}.sorted { $0.name < $1.name }
+
+		return Signature(directory: date, entries: entries)
 	}
 
 	private static func modificationDate(_ url: URL?) -> Date? {
@@ -242,32 +417,40 @@ public struct ComposeLibrary: Codable, Sendable {
 		return (try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)))?[.modificationDate] as? Date
 	}
 
-	/// `internal` so tests can load the bundled file directly: `shared` prefers a synced copy, which
-	/// would hide a bundled-file decoding failure.
+	/// The bundled `compose-library` folder: flat in an app's `Resources`, in the SPM resource bundle
+	/// otherwise (see `ComposeFile.template` for the same lookup).
+	static func bundledDirectory() -> URL {
+		if let url = Bundle.main.url(forResource: directoryName, withExtension: nil) {
+			return url
+		}
+
+		guard let url = composeResourceBundle.url(forResource: directoryName, withExtension: nil) else {
+			fatalError("\(directoryName) resource not found in the app bundle — add the folder to the target's \"Copy Bundle Resources\" build phase in Xcode")
+		}
+
+		return url
+	}
+
+	/// `internal` so tests can load the bundled folder directly: `shared` prefers a synced copy, which
+	/// would hide a bundled-file failure. A bundled template that can't be read is a packaging bug.
 	static func loadBundled() -> ComposeLibrary {
-		func load(_ url: URL) -> ComposeLibrary {
-			do {
-				return try JSONDecoder().decode(ComposeLibrary.self, from: Data(contentsOf: url))
-			} catch {
-				fatalError("Failed to load ComposeLibrary.json: \(error)")
-			}
+		let loaded = templates(in: bundledDirectory())
+
+		if let failure = loaded.errors.first {
+			fatalError("Failed to load the bundled compose template \(failure.key): \(failure.value)")
 		}
 
-		if let url = Bundle.main.url(forResource: "ComposeLibrary", withExtension: "json") {
-			return load(url)
+		guard loaded.templates.isEmpty == false else {
+			fatalError("The bundled \(directoryName) folder holds no template")
 		}
 
-		guard let url = composeResourceBundle.url(forResource: "ComposeLibrary", withExtension: "json") else {
-			fatalError("ComposeLibrary.json resource not found in the app bundle — add it to the target's \"Copy Bundle Resources\" build phase in Xcode")
-		}
-
-		return load(url)
+		return ComposeLibrary(templates: loaded.templates)
 	}
 
 	private static func load() -> Loaded {
-		let overrideURL = cakeHomeLibraryURL(createHomeIfNeeded: false)
+		let overrideURL = cakeHomeLibraryDirectory(createHomeIfNeeded: false)
 
-		return Loaded(library: load(overrideURL: overrideURL) ?? loadBundled(), overrideDate: modificationDate(overrideURL))
+		return Loaded(library: load(overrideURL: overrideURL) ?? loadBundled(), signature: signature(overrideURL))
 	}
 
 	// MARK: Sync
@@ -284,16 +467,31 @@ public struct ComposeLibrary: Codable, Sendable {
 		}
 	}
 
-	/// Downloads the library published on GitHub, keeps it in `<CAKE_HOME>/ComposeLibrary.json` and
-	/// makes `shared` use it.
+	/// Downloads the index and the templates published on GitHub, keeps them in
+	/// `<CAKE_HOME>/compose-library/` and makes `shared` use them.
 	///
 	/// This trusts `main` as a live source for `compose.yml` text, like `VMImageCatalog` does for its
 	/// download links — and a template is not run by being downloaded: it only becomes a project when
 	/// the user clones it and runs `compose up`, after having had it in front of them. Every template
-	/// must still validate (`validate()`), otherwise the whole download is refused.
+	/// must still validate, otherwise the whole download is refused.
 	@discardableResult
 	public static func refreshFromGitHub(session: URLSession = .shared) async throws -> SyncResult {
-		let (data, response) = try await session.data(from: githubLibraryURL)
+		let index = try await download(indexFileName, session: session)
+		var files: [String: String] = [:]
+
+		for id in try parseIndex(index) {
+			guard let text = String(data: try await download("\(id).\(templateExtension)", session: session, listedID: id), encoding: .utf8) else {
+				throw ServiceError(String(format: String(localized: "The compose library template '%@' is not valid UTF-8 text"), id))
+			}
+
+			files[id] = text
+		}
+
+		return try install(index: index, files: files)
+	}
+
+	private static func download(_ name: String, session: URLSession, listedID: String? = nil) async throws -> Data {
+		let (data, response) = try await session.data(from: githubLibraryBaseURL.appendingPathComponent(name))
 
 		guard let http = response as? HTTPURLResponse else {
 			throw ServiceError(String(localized: "Failed to download the compose library from GitHub"))
@@ -301,40 +499,68 @@ public struct ComposeLibrary: Codable, Sendable {
 
 		guard (200..<300).contains(http.statusCode) else {
 			if http.statusCode == 404 {
+				if let listedID {
+					throw ServiceError(String(format: String(localized: "The compose library template '%@' is listed on GitHub but missing there"), listedID))
+				}
+
 				throw ServiceError(String(localized: "The compose library is not published on GitHub yet: the copy bundled with this version is used"))
 			}
 
 			throw ServiceError(String(format: String(localized: "Failed to download the compose library from GitHub (HTTP %d)"), http.statusCode))
 		}
 
-		return try install(data)
+		return data
 	}
 
-	/// Validates `data` as a library and installs it as the synced copy. Separate from the download
-	/// so tests can cover it without the network.
-	static func install(_ data: Data, destination: URL? = nil) throws -> SyncResult {
-		let library: ComposeLibrary
+	/// Validates the downloaded `files` (id -> file text) against `index` and installs them as the
+	/// synced copy: each template is written as `<id>.yml`, the ones the previous sync listed and this
+	/// one doesn't are removed (a file the user added by hand is left alone), and `index.json` is
+	/// written last. Separate from the download so tests can cover it without the network.
+	static func install(index: Data, files: [String: String], destination: URL? = nil) throws -> SyncResult {
+		let ids = try parseIndex(index)
+		var templates: [ComposeLibraryTemplate] = []
 
-		do {
-			library = try JSONDecoder().decode(ComposeLibrary.self, from: data)
-		} catch {
-			throw ServiceError(String(format: String(localized: "The downloaded compose library is not valid: %@"), error.localizedDescription))
+		for id in ids {
+			guard let text = files[id] else {
+				throw ServiceError(String(format: String(localized: "The compose library template '%@' is listed on GitHub but missing there"), id))
+			}
+
+			templates.append(try ComposeLibraryTemplate.parse(text, id: id))
 		}
 
-		try library.validate()
+		try ComposeLibrary(templates: templates).validate()
 
-		guard let destination = destination ?? cakeHomeLibraryURL(createHomeIfNeeded: true) else {
+		guard let destination = destination ?? cakeHomeLibraryDirectory(createHomeIfNeeded: true) else {
 			throw ServiceError(String(localized: "Unable to find the cake home to store the compose library"))
 		}
 
 		// `Utils.getHome` only creates the directory on its first call, see `VMImageCatalog.refreshFromGitHub`.
-		try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+		try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
 
 		let previous = reloadIfChanged(overrideURL: destination)
+		let indexURL = destination.appendingPathComponent(indexFileName)
+		let previousIDs = (try? parseIndex(Data(contentsOf: indexURL))) ?? []
 
-		try data.write(to: destination, options: .atomic)
+		for id in ids {
+			try files[id]?.write(to: destination.appendingPathComponent("\(id).\(templateExtension)"), atomically: true, encoding: .utf8)
+		}
 
-		storage.withLock { $0 = Loaded(library: library, overrideDate: modificationDate(destination)) }
+		// A retired template that can't be removed would stay in the folder, and be loaded, while the new
+		// index no longer lists it: fail before the index is written. A file that is already gone (deleted
+		// by hand) is not an error, otherwise every later sync would fail on it.
+		for id in previousIDs where ids.contains(id) == false {
+			let retired = destination.appendingPathComponent("\(id).\(templateExtension)")
+
+			if FileManager.default.fileExists(atPath: retired.path(percentEncoded: false)) {
+				try FileManager.default.removeItem(at: retired)
+			}
+		}
+
+		try index.write(to: indexURL, options: .atomic)
+
+		let library = load(overrideURL: destination) ?? ComposeLibrary(templates: templates)
+
+		storage.withLock { $0 = Loaded(library: library, signature: signature(destination)) }
 
 		let before = Dictionary(uniqueKeysWithValues: previous.templates.map { ($0.id, $0) })
 		let after = Dictionary(uniqueKeysWithValues: library.templates.map { ($0.id, $0) })

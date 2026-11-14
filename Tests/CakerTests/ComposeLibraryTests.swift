@@ -32,6 +32,21 @@ final class ComposeLibraryTests: XCTestCase {
 		)
 	}
 
+	private static let demoCompose = "name: demo\nservices:\n  web:\n    image: ubuntu:24.04\n"
+
+	/// A template file as it is published: `# library-*` metadata, then the compose text.
+	private func file(id: String, name: String = "Demo", compose: String = ComposeLibraryTests.demoCompose) -> String {
+		"# library-id: \(id)\n# library-name: \(name)\n# library-category: Web\n# library-summary: A demo\n# library-tags: demo, sample\n\(compose)"
+	}
+
+	private func index(_ ids: [String], version: Int = ComposeLibrary.supportedVersion) -> Data {
+		try! JSONEncoder().encode(ComposeLibrary.Index(version: version, templates: ids))
+	}
+
+	private var synced: URL {
+		self.temporaryDirectory.appendingPathComponent(ComposeLibrary.directoryName, isDirectory: true)
+	}
+
 	// MARK: Bundled library
 
 	func testBundledLibraryIsValid() throws {
@@ -39,6 +54,18 @@ final class ComposeLibraryTests: XCTestCase {
 
 		XCTAssertFalse(library.templates.isEmpty)
 		XCTAssertNoThrow(try library.validate())
+	}
+
+	func testBundledFolderHasNoUnreadableTemplateAndItsIndexListsEveryFile() throws {
+		let directory = ComposeLibrary.bundledDirectory()
+
+		XCTAssertTrue(ComposeLibrary.templates(in: directory).errors.isEmpty, "\(ComposeLibrary.templates(in: directory).errors)")
+
+		// The index is what GitHub sync downloads from: a template missing from it is never published.
+		let listed = try ComposeLibrary.parseIndex(Data(contentsOf: directory.appendingPathComponent(ComposeLibrary.indexFileName)))
+		let files = try FileManager.default.contentsOfDirectory(atPath: directory.path).filter { $0.hasSuffix(".yml") }.map { String($0.dropLast(4)) }
+
+		XCTAssertEqual(listed.sorted(), files.sorted())
 	}
 
 	func testEveryBundledTemplateBuildsEveryService() throws {
@@ -170,6 +197,31 @@ final class ComposeLibraryTests: XCTestCase {
 		XCTAssertEqual(try self.template().composeText(projectName: nil), self.template().compose)
 	}
 
+	func testConfiguredDomainReplacesTheDefaultOneWithAndWithoutARename() throws {
+		let template = try ComposeLibraryTemplate.parse("""
+			# library-id: lamp
+			# library-name: LAMP
+			# library-category: Web
+			# library-summary: s
+			# library-tags: a
+			name: lamp
+			services:
+			  db:
+			    image: ubuntu:24.04
+			    environment:
+			      HOST: db.lamp.compose.internal
+			""")
+
+		let unchanged = try template.composeText(projectName: nil, domain: "dev.test")
+		let renamed = try template.composeText(projectName: "shop", domain: "dev.test")
+
+		XCTAssertTrue(unchanged.contains("db.lamp.dev.test"))
+		XCTAssertFalse(unchanged.contains("compose.internal"))
+		XCTAssertTrue(renamed.contains("db.shop.dev.test"))
+		XCTAssertFalse(renamed.contains("compose.internal"))
+		XCTAssertEqual(try template.composeText(projectName: nil, domain: ComposeDNS.defaultDomainSuffix), template.compose)
+	}
+
 	func testCloneWritesTheTemplateAndRefusesToOverwrite() throws {
 		let destination = self.temporaryDirectory.appendingPathComponent("project/compose.yml")
 
@@ -190,64 +242,254 @@ final class ComposeLibraryTests: XCTestCase {
 		XCTAssertEqual(ComposeLibrary.destination(output: "my-stack.yml", currentDirectory: directory).lastPathComponent, "my-stack.yml")
 	}
 
+	// MARK: Template files
+
+	func testParseReadsTheMetadataAndStripsTheHeader() throws {
+		let template = try ComposeLibraryTemplate.parse(self.file(id: "demo"), id: "demo")
+
+		XCTAssertEqual(template.id, "demo")
+		XCTAssertEqual(template.name, "Demo")
+		XCTAssertEqual(template.category, "Web")
+		XCTAssertEqual(template.summary, "A demo")
+		XCTAssertEqual(template.tags, ["demo", "sample"])
+		XCTAssertEqual(template.compose, ComposeLibraryTests.demoCompose)
+		XCTAssertNoThrow(try template.validate())
+	}
+
+	func testParseKeepsALibraryCommentThatIsNotInTheHeader() throws {
+		let template = try ComposeLibraryTemplate.parse(self.file(id: "demo", compose: "name: demo\n# library-note: kept\nservices:\n  web:\n    image: ubuntu:24.04\n"))
+
+		XCTAssertTrue(template.compose.contains("# library-note: kept"))
+	}
+
+	func testParseRefusesMissingMetadataAndAnIdThatIsNotTheFileName() {
+		XCTAssertThrowsError(try ComposeLibraryTemplate.parse(ComposeLibraryTests.demoCompose, id: "demo"))
+		XCTAssertThrowsError(try ComposeLibraryTemplate.parse("# library-id: demo\n" + ComposeLibraryTests.demoCompose))
+		XCTAssertThrowsError(try ComposeLibraryTemplate.parse(self.file(id: "demo"), id: "other"))
+	}
+
+	// MARK: Index
+
+	func testIndexRefusesWhatCouldNotBeSafelyUsedAsAFileName() {
+		XCTAssertNoThrow(try ComposeLibrary.parseIndex(self.index(["a", "b-c"])))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(self.index(["../../etc/passwd"])))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(self.index(["a/b"])))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(self.index(["Upper"])))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(self.index(["a", "a"])))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(self.index([])))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(self.index(["a"], version: ComposeLibrary.supportedVersion + 1)))
+		XCTAssertThrowsError(try ComposeLibrary.parseIndex(Data("not json".utf8)))
+	}
+
 	// MARK: Sync
 
-	func testInstallReportsWhatChangedAndKeepsTheCopy() throws {
-		let destination = self.temporaryDirectory.appendingPathComponent("ComposeLibrary.json")
-		let first = ComposeLibrary(templates: [self.template(id: "keep"), self.template(id: "gone")])
-		var changed = self.template(id: "keep")
+	func testInstallWritesOneFilePerTemplateAndReportsWhatChanged() throws {
+		let destination = self.synced
+		let first = try ComposeLibrary.install(index: self.index(["keep", "gone"]), files: ["keep": self.file(id: "keep"), "gone": self.file(id: "gone")], destination: destination)
 
-		changed = ComposeLibraryTemplate(id: changed.id, name: "Renamed", category: changed.category, summary: changed.summary, tags: changed.tags, compose: changed.compose)
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
 
-		let second = ComposeLibrary(templates: [changed, self.template(id: "new")])
+		XCTAssertEqual(first.templates, 2)
 
-		let initial = try ComposeLibrary.install(JSONEncoder().encode(first), destination: destination)
+		for name in ["keep.yml", "gone.yml", ComposeLibrary.indexFileName] {
+			XCTAssertTrue(FileManager.default.fileExists(atPath: destination.appendingPathComponent(name).path), name)
+		}
 
-		XCTAssertEqual(initial.templates, 2)
-		XCTAssertTrue(FileManager.default.fileExists(atPath: destination.path))
+		// The file is stored as published, header included, so it stays a template the library can read.
+		XCTAssertEqual(try String(contentsOf: destination.appendingPathComponent("keep.yml"), encoding: .utf8), self.file(id: "keep"))
 
-		let result = try ComposeLibrary.install(JSONEncoder().encode(second), destination: destination)
+		let files = ["keep": self.file(id: "keep", name: "Renamed"), "new": self.file(id: "new")]
+		let result = try ComposeLibrary.install(index: self.index(["keep", "new"]), files: files, destination: destination)
 
 		XCTAssertEqual(result.added, ["new"])
 		XCTAssertEqual(result.updated, ["keep"])
 		XCTAssertEqual(result.removed, ["gone"])
 		XCTAssertTrue(result.changed)
-		XCTAssertEqual(try ComposeLibrary.install(JSONEncoder().encode(second), destination: destination).changed, false)
+		XCTAssertFalse(FileManager.default.fileExists(atPath: destination.appendingPathComponent("gone.yml").path))
+		XCTAssertFalse(try ComposeLibrary.install(index: self.index(["keep", "new"]), files: files, destination: destination).changed)
 	}
 
-	func testInstallRefusesAnInvalidLibraryWithoutTouchingTheCopy() throws {
-		let destination = self.temporaryDirectory.appendingPathComponent("ComposeLibrary.json")
-		let good = try JSONEncoder().encode(ComposeLibrary(templates: [self.template()]))
-
-		_ = try ComposeLibrary.install(good, destination: destination)
-
-		XCTAssertThrowsError(try ComposeLibrary.install(Data("not json".utf8), destination: destination))
-		XCTAssertThrowsError(try ComposeLibrary.install(JSONEncoder().encode(ComposeLibrary(templates: [self.template(id: "BAD")])), destination: destination))
-		XCTAssertEqual(try Data(contentsOf: destination), good)
-	}
-
-	func testReloadFollowsTheSyncedCopy() throws {
-		let destination = self.temporaryDirectory.appendingPathComponent("ComposeLibrary.json")
-		let library = ComposeLibrary(templates: [self.template(id: "only-here")])
+	func testInstallLeavesATemplateTheUserAddedByHand() throws {
+		let destination = self.synced
 
 		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
 
-		try JSONEncoder().encode(library).write(to: destination)
+		_ = try ComposeLibrary.install(index: self.index(["one"]), files: ["one": self.file(id: "one")], destination: destination)
+		try self.file(id: "mine").write(to: destination.appendingPathComponent("mine.yml"), atomically: true, encoding: .utf8)
+
+		let result = try ComposeLibrary.install(index: self.index(["two"]), files: ["two": self.file(id: "two")], destination: destination)
+
+		XCTAssertEqual(result.removed, ["one"])
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).templates.map(\.id), ["mine", "two"])
+	}
+
+	func testInstallFailsBeforeWritingTheIndexWhenARetiredTemplateCannotBeRemoved() throws {
+		let destination = self.synced
+		let retired = destination.appendingPathComponent("gone.yml")
+
+		defer {
+			try? FileManager.default.setAttributes([.immutable: false], ofItemAtPath: retired.path)
+			_ = ComposeLibrary.reloadIfChanged(overrideURL: nil)
+		}
+
+		_ = try ComposeLibrary.install(index: self.index(["keep", "gone"]), files: ["keep": self.file(id: "keep"), "gone": self.file(id: "gone")], destination: destination)
+
+		let oldIndex = try Data(contentsOf: destination.appendingPathComponent(ComposeLibrary.indexFileName))
+
+		// An immutable file can't be removed: the sync must say so instead of dropping it from the index
+		// and leaving it in the folder, where it would still be loaded.
+		try FileManager.default.setAttributes([.immutable: true], ofItemAtPath: retired.path)
+
+		XCTAssertThrowsError(try ComposeLibrary.install(index: self.index(["keep"]), files: ["keep": self.file(id: "keep")], destination: destination))
+		XCTAssertEqual(try Data(contentsOf: destination.appendingPathComponent(ComposeLibrary.indexFileName)), oldIndex)
+		XCTAssertTrue(FileManager.default.fileExists(atPath: retired.path))
+	}
+
+	func testInstallToleratesARetiredTemplateThatWasAlreadyRemoved() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		_ = try ComposeLibrary.install(index: self.index(["keep", "gone"]), files: ["keep": self.file(id: "keep"), "gone": self.file(id: "gone")], destination: destination)
+		try FileManager.default.removeItem(at: destination.appendingPathComponent("gone.yml"))
+
+		let result = try ComposeLibrary.install(index: self.index(["keep"]), files: ["keep": self.file(id: "keep")], destination: destination)
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).templates.map(\.id), ["keep"])
+		XCTAssertEqual(result.templates, 1)
+	}
+
+	func testInstallRefusesAnInvalidLibraryWithoutTouchingTheCopy() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		_ = try ComposeLibrary.install(index: self.index(["good"]), files: ["good": self.file(id: "good")], destination: destination)
+
+		let before = try Data(contentsOf: destination.appendingPathComponent("good.yml"))
+
+		// Listed but not downloaded, an id that isn't the file's, a broken compose file, a path as id.
+		XCTAssertThrowsError(try ComposeLibrary.install(index: self.index(["good", "absent"]), files: ["good": self.file(id: "good")], destination: destination))
+		XCTAssertThrowsError(try ComposeLibrary.install(index: self.index(["good"]), files: ["good": self.file(id: "other")], destination: destination))
+		XCTAssertThrowsError(try ComposeLibrary.install(index: self.index(["good"]), files: ["good": self.file(id: "good", compose: "name: demo\nservices: [")], destination: destination))
+		XCTAssertThrowsError(try ComposeLibrary.install(index: self.index(["../escape"]), files: ["../escape": self.file(id: "../escape")], destination: destination))
+
+		XCTAssertEqual(try Data(contentsOf: destination.appendingPathComponent("good.yml")), before)
+		XCTAssertFalse(FileManager.default.fileExists(atPath: self.temporaryDirectory.appendingPathComponent("escape.yml").path))
+	}
+
+	// MARK: Reload
+
+	func testReloadFollowsTheSyncedFolderAndEditsToIt() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		_ = try ComposeLibrary.install(index: self.index(["only-here"]), files: ["only-here": self.file(id: "only-here")], destination: destination)
 
 		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).templates.map(\.id), ["only-here"])
 
-		// Removing the copy falls back to the bundled library.
+		// A template can be edited in place.
+		try self.file(id: "only-here", name: "Edited").write(to: destination.appendingPathComponent("only-here.yml"), atomically: false, encoding: .utf8)
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).template(id: "only-here")?.name, "Edited")
+
+		// Removing the folder falls back to the bundled library.
 		try FileManager.default.removeItem(at: destination)
 
 		XCTAssertNotNil(ComposeLibrary.reloadIfChanged(overrideURL: destination).template(id: "postgres"))
 	}
 
-	func testADamagedSyncedCopyIsIgnored() throws {
-		let destination = self.temporaryDirectory.appendingPathComponent("ComposeLibrary.json")
+	/// Editing a file that is older than the newest one must still be noticed: the signature tracks each
+	/// entry, not only the latest date.
+	func testReloadNoticesAnEditToAFileOlderThanTheNewestOne() throws {
+		let destination = self.synced
+		let fm = FileManager.default
 
 		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
 
-		try Data("{ broken".utf8).write(to: destination)
+		_ = try ComposeLibrary.install(index: self.index(["a", "b"]), files: ["a": self.file(id: "a"), "b": self.file(id: "b")], destination: destination)
+
+		let now = Date()
+		let fileA = destination.appendingPathComponent("a.yml")
+		let fileB = destination.appendingPathComponent("b.yml")
+
+		try fm.setAttributes([.modificationDate: now.addingTimeInterval(-100)], ofItemAtPath: fileA.path(percentEncoded: false))
+		try fm.setAttributes([.modificationDate: now.addingTimeInterval(100)], ofItemAtPath: fileB.path(percentEncoded: false))
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).template(id: "a")?.name, "Demo")
+
+		// Edit `a` in place, then give it a date that is still older than `b`'s (the newest).
+		try self.file(id: "a", name: "Edited").write(to: fileA, atomically: false, encoding: .utf8)
+		try fm.setAttributes([.modificationDate: now.addingTimeInterval(-50)], ofItemAtPath: fileA.path(percentEncoded: false))
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).template(id: "a")?.name, "Edited")
+
+		// Removing `a` is noticed too, while `b` stays the newest.
+		try fm.removeItem(at: fileA)
+		try fm.setAttributes([.modificationDate: now.addingTimeInterval(100)], ofItemAtPath: destination.path(percentEncoded: false))
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).templates.map(\.id), ["b"])
+	}
+
+	func testAFolderThatWasNotSyncedIsIgnored() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+		try self.file(id: "no-index").write(to: destination.appendingPathComponent("no-index.yml"), atomically: true, encoding: .utf8)
+
+		let library = ComposeLibrary.reloadIfChanged(overrideURL: destination)
+
+		XCTAssertNil(library.template(id: "no-index"))
+		XCTAssertNotNil(library.template(id: "postgres"))
+	}
+
+	func testAFolderWhoseIndexIsNewerOrUnreadableFallsBackToTheBundledLibrary() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		_ = try ComposeLibrary.install(index: self.index(["fine"]), files: ["fine": self.file(id: "fine")], destination: destination)
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).templates.map(\.id), ["fine"])
+
+		// An index written by a newer caker is not understood: the bundled copy is used.
+		try self.index(["fine"], version: ComposeLibrary.supportedVersion + 1).write(to: destination.appendingPathComponent(ComposeLibrary.indexFileName))
+
+		var library = ComposeLibrary.reloadIfChanged(overrideURL: destination)
+
+		XCTAssertNil(library.template(id: "fine"))
+		XCTAssertNotNil(library.template(id: "postgres"))
+
+		// So is one that can't be parsed.
+		try Data("{ broken".utf8).write(to: destination.appendingPathComponent(ComposeLibrary.indexFileName))
+
+		library = ComposeLibrary.reloadIfChanged(overrideURL: destination)
+
+		XCTAssertNil(library.template(id: "fine"))
+		XCTAssertNotNil(library.template(id: "postgres"))
+	}
+
+	func testAnUnreadableTemplateIsSkippedAndTheOthersStay() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		_ = try ComposeLibrary.install(index: self.index(["fine", "doomed"]), files: ["fine": self.file(id: "fine"), "doomed": self.file(id: "doomed")], destination: destination)
+		try Data("{ broken".utf8).write(to: destination.appendingPathComponent("doomed.yml"))
+
+		XCTAssertEqual(ComposeLibrary.reloadIfChanged(overrideURL: destination).templates.map(\.id), ["fine"])
+	}
+
+	func testAFolderWithNothingUsableFallsBackToTheBundledLibrary() throws {
+		let destination = self.synced
+
+		defer { _ = ComposeLibrary.reloadIfChanged(overrideURL: nil) }
+
+		_ = try ComposeLibrary.install(index: self.index(["doomed"]), files: ["doomed": self.file(id: "doomed")], destination: destination)
+		try Data("{ broken".utf8).write(to: destination.appendingPathComponent("doomed.yml"))
 
 		XCTAssertNotNil(ComposeLibrary.reloadIfChanged(overrideURL: destination).template(id: "postgres"))
 	}

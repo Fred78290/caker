@@ -339,7 +339,7 @@ caked    compose init [--force]
 
 ### `compose library`
 
-Bibliothèque de modèles `compose.yml` pour ce que les développeurs installent le plus souvent. Elle est fournie avec Caker (`ComposeLibrary.json`, comme `VMImages.json` pour les images) et `library sync` la met à jour depuis la branche `main` du dépôt GitHub dans `<CAKE_HOME>/ComposeLibrary.json`, qui prend alors le pas sur la copie fournie. Tant que les modèles ne sont pas publiés sur `main`, la synchronisation le signale et la copie fournie reste utilisée.
+Bibliothèque de modèles `compose.yml` pour ce que les développeurs installent le plus souvent. Chaque modèle est un fichier `.yml` simple à lire et à modifier. La bibliothèque est fournie avec Caker (dossier `compose-library`, comme `VMImages.json` pour les images) et `library sync` la met à jour depuis la branche `main` du dépôt GitHub dans `<CAKE_HOME>/compose-library/`, qui prend alors le pas sur la copie fournie ; les fichiers de ce dossier peuvent être modifiés à la main (le prochain `sync` écrase ceux qu'il télécharge, et laisse ceux que vous avez ajoutés). Tant que les modèles ne sont pas publiés sur `main`, la synchronisation le signale et la copie fournie reste utilisée.
 
 Ces commandes travaillent sur la machine où elles sont tapées et ne passent pas par `caked` : `clone` écrit le `compose.yml` dans votre répertoire, là où `compose up` le lit.
 
@@ -805,7 +805,7 @@ caked    compose init [--force]
 
 ### `compose library`
 
-A library of `compose.yml` templates for what developers set up most often. It ships with Caker (`ComposeLibrary.json`, like `VMImages.json` for images) and `library sync` updates it from the `main` branch of the GitHub repository into `<CAKE_HOME>/ComposeLibrary.json`, which then takes precedence over the bundled copy. Until the templates are published on `main`, the sync says so and the bundled copy stays in use.
+A library of `compose.yml` templates for what developers set up most often. Each template is a plain `.yml` file that is easy to read and edit. The library ships with Caker (the `compose-library` folder, like `VMImages.json` for images) and `library sync` updates it from the `main` branch of the GitHub repository into `<CAKE_HOME>/compose-library/`, which then takes precedence over the bundled copy; the files in that folder can be edited by hand (the next `sync` overwrites the ones it downloads, and leaves the ones you added). Until the templates are published on `main`, the sync says so and the bundled copy stays in use.
 
 These commands work on the machine they are typed on and never go through `caked`: `clone` writes the `compose.yml` into your directory, where `compose up` reads it.
 
