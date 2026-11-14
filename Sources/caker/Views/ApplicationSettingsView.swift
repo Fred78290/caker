@@ -90,23 +90,6 @@ struct ApplicationSettingsView: View {
 				Label("Startup", systemImage: "power")
 			}
 
-			Section {
-				HStack {
-					Spacer()
-					Button(action: { MainUIAppDelegate.ensurePrivilegedBootstrapFiles() }) {
-						Label("Install command-line tools", systemImage: "terminal")
-					}
-					.disabled(MainUIAppDelegate.isPrivilegedBootstrapFilesInstalled)
-					Spacer()
-				}
-			} header: {
-				Label("Developer Tools", systemImage: "wrench.and.screwdriver")
-			} footer: {
-				Text("Makes caked and cakectl available from Terminal.")
-					.font(.caption)
-					.foregroundStyle(.secondary)
-			}
-
 			#if USE_AUTHORIZATION_HELPER
 				if Bundle.isApplicationSandboxed == false {
 					Section {
@@ -134,6 +117,23 @@ struct ApplicationSettingsView: View {
 					}
 				}
 			#endif
+
+			Section {
+				HStack {
+					Spacer()
+					Button(action: { MainUIAppDelegate.ensurePrivilegedBootstrapFiles() }) {
+						Label("Install command-line tools", systemImage: "terminal")
+					}
+					.disabled(MainUIAppDelegate.isPrivilegedBootstrapFilesInstalled)
+					Spacer()
+				}
+			} header: {
+				Label("Developer Tools", systemImage: "wrench.and.screwdriver")
+			} footer: {
+				Text("Makes caked and cakectl available from Terminal.")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
 		}
 		.formStyle(.grouped)
 		.scrollDisabled(true)
