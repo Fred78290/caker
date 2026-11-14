@@ -1,0 +1,117 @@
+# library-id: prometheus-grafana
+# library-name: Prometheus + Grafana + node_exporter
+# library-category: Monitoring
+# library-summary: Prometheus and Grafana on one VM scraping node_exporter on itself and on two other VMs; Prometheus (9090) and Grafana (3000) are forwarded to the host.
+# library-tags: prometheus, grafana, node_exporter, monitoring, metrics
+name: monitoring
+services:
+  node1:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - prometheus-node-exporter
+  node2:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - prometheus-node-exporter
+  monitor:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    depends_on:
+      - node1
+      - node2
+    ports:
+      - 9090:9090
+      - 3000:3000
+    environment:
+      # The password of Grafana's admin account, taken at its first start (no quotes or spaces).
+      GRAFANA_ADMIN_PASSWORD: change-me
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - curl
+      - prometheus
+      - prometheus-node-exporter
+    # Both files are written aside and copied once the packages are installed: they would otherwise be a modified
+    # conffile that dpkg asks about.
+    write_files:
+      - path: /usr/local/share/monitoring/prometheus.yml
+        content: |
+          global:
+            scrape_interval: 15s
+          scrape_configs:
+            - job_name: prometheus
+              static_configs:
+                - targets: ['localhost:9090']
+            - job_name: node
+              static_configs:
+                - targets:
+                    - monitor.monitoring.compose.internal:9100
+                    - node1.monitoring.compose.internal:9100
+                    - node2.monitoring.compose.internal:9100
+        permissions: '0644'
+      - path: /usr/local/share/monitoring/datasource.yml
+        content: |
+          apiVersion: 1
+          datasources:
+            - name: Prometheus
+              type: prometheus
+              access: proxy
+              url: http://localhost:9090
+              isDefault: true
+        permissions: '0644'
+      - path: /etc/motd.d/monitoring.motd
+        content: |
+          Prometheus: http://localhost:9090 on the host (forwarded). Targets: Status > Targets.
+          Grafana: http://localhost:3000 on the host (forwarded), user admin, password GRAFANA_ADMIN_PASSWORD.
+          Import dashboard 1860 (Node Exporter Full) from Dashboards > New > Import.
+        permissions: '0644'
+    post_commands:
+      - cp /usr/local/share/monitoring/prometheus.yml /etc/prometheus/prometheus.yml
+      - systemctl restart prometheus
+      # Grafana is not in the Ubuntu archive: the .deb is downloaded from Grafana's own site and checked against a
+      # pinned SHA-256 for each architecture before it is installed.
+      - |
+        set -e
+        arch=$(dpkg --print-architecture)
+        case "$arch" in
+          arm64) sha=6b27669256c622014cb413dd26bc53d2a669948427aacc3d22e675b354056ae7 ;;
+          *) arch=amd64; sha=397eec6e64a538c68231b9a55f09fc4504869f198fd5339032fa6fb98b77a952 ;;
+        esac
+        curl -fsSL -o /tmp/grafana.download "https://dl.grafana.com/oss/release/grafana_13.3.1_${arch}.deb"
+        echo "$sha  /tmp/grafana.download" | sha256sum -c -
+        mv /tmp/grafana.download /tmp/grafana.deb
+        DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/grafana.deb
+        rm -f /tmp/grafana.deb
+      - |
+        set -e
+        password=$(grep '^GRAFANA_ADMIN_PASSWORD=' /etc/environment | cut -d= -f2-)
+        mkdir -p /etc/grafana/provisioning/datasources
+        cp /usr/local/share/monitoring/datasource.yml /etc/grafana/provisioning/datasources/prometheus.yml
+        # Read by the service unit; the first start creates the admin account with it.
+        printf 'GF_SECURITY_ADMIN_PASSWORD="%s"\n' "$password" >> /etc/default/grafana-server
+        systemctl daemon-reload
+        systemctl enable --now grafana-server

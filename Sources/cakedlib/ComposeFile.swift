@@ -488,6 +488,7 @@ public struct ComposeService: Codable {
 	public var writeFiles: [ComposeWriteFile]?  // extra files written into the guest via cloud-init at build
 	public var dynamicPortForwarding: Bool?
 	public var sshAuthorizedKey: String?
+	public var sshPasswordAuth: Bool?  // allow SSH password authentication for the guest account (cloud-init `ssh_pwauth`) — off unless set
 
 	enum CodingKeys: String, CodingKey {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
@@ -495,6 +496,7 @@ public struct ComposeService: Codable {
 		case disk, user, password, nested, autostart, packages
 		case diskFormat = "disk_format"
 		case sshAuthorizedKey = "ssh_authorized_key"
+		case sshPasswordAuth = "ssh_password_auth"
 		case packageUpdate = "package_update"
 		case packageUpgrade = "package_upgrade"
 		case postCommands = "post_commands"
@@ -596,6 +598,7 @@ public struct ComposeService: Codable {
 			diskFormat: self.diskFormat ?? SupportedDiskFormat.defaultSupportedFormat,
 			user: self.user ?? "admin",
 			password: self.password ?? "admin",
+			clearPassword: self.sshPasswordAuth ?? false,
 			autostart: autostart ?? false,
 			nested: nested ?? false,
 			netIfnames: self.netIfnames ?? true,

@@ -1,0 +1,277 @@
+# library-id: postgres-patroni
+# library-name: PostgreSQL high availability (Patroni)
+# library-category: Database
+# library-summary: Two PostgreSQL nodes managed by Patroni with an etcd store, and an HAProxy VM that always routes port 5000 to the current primary.
+# library-tags: postgres, postgresql, patroni, etcd, haproxy, high-availability, replication
+name: patroni
+services:
+  # A single etcd node keeps this lab small: it is the one part that is not redundant.
+  etcd:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - etcd-server
+      - etcd-client
+    post_commands:
+      # No authentication: this store is for a lab network only.
+      - |
+        set -e
+        cat >> /etc/default/etcd <<ETCD
+        ETCD_LISTEN_CLIENT_URLS="http://0.0.0.0:2379"
+        ETCD_ADVERTISE_CLIENT_URLS="http://etcd.patroni.compose.internal:2379"
+        ETCD
+        systemctl restart etcd
+  pg1:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    depends_on:
+      - etcd
+    environment:
+      # The same two values on every PostgreSQL node (no quotes).
+      PATRONI_SUPERUSER_PASSWORD: change-me-superuser
+      PATRONI_REPLICATION_PASSWORD: change-me-replication
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - curl
+      - postgresql
+      - patroni
+      - python3-etcd
+    post_commands:
+      - |
+        set -e
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        SUPER=$(envval PATRONI_SUPERUSER_PASSWORD)
+        REPL=$(envval PATRONI_REPLICATION_PASSWORD)
+        NODE=pg1
+        PGBIN=$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)
+        # The postgresql package created and started a cluster of its own: Patroni has to own the data directory.
+        for c in $(pg_lsclusters -h | awk '{print $1"/"$2}'); do pg_dropcluster --stop "${c%/*}" "${c#*/}"; done
+        systemctl disable --now postgresql
+        mkdir -p /etc/patroni
+        cat > /etc/patroni/config.yml <<PATRONI
+        scope: pgcluster
+        name: $NODE
+        restapi:
+          listen: 0.0.0.0:8008
+          connect_address: $NODE.patroni.compose.internal:8008
+        etcd3:
+          host: etcd.patroni.compose.internal:2379
+        bootstrap:
+          dcs:
+            ttl: 30
+            loop_wait: 10
+            retry_timeout: 10
+            maximum_lag_on_failover: 1048576
+            postgresql:
+              use_pg_rewind: true
+              parameters:
+                wal_level: replica
+                hot_standby: "on"
+                max_wal_senders: 10
+                max_replication_slots: 10
+          initdb:
+            - encoding: UTF8
+            - data-checksums
+          pg_hba:
+            - host replication replicator 0.0.0.0/0 scram-sha-256
+            - host all all 0.0.0.0/0 scram-sha-256
+        postgresql:
+          listen: 0.0.0.0:5432
+          connect_address: $NODE.patroni.compose.internal:5432
+          data_dir: /var/lib/postgresql/patroni
+          bin_dir: $PGBIN
+          authentication:
+            superuser:
+              username: postgres
+              password: '$SUPER'
+            replication:
+              username: replicator
+              password: '$REPL'
+        PATRONI
+        chown postgres:postgres /etc/patroni/config.yml
+        chmod 600 /etc/patroni/config.yml
+        systemctl enable --now patroni
+        ready=
+        for i in $(seq 1 60); do
+          if curl -sf http://localhost:8008/health >/dev/null; then ready=1; break; fi
+          sleep 5
+        done
+        [ -n "$ready" ] || { echo "patroni did not report a running PostgreSQL" >&2; exit 1; }
+  pg2:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 20          # GiB
+    depends_on:
+      - pg1
+    environment:
+      PATRONI_SUPERUSER_PASSWORD: change-me-superuser
+      PATRONI_REPLICATION_PASSWORD: change-me-replication
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - curl
+      - postgresql
+      - patroni
+      - python3-etcd
+    post_commands:
+      - |
+        set -e
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        SUPER=$(envval PATRONI_SUPERUSER_PASSWORD)
+        REPL=$(envval PATRONI_REPLICATION_PASSWORD)
+        NODE=pg2
+        PGBIN=$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)
+        for c in $(pg_lsclusters -h | awk '{print $1"/"$2}'); do pg_dropcluster --stop "${c%/*}" "${c#*/}"; done
+        systemctl disable --now postgresql
+        mkdir -p /etc/patroni
+        cat > /etc/patroni/config.yml <<PATRONI
+        scope: pgcluster
+        name: $NODE
+        restapi:
+          listen: 0.0.0.0:8008
+          connect_address: $NODE.patroni.compose.internal:8008
+        etcd3:
+          host: etcd.patroni.compose.internal:2379
+        bootstrap:
+          dcs:
+            ttl: 30
+            loop_wait: 10
+            retry_timeout: 10
+            maximum_lag_on_failover: 1048576
+            postgresql:
+              use_pg_rewind: true
+              parameters:
+                wal_level: replica
+                hot_standby: "on"
+                max_wal_senders: 10
+                max_replication_slots: 10
+          initdb:
+            - encoding: UTF8
+            - data-checksums
+          pg_hba:
+            - host replication replicator 0.0.0.0/0 scram-sha-256
+            - host all all 0.0.0.0/0 scram-sha-256
+        postgresql:
+          listen: 0.0.0.0:5432
+          connect_address: $NODE.patroni.compose.internal:5432
+          data_dir: /var/lib/postgresql/patroni
+          bin_dir: $PGBIN
+          authentication:
+            superuser:
+              username: postgres
+              password: '$SUPER'
+            replication:
+              username: replicator
+              password: '$REPL'
+        PATRONI
+        chown postgres:postgres /etc/patroni/config.yml
+        chmod 600 /etc/patroni/config.yml
+        systemctl enable --now patroni
+        ready=
+        for i in $(seq 1 60); do
+          if curl -sf http://localhost:8008/health >/dev/null; then ready=1; break; fi
+          sleep 5
+        done
+        [ -n "$ready" ] || { echo "patroni did not report a running PostgreSQL" >&2; exit 1; }
+  lb:
+    image: ubuntu:24.04
+    user: ubuntu
+    password: ubuntu
+    disk: 10          # GiB
+    depends_on:
+      - pg1
+      - pg2
+    ports:
+      - 5000:5000
+      - 5001:5001
+      - 7000:7000
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - haproxy
+    # Written aside and copied once the package is installed: it would otherwise be a modified conffile.
+    write_files:
+      - path: /usr/local/share/patroni/haproxy.cfg
+        content: |
+          global
+            maxconn 200
+            user haproxy
+            group haproxy
+
+          # The backends are named: look them up again while running, so a recreated node (new address) is found
+          # without restarting HAProxy. 127.0.0.53 is the systemd-resolved stub, which forwards compose names to compose DNS.
+          resolvers compose
+            nameserver stub 127.0.0.53:53
+            accepted_payload_size 512
+            resolve_retries 3
+            timeout resolve 1s
+            timeout retry 1s
+            hold valid 10s
+
+          defaults
+            mode tcp
+            timeout connect 5s
+            timeout client 30m
+            timeout server 30m
+
+          # Port 5000: the primary only (Patroni answers 200 on /primary for the leader).
+          listen primary
+            bind *:5000
+            option httpchk GET /primary
+            http-check expect status 200
+            default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+            server pg1 pg1.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
+            server pg2 pg2.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
+
+          # Port 5001: the replicas.
+          listen replicas
+            bind *:5001
+            balance roundrobin
+            option httpchk GET /replica
+            http-check expect status 200
+            default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+            server pg1 pg1.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
+            server pg2 pg2.patroni.compose.internal:5432 check port 8008 resolvers compose init-addr last,libc,none
+
+          listen stats
+            mode http
+            bind *:7000
+            stats enable
+            stats uri /
+        permissions: '0644'
+      - path: /etc/motd.d/patroni.motd
+        content: |
+          Connect to the primary on port 5000 (forwarded to the host), as user postgres with PATRONI_SUPERUSER_PASSWORD.
+          Replicas answer on 5001. HAProxy's status page is on port 7000.
+          On pg1 or pg2: patronictl -c /etc/patroni/config.yml list   (add `switchover` to move the leader)
+        permissions: '0644'
+    post_commands:
+      - |
+        set -e
+        haproxy -c -f /usr/local/share/patroni/haproxy.cfg
+        cp /usr/local/share/patroni/haproxy.cfg /etc/haproxy/haproxy.cfg
+        systemctl restart haproxy
