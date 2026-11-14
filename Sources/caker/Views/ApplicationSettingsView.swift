@@ -192,8 +192,9 @@ struct ApplicationSettingsView: View {
 					UserDefaults.standard.removeObject(forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
 					_ = DirectAuthorizationHelperConnector.install()
 				} else {
-					UserDefaults.standard.set(true, forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
-					_ = DirectAuthorizationHelperConnector.uninstall()
+					if DirectAuthorizationHelperConnector.uninstall() {
+						UserDefaults.standard.set(true, forKey: DirectAuthorizationHelperConnector.disabledByUserKey)
+					}
 				}
 
 				self.helperStatus = DirectAuthorizationHelperConnector.daemonStatus
