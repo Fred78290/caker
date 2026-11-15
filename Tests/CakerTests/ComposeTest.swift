@@ -1694,4 +1694,56 @@ final class ComposeTest: XCTestCase {
 		let newClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.replaceDefinition = true }.serializedData()
 		XCTAssertTrue(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: newClient).replaceDefinition)
 	}
+
+	// MARK: - Alpine cloud image
+
+	func testOnlyAlpineGetsTheSerialGettyCommand() {
+		XCTAssertEqual(CloudInit.platformRunCommands(for: .alpine), [CloudInit.alpineDisableSerialGettyCommand])
+
+		for platform in [SupportedPlatform.ubuntu, .debian, .fedora, .centos] {
+			XCTAssertTrue(CloudInit.platformRunCommands(for: platform).isEmpty, "\(platform)")
+		}
+	}
+
+	/// Runs the real command on a copy of an Alpine `inittab`: only the `ttyAMA0` getty is commented out, and a second run
+	/// changes nothing.
+	func testAlpineSerialGettyCommandCommentsOnlyTheTtyAMA0Line() throws {
+		let inittab = """
+			::sysinit:/sbin/openrc sysinit
+			tty1::respawn:/sbin/getty 38400 tty1
+			ttyS0::respawn:/sbin/getty -L 115200 ttyS0 vt100
+			ttyAMA0::respawn:/sbin/getty -L 115200 ttyAMA0 vt100
+			::shutdown:/sbin/openrc shutdown
+
+			"""
+		let url = FileManager.default.temporaryDirectory.appendingPathComponent("inittab-\(UUID().uuidString)")
+
+		try inittab.write(to: url, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: url) }
+
+		// The guest runs busybox `sed -i`; macOS's BSD `sed` wants an (empty) backup suffix after `-i`.
+		let command = CloudInit.alpineDisableSerialGettyCommand
+			.replacingOccurrences(of: "sed -i ", with: "sed -i '' ")
+			.replacingOccurrences(of: "/etc/inittab", with: url.path)
+
+		func run() throws {
+			let process = Process()
+
+			process.executableURL = URL(fileURLWithPath: "/bin/sh")
+			process.arguments = ["-c", command]
+			try process.run()
+			process.waitUntilExit()
+			XCTAssertEqual(process.terminationStatus, 0)
+		}
+
+		try run()
+
+		let expected = inittab.replacingOccurrences(of: "ttyAMA0::respawn", with: "#ttyAMA0::respawn")
+
+		XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), expected)
+
+		try run()
+
+		XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), expected)
+	}
 }
