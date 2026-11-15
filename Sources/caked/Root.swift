@@ -117,6 +117,7 @@ struct Root: ParsableCommand {
 				Stop.self,
 				Suspend.self,
 				Restart.self,
+				SeamlessDemo.self,
 				Template.self,
 				Umount.self,
 				Up.self,
