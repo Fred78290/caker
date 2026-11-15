@@ -203,7 +203,7 @@ final class ComposeLibraryTests: XCTestCase {
 		}
 	}
 
-	/// Every template runs on the current LTS of its distribution: Ubuntu 26.04, or the Alpine 3.24 cloud image for the
+	/// Every template runs on the current LTS of its distribution: Ubuntu 26.04, or the catalog's `alpine324` cloud image (`alias:alpine324`) for the
 	/// `*-alpine` ones. The Alpine ones have no `motd.d` (Alpine reads `/etc/motd`) and no `systemctl`, `apt` or `dpkg`.
 	func testBundledTemplatesRunOnTheCurrentUbuntuOrAlpineRelease() throws {
 		let alpineIDs: Set<String> = ["alpine-dev", "docker-host-alpine", "redis-alpine", "postgres-alpine", "lemp-alpine", "prometheus-grafana-alpine"]
@@ -216,7 +216,8 @@ final class ComposeLibraryTests: XCTestCase {
 			let alpine = alpineIDs.contains(template.id)
 
 			for (name, service) in compose.services {
-				XCTAssertEqual(service.image, alpine ? "images:alpine/3.24/cloud" : "ubuntu:26.04", "\(template.id)/\(name)")
+				// Alpine goes through the catalog: the `images:alpine` simplestream image has no cloud-init.
+				XCTAssertEqual(service.image, alpine ? "alias:alpine324" : "ubuntu:26.04", "\(template.id)/\(name)")
 
 				if alpine {
 					XCTAssertEqual(service.user, "alpine", "\(template.id)/\(name)")

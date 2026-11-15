@@ -112,7 +112,7 @@ networks:
 
 ### Image d'un service (`image`)
 
-`image:` accepte les mêmes références que `cakectl build` (`ubuntu:26.04`, `images:alpine/3.24/cloud`, une URL d'image cloud). Préfixée par `alias:`, elle désigne un identifiant du catalogue `VMImages.json` (`cakectl aliases` les liste), comme `cakectl build --alias` : `image: alias:alpine324`. Un identifiant inconnu fait échouer `compose up` avant la création de la première VM ; le CPU et la mémoire sont relevés au minimum de l'entrée du catalogue, sans jamais baisser une valeur plus haute.
+`image:` accepte les mêmes références que `cakectl build` (`ubuntu:26.04`, une URL d'image cloud). Préfixée par `alias:`, elle désigne un identifiant du catalogue `VMImages.json` (`cakectl aliases` les liste), comme `cakectl build --alias` : `image: alias:alpine324`. Un identifiant inconnu fait échouer `compose up` avant la création de la première VM ; le CPU et la mémoire sont relevés au minimum de l'entrée du catalogue, sans jamais baisser une valeur plus haute.
 
 ### Nommage des VM
 
@@ -393,7 +393,7 @@ Modèles fournis :
 | `lemp-alpine` | Web | Nginx with PHP-FPM on one Alpine VM and MariaDB on another, wired together through compose DNS. |
 | `prometheus-grafana-alpine` | Monitoring | Prometheus and Grafana on one Alpine VM scraping node_exporter on itself and on two other VMs; Prometheus is forwarded on 9090 and Grafana on 3000. |
 
-Les modèles `*-alpine` reprennent des piles Ubuntu sur Alpine Linux 3.24 (`image: images:alpine/3.24/cloud`, l'image cloud de linuxcontainers.org, disponible en arm64 et amd64) : paquets `apk`, services OpenRC (`rc-service`, `rc-update`), compte `alpine`, bibliothèque C musl. Ils sont écrits d'après le contenu des paquets Alpine et n'ont pas été démarrés sur une VM.
+Les modèles `*-alpine` reprennent des piles Ubuntu sur Alpine Linux 3.24 (`image: alias:alpine324`, l'image cloud du catalogue `VMImages.json`, résolue pour l'architecture de l'hôte ; l'image `images:alpine` de linuxcontainers.org n'a pas cloud-init) : paquets `apk`, services OpenRC (`rc-service`, `rc-update`), compte `alpine`, bibliothèque C musl. Ils sont écrits d'après le contenu des paquets Alpine et n'ont pas été démarrés sur une VM.
 
 Les modèles qui servent quelque chose redirigent leurs ports vers l'hôte avec `ports:` (PostgreSQL 5432, Redis 6379, RabbitMQ 5672/15672, les piles web 8080 ou 3000, l'API Kubernetes de `k3s` 6443 et son ingress 8080/8443, les ports 8080/8443 de `docker-host` pour les conteneurs publiés, 3000/8000 de `ubuntu-dev` pour les serveurs de développement, Gitea 3000 et 2222 pour Git en SSH, Nextcloud 8080, Vaultwarden derrière Caddy en HTTPS sur 8443, l'API S3 de Garage 3900 et son API d'administration 3903). `docker-host` redirige aussi le socket Docker de l'invité vers `~/.docker/run/docker.sock` sur l'hôte avec `sockets:` : `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` suffit alors pour que le client `docker` du Mac pilote le moteur de la VM (cet accès équivaut à root dans la VM). Caker crée le répertoire du socket s'il n'existe pas ; ce chemin est aussi celui de Docker Desktop, il ne faut donc pas faire tourner les deux ensemble.
 
@@ -599,7 +599,7 @@ networks:
 
 ### Service image (`image`)
 
-`image:` takes the same references as `cakectl build` (`ubuntu:26.04`, `images:alpine/3.24/cloud`, a cloud image URL). Prefixed with `alias:`, it names an id of the `VMImages.json` catalog (`cakectl aliases` lists them), like `cakectl build --alias`: `image: alias:alpine324`. An unknown id makes `compose up` fail before the first VM is built; CPU and memory are raised to the catalog entry's minimum, never lowering a higher value.
+`image:` takes the same references as `cakectl build` (`ubuntu:26.04`, a cloud image URL). Prefixed with `alias:`, it names an id of the `VMImages.json` catalog (`cakectl aliases` lists them), like `cakectl build --alias`: `image: alias:alpine324`. An unknown id makes `compose up` fail before the first VM is built; CPU and memory are raised to the catalog entry's minimum, never lowering a higher value.
 
 ### VM naming
 
@@ -880,7 +880,7 @@ Bundled templates:
 | `lemp-alpine` | Web | Nginx with PHP-FPM on one Alpine VM and MariaDB on another, wired together through compose DNS. |
 | `prometheus-grafana-alpine` | Monitoring | Prometheus and Grafana on one Alpine VM scraping node_exporter on itself and on two other VMs; Prometheus is forwarded on 9090 and Grafana on 3000. |
 
-The `*-alpine` templates are the Alpine Linux 3.24 counterparts of Ubuntu stacks (`image: images:alpine/3.24/cloud`, linuxcontainers.org's cloud image, available for arm64 and amd64): `apk` packages, OpenRC services (`rc-service`, `rc-update`), an `alpine` account and the musl C library. They are written from the contents of the Alpine packages and have not been booted on a VM.
+The `*-alpine` templates are the Alpine Linux 3.24 counterparts of Ubuntu stacks (`image: alias:alpine324`, the `VMImages.json` catalog's cloud image, resolved for the host's architecture; linuxcontainers.org's `images:alpine` image has no cloud-init): `apk` packages, OpenRC services (`rc-service`, `rc-update`), an `alpine` account and the musl C library. They are written from the contents of the Alpine packages and have not been booted on a VM.
 
 Templates that serve something forward their ports to the host with `ports:` (PostgreSQL 5432, Redis 6379, RabbitMQ 5672/15672, the web stacks 8080 or 3000, the `k3s` Kubernetes API 6443 and its ingress 8080/8443, `docker-host`'s 8080/8443 for published containers, `ubuntu-dev`'s 3000/8000 for dev servers, Gitea's 3000 and 2222 for Git over SSH, Nextcloud's 8080, Vaultwarden behind Caddy on HTTPS 8443, Garage's S3 API 3900 and admin API 3903). `docker-host` also forwards the guest's Docker socket to `~/.docker/run/docker.sock` on the host with `sockets:`, so `export DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` is all the Mac's `docker` client needs to drive the VM's engine (that access is root-equivalent inside the VM). Caker creates the socket's directory when it is missing; the path is also Docker Desktop's, so don't run both together.
 
