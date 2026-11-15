@@ -1115,10 +1115,11 @@ class CloudInit {
 		)
 	}
 
-	/// Alpine's cloud image starts a getty on the serial console (`ttyAMA0`) from `/etc/inittab`. Under Virtualization.framework
-	/// that line has to be commented out. The `sed` only touches a line that is still active, so running it twice, or on an
-	/// image whose `inittab` has no such entry (x86_64 uses `ttyS0`), changes nothing.
-	static let alpineDisableSerialGettyCommand = "sed -i 's|^ttyAMA0::respawn:/sbin/getty -L 115200 ttyAMA0 vt100|#&|' /etc/inittab"
+	/// Alpine's cloud image starts a getty on the serial console from `/etc/inittab`: `ttyAMA0` on aarch64, `ttyS0` on x86_64.
+	/// Under Virtualization.framework those lines have to be commented out. Each `sed` expression only matches a line that is
+	/// still active (and whatever baud rate it names), so running the command twice, or on an image whose `inittab` has only
+	/// one of the two entries, changes nothing more.
+	static let alpineDisableSerialGettyCommand = "sed -i -e 's|^ttyAMA0::respawn:/sbin/getty -L [0-9]* ttyAMA0 vt100|#&|' -e 's|^ttyS0::respawn:/sbin/getty -L [0-9]* ttyS0 vt100|#&|' /etc/inittab"
 
 	/// Commands `runcmd` runs for a given guest distribution, before the cakeagent is installed.
 	static func platformRunCommands(for platform: SupportedPlatform) -> [String] {

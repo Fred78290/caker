@@ -1705,9 +1705,9 @@ final class ComposeTest: XCTestCase {
 		}
 	}
 
-	/// Runs the real command on a copy of an Alpine `inittab`: only the `ttyAMA0` getty is commented out, and a second run
-	/// changes nothing.
-	func testAlpineSerialGettyCommandCommentsOnlyTheTtyAMA0Line() throws {
+	/// Runs the real command on a copy of an Alpine `inittab`: only the `ttyAMA0` and `ttyS0` serial gettys are commented out
+	/// (the VGA console's `tty1` stays), and a second run changes nothing.
+	func testAlpineSerialGettyCommandCommentsOnlyTheSerialConsoleLines() throws {
 		let inittab = """
 			::sysinit:/sbin/openrc sysinit
 			tty1::respawn:/sbin/getty 38400 tty1
@@ -1738,7 +1738,9 @@ final class ComposeTest: XCTestCase {
 
 		try run()
 
-		let expected = inittab.replacingOccurrences(of: "ttyAMA0::respawn", with: "#ttyAMA0::respawn")
+		let expected = inittab
+			.replacingOccurrences(of: "ttyAMA0::respawn", with: "#ttyAMA0::respawn")
+			.replacingOccurrences(of: "ttyS0::respawn", with: "#ttyS0::respawn")
 
 		XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), expected)
 
