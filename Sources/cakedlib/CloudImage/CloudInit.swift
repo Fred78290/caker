@@ -1119,13 +1119,16 @@ class CloudInit {
 	/// Under Virtualization.framework those lines have to be commented out. Each `sed` expression only matches a line that is
 	/// still active (and whatever baud rate it names), so running the command twice, or on an image whose `inittab` has only
 	/// one of the two entries, changes nothing more.
-	static let alpineDisableSerialGettyCommand = "sed -i -e 's|^ttyAMA0::respawn:/sbin/getty -L [0-9]* ttyAMA0 vt100|#&|' -e 's|^ttyS0::respawn:/sbin/getty -L [0-9]* ttyS0 vt100|#&|' /etc/inittab"
+	static let alpineDisableSerialGettyCommand = [
+		"sed -i -e 's|^ttyAMA0::respawn:/sbin/getty -L [0-9]* ttyAMA0 vt100|#&|' -e 's|^ttyS0::respawn:/sbin/getty -L [0-9]* ttyS0 vt100|#&|' /etc/inittab",
+		"kill -HUP 1",
+	]
 
 	/// Commands `runcmd` runs for a given guest distribution, before the cakeagent is installed.
 	static func platformRunCommands(for platform: SupportedPlatform) -> [String] {
 		switch platform {
 		case .alpine:
-			return [alpineDisableSerialGettyCommand]
+			return alpineDisableSerialGettyCommand
 		default:
 			return []
 		}
@@ -1141,9 +1144,10 @@ class CloudInit {
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
 		]
-		var runCommand = Self.platformRunCommands(for: self.platform) + [
-			"/usr/local/bin/install-cakeagent.sh"
-		]
+		var runCommand =
+			Self.platformRunCommands(for: self.platform) + [
+				"/usr/local/bin/install-cakeagent.sh"
+			]
 		var writeFiles: [WriteFile] = [
 			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0700", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),

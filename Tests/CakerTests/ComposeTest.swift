@@ -1698,7 +1698,10 @@ final class ComposeTest: XCTestCase {
 	// MARK: - Alpine cloud image
 
 	func testOnlyAlpineGetsTheSerialGettyCommand() {
-		XCTAssertEqual(CloudInit.platformRunCommands(for: .alpine), [CloudInit.alpineDisableSerialGettyCommand])
+		XCTAssertEqual(CloudInit.platformRunCommands(for: .alpine), CloudInit.alpineDisableSerialGettyCommand)
+
+		// init has to re-read the edited inittab, otherwise the getty keeps running until the next boot.
+		XCTAssertEqual(CloudInit.alpineDisableSerialGettyCommand.last, "kill -HUP 1")
 
 		for platform in [SupportedPlatform.ubuntu, .debian, .fedora, .centos] {
 			XCTAssertTrue(CloudInit.platformRunCommands(for: platform).isEmpty, "\(platform)")
@@ -1722,7 +1725,7 @@ final class ComposeTest: XCTestCase {
 		defer { try? FileManager.default.removeItem(at: url) }
 
 		// The guest runs busybox `sed -i`; macOS's BSD `sed` wants an (empty) backup suffix after `-i`.
-		let command = CloudInit.alpineDisableSerialGettyCommand
+		let command = try XCTUnwrap(CloudInit.alpineDisableSerialGettyCommand.first)
 			.replacingOccurrences(of: "sed -i ", with: "sed -i '' ")
 			.replacingOccurrences(of: "/etc/inittab", with: url.path)
 
