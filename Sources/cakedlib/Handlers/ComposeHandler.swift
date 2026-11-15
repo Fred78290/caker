@@ -32,6 +32,11 @@ public struct ComposeHandler {
 
 			let toStart = try compose.composeFile.startOrder(filter: services)
 
+			// Fail on an unknown `image: alias:<id>` before any VM is built, not partway through the stack.
+			for (_, serviceSpec) in toStart {
+				_ = try serviceSpec.validatedImageAlias()
+			}
+
 			for (serviceName, serviceSpec) in toStart {
 				let vmName = "compose-\(appName)-\(serviceName)"
 

@@ -484,6 +484,22 @@ final class ComposeTest: XCTestCase {
 		}
 	}
 
+	func testUpRejectsAnUnknownImageAliasBeforeBuildingAnyService() async throws {
+		var good = ComposeService()
+		good.image = "alias:alpine324"
+
+		var bad = ComposeService()
+		bad.image = "alias:no-such-image"
+		bad.dependsOn = .list(["a"])
+
+		var status = ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: "aliasfail", services: ["a": good, "b": bad]))
+		let reply = await ComposeHandler.up(compose: &status, services: [], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertFalse(reply.success)
+		XCTAssertTrue(reply.reason.contains("no-such-image"), reply.reason)
+		XCTAssertTrue(status.installed.isEmpty)
+	}
+
 	func testPlainImageHasNoCatalogId() throws {
 		var svc = ComposeService()
 		svc.image = "ubuntu:26.04"

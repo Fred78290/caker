@@ -92,6 +92,16 @@ public struct BuildHandler {
 		}
 
 		do {
+			// `directLocation` below depends on the *resolved* image source, but an `imageId` (`--alias`,
+			// compose's `image: alias:<id>`, a gRPC `imageId`) is otherwise only resolved inside
+			// `VMBuilder.buildVM`, i.e. after that decision: an `alias:macos15` carrying the Ubuntu
+			// placeholder image would be built in a temporary directory and relocated afterwards.
+			// Resolving again later is a no-op, `imageId` being cleared here.
+			if options.imageId != nil {
+				await VMImageCatalog.refreshLatestImages()
+			}
+
+			let options = try options.resolveImageId()
 			let storageLocation = StorageLocation(runMode: runMode)
 
 			if storageLocation.exists(options.name) {

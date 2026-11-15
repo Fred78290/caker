@@ -597,17 +597,10 @@ public struct ComposeService: Codable {
 		// `image: alias:<id>` names a catalog entry (`caked aliases`). It is not resolved here: the build
 		// resolves `imageId` itself (after refreshing the catalog's "latest" images), exactly as for
 		// `build --alias`; it is only checked now so that a typo fails `compose up` before any VM is built.
-		var imageAlias: String?
+		let imageAlias = try validatedImageAlias()
 		var imageReference = image ?? defaultUbuntuImage
 
-		if imageReference.hasPrefix(Self.imageAliasPrefix) {
-			let id = imageReference.dropFirst(Self.imageAliasPrefix.count).trimmingCharacters(in: .whitespaces)
-
-			guard id.isEmpty == false, VMImageCatalog.reloadIfChanged().resolveShorthand(id) != nil else {
-				throw ServiceError(String(format: String(localized: "Unknown catalog image id '%@' in image '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids."), id, imageReference))
-			}
-
-			imageAlias = id
+		if imageAlias != nil {
 			imageReference = defaultUbuntuImage
 		}
 
@@ -709,6 +702,23 @@ public struct ComposeService: Codable {
 		}
 
 		return (opts, filesToClean)
+	}
+
+	/// The catalog id named by an `image: alias:<id>`, or `nil` when `image` is not an alias. Throws when the
+	/// id is empty or unknown to the catalog. `ComposeHandler.up` runs this for every selected service before
+	/// building the first VM, so a typo can't fail after earlier services were already built.
+	func validatedImageAlias() throws -> String? {
+		guard let image, image.hasPrefix(Self.imageAliasPrefix) else {
+			return nil
+		}
+
+		let id = image.dropFirst(Self.imageAliasPrefix.count).trimmingCharacters(in: .whitespaces)
+
+		guard id.isEmpty == false, VMImageCatalog.reloadIfChanged().resolveShorthand(id) != nil else {
+			throw ServiceError(String(format: String(localized: "Unknown catalog image id '%@' in image '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids."), id, image))
+		}
+
+		return id
 	}
 
 	/// The cloud-init user-data document assembled from `environment`/`write_files`/`packages`/
