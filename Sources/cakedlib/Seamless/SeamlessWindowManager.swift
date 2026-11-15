@@ -380,6 +380,13 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	}
 
 	private func send(_ message: SeamlessHostMessage) {
+		switch message {
+		case .pointerMotion, .pointerAxis:
+			break
+		default:
+			logger.trace("Seamless -> guest: \(message)")
+		}
+
 		session?.send(message)
 	}
 

@@ -1,6 +1,6 @@
 # Seamless Linux windows on the macOS desktop (WSLg-style)
 
-Status: **host-side prototype**, verified with an in-process fake guest. Nothing has run against a real guest compositor yet.
+Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. Not integrated into `caked vmrun`/Caker.app yet.
 
 ## Idea
 
@@ -45,17 +45,22 @@ Host to guest: `helloAck`, `output` (scale change), `windowResize` (logical size
 
 The guest is untrusted: sizes, rectangle bounds, string lengths, floats and decompressed sizes are all validated, the host caps the windows (64), the frames in flight (8) and a buffer at 40 Mpx, the socket is `0600`, and every title is prefixed `[<vm>]` so a guest cannot pass its windows off as a host application's.
 
-## What the guest side has to do (not written yet)
+## The guest compositor
 
-1. A small Wayland compositor (wlroots or Weston based) with XWayland, headless, software rendered (llvmpipe).
-2. For each `xdg_toplevel`/`xdg_popup`: `windowCreate`, then `windowFrame` with the committed buffer's damage after every `wl_surface.commit`; `windowDestroy` on unmap.
-3. Apply `windowResize` through `xdg_toplevel.configure`, `output` through `wp_fractional_scale`, `windowFocus` through keyboard enter/leave, pointer and key messages through the seat.
-4. Clipboard (`wl_data_device`) and cursor shape (`wp_cursor_shape`) forwarding, then `cursor` messages.
-5. Install it from the cakeagent, start it as a user service, expose `.desktop` entries to the host.
+`Tools/SeamlessCompositor/` (`main.c`, `wire.c`, `README.md`, `caker-seamlessd.service`): a headless wlroots compositor with software (pixman) rendering.
+
+- Each `xdg_toplevel`/`xdg_popup` is announced when it maps. On every commit of the window or any of its subsurfaces it renders the surface tree at `logical * scale` into an offscreen buffer, diffs it against the previous frame to find the changed rectangle, LZ4-compresses it and queues it (non-blocking, 64 MiB cap, then it falls back to a full frame). Updates are coalesced to ~60 fps and frame callbacks are sent after each frame.
+- Host input becomes seat events: evdev keys through a virtual xkb keyboard, pointer enter/motion/button/axis hit-tested against the window's surface tree, focus through `xdg_toplevel` activation.
+- Scale: the host's output scale is advertised through `wp_fractional_scale` and `preferred_buffer_scale`.
+- The host draws the title bar (server-side decorations requested), maximize/fullscreen/minimize requests are acknowledged and ignored.
+- It connects to `vsock:5100` (or `unix:`/`tcp:` for testing), retries every second, and re-announces every window when the host reconnects.
+
+Verified in a Caker VM: `weston-simple-shm`, `foot`. Not exercised: popups from a real toolkit, host-initiated resize, fractional scales other than 2x, a second window.
 
 ## Not done yet / known gaps
 
-- Guest compositor (above). The protocol is only exercised against `SeamlessDemoGuest`.
+- XWayland (X11 apps), clipboard (`wl_data_device` is advertised but selections aren't synced), client-drawn cursor images, `text-input` (IME), `xdg_activation`.
+- Packaging: installing and starting `caker-seamlessd` from the cakeagent (it is built by hand in the guest for now), exposing guest `.desktop` entries.
 - Hooking `SeamlessWindowManager` into `caked vmrun` / Caker.app and into the VM configuration (a `seamless` option adding the `connect://` socket, creating the unix socket under the VM directory). Windows must be created by a process that runs AppKit; when VMs run in a headless `caked`, the stream has to travel over gRPC to Caker.app like the VNC tunnel does.
 - Clipboard and drag and drop (message ids are free, nothing is reserved).
 - Input methods / IME and character-level text input: keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu are not forwarded.
