@@ -165,6 +165,54 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
+		9B31080530A9065400ABFDF4 /* vaultwarden-caddy.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */; };
+		9B31080630A9065400ABFDF4 /* garage.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080130A9065400ABFDF4 /* garage.yml */; };
+		9B31080730A9065400ABFDF4 /* gitea.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080230A9065400ABFDF4 /* gitea.yml */; };
+		9B31080830A9065400ABFDF4 /* nextcloud.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080330A9065400ABFDF4 /* nextcloud.yml */; };
+		9B31080930A9065400ABFDF4 /* vaultwarden-caddy.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */; };
+		9B31080A30A9065400ABFDF4 /* garage.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080130A9065400ABFDF4 /* garage.yml */; };
+		9B31080B30A9065400ABFDF4 /* gitea.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080230A9065400ABFDF4 /* gitea.yml */; };
+		9B31080C30A9065400ABFDF4 /* nextcloud.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080330A9065400ABFDF4 /* nextcloud.yml */; };
+		9B31080D30A9065400ABFDF4 /* vaultwarden-caddy.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */; };
+		9B31080E30A9065400ABFDF4 /* garage.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080130A9065400ABFDF4 /* garage.yml */; };
+		9B31080F30A9065400ABFDF4 /* gitea.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080230A9065400ABFDF4 /* gitea.yml */; };
+		9B31081030A9065400ABFDF4 /* nextcloud.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31080330A9065400ABFDF4 /* nextcloud.yml */; };
+		9B31081130A906AC00ABFDF4 /* garage.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080130A9065400ABFDF4 /* garage.yml */; };
+		9B31081230A906AC00ABFDF4 /* gitea.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080230A9065400ABFDF4 /* gitea.yml */; };
+		9B31081330A906AC00ABFDF4 /* nextcloud.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080330A9065400ABFDF4 /* nextcloud.yml */; };
+		9B31081430A906AC00ABFDF4 /* vaultwarden-caddy.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */; };
+		9B31081530A906CD00ABFDF4 /* garage.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080130A9065400ABFDF4 /* garage.yml */; };
+		9B31081630A906CD00ABFDF4 /* gitea.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080230A9065400ABFDF4 /* gitea.yml */; };
+		9B31081730A906CD00ABFDF4 /* nextcloud.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080330A9065400ABFDF4 /* nextcloud.yml */; };
+		9B31081830A906CD00ABFDF4 /* vaultwarden-caddy.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */; };
+		9B31081930A906F500ABFDF4 /* garage.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080130A9065400ABFDF4 /* garage.yml */; };
+		9B31081A30A906F500ABFDF4 /* gitea.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080230A9065400ABFDF4 /* gitea.yml */; };
+		9B31081B30A906F500ABFDF4 /* nextcloud.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080330A9065400ABFDF4 /* nextcloud.yml */; };
+		9B31081C30A906F500ABFDF4 /* vaultwarden-caddy.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */; };
+		9B31083D30A90FD400ABFDF4 /* ansible-lab.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083930A90FD400ABFDF4 /* ansible-lab.yml */; };
+		9B31083E30A90FD400ABFDF4 /* k3s-cluster.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */; };
+		9B31083F30A90FD400ABFDF4 /* prometheus-grafana.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */; };
+		9B31084030A90FD400ABFDF4 /* postgres-patroni.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */; };
+		9B31084130A90FD400ABFDF4 /* ansible-lab.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083930A90FD400ABFDF4 /* ansible-lab.yml */; };
+		9B31084230A90FD400ABFDF4 /* k3s-cluster.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */; };
+		9B31084330A90FD400ABFDF4 /* prometheus-grafana.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */; };
+		9B31084430A90FD400ABFDF4 /* postgres-patroni.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */; };
+		9B31084530A90FD400ABFDF4 /* ansible-lab.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083930A90FD400ABFDF4 /* ansible-lab.yml */; };
+		9B31084630A90FD400ABFDF4 /* k3s-cluster.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */; };
+		9B31084730A90FD400ABFDF4 /* prometheus-grafana.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */; };
+		9B31084830A90FD400ABFDF4 /* postgres-patroni.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */; };
+		9B31084930A9101700ABFDF4 /* ansible-lab.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083930A90FD400ABFDF4 /* ansible-lab.yml */; };
+		9B31084A30A9101700ABFDF4 /* k3s-cluster.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */; };
+		9B31084B30A9101700ABFDF4 /* postgres-patroni.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */; };
+		9B31084C30A9101700ABFDF4 /* prometheus-grafana.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */; };
+		9B31084D30A9103500ABFDF4 /* ansible-lab.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083930A90FD400ABFDF4 /* ansible-lab.yml */; };
+		9B31084E30A9103500ABFDF4 /* k3s-cluster.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */; };
+		9B31084F30A9103500ABFDF4 /* postgres-patroni.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */; };
+		9B31085030A9103500ABFDF4 /* prometheus-grafana.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */; };
+		9B31085130A9104D00ABFDF4 /* ansible-lab.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083930A90FD400ABFDF4 /* ansible-lab.yml */; };
+		9B31085230A9104D00ABFDF4 /* k3s-cluster.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */; };
+		9B31085330A9104D00ABFDF4 /* postgres-patroni.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */; };
+		9B31085430A9104D00ABFDF4 /* prometheus-grafana.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */; };
 		9B32F98B3025E9780099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98A3025E96E0099D3A5 /* ProvisionHandler.swift */; };
 		9B32F98D302604800099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98C302604790099D3A5 /* ProvisionHandler.swift */; };
 		9B32F994302624DA0099D3A5 /* Provision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F993302624D70099D3A5 /* Provision.swift */; };
@@ -1112,6 +1160,14 @@
 			dstPath = "compose-library";
 			dstSubfolder = Resources;
 			files = (
+				9B31084930A9101700ABFDF4 /* ansible-lab.yml in Compose Library */,
+				9B31084A30A9101700ABFDF4 /* k3s-cluster.yml in Compose Library */,
+				9B31084B30A9101700ABFDF4 /* postgres-patroni.yml in Compose Library */,
+				9B31084C30A9101700ABFDF4 /* prometheus-grafana.yml in Compose Library */,
+				9B31081130A906AC00ABFDF4 /* garage.yml in Compose Library */,
+				9B31081230A906AC00ABFDF4 /* gitea.yml in Compose Library */,
+				9B31081330A906AC00ABFDF4 /* nextcloud.yml in Compose Library */,
+				9B31081430A906AC00ABFDF4 /* vaultwarden-caddy.yml in Compose Library */,
 				9BC4DC9C30A868C400FEFAE5 /* docker-host.yml in Compose Library */,
 				9BC4DC9D30A868C400FEFAE5 /* index.json in Compose Library */,
 				9BC4DC9E30A868C400FEFAE5 /* k3s.yml in Compose Library */,
@@ -1132,6 +1188,14 @@
 			dstPath = "compose-library";
 			dstSubfolder = Resources;
 			files = (
+				9B31084D30A9103500ABFDF4 /* ansible-lab.yml in Compose Library */,
+				9B31084E30A9103500ABFDF4 /* k3s-cluster.yml in Compose Library */,
+				9B31084F30A9103500ABFDF4 /* postgres-patroni.yml in Compose Library */,
+				9B31085030A9103500ABFDF4 /* prometheus-grafana.yml in Compose Library */,
+				9B31081530A906CD00ABFDF4 /* garage.yml in Compose Library */,
+				9B31081630A906CD00ABFDF4 /* gitea.yml in Compose Library */,
+				9B31081730A906CD00ABFDF4 /* nextcloud.yml in Compose Library */,
+				9B31081830A906CD00ABFDF4 /* vaultwarden-caddy.yml in Compose Library */,
 				9BC4DCA930A8691800FEFAE5 /* docker-host.yml in Compose Library */,
 				9BC4DCAA30A8691800FEFAE5 /* index.json in Compose Library */,
 				9BC4DCAB30A8691800FEFAE5 /* k3s.yml in Compose Library */,
@@ -1152,6 +1216,14 @@
 			dstPath = "compose-library";
 			dstSubfolder = Resources;
 			files = (
+				9B31085130A9104D00ABFDF4 /* ansible-lab.yml in Compose Library */,
+				9B31085230A9104D00ABFDF4 /* k3s-cluster.yml in Compose Library */,
+				9B31085330A9104D00ABFDF4 /* postgres-patroni.yml in Compose Library */,
+				9B31085430A9104D00ABFDF4 /* prometheus-grafana.yml in Compose Library */,
+				9B31081930A906F500ABFDF4 /* garage.yml in Compose Library */,
+				9B31081A30A906F500ABFDF4 /* gitea.yml in Compose Library */,
+				9B31081B30A906F500ABFDF4 /* nextcloud.yml in Compose Library */,
+				9B31081C30A906F500ABFDF4 /* vaultwarden-caddy.yml in Compose Library */,
 				9BC4DCB630A8694F00FEFAE5 /* docker-host.yml in Compose Library */,
 				9BC4DCB730A8694F00FEFAE5 /* index.json in Compose Library */,
 				9BC4DCB830A8694F00FEFAE5 /* k3s.yml in Compose Library */,
@@ -1425,6 +1497,14 @@
 		9B30BA4D2E0BF37300256A9D /* RegexParseableFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegexParseableFormatStyle.swift; sourceTree = "<group>"; };
 		9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZMacAddressParseableFormatStyle.swift; sourceTree = "<group>"; };
 		9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionalStringFormatStyle.swift; sourceTree = "<group>"; };
+		9B31080130A9065400ABFDF4 /* garage.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = garage.yml; sourceTree = "<group>"; };
+		9B31080230A9065400ABFDF4 /* gitea.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = gitea.yml; sourceTree = "<group>"; };
+		9B31080330A9065400ABFDF4 /* nextcloud.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = nextcloud.yml; sourceTree = "<group>"; };
+		9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vaultwarden-caddy.yml"; sourceTree = "<group>"; };
+		9B31083930A90FD400ABFDF4 /* ansible-lab.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "ansible-lab.yml"; sourceTree = "<group>"; };
+		9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "k3s-cluster.yml"; sourceTree = "<group>"; };
+		9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "postgres-patroni.yml"; sourceTree = "<group>"; };
+		9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "prometheus-grafana.yml"; sourceTree = "<group>"; };
 		9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = centos.packerlite.yaml; sourceTree = "<group>"; };
 		9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = debian.packerlite.yaml; sourceTree = "<group>"; };
 		9B32F9763025C31F0099D3A5 /* fedora.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = fedora.packerlite.yaml; sourceTree = "<group>"; };
@@ -3175,18 +3255,26 @@
 		9BC4DC7630A8687100FEFAE5 /* compose-library */ = {
 			isa = PBXGroup;
 			children = (
-				9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */,
 				9BC4DC6B30A8687100FEFAE5 /* index.json */,
+				9B31083930A90FD400ABFDF4 /* ansible-lab.yml */,
+				9BC4DC6A30A8687100FEFAE5 /* docker-host.yml */,
+				9B31080130A9065400ABFDF4 /* garage.yml */,
+				9B31080230A9065400ABFDF4 /* gitea.yml */,
+				9B31083A30A90FD400ABFDF4 /* k3s-cluster.yml */,
 				9BC4DC6C30A8687100FEFAE5 /* k3s.yml */,
 				9BC4DC6D30A8687100FEFAE5 /* lamp.yml */,
 				9BC4DC6E30A8687100FEFAE5 /* lemp.yml */,
 				9BC4DC6F30A8687100FEFAE5 /* mariadb-phpmyadmin.yml */,
+				9B31080330A9065400ABFDF4 /* nextcloud.yml */,
 				9BC4DC7030A8687100FEFAE5 /* nodejs-redis.yml */,
+				9B31083B30A90FD400ABFDF4 /* postgres-patroni.yml */,
 				9BC4DC7130A8687100FEFAE5 /* postgres.yml */,
+				9B31083C30A90FD400ABFDF4 /* prometheus-grafana.yml */,
 				9BC4DC7230A8687100FEFAE5 /* python-postgres.yml */,
 				9BC4DC7330A8687100FEFAE5 /* rabbitmq.yml */,
 				9BC4DC7430A8687100FEFAE5 /* redis.yml */,
 				9BC4DC7530A8687100FEFAE5 /* ubuntu-dev.yml */,
+				9B31080430A9065400ABFDF4 /* vaultwarden-caddy.yml */,
 			);
 			path = "compose-library";
 			sourceTree = "<group>";
@@ -4215,11 +4303,19 @@
 		9B06995A2FB1A15E00FEAE13 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				9B31083D30A90FD400ABFDF4 /* ansible-lab.yml in Resources */,
+				9B31083E30A90FD400ABFDF4 /* k3s-cluster.yml in Resources */,
+				9B31083F30A90FD400ABFDF4 /* prometheus-grafana.yml in Resources */,
+				9B31084030A90FD400ABFDF4 /* postgres-patroni.yml in Resources */,
 				8D19AE739219331A241BE422 /* VMImages.json in Resources */,
 				1ABE4CCBA6204E3183685314 /* compose-template.yml in Resources */,
 				9B9ADA693095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E1A76CAF27B6E1A8336C76 /* ssh-install-cakeagent.sh in Resources */,
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
+				9B31080930A9065400ABFDF4 /* vaultwarden-caddy.yml in Resources */,
+				9B31080A30A9065400ABFDF4 /* garage.yml in Resources */,
+				9B31080B30A9065400ABFDF4 /* gitea.yml in Resources */,
+				9B31080C30A9065400ABFDF4 /* nextcloud.yml in Resources */,
 				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
 			);
 		};
@@ -4231,6 +4327,10 @@
 				9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */,
 				9B561266301350FB00E9FA7D /* agent.svg in Resources */,
 				9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */,
+				9B31080D30A9065400ABFDF4 /* vaultwarden-caddy.yml in Resources */,
+				9B31080E30A9065400ABFDF4 /* garage.yml in Resources */,
+				9B31080F30A9065400ABFDF4 /* gitea.yml in Resources */,
+				9B31081030A9065400ABFDF4 /* nextcloud.yml in Resources */,
 				9B561268301350FB00E9FA7D /* Assets.xcassets in Resources */,
 				9B561269301350FB00E9FA7D /* Document.icns in Resources */,
 				9B56126A301350FB00E9FA7D /* MenuBarIcon.png in Resources */,
@@ -4238,6 +4338,10 @@
 				9B9ADA683095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E1E981E39328E90025990C /* ssh-install-cakeagent.sh in Resources */,
 				9B9FE670309A43520006B008 /* com.aldunelabs.caker.authorization.plist in Resources */,
+				9B31084530A90FD400ABFDF4 /* ansible-lab.yml in Resources */,
+				9B31084630A90FD400ABFDF4 /* k3s-cluster.yml in Resources */,
+				9B31084730A90FD400ABFDF4 /* prometheus-grafana.yml in Resources */,
+				9B31084830A90FD400ABFDF4 /* postgres-patroni.yml in Resources */,
 				9B5FA35F2F8D5AE80077EF64 /* InfoPlist.xcstrings in Resources */,
 			);
 		};
@@ -4249,11 +4353,19 @@
 		9BD69DEE2FCEE8F1005E24AF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				9B31084130A90FD400ABFDF4 /* ansible-lab.yml in Resources */,
+				9B31084230A90FD400ABFDF4 /* k3s-cluster.yml in Resources */,
+				9B31084330A90FD400ABFDF4 /* prometheus-grafana.yml in Resources */,
+				9B31084430A90FD400ABFDF4 /* postgres-patroni.yml in Resources */,
 				9BD69DF62FCEE912005E24AF /* VM.icns in Resources */,
 				9BD69DF72FCEE912005E24AF /* VM.png in Resources */,
 				9BFB8906303F5052007AFA2A /* VMImages.json in Resources */,
 				9B9ADA673095DC5800567445 /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E12F827B170858D0360B1C /* ssh-install-cakeagent.sh in Resources */,
+				9B31080530A9065400ABFDF4 /* vaultwarden-caddy.yml in Resources */,
+				9B31080630A9065400ABFDF4 /* garage.yml in Resources */,
+				9B31080730A9065400ABFDF4 /* gitea.yml in Resources */,
+				9B31080830A9065400ABFDF4 /* nextcloud.yml in Resources */,
 				98EBC5DEAAE746B3A32CD787 /* compose-template.yml in Resources */,
 			);
 		};
