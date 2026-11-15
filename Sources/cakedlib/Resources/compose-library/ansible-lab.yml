@@ -6,7 +6,7 @@
 name: ansible-lab
 services:
   web1:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     ssh_password_auth: true   # the controller logs in with the password (see the inventory)
@@ -17,7 +17,7 @@ services:
           cpus: 1
           memory: 1024M
   web2:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     ssh_password_auth: true   # the controller logs in with the password (see the inventory)
@@ -28,7 +28,7 @@ services:
           cpus: 1
           memory: 1024M
   controller:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB

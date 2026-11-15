@@ -6,7 +6,7 @@
 name: postgres
 services:
   db:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
@@ -24,7 +24,6 @@ services:
     package_update: true
     packages:
       - postgresql
-      - postgresql-contrib
     post_commands:
       - sed -i "s/^#\?listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
       - for f in /etc/postgresql/*/main/pg_hba.conf; do echo "host all all 0.0.0.0/0 scram-sha-256" >> "$f"; done

@@ -1,0 +1,47 @@
+# library-id: postgres-alpine
+# library-name: PostgreSQL (Alpine)
+# library-category: Database
+# library-summary: PostgreSQL 18 from the Alpine repositories, listening on every interface with an application role and database.
+# library-tags: alpine, postgres, postgresql, sql, database
+name: postgres-alpine
+services:
+  db:
+    image: images:alpine/3.24/cloud
+    user: alpine
+    password: alpine
+    disk: 20          # GiB
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: app
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - sudo
+      - postgresql18
+      - postgresql18-client
+      - postgresql18-contrib
+      - postgresql18-openrc
+    post_commands:
+      # Creates the cluster; the configuration files live in /etc/postgresql (symlinked into the data directory).
+      - rc-service postgresql setup
+      - sed -i "s/^#\?listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/postgresql.conf
+      - echo "host all all 0.0.0.0/0 scram-sha-256" >> /etc/postgresql/pg_hba.conf
+      - rc-update add postgresql default
+      - rc-service postgresql start
+      # The values come from `environment:` above (written to /etc/environment).
+      - |
+        # Read the raw values instead of sourcing /etc/environment: sourcing would split a value with a space
+        # and expand a `$` in it.
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        POSTGRES_USER=$(envval POSTGRES_USER)
+        POSTGRES_PASSWORD=$(envval POSTGRES_PASSWORD)
+        POSTGRES_DB=$(envval POSTGRES_DB)
+        su postgres -c "psql -c \"CREATE ROLE $POSTGRES_USER LOGIN PASSWORD '$POSTGRES_PASSWORD'\""
+        su postgres -c "createdb -O $POSTGRES_USER $POSTGRES_DB"

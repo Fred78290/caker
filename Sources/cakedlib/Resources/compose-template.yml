@@ -11,7 +11,7 @@ services:
   # apt repo publishes amd64 packages only, no arm64 build, which made that pairing unusable on
   # Apple Silicon hosts — MariaDB/phpMyAdmin are both in Ubuntu's own default repos for every arch.)
   mariadb:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     ports:
       - 3306:3306
     environment:
@@ -52,7 +52,7 @@ services:
   # to preseed those answers via `post_commands:` before installing, same "packages: only works
   # when nothing needs asking first" lesson the old pgAdmin pairing demonstrated.
   phpmyadmin:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     ports:
       - 8080:80
     networks:

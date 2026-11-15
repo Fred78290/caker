@@ -6,7 +6,7 @@
 name: dockerhost
 services:
   docker:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 40          # GiB

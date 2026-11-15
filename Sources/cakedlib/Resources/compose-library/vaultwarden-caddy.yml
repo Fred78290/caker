@@ -7,7 +7,7 @@ name: vault
 services:
   # Vaultwarden has no distribution package: it runs as its official container image.
   vaultwarden:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
@@ -30,7 +30,7 @@ services:
   # by its compose DNS name. The browser warns about the certificate until you trust Caddy's root:
   # copy /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt out of this VM.
   caddy:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB

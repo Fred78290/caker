@@ -118,6 +118,10 @@ final class ComposeLibraryTests: XCTestCase {
 			"k3s-cluster": ("server", ["6443:6443/tcp", "8080:80/tcp", "8443:443/tcp"]),
 			"prometheus-grafana": ("monitor", ["9090:9090/tcp", "3000:3000/tcp"]),
 			"postgres-patroni": ("lb", ["5000:5000/tcp", "5001:5001/tcp", "7000:7000/tcp"]),
+			"alpine-dev": ("dev", ["3000:3000/tcp", "8000:8000/tcp"]),
+			"docker-host-alpine": ("docker", ["8080:8080/tcp", "8443:8443/tcp"]),
+			"lemp-alpine": ("web", ["8080:80/tcp"]),
+			"prometheus-grafana-alpine": ("monitor", ["9090:9090/tcp", "3000:3000/tcp"]),
 		]
 
 		for (id, entry) in expected {
@@ -136,7 +140,7 @@ final class ComposeLibraryTests: XCTestCase {
 	func testSelfHostedTemplatesProduceValidCloudInitScripts() throws {
 		let library = ComposeLibrary.loadBundled()
 
-		for id in ["gitea", "nextcloud", "vaultwarden-caddy", "garage", "ansible-lab", "k3s-cluster", "prometheus-grafana", "postgres-patroni"] {
+		for id in ["gitea", "nextcloud", "vaultwarden-caddy", "garage", "ansible-lab", "k3s-cluster", "prometheus-grafana", "postgres-patroni", "alpine-dev", "docker-host-alpine", "redis-alpine", "postgres-alpine", "lemp-alpine", "prometheus-grafana-alpine"] {
 			let compose = try XCTUnwrap(library.template(id: id)).composeFile()
 
 			for (name, service) in compose.services {
@@ -175,6 +179,8 @@ final class ComposeLibraryTests: XCTestCase {
 			"postgres-patroni": [["etcd"], ["pg1"], ["pg2"], ["lb"]],
 			"prometheus-grafana": [["node1", "node2"], ["monitor"]],
 			"ansible-lab": [["web1", "web2"], ["controller"]],
+			"lemp-alpine": [["db"], ["web"]],
+			"prometheus-grafana-alpine": [["node1", "node2"], ["monitor"]],
 		]
 
 		for (id, stages) in expectedOrder {
@@ -192,6 +198,36 @@ final class ComposeLibraryTests: XCTestCase {
 			}
 
 			XCTAssertEqual(Set(order), Set(stages.joined()), id)
+		}
+	}
+
+	/// Every template runs on the current LTS of its distribution: Ubuntu 26.04, or the Alpine 3.24 cloud image for the
+	/// `*-alpine` ones. The Alpine ones have no `motd.d` (Alpine reads `/etc/motd`) and no `systemctl`, `apt` or `dpkg`.
+	func testBundledTemplatesRunOnTheCurrentUbuntuOrAlpineRelease() throws {
+		let alpineIDs: Set<String> = ["alpine-dev", "docker-host-alpine", "redis-alpine", "postgres-alpine", "lemp-alpine", "prometheus-grafana-alpine"]
+		let library = ComposeLibrary.loadBundled()
+
+		XCTAssertTrue(alpineIDs.isSubset(of: Set(library.templates.map(\.id))))
+
+		for template in library.templates {
+			let compose = try template.composeFile()
+			let alpine = alpineIDs.contains(template.id)
+
+			for (name, service) in compose.services {
+				XCTAssertEqual(service.image, alpine ? "images:alpine/3.24/cloud" : "ubuntu:26.04", "\(template.id)/\(name)")
+
+				if alpine {
+					XCTAssertEqual(service.user, "alpine", "\(template.id)/\(name)")
+					XCTAssertTrue(service.packages?.contains("sudo") ?? false, "\(template.id)/\(name) needs sudo for the account cloud-init creates")
+					XCTAssertFalse((service.writeFiles ?? []).contains { $0.path.contains("/motd.d/") }, "\(template.id)/\(name)")
+
+					for command in service.postCommands ?? [] {
+						for forbidden in ["systemctl", "apt-get", "apt ", "dpkg", "usermod"] {
+							XCTAssertFalse(command.contains(forbidden), "\(template.id)/\(name) uses \(forbidden), which Alpine doesn't have")
+						}
+					}
+				}
+			}
 		}
 	}
 

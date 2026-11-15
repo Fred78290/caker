@@ -6,7 +6,7 @@
 name: monitoring
 services:
   node1:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB
@@ -19,7 +19,7 @@ services:
     packages:
       - prometheus-node-exporter
   node2:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB
@@ -32,7 +32,7 @@ services:
     packages:
       - prometheus-node-exporter
   monitor:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
