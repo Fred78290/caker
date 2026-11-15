@@ -1,6 +1,6 @@
 # Seamless Linux windows on the macOS desktop (WSLg-style)
 
-Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. It is now wired into the VM lifecycle (below); the cakeagent that ships the compositor is Fred78290/cakeagent#23 and is not released yet.
+Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. It is now wired into the VM lifecycle (below); the cakeagent that ships the compositor is Fred78290/cakeagent#23 and is released from snapshot `83e622bd`.
 
 ## Idea
 
@@ -51,7 +51,7 @@ The guest is untrusted: sizes, rectangle bounds, string lengths, floats and deco
 - **Socket device**: `CakeConfig.socketDeviceAttachments` adds `connect://vsock:5100/<vm dir>/seamless.sock` (short `/tmp` path when the VM path is too long for a `sockaddr_un`).
 - **Server**: `VirtualMachine.startSeamlessWindows()` starts a `SeamlessWindowManager` once the VM runs, in a process that can show windows (Caker.app, or `caked vmrun --ui`); a headless `caked` logs that it can't. `didChangedStateOnStop` stops it and removes the socket.
 - **Guest**: `CakeConfig.agentServiceFlags` adds `--seamless --seamless-user=<vm user> --seamless-layout=<host layout>` to `cakeagent service install` in both install scripts (cloud-init and SSH), so a freshly built VM, or an agent update, installs the compositor service. The host keyboard layout comes from `SeamlessKeyboardLayout` (macOS input source id to XKB layout, plain layouts only).
-- **Needs a cakeagent with `seamless` support** (`CAKEAGENT_SNAPSHOT`): until Fred78290/cakeagent#23 is merged and released, a guest agent doesn't know the flags. To try it by hand: build that agent, copy it into the VM and run `cakeagent seamless run --seamless-user <user>`, then `cakeagent seamless launch -- foot`.
+- **Needs a cakeagent with `seamless` support** (`CAKEAGENT_SNAPSHOT`): cakeagent snapshot `83e622bd` (Fred78290/cakeagent#23) is the first with them; an older guest agent ignores the install flags. To try it by hand: build that agent, copy it into the VM and run `cakeagent seamless run --seamless-user <user>`, then `cakeagent seamless launch -- foot`.
 
 Verified with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
 
