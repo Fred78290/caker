@@ -34,6 +34,10 @@ public struct ConfigureHandler {
 				config.displayRefit = displayRefit
 			}
 
+			if let seamless = options.seamless {
+				config.seamless = seamless
+			}
+
 			if let autostart = options.autostart {
 				config.autostart = autostart
 			}

@@ -396,6 +396,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		MainActor.assumeIsolated {
 			self.session = session
 			self.guestName = guestName
+			self.logger.info("Seamless: guest compositor \(guestName) connected")
 			self.onSessionChange?(true)
 		}
 	}
@@ -406,6 +407,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			guard self.session === session else { return }
 
 			self.session = nil
+			self.logger.info("Seamless: guest compositor disconnected")
 			self.closeAllWindows()
 			self.onSessionChange?(false)
 		}

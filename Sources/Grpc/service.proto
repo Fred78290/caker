@@ -459,6 +459,8 @@ message Caked {
   // Windows guests: the frame segment (MiB) of the display driver, which bounds the display size; absent when it is the stock driver's 16
     optional uint32 windowsFrameSegmentMiB = 48;
     optional string imdsMacAddress = 49;
+  // Linux guests: show the guest's windows on the host (seamless windows)
+    bool seamless = 50;
   }
 
   message ScreenSize {
@@ -629,6 +631,7 @@ message Caked {
       optional ScreenSize screenSize            = 17;
       optional string     user                  = 18;
       optional string     password              = 19;
+      optional bool       seamless              = 20;
     }
 
     message WaitIPRequest {

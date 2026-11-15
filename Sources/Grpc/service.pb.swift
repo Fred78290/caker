@@ -892,6 +892,12 @@ public nonisolated struct Caked_Caked: Sendable {
     /// Clears the value of `imdsMacAddress`. Subsequent reads from it will return its default value.
     public mutating func clearImdsMacAddress() {_uniqueStorage()._imdsMacAddress = nil}
 
+    /// Linux guests: show the guest's windows on the host (seamless windows)
+    public var seamless: Bool {
+      get {_storage._seamless}
+      set {_uniqueStorage()._seamless = newValue}
+    }
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     /// VirtualizedOS represents the type of virtualized operating system
@@ -2417,6 +2423,15 @@ public nonisolated struct Caked_Caked: Sendable {
       public var hasPassword: Bool {_storage._password != nil}
       /// Clears the value of `password`. Subsequent reads from it will return its default value.
       public mutating func clearPassword() {_uniqueStorage()._password = nil}
+
+      public var seamless: Bool {
+        get {_storage._seamless ?? false}
+        set {_uniqueStorage()._seamless = newValue}
+      }
+      /// Returns true if `seamless` has been explicitly set.
+      public var hasSeamless: Bool {_storage._seamless != nil}
+      /// Clears the value of `seamless`. Subsequent reads from it will return its default value.
+      public mutating func clearSeamless() {_uniqueStorage()._seamless = nil}
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -7979,7 +7994,7 @@ nonisolated extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisioned\0\u{1}sshAuthorizedKey\0\u{1}windowsFrameSegmentMiB\0\u{1}imdsMacAddress\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisioned\0\u{1}sshAuthorizedKey\0\u{1}windowsFrameSegmentMiB\0\u{1}imdsMacAddress\0\u{1}seamless\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -8031,6 +8046,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
     var _provisioned: Bool = false
     var _windowsFrameSegmentMiB: UInt32? = nil
     var _imdsMacAddress: String? = nil
+    var _seamless: Bool = false
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -8090,6 +8106,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       _provisioned = source._provisioned
       _windowsFrameSegmentMiB = source._windowsFrameSegmentMiB
       _imdsMacAddress = source._imdsMacAddress
+      _seamless = source._seamless
     }
   }
 
@@ -8157,6 +8174,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         case 47: try { try decoder.decodeSingularStringField(value: &_storage._sshAuthorizedKey) }()
         case 48: try { try decoder.decodeSingularUInt32Field(value: &_storage._windowsFrameSegmentMiB) }()
         case 49: try { try decoder.decodeSingularStringField(value: &_storage._imdsMacAddress) }()
+        case 50: try { try decoder.decodeSingularBoolField(value: &_storage._seamless) }()
         default: break
         }
       }
@@ -8316,6 +8334,9 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       try { if let v = _storage._imdsMacAddress {
         try visitor.visitSingularStringField(value: v, fieldNumber: 49)
       } }()
+      if _storage._seamless != false {
+        try visitor.visitSingularBoolField(value: _storage._seamless, fieldNumber: 50)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -8374,6 +8395,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         if _storage._provisioned != rhs_storage._provisioned {return false}
         if _storage._windowsFrameSegmentMiB != rhs_storage._windowsFrameSegmentMiB {return false}
         if _storage._imdsMacAddress != rhs_storage._imdsMacAddress {return false}
+        if _storage._seamless != rhs_storage._seamless {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -9850,7 +9872,7 @@ nonisolated extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message
 
 nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ConfigureRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0\u{1}screenSize\0\u{1}user\0\u{1}password\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0\u{1}screenSize\0\u{1}user\0\u{1}password\0\u{1}seamless\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -9872,6 +9894,7 @@ nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Mess
     var _screenSize: Caked_Caked.ScreenSize? = nil
     var _user: String? = nil
     var _password: String? = nil
+    var _seamless: Bool? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -9901,6 +9924,7 @@ nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Mess
       _screenSize = source._screenSize
       _user = source._user
       _password = source._password
+      _seamless = source._seamless
     }
   }
 
@@ -9938,6 +9962,7 @@ nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Mess
         case 17: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._user) }()
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
+        case 20: try { try decoder.decodeSingularBoolField(value: &_storage._seamless) }()
         default: break
         }
       }
@@ -10007,6 +10032,9 @@ nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Mess
       try { if let v = _storage._password {
         try visitor.visitSingularStringField(value: v, fieldNumber: 19)
       } }()
+      try { if let v = _storage._seamless {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 20)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -10035,6 +10063,7 @@ nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Mess
         if _storage._screenSize != rhs_storage._screenSize {return false}
         if _storage._user != rhs_storage._user {return false}
         if _storage._password != rhs_storage._password {return false}
+        if _storage._seamless != rhs_storage._seamless {return false}
         return true
       }
       if !storagesAreEqual {return false}

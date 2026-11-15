@@ -394,6 +394,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var hardwareModel: Data?
 	public var provisioned: Bool
 	public var imdsMacAddress: String?
+	public var seamless: Bool
 
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
@@ -447,6 +448,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.hardwareModel = from.hardwareModel
 		self.provisioned = from.provisioned
 		self.imdsMacAddress = from.imdsMacAddress
+		self.seamless = from.seamless
 	}
 
 	public init(_ from: Caked.Configuration) {
@@ -521,6 +523,8 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		if from.hasImdsMacAddress {
 			self.imdsMacAddress = from.imdsMacAddress
 		}
+
+		self.seamless = from.seamless
 	}
 }
 
@@ -732,6 +736,10 @@ extension Caked_ConfigureRequest {
 
 		if let displayRefit = options.displayRefit {
 			self.displayRefit = displayRefit
+		}
+
+		if let seamless = options.seamless {
+			self.seamless = seamless
 		}
 
 		if let autostart = options.autostart {

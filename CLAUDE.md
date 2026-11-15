@@ -573,6 +573,10 @@ On macOS 26 a SwiftUI `.sheet` drops the Liquid Glass effect of its content (to 
 - **Testing Escape**: synthesized key events (`NSApp.sendEvent`) go to the key window, so a scripted test only works while its app is active; in the background the events are dropped and checks fail for no code reason.
 - **Second copy**: [Fred78290/GlassDemo](https://github.com/Fred78290/GlassDemo) ships the same file as a standalone `GlassedSheet` library (`Sources/GlassedSheet/GlassedSheet.swift`; Swift 6 language mode, macOS 26 only, and its `dismissGlassedSheet` default is `{}`). The Escape/`glassedSheetDismissDisabled`/fallback changes were ported there in Fred78290/GlassDemo#1; port future changes the same way.
 
+### Seamless Linux windows (WSLg-style)
+
+A Linux guest can show its windows on the Mac as native windows. Design, protocol and gaps: `SEAMLESS_WINDOWS_PLAN.md`. In short: `caker-seamlessd` (`Tools/SeamlessCompositor`, C/wlroots, run by the cakeagent in the guest) streams one pixel buffer per Wayland toplevel/popup over vsock to `SeamlessWindowManager` (`Sources/cakedlib/Seamless/`), which shows each in an `NSWindow` (titles prefixed `[<vm>]`) and sends keyboard/pointer input back. `CakeConfig.seamless` turns it on (`caked configure <vm> --seamless true`, Caker's VM settings); it adds a `connect://vsock:5100/<vm dir>/seamless.sock` socket device, `VirtualMachine.startSeamlessWindows()` runs the server (only in a process with a UI: Caker.app or `caked vmrun --ui`), and `CakeConfig.agentServiceFlags` passes `--seamless` to the agent install. The protocol is mirrored by hand in `Tools/SeamlessCompositor/wire.{h,c}` and the cakeagent's `pkg/seamless`: change them together. Needs a cakeagent with seamless support (Fred78290/cakeagent#23, then a `CAKEAGENT_SNAPSHOT` bump).
+
 ## Code Organization Conventions
 
 - **Adding a command**: Mirror it in both `Sources/caked/Commands/` and `Sources/cakectl/Commands/` where applicable. Use `ArgumentParser` with `CommandConfiguration` metadata including `abstract:` and `discussion:`.

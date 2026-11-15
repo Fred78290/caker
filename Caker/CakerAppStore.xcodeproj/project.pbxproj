@@ -23,6 +23,7 @@
 /* Begin PBXBuildFile section */
 		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
+		60CF05D095220BA2841B73EF /* SeamlessKeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC55BB83781519622B1BB5C4 /* SeamlessKeyboardLayout.swift */; };
 		31649975FE30FFC41B87847F /* SeamlessDemoGuest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115901D6AC5314B91281A968 /* SeamlessDemoGuest.swift */; };
 		4A6B88405ADA4D547DCD3148 /* SeamlessWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */; };
 		BCEA484CE3FB11B305A7A0CF /* SeamlessKeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */; };
@@ -2081,6 +2082,7 @@
 		A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
+		CC55BB83781519622B1BB5C4 /* SeamlessKeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessKeyboardLayout.swift; sourceTree = "<group>"; };
 		115901D6AC5314B91281A968 /* SeamlessDemoGuest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessDemoGuest.swift; sourceTree = "<group>"; };
 		0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessWindowManager.swift; sourceTree = "<group>"; };
 		A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessKeyMap.swift; sourceTree = "<group>"; };
@@ -3474,6 +3476,7 @@
 				9BDC05242FEADADE00802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
+				CC55BB83781519622B1BB5C4 /* SeamlessKeyboardLayout.swift */,
 				115901D6AC5314B91281A968 /* SeamlessDemoGuest.swift */,
 				0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */,
 				A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */,
@@ -4835,6 +4838,7 @@
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				802CE90ABB8EDBA72C8EBF07 /* ComposeLibrary.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
+				60CF05D095220BA2841B73EF /* SeamlessKeyboardLayout.swift in Sources */,
 				31649975FE30FFC41B87847F /* SeamlessDemoGuest.swift in Sources */,
 				4A6B88405ADA4D547DCD3148 /* SeamlessWindowManager.swift in Sources */,
 				BCEA484CE3FB11B305A7A0CF /* SeamlessKeyMap.swift in Sources */,

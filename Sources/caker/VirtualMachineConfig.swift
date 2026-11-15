@@ -191,6 +191,16 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	/// Read-only here: recorded by the Windows installer (see `CakeConfig.windowsFrameSegmentMiB`), not edited from the GUI
 	var windowsFrameSegmentMiB: Int? = nil
 
+	var seamless: Bool = false {
+		didSet {
+			changedFields?.insert(\.seamless)
+		}
+	}
+
+	var seamlessIfChanged: Bool? {
+		self.changedFields?.contains(\.seamless) == true ? self.seamless : nil
+	}
+
 	var displayRefitIfChanged: Bool? {
 		self.changedFields?.contains(\.displayRefit) == true ? self.displayRefit : nil
 	}
@@ -542,6 +552,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.ifname = true
 		self.dynamicPortForwarding = false
 		self.displayRefit = true
+		self.seamless = false
 		self.nestedVirtualization = true
 		self.display = .standard
 		self.forwardedPorts = []
@@ -596,6 +607,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.osRelease = config.osRelease
 		self.dynamicPortForwarding = config.dynamicPortForwarding
 		self.displayRefit = config.displayRefit
+		self.seamless = config.seamless
 		self.windowsFrameSegmentMiB = config.windowsFrameSegmentMiB
 		self.instanceID = config.instanceID
 		self.dhcpClientID = config.dhcpClientID
@@ -659,6 +671,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		config.imdsMacAddress = self.imdsMacAddress
 		config.dynamicPortForwarding = self.dynamicPortForwarding
 		config.displayRefit = self.displayRefit
+		config.seamless = self.seamless
 		config.instanceID = self.instanceID
 		config.dhcpClientID = self.dhcpClientID
 		config.sshAuthorizedKey = self.sshAuthorizedKey
@@ -704,6 +717,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			nested: self.nestedVirtualizationIfChanged,
 			suspendable: self.suspendableIfChanged,
 			displayRefit: self.displayRefitIfChanged,
+			seamless: self.seamlessIfChanged,
 			forwardedPorts: self.forwardedPortsIfChanged,
 			mounts: self.mountsIfChanged,
 			networks: self.networksIfChanged,

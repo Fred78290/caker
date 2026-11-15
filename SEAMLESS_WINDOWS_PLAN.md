@@ -1,6 +1,6 @@
 # Seamless Linux windows on the macOS desktop (WSLg-style)
 
-Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. Not integrated into `caked vmrun`/Caker.app yet.
+Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. It is now wired into the VM lifecycle (below); the cakeagent that ships the compositor is Fred78290/cakeagent#23 and is not released yet.
 
 ## Idea
 
@@ -45,6 +45,16 @@ Host to guest: `helloAck`, `output` (scale change), `windowResize` (logical size
 
 The guest is untrusted: sizes, rectangle bounds, string lengths, floats and decompressed sizes are all validated, the host caps the windows (64), the frames in flight (8) and a buffer at 40 Mpx, the socket is `0600`, and every title is prefixed `[<vm>]` so a guest cannot pass its windows off as a host application's.
 
+## Wired into the VM lifecycle
+
+- **Per VM option** `CakeConfig.seamless` (`config.json`, Linux guests only): `caked configure <vm> --seamless true`, `cakectl configure` (new `ConfigureRequest.seamless`, `Configuration.seamless` in `service.proto`), and a "Seamless windows" toggle in Caker's VM settings.
+- **Socket device**: `CakeConfig.socketDeviceAttachments` adds `connect://vsock:5100/<vm dir>/seamless.sock` (short `/tmp` path when the VM path is too long for a `sockaddr_un`).
+- **Server**: `VirtualMachine.startSeamlessWindows()` starts a `SeamlessWindowManager` once the VM runs, in a process that can show windows (Caker.app, or `caked vmrun --ui`); a headless `caked` logs that it can't. `didChangedStateOnStop` stops it and removes the socket.
+- **Guest**: `CakeConfig.agentServiceFlags` adds `--seamless --seamless-user=<vm user> --seamless-layout=<host layout>` to `cakeagent service install` in both install scripts (cloud-init and SSH), so a freshly built VM, or an agent update, installs the compositor service. The host keyboard layout comes from `SeamlessKeyboardLayout` (macOS input source id to XKB layout, plain layouts only).
+- **Needs a cakeagent with `seamless` support** (`CAKEAGENT_SNAPSHOT`): until Fred78290/cakeagent#23 is merged and released, a guest agent doesn't know the flags. To try it by hand: build that agent, copy it into the VM and run `cakeagent seamless run --seamless-user <user>`, then `cakeagent seamless launch -- foot`.
+
+Verified with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
+
 ## The guest compositor
 
 `Tools/SeamlessCompositor/` (`main.c`, `wire.c`, `README.md`, `caker-seamlessd.service`): a headless wlroots compositor with software (pixman) rendering.
@@ -61,7 +71,7 @@ Verified in a Caker VM: `weston-simple-shm`, `foot`. Not exercised: popups from 
 
 - XWayland (X11 apps), clipboard (`wl_data_device` is advertised but selections aren't synced), client-drawn cursor images, `text-input` (IME), `xdg_activation`.
 - Packaging: installing and starting `caker-seamlessd` from the cakeagent (it is built by hand in the guest for now), exposing guest `.desktop` entries.
-- Hooking `SeamlessWindowManager` into `caked vmrun` / Caker.app and into the VM configuration (a `seamless` option adding the `connect://` socket, creating the unix socket under the VM directory). Windows must be created by a process that runs AppKit; when VMs run in a headless `caked`, the stream has to travel over gRPC to Caker.app like the VNC tunnel does.
+- Headless `caked` (service) VMs can't show windows: the stream would have to travel over gRPC to Caker.app like the VNC tunnel does. Also not wired: a `--seamless` build/launch option (use `configure`), the VM creation wizard, a menu to launch guest `.desktop` apps from Caker.
 - Clipboard and drag and drop (message ids are free, nothing is reserved).
 - Input methods / IME and character-level text input: keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu are not forwarded.
 - Host-driven output scale changes when a window moves between displays (`output` exists, nothing sends it on a screen change).

@@ -233,6 +233,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vzMachineWindow: NSWindow? = nil
 	var timer: Timer? = nil
 	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
+	/// Shows the guest's windows on the host while the VM runs (see `SeamlessWindowManager`).
+	var seamlessWindows: SeamlessWindowManager? = nil
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
 	var mode: VirtualMachine.Mode
@@ -1328,6 +1330,7 @@ extension VirtualMachine {
 			self.logger.info("VM \(self.location.name) started")
 			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
+			self.startSeamlessWindows()
 
 			// Not started by StartHandler (record, provisioning, embedded in the app): nobody else tells the imds network.
 			VMLifecycleHooks.publish(.started(location: self.location, runMode: self.env.runMode))
@@ -1471,8 +1474,45 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 		self.logger.error(error)
 	}
 
+	/// Starts the server the guest compositor connects to, in a process that can show windows: Caker.app, or one that
+	/// runs the VM with a window. A headless `caked` has nothing to draw them with.
+	func startSeamlessWindows() {
+		guard self.env.mode == .normal, self.config.supportsSeamlessWindows else { return }
+
+		guard Bundle.runInCaker || self.env.display == .ui else {
+			self.logger.info("VM \(self.location.name): seamless windows are enabled but this process has no UI to show them, start the VM from Caker.app or with a display")
+			return
+		}
+
+		guard self.env.seamlessWindows == nil, let path = self.config.seamlessSocketPath else { return }
+
+		let name = self.location.name
+
+		Task { @MainActor in
+			do {
+				let manager = SeamlessWindowManager(vmName: name, socketPath: path)
+
+				try manager.start()
+				self.env.seamlessWindows = manager
+				self.logger.info("VM \(name): seamless windows listening on \(path)")
+			} catch {
+				self.logger.error("VM \(name): cannot start seamless windows: \(error)")
+			}
+		}
+	}
+
+	func stopSeamlessWindows() {
+		guard self.env.seamlessWindows != nil else { return }
+
+		Task { @MainActor in
+			self.env.seamlessWindows?.stop()
+			self.env.seamlessWindows = nil
+		}
+	}
+
 	func didChangedStateOnStop() {
 		if self.isRebooting == false {
+			self.stopSeamlessWindows()
 			self.cancelAgentInstallRetry()
 			self.env.signalStop()
 			self.didChangedState(true)

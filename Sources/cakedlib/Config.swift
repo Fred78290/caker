@@ -262,6 +262,13 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.config["windowsFrameSegmentMiB"] as? Int }
 	}
 
+	/// Linux guests: show the guest's windows on the host (SeamlessWindowManager), through a vsock channel the guest
+	/// compositor (caker-seamlessd, run by the cakeagent) connects to.
+	public var seamless: Bool {
+		set { self.config["seamless"] = newValue }
+		get { self.config["seamless"] as? Bool ?? false }
+	}
+
 	public var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
 		get {
@@ -806,6 +813,27 @@ extension VirtualMachineConfiguration {
 		return self.firstLaunch
 	}
 
+	/// Extra flags of `cakeagent service install`: the mounts, and the seamless windows compositor when the guest
+	/// shows its windows on the host (it runs as the VM's user, with the host's keyboard layout).
+	public var agentServiceFlags: String {
+		var flags = [self.linuxMounts].filter { $0.isEmpty == false }
+
+		if self.supportsSeamlessWindows {
+			flags.append("--seamless")
+
+			// The flags land unquoted in a shell script: only a plain user name is passed on.
+			if self.configuredUser.isEmpty == false, self.configuredUser.range(of: "^[a-z_][a-z0-9_.-]*$", options: .regularExpression) != nil {
+				flags.append("--seamless-user=\(self.configuredUser)")
+			}
+
+			if let layout = SeamlessKeyboardLayout.hostXkbLayout() {
+				flags.append("--seamless-layout=\(layout)")
+			}
+		}
+
+		return flags.joined(separator: " ")
+	}
+
 	public var linuxMounts: String {
 		guard self.os == .linux else {
 			return String.empty
@@ -1050,6 +1078,34 @@ extension VirtualMachineConfiguration {
 		}.directorySharingAttachments(os: self.os)
 	}
 
+	/// Unix socket the seamless windows server listens on, the target of the guest's vsock connection. It sits in the
+	/// VM's directory, or in a short temporary path when that one would not fit in a `sockaddr_un` (104 bytes).
+	public var seamlessSocketPath: String? {
+		let path = self.locationURL.appendingPathComponent("seamless.sock").path(percentEncoded: false)
+
+		if path.utf8.count < 100 {
+			return path
+		}
+
+		// FNV-1a: stable across processes, unlike hashValue.
+		let hash = path.utf8.reduce(UInt32(2_166_136_261)) { ($0 ^ UInt32($1)) &* 16_777_619 }
+
+		for directory in ["/tmp", NSTemporaryDirectory()] {
+			let candidate = (directory as NSString).appendingPathComponent(String(format: "caker-seamless-%08x.sock", hash))
+
+			if candidate.utf8.count < 100 {
+				return candidate
+			}
+		}
+
+		return nil
+	}
+
+	/// Whether this guest can show its windows on the host: a Linux guest that asked for it.
+	public var supportsSeamlessWindows: Bool {
+		self.seamless && self.os == .linux && self.isWindowsGuest == false
+	}
+
 	public func socketDeviceAttachments(agentURL: URL) throws -> [SocketDevice] {
 		let vsock = agentURL.absoluteURL.path(percentEncoded: false)
 		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: VMLocation.defaultAgentListenPort, bind: vsock)]
@@ -1073,6 +1129,21 @@ extension VirtualMachineConfiguration {
 
 				return socket
 			})
+
+		// The guest compositor connects to the host's seamless windows server through this socket device.
+		if self.supportsSeamlessWindows {
+			if let path = self.seamlessSocketPath {
+				let seamless = SocketDevice(mode: .connect, port: SeamlessProtocol.defaultVsockPort, bind: path)
+
+				if Bundle.fileAccessRestricted && Utilities.isSandboxedPath(path, runMode: .current) == false {
+					Logger(self).warn(".fileAccessRestricted is enabled, skipping seamless windows socket: \(seamless.description)")
+				} else {
+					sockets.append(seamless)
+				}
+			} else {
+				Logger(self).warn("No usable socket path for seamless windows, they are disabled for this run")
+			}
+		}
 
 		return sockets
 	}
