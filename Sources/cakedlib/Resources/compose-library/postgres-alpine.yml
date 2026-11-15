@@ -43,5 +43,15 @@ services:
         POSTGRES_USER=$(envval POSTGRES_USER)
         POSTGRES_PASSWORD=$(envval POSTGRES_PASSWORD)
         POSTGRES_DB=$(envval POSTGRES_DB)
-        su postgres -c "psql -c \"CREATE ROLE $POSTGRES_USER LOGIN PASSWORD '$POSTGRES_PASSWORD'\""
-        su postgres -c "createdb -O $POSTGRES_USER $POSTGRES_DB"
+        # Encode the values for SQL instead of splicing them into a command line: `"` is doubled in an identifier and
+        # `'` in a string literal (backslashes are literal, standard_conforming_strings is on). The statements go to
+        # psql on stdin, so no shell re-parses them, and the unquoted heredoc doesn't re-expand what the values hold.
+        sqlident() { printf '%s' "$1" | sed 's/"/""/g'; }
+        sqlstr() { printf '%s' "$1" | sed "s/'/''/g"; }
+        SQL_USER=$(sqlident "$POSTGRES_USER")
+        SQL_DB=$(sqlident "$POSTGRES_DB")
+        SQL_PASSWORD=$(sqlstr "$POSTGRES_PASSWORD")
+        su postgres -c 'psql -v ON_ERROR_STOP=1' <<EOF
+        CREATE ROLE "$SQL_USER" LOGIN PASSWORD '$SQL_PASSWORD';
+        CREATE DATABASE "$SQL_DB" OWNER "$SQL_USER";
+        EOF

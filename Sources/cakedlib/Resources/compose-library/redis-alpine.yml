@@ -31,6 +31,9 @@ services:
         # and expand a `$` in it.
         envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
         REDIS_PASSWORD=$(envval REDIS_PASSWORD)
-        echo "requirepass $REDIS_PASSWORD" >> /etc/redis.conf
+        # redis.conf splits a line into arguments: write the password as one double-quoted argument, escaping
+        # `\` and `"`, so a space or a quote in it is kept as is. printf, not echo: ash's echo expands `\`.
+        escaped=$(printf '%s' "$REDIS_PASSWORD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        printf 'requirepass "%s"\n' "$escaped" >> /etc/redis.conf
       - rc-update add redis default
       - rc-service redis start

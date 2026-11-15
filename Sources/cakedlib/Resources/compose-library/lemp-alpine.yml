@@ -10,7 +10,7 @@ services:
     user: alpine
     password: alpine
     disk: 20          # GiB
-    environment:
+    environment: &db-env    # single source of the credentials: the web service reuses it below
       MYSQL_DATABASE: app
       MYSQL_USER: app
       MYSQL_PASSWORD: change-me
@@ -40,7 +40,11 @@ services:
         MYSQL_DATABASE=$(envval MYSQL_DATABASE)
         MYSQL_USER=$(envval MYSQL_USER)
         MYSQL_PASSWORD=$(envval MYSQL_PASSWORD)
-        mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE; CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%'; FLUSH PRIVILEGES;"
+        # Encode a value for a single-quoted MariaDB string literal: `\` becomes `\\` and `'` becomes `''`.
+        sqlesc() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/''/g"; }
+        SQL_USER=$(sqlesc "$MYSQL_USER")
+        SQL_PASSWORD=$(sqlesc "$MYSQL_PASSWORD")
+        mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE; CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD'; GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$SQL_USER'@'%'; FLUSH PRIVILEGES;"
 
   web:
     image: images:alpine/3.24/cloud
@@ -51,6 +55,7 @@ services:
       - 8080:80
     depends_on:
       - db
+    environment: *db-env   # lands in /etc/environment, read by index.php
     deploy:
       resources:
         limits:
@@ -83,8 +88,17 @@ services:
         content: |
           <?php
           mysqli_report(MYSQLI_REPORT_OFF);
+          // Same MYSQL_* values as the db service (the `environment:` block, written to /etc/environment).
+          // PHP-FPM clears its environment, so read the raw KEY=value lines instead of getenv().
+          $env = [];
+          foreach (@file('/etc/environment', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+              if (strpos($line, '=') > 0) {
+                  [$k, $v] = explode('=', $line, 2);
+                  $env[$k] = $v;
+              }
+          }
           try {
-              $db = new mysqli('db.lemp-alpine.compose.internal', 'app', 'change-me', 'app');
+              $db = new mysqli('db.lemp-alpine.compose.internal', $env['MYSQL_USER'] ?? '', $env['MYSQL_PASSWORD'] ?? '', $env['MYSQL_DATABASE'] ?? '');
               echo $db->connect_errno ? 'Database: ' . htmlspecialchars($db->connect_error) : 'Database: connected, MariaDB ' . $db->server_info;
           } catch (Throwable $e) {
               echo 'Database: ' . htmlspecialchars($e->getMessage());
