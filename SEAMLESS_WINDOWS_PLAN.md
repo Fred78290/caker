@@ -47,13 +47,13 @@ The guest is untrusted: sizes, rectangle bounds, string lengths, floats and deco
 
 ## Wired into the VM lifecycle
 
-- **Per VM option** `CakeConfig.seamless` (`config.json`, Linux guests only): `caked configure <vm> --seamless true`, `cakectl configure` (new `ConfigureRequest.seamless`, `Configuration.seamless` in `service.proto`), and a "Seamless windows" toggle in Caker's VM settings.
+- **Per VM option** `CakeConfig.seamless` (`config.json`, Linux guests only): `caked build/launch --seamless` (set at build time, which is what makes the cloud-init seed install the compositor), `caked configure <vm> --seamless true`, `cakectl configure` (new `ConfigureRequest.seamless`, `Configuration.seamless` in `service.proto`), and a "Seamless windows" toggle in Caker's VM settings.
 - **Socket device**: `CakeConfig.socketDeviceAttachments` adds `connect://vsock:5100/<vm dir>/seamless.sock` (short `/tmp` path when the VM path is too long for a `sockaddr_un`).
 - **Server**: `VirtualMachine.startSeamlessWindows()` starts a `SeamlessWindowManager` once the VM runs, in a process that can show windows (Caker.app, or `caked vmrun --ui`); a headless `caked` logs that it can't. `didChangedStateOnStop` stops it and removes the socket.
 - **Guest**: `CakeConfig.agentServiceFlags` adds `--seamless --seamless-user=<vm user> --seamless-layout=<host layout>` to `cakeagent service install` in both install scripts (cloud-init and SSH), so a freshly built VM, or an agent update, installs the compositor service. The host keyboard layout comes from `SeamlessKeyboardLayout` (macOS input source id to XKB layout, plain layouts only).
 - **Needs a cakeagent with `seamless` support** (`CAKEAGENT_SNAPSHOT`): cakeagent snapshot `83e622bd` (Fred78290/cakeagent#23) is the first with them; an older guest agent ignores the install flags. To try it by hand: build that agent, copy it into the VM and run `cakeagent seamless run --seamless-user <user>`, then `cakeagent seamless launch -- foot`.
 
-Verified with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
+Verified on a freshly built VM (`caked build --alias ubuntu2604 --seamless`, agent snapshot `83e622bd` installed by cloud-init: compositor in `/usr/libexec/caker/`, service flags in the unit, compositor connected on boot, `foot` shown as `[seamless-fresh] foot`), and earlier with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
 
 ## The guest compositor
 
@@ -71,7 +71,7 @@ Verified in a Caker VM: `weston-simple-shm`, `foot`. Not exercised: popups from 
 
 - XWayland (X11 apps), clipboard (`wl_data_device` is advertised but selections aren't synced), client-drawn cursor images, `text-input` (IME), `xdg_activation`.
 - Packaging: installing and starting `caker-seamlessd` from the cakeagent (it is built by hand in the guest for now), exposing guest `.desktop` entries.
-- Headless `caked` (service) VMs can't show windows: the stream would have to travel over gRPC to Caker.app like the VNC tunnel does. Also not wired: a `--seamless` build/launch option (use `configure`), the VM creation wizard, a menu to launch guest `.desktop` apps from Caker.
+- Headless `caked` (service) VMs can't show windows: the stream would have to travel over gRPC to Caker.app like the VNC tunnel does. Also not wired: the VM creation wizard, a menu to launch guest `.desktop` apps from Caker.
 - Clipboard and drag and drop (message ids are free, nothing is reserved).
 - Input methods / IME and character-level text input: keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu are not forwarded.
 - Host-driven output scale changes when a window moves between displays (`output` exists, nothing sends it on a screen change).

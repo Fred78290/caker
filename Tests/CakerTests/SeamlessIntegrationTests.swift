@@ -133,4 +133,22 @@ final class SeamlessIntegrationTests: XCTestCase {
 		XCTAssertFalse(Caked_ConfigureRequest(options: options).hasSeamless)
 		XCTAssertNil(ConfigureOptions(request: Caked_ConfigureRequest(options: options)).seamless)
 	}
+
+	func testBuildOptionsSeamlessCrossesTheWire() throws {
+		var options = try BuildOptions.parse(["vm", "--seamless"])
+
+		XCTAssertTrue(options.seamless)
+
+		var request = try Caked_CommonBuildRequest(buildOptions: options)
+
+		XCTAssertTrue(request.hasSeamless)
+		XCTAssertTrue(request.seamless)
+		XCTAssertTrue(try BuildOptions(request: request, identifier: UUID()).seamless)
+
+		options = try BuildOptions.parse(["vm"])
+		request = try Caked_CommonBuildRequest(buildOptions: options)
+
+		XCTAssertFalse(options.seamless)
+		XCTAssertFalse(try BuildOptions(request: request, identifier: UUID()).seamless)
+	}
 }

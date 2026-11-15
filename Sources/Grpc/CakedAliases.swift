@@ -616,6 +616,7 @@ extension Caked_CommonBuildRequest {
 		self.image = buildOptions.image
 		self.ifnames = buildOptions.netIfnames
 		self.suspendable = buildOptions.suspendable
+		self.seamless = buildOptions.seamless
 		self.screenSize = Caked_ScreenSize.with {
 			$0.width = Int32(buildOptions.screenSize.width)
 			$0.height = Int32(buildOptions.screenSize.height)

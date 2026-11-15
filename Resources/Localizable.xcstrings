@@ -139,6 +139,16 @@
         }
       }
     },
+    "Show the windows of a Linux guest on the host (seamless windows)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les fenêtres d'un invité Linux sur l'hôte (fenêtres intégrées)"
+          }
+        }
+      }
+    },
     "Seamless windows" : {
       "localizations" : {
         "fr" : {

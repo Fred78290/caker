@@ -211,6 +211,7 @@ public struct VMBuilder {
 				config.useCloudInit = (imageSource != .iso || autoinstall) && virtualizedOS == .linux
 				config.agent = (imageSource != .iso || autoinstall) && virtualizedOS == .linux
 				config.nested = options.nested
+				config.seamless = options.seamless && virtualizedOS == .linux
 				config.attachedDisks = attachedDisks
 				config.sshAuthorizedKey = options.sshAuthorizedKey
 				config.ecid = VZGenericMachineIdentifier().dataRepresentation

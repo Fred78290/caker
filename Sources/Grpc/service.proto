@@ -535,6 +535,7 @@ message Caked {
       optional string                   provisionVars         = 34;
       optional string                   macosVersion          = 35;
       optional string                   imageId               = 36;
+      optional bool                     seamless              = 37;
     }
 
     message BuildRequest {

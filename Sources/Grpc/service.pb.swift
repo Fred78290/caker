@@ -1853,6 +1853,15 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `imageID`. Subsequent reads from it will return its default value.
       public mutating func clearImageID() {_uniqueStorage()._imageID = nil}
 
+      public var seamless: Bool {
+        get {_storage._seamless ?? false}
+        set {_uniqueStorage()._seamless = newValue}
+      }
+      /// Returns true if `seamless` has been explicitly set.
+      public var hasSeamless: Bool {_storage._seamless != nil}
+      /// Clears the value of `seamless`. Subsequent reads from it will return its default value.
+      public mutating func clearSeamless() {_uniqueStorage()._seamless = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -9119,7 +9128,7 @@ nonisolated extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobu
 
 nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisionTemplate\0\u{1}provisionVars\0\u{1}macosVersion\0\u{1}imageId\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisionTemplate\0\u{1}provisionVars\0\u{1}macosVersion\0\u{1}imageId\0\u{1}seamless\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -9158,6 +9167,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
     var _provisionVars: String? = nil
     var _macosVersion: String? = nil
     var _imageID: String? = nil
+    var _seamless: Bool? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -9204,6 +9214,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       _provisionVars = source._provisionVars
       _macosVersion = source._macosVersion
       _imageID = source._imageID
+      _seamless = source._seamless
     }
   }
 
@@ -9258,6 +9269,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         case 34: try { try decoder.decodeSingularStringField(value: &_storage._provisionVars) }()
         case 35: try { try decoder.decodeSingularStringField(value: &_storage._macosVersion) }()
         case 36: try { try decoder.decodeSingularStringField(value: &_storage._imageID) }()
+        case 37: try { try decoder.decodeSingularBoolField(value: &_storage._seamless) }()
         default: break
         }
       }
@@ -9378,6 +9390,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       try { if let v = _storage._imageID {
         try visitor.visitSingularStringField(value: v, fieldNumber: 36)
       } }()
+      try { if let v = _storage._seamless {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 37)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -9423,6 +9438,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         if _storage._provisionVars != rhs_storage._provisionVars {return false}
         if _storage._macosVersion != rhs_storage._macosVersion {return false}
         if _storage._imageID != rhs_storage._imageID {return false}
+        if _storage._seamless != rhs_storage._seamless {return false}
         return true
       }
       if !storagesAreEqual {return false}
