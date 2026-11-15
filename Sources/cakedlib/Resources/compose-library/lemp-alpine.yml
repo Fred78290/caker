@@ -42,9 +42,13 @@ services:
         MYSQL_PASSWORD=$(envval MYSQL_PASSWORD)
         # Encode a value for a single-quoted MariaDB string literal: `\` becomes `\\` and `'` becomes `''`.
         sqlesc() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/''/g"; }
+        # Encode a value for a backtick-quoted MariaDB identifier: a backtick becomes two (separate from sqlesc,
+        # which is for string literals). The backticks around it in the statement below are escaped for the shell.
+        sqlid() { printf '%s' "$1" | sed 's/`/``/g'; }
         SQL_USER=$(sqlesc "$MYSQL_USER")
         SQL_PASSWORD=$(sqlesc "$MYSQL_PASSWORD")
-        mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE; CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD'; GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$SQL_USER'@'%'; FLUSH PRIVILEGES;"
+        SQL_DATABASE=$(sqlid "$MYSQL_DATABASE")
+        mysql -u root -e "CREATE DATABASE IF NOT EXISTS \`$SQL_DATABASE\`; CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD'; GRANT ALL PRIVILEGES ON \`$SQL_DATABASE\`.* TO '$SQL_USER'@'%'; FLUSH PRIVILEGES;"
 
   web:
     image: alias:alpine324
