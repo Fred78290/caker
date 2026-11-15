@@ -6,7 +6,7 @@
 name: monitoring-alpine
 services:
   node1:
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 10          # GiB
@@ -24,7 +24,7 @@ services:
       - rc-update add node-exporter default
       - rc-service node-exporter start
   node2:
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 10          # GiB
@@ -42,7 +42,7 @@ services:
       - rc-update add node-exporter default
       - rc-service node-exporter start
   monitor:
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 20          # GiB

@@ -6,7 +6,7 @@
 name: lemp-alpine
 services:
   db:
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 20          # GiB
@@ -47,7 +47,7 @@ services:
         mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE; CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD'; GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$SQL_USER'@'%'; FLUSH PRIVILEGES;"
 
   web:
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 10          # GiB

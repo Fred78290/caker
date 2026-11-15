@@ -7,7 +7,7 @@ name: alpine-devbox
 services:
   dev:
     # linuxcontainers.org's Alpine cloud image (cloud-init enabled), for the architecture of this Mac.
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 20          # GiB

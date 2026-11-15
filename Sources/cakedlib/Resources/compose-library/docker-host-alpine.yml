@@ -6,7 +6,7 @@
 name: dockerhost-alpine
 services:
   docker:
-    image: images:alpine/3.24/cloud
+    image: alias:alpine324
     user: alpine
     password: alpine
     disk: 40          # GiB
