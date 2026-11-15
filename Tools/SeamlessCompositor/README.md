@@ -12,7 +12,9 @@ sudo apt install build-essential pkg-config libwlroots-0.19-dev wayland-protocol
 make && sudo install caker-seamlessd /usr/local/bin/
 ```
 
-Needs wlroots 0.19 (Ubuntu 26.04 has it).
+Needs wlroots 0.19 (Ubuntu 26.04 has it). `make STATIC=1` links everything statically (needs static libraries, see cakeagent's
+`scripts/build-seamlessd.sh`, which builds them on Alpine); that one binary is what the cakeagent ships. At run time the
+guest needs the XKB data files (`xkb-data` on Debian/Ubuntu, `xkeyboard-config` on Fedora/Alpine).
 
 ## Use
 

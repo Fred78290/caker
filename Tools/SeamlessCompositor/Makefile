@@ -8,8 +8,18 @@
 
 PKGS := wlroots-0.19 wayland-server xkbcommon pixman-1 liblz4 libdrm
 CFLAGS ?= -O2 -g
-CFLAGS += -std=gnu11 -Wall -Wextra -Wno-unused-parameter -DWLR_USE_UNSTABLE -I. $(shell pkg-config --cflags $(PKGS))
-LDLIBS := $(shell pkg-config --libs $(PKGS)) -lm
+
+# STATIC=1 links everything into one binary with no runtime dependencies (the agent embeds that one). It needs
+# static libraries, see scripts/build-static.sh which builds them on Alpine (musl).
+ifdef STATIC
+PKGCONFIG := pkg-config --static
+LDFLAGS += -static
+else
+PKGCONFIG := pkg-config
+endif
+
+override CFLAGS += -std=gnu11 -Wall -Wextra -Wno-unused-parameter -DWLR_USE_UNSTABLE -I. $(shell $(PKGCONFIG) --cflags $(PKGS))
+override LDLIBS := $(shell $(PKGCONFIG) --libs $(PKGS)) -lm
 
 WL_PROTOCOLS := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
 

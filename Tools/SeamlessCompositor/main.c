@@ -1423,6 +1423,11 @@ int main(int argc, char **argv) {
 	struct xkb_rule_names rules = {0}; /* XKB_DEFAULT_LAYOUT & co. from the environment, "us" otherwise */
 	struct xkb_keymap *keymap = xkb_keymap_new_from_names(s->xkb, &rules, XKB_KEYMAP_COMPILE_NO_FLAGS);
 
+	if (!keymap) {
+		wlr_log(WLR_ERROR, "cannot compile the XKB keymap: the guest needs the XKB data files (Debian/Ubuntu: xkb-data, Fedora/Alpine: xkeyboard-config)");
+		return 1;
+	}
+
 	wlr_keyboard_set_keymap(&s->keyboard, keymap);
 	xkb_keymap_unref(keymap);
 	wlr_keyboard_set_repeat_info(&s->keyboard, 25, 600);
