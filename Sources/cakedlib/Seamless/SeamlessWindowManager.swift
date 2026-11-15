@@ -423,6 +423,14 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	private func handle(_ message: SeamlessGuestMessage) {
 		switch message {
+		case .windowFrame(let frame):
+			// Pixels: never print them.
+			logger.trace("Seamless <- guest: frame for window \(frame.windowID)")
+		default:
+			logger.trace("Seamless <- guest: \(message)")
+		}
+
+		switch message {
 		case .hello:
 			break
 		case .windowCreate(let info):

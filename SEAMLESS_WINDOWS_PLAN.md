@@ -65,7 +65,7 @@ Verified on a freshly built VM (`caked build --alias ubuntu2604 --seamless`, age
 - The host draws the title bar (server-side decorations requested), maximize/fullscreen/minimize requests are acknowledged and ignored.
 - It connects to `vsock:5100` (or `unix:`/`tcp:` for testing), retries every second, and re-announces every window when the host reconnects.
 
-Verified in a Caker VM: `weston-simple-shm`, `foot`. Not exercised: popups from a real toolkit, host-initiated resize, fractional scales other than 2x, a second window.
+Verified in a Caker VM: `weston-simple-shm`, `foot`. Also checked with the agent's fixes (cakeagent#24): `gnome-terminal`, Files (Nautilus) and the snap Firefox. Those need the display exported to D-Bus/systemd activation, and Firefox needs a `wayland-N` socket name (snap's AppArmor). Not exercised: popups from a real toolkit, host-initiated resize, fractional scales other than 2x, a second window.
 
 ## Not done yet / known gaps
 

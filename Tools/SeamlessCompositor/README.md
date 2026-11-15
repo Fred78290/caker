@@ -1,4 +1,4 @@
-# caker-seamlessd
+# wayland-1d
 
 Guest half of Caker's seamless windows: a headless Wayland compositor (wlroots 0.19, software rendering) that streams
 every toplevel and popup to the macOS host over vsock and feeds the host's keyboard and pointer back to the clients.
@@ -9,7 +9,7 @@ The host half is `Sources/cakedlib/Seamless/`; the protocol is described in `SEA
 ```sh
 sudo apt install build-essential pkg-config libwlroots-0.19-dev wayland-protocols libwayland-dev \
                  libwayland-bin liblz4-dev libxkbcommon-dev libpixman-1-dev libdrm-dev
-make && sudo install caker-seamlessd /usr/local/bin/
+make && sudo install wayland-1d /usr/local/bin/
 ```
 
 Needs wlroots 0.19 (Ubuntu 26.04 has it). `make STATIC=1` links everything statically (needs static libraries, see cakeagent's
@@ -22,9 +22,9 @@ The VM needs the vsock bridge to the host socket (`caked launch ... --socket con
 and a host process listening on that socket (`caked seamless-demo --no-guest --socket <path>` for now).
 
 ```sh
-caker-seamlessd -- foot            # starts foot with WAYLAND_DISPLAY set, exits with it
-caker-seamlessd --socket caker-seamless &   # or run it as a service (caker-seamlessd.service)
-WAYLAND_DISPLAY=caker-seamless foot
+wayland-1d -- foot            # starts foot with WAYLAND_DISPLAY set, exits with it
+wayland-1d --socket wayland-1 &   # or run it as a service (wayland-1d.service)
+WAYLAND_DISPLAY=wayland-1 foot
 ```
 
 Options: `--connect vsock:PORT|unix:/path|tcp:host:port` (default `vsock:5100`; unix/tcp are for testing), `--socket NAME`,
