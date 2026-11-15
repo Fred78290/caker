@@ -562,8 +562,8 @@ extension GrandCentralDispatch {
 				// Watch networks/networks.json
 				else if fileURL.lastPathComponent == Home.networksFilename {
 					self.updateStatusNetworks()
-					// Watch networks/<network dir>/vmnet.pid
-				} else if fileURL.lastPathComponent == "vmnet.pid" {
+					// Watch networks/<network dir>/pid
+				} else if fileURL.lastPathComponent == "pid" {
 					self.updateStatusNetwork(fileURL)
 				} else {
 					let path = fileURL.deletingLastPathComponent()

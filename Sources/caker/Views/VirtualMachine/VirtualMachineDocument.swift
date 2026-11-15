@@ -273,6 +273,12 @@ extension UTType {
 	private var monitor: FileMonitor?
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
+	/// Identifies the agent installation in flight for the current VM run. Cleared when the VM stops,
+	/// so an installation that outlives its run can't overwrite the agent state of the next one.
+	private var agentInstallToken: UUID?
+	/// Identifies the start (or resume) in flight. `cancelPendingStart()` clears it, so a start that
+	/// completes afterwards sees it no longer matches and stops the VM instead of marking it running.
+	private var startToken: UUID?
 	private var inView: Bool = false
 	/// When this document last wrote its own configuration (see `saveConfiguration(_:)`). File
 	/// events are delivered asynchronously, after the save has returned, so a flag cleared at the
@@ -665,6 +671,7 @@ extension VirtualMachineDocument {
 
 		// Stop agent monitoring when VM is stopped
 		self.stopAgentMonitoring()
+		self.agentInstallToken = nil
 		self.interactiveShell?.cancelShell()
 
 		self.updateCurrentStatus(status, vncURL: nil)
@@ -705,7 +712,7 @@ extension VirtualMachineDocument {
 	func setState(_ status: Caked_VirtualMachineStatus) {
 		let newStatus = Status(status)
 
-		logger.debug("setState to \(newStatus)")
+		logger.debug("setState to \(status) -> \(newStatus)")
 
 		func agentIsReady() {
 			self.agent = .installed
@@ -894,14 +901,16 @@ extension VirtualMachineDocument {
 
 // MARK: - UI Actions
 extension VirtualMachineDocument {
-	func startRemotely(location: URL) async throws {
+	func startRemotely(location: URL, token: UUID? = nil) async throws {
 		let vncPassword = self.virtualMachineConfig.vncPassword
 		let vncPort = try Utilities.findFreePort()
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
 
-		if result.started {
+		if let token, self.startToken != token {
+			await self.finishCancelledStart()
+		} else if result.started {
 			let vncInfos = try self.connectionManager.vncInfos(vmURL: location)
 
 			#if DEBUG
@@ -916,7 +925,7 @@ extension VirtualMachineDocument {
 		}
 	}
 
-	func startLocally(location: VMLocation) async throws {
+	func startLocally(location: VMLocation, token: UUID? = nil) async throws {
 		let config = try location.config()
 		let vncPassword = config.vncPassword ?? UUID().uuidString
 		let vncPort = try Utilities.findFreePort()
@@ -924,7 +933,9 @@ extension VirtualMachineDocument {
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location.rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
 
-		if result.started {
+		if let token, self.startToken != token {
+			await self.finishCancelledStart()
+		} else if result.started {
 			#if DEBUG
 				self.logger.debug("VM started on \(result.ip)")
 				self.logger.debug("Found VNC URL: \(vncURL)")
@@ -942,9 +953,13 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		let token = self.beginStart()
+
 		func completion(_ result: Result<VirtualMachine, any Error>) {
 			Task {
-				if case .failure(let error) = result {
+				if self.startToken != token {
+					await self.finishCancelledStart()
+				} else if case .failure(let error) = result {
 					await self.setStateAsStopped(.error)
 					await alertError(error)
 				} else {
@@ -960,9 +975,9 @@ extension VirtualMachineDocument {
 			Task {
 				do {
 					if let location {
-						try await self.startLocally(location: location)
+						try await self.startLocally(location: location, token: token)
 					} else {
-						try await self.startRemotely(location: url)
+						try await self.startRemotely(location: url, token: token)
 					}
 				} catch {
 					await self.setStateAsStopped()
@@ -982,6 +997,11 @@ extension VirtualMachineDocument {
 				do {
 					let virtualMachine = try await self.createVirtualMachine()
 
+					guard self.startToken == token else {
+						await self.setStateAsStopped()
+						return
+					}
+
 					virtualMachine.restoreStateVMFromUI(completionHandler: completion)
 				} catch {
 					await self.setStateAsStopped()
@@ -996,6 +1016,8 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		let token = self.beginStart()
+
 		if self.isLaunchVMExternally {
 			self.setOtherState(status: .starting, vncURL: vncURL)
 			self.externalRunning = true
@@ -1003,9 +1025,9 @@ extension VirtualMachineDocument {
 			Task {
 				do {
 					if let location {
-						try await self.startLocally(location: location)
+						try await self.startLocally(location: location, token: token)
 					} else {
-						try await self.startRemotely(location: url)
+						try await self.startRemotely(location: url, token: token)
 					}
 				} catch {
 					await self.setStateAsStopped()
@@ -1018,7 +1040,13 @@ extension VirtualMachineDocument {
 			if let virtualMachine = self.virtualMachine {
 				self.setOtherState(status: .starting)
 
-				virtualMachine.startFromUI()
+				virtualMachine.startFromUI { _ in
+					Task {
+						if self.startToken != token {
+							await self.finishCancelledStart()
+						}
+					}
+				}
 			} else {
 				self.setOtherState(status: .starting)
 
@@ -1026,7 +1054,18 @@ extension VirtualMachineDocument {
 					do {
 						let virtualMachine = try await self.createVirtualMachine()
 
-						virtualMachine.startFromUI()
+						guard self.startToken == token else {
+							await self.setStateAsStopped()
+							return
+						}
+
+						virtualMachine.startFromUI { _ in
+							Task {
+								if self.startToken != token {
+									await self.finishCancelledStart()
+								}
+							}
+						}
 					} catch {
 						await self.setStateAsStopped()
 						await alertError(error)
@@ -1054,7 +1093,56 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	/// Starts a new start/resume attempt and returns the token identifying it.
+	private func beginStart() -> UUID {
+		let token = UUID()
+
+		self.startToken = token
+
+		return token
+	}
+
+	/// Stop pressed while the VM is still starting: invalidate the pending start so its completion
+	/// can't mark the VM running, and stop the VM as soon as it can be (right away when it is already
+	/// up, otherwise from the start's own completion via `finishCancelledStart()`).
+	private func cancelPendingStart(_ completionHandler: CompletionHandler?) {
+		self.startToken = nil
+		self.setOtherState(status: .stopping)
+
+		if self.externalRunning {
+			Task {
+				// Best effort: the VM process may not exist yet, in which case the start's completion stops it.
+				_ = try? self.connectionManager.stopVirtualMachine(vmURL: self.url)
+				completionHandler?(nil)
+			}
+		} else {
+			completionHandler?(nil)
+		}
+	}
+
+	/// Called once a start that was cancelled in the meantime has finished: make sure the VM is not left running.
+	@MainActor
+	private func finishCancelledStart() async {
+		if self.externalRunning {
+			_ = try? self.connectionManager.stopVirtualMachine(vmURL: self.url)
+			self.setStateAsStopped()
+		} else if let virtualMachine = self.virtualMachine {
+			virtualMachine.stopFromUI { _ in
+				Task { @MainActor in
+					self.setStateAsStopped()
+				}
+			}
+		} else {
+			self.setStateAsStopped()
+		}
+	}
+
 	func stopFromUI(force: Bool, _ completionHandler: CompletionHandler? = nil) {
+		if self.status == .starting {
+			self.cancelPendingStart(completionHandler)
+			return
+		}
+
 		guard self.status == .running else {
 			return
 		}
@@ -1753,7 +1841,21 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		let token = UUID()
+
 		@MainActor func finish(_ status: AgentStatus) {
+			guard self.agentInstallToken == token else {
+				// The VM run this installation belongs to is over (stopped, possibly restarted):
+				// leave the current run's agent state alone. Still release the caller unless a newer
+				// installation is in flight, whose own completion will do it.
+				if self.agentInstallToken == nil {
+					done(self.agent)
+				}
+
+				return
+			}
+
+			self.agentInstallToken = nil
 			self.agent = status
 
 			if updateAgent {
@@ -1769,6 +1871,7 @@ extension VirtualMachineDocument {
 			done(status)
 		}
 
+		self.agentInstallToken = token
 		self.agent = .installing
 
 		Task {

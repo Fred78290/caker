@@ -456,7 +456,11 @@ extension ConnectionManager {
 			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
 			let fileName = fileURL.lastPathComponent
 
-			if fileName != "screenshot.png" && fileName != ".DS_Store" {
+			// Lease tables live in <networks>/<name>/dhcpd_leases*; only those are noise.
+			// A VM directory whose name merely starts with "dhcpd_leases" must still be processed.
+			let isNetworkLeaseFile = fileName.starts(with: "dhcpd_leases") && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks
+
+			if fileName != "screenshot.png" && fileName != ".DS_Store" && isNetworkLeaseFile == false {
 				#if DEBUG
 				logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
 				#endif
@@ -468,9 +472,9 @@ extension ConnectionManager {
 						await self.reloadRemotes()
 					} else if fileURL.lastPathComponent == Home.networksFilename && rootChanged == networks {
 						await reloadNetworks()
+					//} else if fileURL.lastPathComponent == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+					//	await reloadNetworks()
 					} else if fileURL.lastPathComponent == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
-						await reloadNetworks()
-					} else if fileURL.lastPathComponent == "vmnet.pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 						await AppState.shared.updateNetworkStatus(rootChanged, running: fileURL.isPIDRunning().running)
 					} else if fileURL.deletingLastPathComponent().pathExtension == Home.vmExtension {
 						// Handle VM events for screenshots and usage
@@ -509,8 +513,11 @@ extension ConnectionManager {
 							// FSEvents emits .renamed for both the old and new path of a move.
 							// Existence check distinguishes which side this event is for.
 							if FileManager.default.fileExists(atPath: event.path) {
-								logger.debug("VM directory renamed in: \(name)")
-								await self.receiveStatus(location.rootURL, value: .new)
+								// Don't send new status if the VM already referenced by a document, because the document will handle the status change itself.
+								if AppState.shared.findVirtualMachineDocument(location.rootURL) == nil {
+									logger.debug("VM directory renamed in: \(name)")
+									await self.receiveStatus(location.rootURL, value: .new)
+								}
 							} else {
 								logger.debug("VM directory renamed out: \(name)")
 								await self.receiveStatus(location.rootURL, value: .deleted)

@@ -345,15 +345,13 @@ struct HostVirtualMachineView: View {
 				document.stopFromUI(force: true)
 			}
 			.help("Force stop virtual machine")
-			.disabled(document.agent == .installing)
-		} else if document.status == .running {
+		} else if document.status == .running || document.status == .starting {
 			let option = NSEvent.modifierFlags.contains(.option)
 
 			Button("Stop", systemImage: option ? "power.circle.fill" : "square.fill") {
 				document.stopFromUI(force: option)
 			}
 			.help("Stop virtual machine (hold Option to force stop)")
-			.disabled(document.agent == .installing)
 		} else if document.status == .paused {
 			Button("Resume", systemImage: "play.circle") {
 				document.resumeFromUI()
