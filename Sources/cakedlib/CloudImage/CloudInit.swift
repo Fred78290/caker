@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-public let CAKEAGENT_SNAPSHOT = "8fe344e3"
+public let CAKEAGENT_SNAPSHOT = "ee64e17b"
 
 /// `Bundle.module` only exists in `swift build`/`swift test` builds; the Xcode projects compile `CakedLib` as a
 /// plain native target, so the lookup branches on the build system (same pattern as `VMImageCatalog.swift`).
