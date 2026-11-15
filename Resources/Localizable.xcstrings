@@ -159,6 +159,16 @@
         }
       }
     },
+    "Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche les fenêtres de l'invité Linux sur votre bureau. Nécessite un cakeagent avec la prise en charge des fenêtres intégrées dans l'invité."
+          }
+        }
+      }
+    },
     "Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest, applies at the next start." : {
       "localizations" : {
         "fr" : {

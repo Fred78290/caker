@@ -757,7 +757,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			networks: self.networks,
 			sockets: self.sockets,
 			autoinstall: self.autoinstall,
-			dynamicPortForwarding: self.dynamicPortForwarding
+			dynamicPortForwarding: self.dynamicPortForwarding,
+			seamless: self.seamless
 		)
 	}
 
