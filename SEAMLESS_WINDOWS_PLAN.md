@@ -1,6 +1,6 @@
 # Seamless Linux windows on the macOS desktop (WSLg-style)
 
-Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. It is now wired into the VM lifecycle (below); the cakeagent that ships the compositor is Fred78290/cakeagent#23 and is released from snapshot `83e622bd`.
+Status: **working prototype, both halves.** The host side (Swift, `Sources/cakedlib/Seamless/`) and the guest compositor (C/wlroots, `Tools/SeamlessCompositor/`) were run together on a real Ubuntu 26.04 arm64 Caker VM over the real vsock bridge: `weston-simple-shm` (animated) and the `foot` terminal show up as native macOS windows, typed keys reach the guest and the output is drawn back. It is now wired into the VM lifecycle (below); the cakeagent that ships the compositor is Fred78290/cakeagent#23 and is released from snapshot `8fe344e3`.
 
 ## Idea
 
@@ -51,9 +51,9 @@ The guest is untrusted: sizes, rectangle bounds, string lengths, floats and deco
 - **Socket device**: `CakeConfig.socketDeviceAttachments` adds `connect://vsock:5100/<vm dir>/seamless.sock` (short `/tmp` path when the VM path is too long for a `sockaddr_un`).
 - **Server**: `VirtualMachine.startSeamlessWindows()` starts a `SeamlessWindowManager` once the VM runs, in a process that can show windows (Caker.app, or `caked vmrun --ui`); a headless `caked` logs that it can't. `didChangedStateOnStop` stops it and removes the socket.
 - **Guest**: `CakeConfig.agentServiceFlags` adds `--seamless --seamless-user=<vm user> --seamless-layout=<host layout>` to `cakeagent service install` in both install scripts (cloud-init and SSH), so a freshly built VM, or an agent update, installs the compositor service. The host keyboard layout comes from `SeamlessKeyboardLayout` (macOS input source id to XKB layout, plain layouts only).
-- **Needs a cakeagent with `seamless` support** (`CAKEAGENT_SNAPSHOT`): cakeagent snapshot `83e622bd` (Fred78290/cakeagent#23) is the first with them; an older guest agent ignores the install flags. To try it by hand: build that agent, copy it into the VM and run `cakeagent seamless run --seamless-user <user>`, then `cakeagent seamless launch -- foot`.
+- **Needs a cakeagent with `seamless` support** (`CAKEAGENT_SNAPSHOT`): cakeagent snapshot `8fe344e3` (Fred78290/cakeagent#23) is the first with them; an older guest agent ignores the install flags. To try it by hand: build that agent, copy it into the VM and run `cakeagent seamless run --seamless-user <user>`, then `cakeagent seamless launch -- foot`.
 
-Verified on a freshly built VM (`caked build --alias ubuntu2604 --seamless`, agent snapshot `83e622bd` installed by cloud-init: compositor in `/usr/libexec/caker/`, service flags in the unit, compositor connected on boot, `foot` shown as `[seamless-fresh] foot`), and earlier with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
+Verified on a freshly built VM (`caked build --alias ubuntu2604 --seamless`, agent snapshot `8fe344e3` installed by cloud-init: compositor in `/usr/libexec/caker/`, service flags in the unit, compositor connected on boot, the shell profile installed, and `gnome-terminal`, `nautilus` and `foot` typed as plain commands in an ssh login shell shown as host windows), and earlier with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
 
 ## The guest compositor
 
@@ -65,7 +65,7 @@ Verified on a freshly built VM (`caked build --alias ubuntu2604 --seamless`, age
 - The host draws the title bar (server-side decorations requested), maximize/fullscreen/minimize requests are acknowledged and ignored.
 - It connects to `vsock:5100` (or `unix:`/`tcp:` for testing), retries every second, and re-announces every window when the host reconnects.
 
-Verified in a Caker VM: `weston-simple-shm`, `foot`. Also checked with the agent's fixes (cakeagent#24): `gnome-terminal`, Files (Nautilus) and the snap Firefox. Those need the display exported to D-Bus/systemd activation, and Firefox needs a `wayland-N` socket name (snap's AppArmor). Not exercised: popups from a real toolkit, host-initiated resize, fractional scales other than 2x, a second window.
+Verified in a Caker VM: `weston-simple-shm`, `foot`. Also checked with the agent's fixes (cakeagent#24): `gnome-terminal`, Files (Nautilus) and the snap Firefox (cakeagent#24, #25). Those need the display exported to D-Bus/systemd activation, and Firefox needs a `wayland-N` socket name (snap's AppArmor). Not exercised: popups from a real toolkit, host-initiated resize, fractional scales other than 2x, a second window.
 
 ## Not done yet / known gaps
 
