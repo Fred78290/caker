@@ -120,6 +120,8 @@ final class ComposeLibraryTests: XCTestCase {
 			"postgres-patroni": ("lb", ["5000:5000/tcp", "5001:5001/tcp", "7000:7000/tcp"]),
 			"alpine-dev": ("dev", ["3000:3000/tcp", "8000:8000/tcp"]),
 			"docker-host-alpine": ("docker", ["8080:8080/tcp", "8443:8443/tcp"]),
+			"redis-alpine": ("redis", ["6379:6379/tcp"]),
+			"postgres-alpine": ("db", ["5432:5432/tcp"]),
 			"lemp-alpine": ("web", ["8080:80/tcp"]),
 			"prometheus-grafana-alpine": ("monitor", ["9090:9090/tcp", "3000:3000/tcp"]),
 		]
