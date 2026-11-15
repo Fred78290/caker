@@ -458,6 +458,43 @@ final class ComposeTest: XCTestCase {
 		XCTAssertNil(built.options.userData)
 	}
 
+	func testImageAliasPrefixSetsTheCatalogIdInsteadOfTheImage() throws {
+		var svc = ComposeService()
+		svc.image = "alias:alpine324"
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(built.options.imageId, "alpine324")
+		XCTAssertFalse(built.options.image.hasPrefix("alias:"))
+
+		// The build resolves it exactly as `build --alias alpine324` does.
+		let resolved = try built.options.resolveImageId()
+
+		XCTAssertNil(resolved.imageId)
+		XCTAssertTrue(resolved.image.hasPrefix("http"))
+	}
+
+	func testImageAliasPrefixRejectsAnUnknownOrEmptyId() throws {
+		for image in ["alias:no-such-image", "alias:", "alias:   "] {
+			var svc = ComposeService()
+			svc.image = image
+
+			XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil), image)
+		}
+	}
+
+	func testPlainImageHasNoCatalogId() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:26.04"
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertNil(built.options.imageId)
+		XCTAssertEqual(built.options.image, "ubuntu:26.04")
+	}
+
 	func testPackageUpdateIsNotSetWithoutPackages() throws {
 		var svc = ComposeService()
 		svc.image = "ubuntu:24.04"

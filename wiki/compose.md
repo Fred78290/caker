@@ -45,7 +45,7 @@ name: myproject          # nom du projet — également utilisé comme préfixe 
 
 services:
   app:
-    image: ubuntu:26.04  # image cloud ; même syntaxe que cakectl build
+    image: ubuntu:26.04  # image cloud ; même syntaxe que cakectl build (ou `alias:<id>`, voir ci-dessous)
     ports:
       - "3000:3000"      # host:container[/proto] — TCP par défaut
       - "8080:80/tcp"
@@ -109,6 +109,10 @@ networks:
   default:
     driver: bridge       # attache la VM à un réseau physique/bridgé — voir "Réseaux" ci-dessous
 ```
+
+### Image d'un service (`image`)
+
+`image:` accepte les mêmes références que `cakectl build` (`ubuntu:26.04`, `images:alpine/3.24/cloud`, une URL d'image cloud). Préfixée par `alias:`, elle désigne un identifiant du catalogue `VMImages.json` (`cakectl aliases` les liste), comme `cakectl build --alias` : `image: alias:alpine324`. Un identifiant inconnu fait échouer `compose up` avant la création de la première VM ; le CPU et la mémoire sont relevés au minimum de l'entrée du catalogue, sans jamais baisser une valeur plus haute.
 
 ### Nommage des VM
 
@@ -528,7 +532,7 @@ name: myproject          # project name — also used as VM name prefix
 
 services:
   app:
-    image: ubuntu:26.04  # cloud image; same syntax as cakectl build
+    image: ubuntu:26.04  # cloud image; same syntax as cakectl build (or `alias:<id>`, see below)
     ports:
       - "3000:3000"      # host:container[/proto] — TCP by default
       - "8080:80/tcp"
@@ -592,6 +596,10 @@ networks:
   default:
     driver: bridge       # attaches the VM to a physical/bridged network — see "Networks" below
 ```
+
+### Service image (`image`)
+
+`image:` takes the same references as `cakectl build` (`ubuntu:26.04`, `images:alpine/3.24/cloud`, a cloud image URL). Prefixed with `alias:`, it names an id of the `VMImages.json` catalog (`cakectl aliases` lists them), like `cakectl build --alias`: `image: alias:alpine324`. An unknown id makes `compose up` fail before the first VM is built; CPU and memory are raised to the catalog entry's minimum, never lowering a higher value.
 
 ### VM naming
 
