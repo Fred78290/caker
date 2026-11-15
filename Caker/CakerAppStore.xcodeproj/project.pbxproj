@@ -509,6 +509,42 @@
 		9BBF7CAF2F3F1B8E00F37D2C /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CAE2F3F1B8600F37D2C /* ScreenSizeHandler.swift */; };
 		9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */; };
 		9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */; };
+		9BBF92F630A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
+		9BBF92F730A9B31B0054FF7E /* lemp-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
+		9BBF92F830A9B31B0054FF7E /* alpine-dev.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */; };
+		9BBF92F930A9B31B0054FF7E /* postgres-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */; };
+		9BBF92FA30A9B31B0054FF7E /* docker-host-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */; };
+		9BBF92FB30A9B31B0054FF7E /* redis-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */; };
+		9BBF92FC30A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
+		9BBF92FD30A9B31B0054FF7E /* lemp-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
+		9BBF92FE30A9B31B0054FF7E /* alpine-dev.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */; };
+		9BBF92FF30A9B31B0054FF7E /* postgres-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */; };
+		9BBF930030A9B31B0054FF7E /* docker-host-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */; };
+		9BBF930130A9B31B0054FF7E /* redis-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */; };
+		9BBF930230A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
+		9BBF930330A9B31B0054FF7E /* lemp-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
+		9BBF930430A9B31B0054FF7E /* alpine-dev.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */; };
+		9BBF930530A9B31B0054FF7E /* postgres-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */; };
+		9BBF930630A9B31B0054FF7E /* docker-host-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */; };
+		9BBF930730A9B31B0054FF7E /* redis-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */; };
+		9BBF930830A9B3300054FF7E /* alpine-dev.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */; };
+		9BBF930930A9B3300054FF7E /* docker-host-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */; };
+		9BBF930A30A9B3300054FF7E /* lemp-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
+		9BBF930B30A9B3300054FF7E /* postgres-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */; };
+		9BBF930C30A9B3300054FF7E /* prometheus-grafana-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
+		9BBF930D30A9B3300054FF7E /* redis-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */; };
+		9BBF930E30A9B33C0054FF7E /* alpine-dev.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */; };
+		9BBF930F30A9B33C0054FF7E /* docker-host-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */; };
+		9BBF931030A9B33C0054FF7E /* lemp-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
+		9BBF931130A9B33C0054FF7E /* postgres-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */; };
+		9BBF931230A9B33C0054FF7E /* prometheus-grafana-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
+		9BBF931330A9B33C0054FF7E /* redis-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */; };
+		9BBF931430A9B3460054FF7E /* alpine-dev.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */; };
+		9BBF931530A9B3460054FF7E /* docker-host-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */; };
+		9BBF931630A9B3460054FF7E /* lemp-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
+		9BBF931730A9B3460054FF7E /* postgres-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */; };
+		9BBF931830A9B3460054FF7E /* prometheus-grafana-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
+		9BBF931930A9B3460054FF7E /* redis-alpine.yml in Compose Library */ = {isa = PBXBuildFile; fileRef = 9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */; };
 		9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */; };
 		9BC1F9982F6D469A00A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9972F6D469A00A83B33 /* Subprocess */; };
 		9BC1F99A2F6D475800A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9992F6D475800A83B33 /* Subprocess */; };
@@ -1097,6 +1133,12 @@
 			dstPath = "compose-library";
 			dstSubfolder = Resources;
 			files = (
+				9BBF930830A9B3300054FF7E /* alpine-dev.yml in Compose Library */,
+				9BBF930930A9B3300054FF7E /* docker-host-alpine.yml in Compose Library */,
+				9BBF930A30A9B3300054FF7E /* lemp-alpine.yml in Compose Library */,
+				9BBF930B30A9B3300054FF7E /* postgres-alpine.yml in Compose Library */,
+				9BBF930C30A9B3300054FF7E /* prometheus-grafana-alpine.yml in Compose Library */,
+				9BBF930D30A9B3300054FF7E /* redis-alpine.yml in Compose Library */,
 				9B31086530A9108900ABFDF4 /* ansible-lab.yml in Compose Library */,
 				9B31086630A9108900ABFDF4 /* k3s-cluster.yml in Compose Library */,
 				9B31086730A9108900ABFDF4 /* postgres-patroni.yml in Compose Library */,
@@ -1189,6 +1231,12 @@
 			dstPath = "compose-library";
 			dstSubfolder = Resources;
 			files = (
+				9BBF930E30A9B33C0054FF7E /* alpine-dev.yml in Compose Library */,
+				9BBF930F30A9B33C0054FF7E /* docker-host-alpine.yml in Compose Library */,
+				9BBF931030A9B33C0054FF7E /* lemp-alpine.yml in Compose Library */,
+				9BBF931130A9B33C0054FF7E /* postgres-alpine.yml in Compose Library */,
+				9BBF931230A9B33C0054FF7E /* prometheus-grafana-alpine.yml in Compose Library */,
+				9BBF931330A9B33C0054FF7E /* redis-alpine.yml in Compose Library */,
 				9B31086930A910A200ABFDF4 /* ansible-lab.yml in Compose Library */,
 				9B31086A30A910A200ABFDF4 /* k3s-cluster.yml in Compose Library */,
 				9B31086B30A910A200ABFDF4 /* postgres-patroni.yml in Compose Library */,
@@ -1240,6 +1288,12 @@
 			dstPath = "compose-library";
 			dstSubfolder = Resources;
 			files = (
+				9BBF931430A9B3460054FF7E /* alpine-dev.yml in Compose Library */,
+				9BBF931530A9B3460054FF7E /* docker-host-alpine.yml in Compose Library */,
+				9BBF931630A9B3460054FF7E /* lemp-alpine.yml in Compose Library */,
+				9BBF931730A9B3460054FF7E /* postgres-alpine.yml in Compose Library */,
+				9BBF931830A9B3460054FF7E /* prometheus-grafana-alpine.yml in Compose Library */,
+				9BBF931930A9B3460054FF7E /* redis-alpine.yml in Compose Library */,
 				9B31086D30A910B700ABFDF4 /* ansible-lab.yml in Compose Library */,
 				9B31086E30A910B700ABFDF4 /* k3s-cluster.yml in Compose Library */,
 				9B31086F30A910B700ABFDF4 /* postgres-patroni.yml in Compose Library */,
@@ -1757,6 +1811,12 @@
 		9BBF7CB22F3F28F400F37D2C /* VNCInfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInfosHandler.swift; sourceTree = "<group>"; };
 		9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "alpine-dev.yml"; sourceTree = "<group>"; };
+		9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "docker-host-alpine.yml"; sourceTree = "<group>"; };
+		9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "lemp-alpine.yml"; sourceTree = "<group>"; };
+		9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "postgres-alpine.yml"; sourceTree = "<group>"; };
+		9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "prometheus-grafana-alpine.yml"; sourceTree = "<group>"; };
+		9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "redis-alpine.yml"; sourceTree = "<group>"; };
 		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
 		9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineTerminalView.swift; sourceTree = "<group>"; };
 		9BC1F6842F66B25A00A83B33 /* ColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWell.swift; sourceTree = "<group>"; };
@@ -3097,22 +3157,28 @@
 			isa = PBXGroup;
 			children = (
 				9BC4DD0B30A870DB00FEFAE5 /* index.json */,
+				9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */,
 				9B31085530A9106600ABFDF4 /* ansible-lab.yml */,
+				9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */,
 				9BC4DD0A30A870DB00FEFAE5 /* docker-host.yml */,
 				9B31081D30A907E000ABFDF4 /* garage.yml */,
 				9B31081E30A907E000ABFDF4 /* gitea.yml */,
 				9B31085630A9106600ABFDF4 /* k3s-cluster.yml */,
 				9BC4DD0C30A870DB00FEFAE5 /* k3s.yml */,
 				9BC4DD0D30A870DB00FEFAE5 /* lamp.yml */,
+				9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */,
 				9BC4DD0E30A870DB00FEFAE5 /* lemp.yml */,
 				9BC4DD0F30A870DB00FEFAE5 /* mariadb-phpmyadmin.yml */,
 				9B31081F30A907E000ABFDF4 /* nextcloud.yml */,
 				9BC4DD1030A870DB00FEFAE5 /* nodejs-redis.yml */,
+				9BBF92F330A9B31B0054FF7E /* postgres-alpine.yml */,
 				9B31085730A9106600ABFDF4 /* postgres-patroni.yml */,
 				9BC4DD1130A870DB00FEFAE5 /* postgres.yml */,
+				9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */,
 				9B31085830A9106600ABFDF4 /* prometheus-grafana.yml */,
 				9BC4DD1230A870DB00FEFAE5 /* python-postgres.yml */,
 				9BC4DD1330A870DB00FEFAE5 /* rabbitmq.yml */,
+				9BBF92F530A9B31B0054FF7E /* redis-alpine.yml */,
 				9BC4DD1430A870DB00FEFAE5 /* redis.yml */,
 				9BC4DD1530A870DB00FEFAE5 /* ubuntu-dev.yml */,
 				9B31082030A907E000ABFDF4 /* vaultwarden-caddy.yml */,
@@ -4065,6 +4131,12 @@
 				9B31086130A9106600ABFDF4 /* ansible-lab.yml in Resources */,
 				9B31086230A9106600ABFDF4 /* postgres-patroni.yml in Resources */,
 				9B31086330A9106600ABFDF4 /* prometheus-grafana.yml in Resources */,
+				9BBF92F630A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */,
+				9BBF92F730A9B31B0054FF7E /* lemp-alpine.yml in Resources */,
+				9BBF92F830A9B31B0054FF7E /* alpine-dev.yml in Resources */,
+				9BBF92F930A9B31B0054FF7E /* postgres-alpine.yml in Resources */,
+				9BBF92FA30A9B31B0054FF7E /* docker-host-alpine.yml in Resources */,
+				9BBF92FB30A9B31B0054FF7E /* redis-alpine.yml in Resources */,
 				9B31086430A9106600ABFDF4 /* k3s-cluster.yml in Resources */,
 				9B31082A30A907E000ABFDF4 /* garage.yml in Resources */,
 				9B31082B30A907E000ABFDF4 /* gitea.yml in Resources */,
@@ -4080,6 +4152,12 @@
 			files = (
 				9BA60F0C30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */,
 				A5E1553A68783A018C527152 /* ssh-install-cakeagent.sh in Resources */,
+				9BBF92FC30A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */,
+				9BBF92FD30A9B31B0054FF7E /* lemp-alpine.yml in Resources */,
+				9BBF92FE30A9B31B0054FF7E /* alpine-dev.yml in Resources */,
+				9BBF92FF30A9B31B0054FF7E /* postgres-alpine.yml in Resources */,
+				9BBF930030A9B31B0054FF7E /* docker-host-alpine.yml in Resources */,
+				9BBF930130A9B31B0054FF7E /* redis-alpine.yml in Resources */,
 				9B31085D30A9106600ABFDF4 /* ansible-lab.yml in Resources */,
 				9B31085E30A9106600ABFDF4 /* postgres-patroni.yml in Resources */,
 				9B31085F30A9106600ABFDF4 /* prometheus-grafana.yml in Resources */,
@@ -4115,6 +4193,12 @@
 				9B31085930A9106600ABFDF4 /* ansible-lab.yml in Resources */,
 				9B31085A30A9106600ABFDF4 /* postgres-patroni.yml in Resources */,
 				9B31085B30A9106600ABFDF4 /* prometheus-grafana.yml in Resources */,
+				9BBF930230A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */,
+				9BBF930330A9B31B0054FF7E /* lemp-alpine.yml in Resources */,
+				9BBF930430A9B31B0054FF7E /* alpine-dev.yml in Resources */,
+				9BBF930530A9B31B0054FF7E /* postgres-alpine.yml in Resources */,
+				9BBF930630A9B31B0054FF7E /* docker-host-alpine.yml in Resources */,
+				9BBF930730A9B31B0054FF7E /* redis-alpine.yml in Resources */,
 				9B31085C30A9106600ABFDF4 /* k3s-cluster.yml in Resources */,
 				9B31082630A907E000ABFDF4 /* garage.yml in Resources */,
 				9B31082730A907E000ABFDF4 /* gitea.yml in Resources */,

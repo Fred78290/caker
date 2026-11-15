@@ -462,6 +462,10 @@ public struct ComposeWriteFile: Codable {
 // MARK: - Service
 
 public struct ComposeService: Codable {
+	/// Prefix that makes `image:` a `VMImages.json` catalog id instead of an image reference:
+	/// `image: alias:alpine324` builds like `caked build --alias alpine324`.
+	public static let imageAliasPrefix = "alias:"
+
 	public var image: String?
 	public var ports: [ComposePort]?
 	public var sockets: [String]?
@@ -590,6 +594,16 @@ public struct ComposeService: Codable {
 		// process running this is the daemon — clamp instead of crashing it on an absurd value.
 		let requestedCPUs = Double(deploy?.resources?.limits?.cpus ?? "2") ?? 2.0
 
+		// `image: alias:<id>` names a catalog entry (`caked aliases`). It is not resolved here: the build
+		// resolves `imageId` itself (after refreshing the catalog's "latest" images), exactly as for
+		// `build --alias`; it is only checked now so that a typo fails `compose up` before any VM is built.
+		let imageAlias = try validatedImageAlias()
+		var imageReference = image ?? defaultUbuntuImage
+
+		if imageAlias != nil {
+			imageReference = defaultUbuntuImage
+		}
+
 		var opts = BuildOptions(
 			name: name,
 			cpu: UInt16(min(Double(UInt16.max), max(1.0, requestedCPUs))),
@@ -602,7 +616,7 @@ public struct ComposeService: Codable {
 			autostart: autostart ?? false,
 			nested: nested ?? false,
 			netIfnames: self.netIfnames ?? true,
-			image: image ?? defaultUbuntuImage,
+			image: imageReference,
 			sshAuthorizedKey: self.sshAuthorizedKey,
 			forwardedPorts: tunnels,
 			mounts: mounts,
@@ -611,6 +625,7 @@ public struct ComposeService: Codable {
 		)
 
 		try opts.validateImageSource(remote: false)
+		opts.imageId = imageAlias
 
 		var generatedWriteFiles: [WriteFile] = []
 
@@ -687,6 +702,23 @@ public struct ComposeService: Codable {
 		}
 
 		return (opts, filesToClean)
+	}
+
+	/// The catalog id named by an `image: alias:<id>`, or `nil` when `image` is not an alias. Throws when the
+	/// id is empty or unknown to the catalog. `ComposeHandler.up` runs this for every selected service before
+	/// building the first VM, so a typo can't fail after earlier services were already built.
+	func validatedImageAlias() throws -> String? {
+		guard let image, image.hasPrefix(Self.imageAliasPrefix) else {
+			return nil
+		}
+
+		let id = image.dropFirst(Self.imageAliasPrefix.count).trimmingCharacters(in: .whitespaces)
+
+		guard id.isEmpty == false, VMImageCatalog.reloadIfChanged().resolveShorthand(id) != nil else {
+			throw ServiceError(String(format: String(localized: "Unknown catalog image id '%@' in image '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids."), id, image))
+		}
+
+		return id
 	}
 
 	/// The cloud-init user-data document assembled from `environment`/`write_files`/`packages`/

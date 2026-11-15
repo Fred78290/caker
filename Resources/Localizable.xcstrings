@@ -20264,6 +20264,17 @@
         }
       }
     },
+    "Unknown catalog image id '%@' in image '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Id d'image de catalogue inconnu ‘%1$@’ dans l'image ‘%2$@’. Exécutez ‘caked aliases’ ou ‘cakectl aliases’ pour voir les ids connus."
+          }
+        }
+      }
+    },
     "Unknown certificate command" : {
       "extractionState" : "manual",
       "localizations" : {

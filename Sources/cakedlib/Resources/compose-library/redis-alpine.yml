@@ -1,0 +1,39 @@
+# library-id: redis-alpine
+# library-name: Redis (Alpine)
+# library-category: Database
+# library-summary: Redis from the Alpine repositories, reachable from the host and from the other VMs, protected by a password.
+# library-tags: alpine, redis, cache, key-value, database
+name: redis-alpine
+services:
+  redis:
+    image: alias:alpine324
+    user: alpine
+    password: alpine
+    disk: 10          # GiB
+    ports:
+      - 6379:6379
+    environment:
+      REDIS_PASSWORD: change-me
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - sudo
+      - redis
+      - redis-openrc
+    post_commands:
+      - sed -i 's/^bind .*/bind 0.0.0.0/' /etc/redis.conf
+      - |
+        # Read the raw values instead of sourcing /etc/environment: sourcing would split a value with a space
+        # and expand a `$` in it.
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        REDIS_PASSWORD=$(envval REDIS_PASSWORD)
+        # redis.conf splits a line into arguments: write the password as one double-quoted argument, escaping
+        # `\` and `"`, so a space or a quote in it is kept as is. printf, not echo: ash's echo expands `\`.
+        escaped=$(printf '%s' "$REDIS_PASSWORD" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        printf 'requirepass "%s"\n' "$escaped" >> /etc/redis.conf
+      - rc-update add redis default
+      - rc-service redis start

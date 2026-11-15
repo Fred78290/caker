@@ -6,7 +6,7 @@
 name: pyapp
 services:
   db:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
@@ -37,7 +37,7 @@ services:
         su postgres -c "createdb -O $POSTGRES_USER $POSTGRES_DB"
 
   app:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB

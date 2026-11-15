@@ -7,7 +7,7 @@ name: patroni
 services:
   # A single etcd node keeps this lab small: it is the one part that is not redundant.
   etcd:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB
@@ -30,7 +30,7 @@ services:
         ETCD
         systemctl restart etcd
   pg1:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
@@ -113,7 +113,7 @@ services:
         done
         [ -n "$ready" ] || { echo "patroni did not report a running PostgreSQL" >&2; exit 1; }
   pg2:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
@@ -194,7 +194,7 @@ services:
         done
         [ -n "$ready" ] || { echo "patroni did not report a running PostgreSQL" >&2; exit 1; }
   lb:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB

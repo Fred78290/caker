@@ -458,6 +458,59 @@ final class ComposeTest: XCTestCase {
 		XCTAssertNil(built.options.userData)
 	}
 
+	func testImageAliasPrefixSetsTheCatalogIdInsteadOfTheImage() throws {
+		var svc = ComposeService()
+		svc.image = "alias:alpine324"
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(built.options.imageId, "alpine324")
+		XCTAssertFalse(built.options.image.hasPrefix("alias:"))
+
+		// The build resolves it exactly as `build --alias alpine324` does.
+		let resolved = try built.options.resolveImageId()
+
+		XCTAssertNil(resolved.imageId)
+		XCTAssertTrue(resolved.image.hasPrefix("http"))
+	}
+
+	func testImageAliasPrefixRejectsAnUnknownOrEmptyId() throws {
+		for image in ["alias:no-such-image", "alias:", "alias:   "] {
+			var svc = ComposeService()
+			svc.image = image
+
+			XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil), image)
+		}
+	}
+
+	func testUpRejectsAnUnknownImageAliasBeforeBuildingAnyService() async throws {
+		var good = ComposeService()
+		good.image = "alias:alpine324"
+
+		var bad = ComposeService()
+		bad.image = "alias:no-such-image"
+		bad.dependsOn = .list(["a"])
+
+		var status = ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: "aliasfail", services: ["a": good, "b": bad]))
+		let reply = await ComposeHandler.up(compose: &status, services: [], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertFalse(reply.success)
+		XCTAssertTrue(reply.reason.contains("no-such-image"), reply.reason)
+		XCTAssertTrue(status.installed.isEmpty)
+	}
+
+	func testPlainImageHasNoCatalogId() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:26.04"
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertNil(built.options.imageId)
+		XCTAssertEqual(built.options.image, "ubuntu:26.04")
+	}
+
 	func testPackageUpdateIsNotSetWithoutPackages() throws {
 		var svc = ComposeService()
 		svc.image = "ubuntu:24.04"
@@ -1656,5 +1709,62 @@ final class ComposeTest: XCTestCase {
 
 		let newClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.replaceDefinition = true }.serializedData()
 		XCTAssertTrue(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: newClient).replaceDefinition)
+	}
+
+	// MARK: - Alpine cloud image
+
+	func testOnlyAlpineGetsTheSerialGettyCommand() {
+		XCTAssertEqual(CloudInit.platformRunCommands(for: .alpine), CloudInit.alpineDisableSerialGettyCommand)
+
+		// init has to re-read the edited inittab, otherwise the getty keeps running until the next boot.
+		XCTAssertEqual(CloudInit.alpineDisableSerialGettyCommand.last, "kill -HUP 1")
+
+		for platform in [SupportedPlatform.ubuntu, .debian, .fedora, .centos] {
+			XCTAssertTrue(CloudInit.platformRunCommands(for: platform).isEmpty, "\(platform)")
+		}
+	}
+
+	/// Runs the real command on a copy of an Alpine `inittab`: only the `ttyAMA0` and `ttyS0` serial gettys are commented out
+	/// (the VGA console's `tty1` stays), and a second run changes nothing.
+	func testAlpineSerialGettyCommandCommentsOnlyTheSerialConsoleLines() throws {
+		let inittab = """
+			::sysinit:/sbin/openrc sysinit
+			tty1::respawn:/sbin/getty 38400 tty1
+			ttyS0::respawn:/sbin/getty -L 115200 ttyS0 vt100
+			ttyAMA0::respawn:/sbin/getty -L 115200 ttyAMA0 vt100
+			::shutdown:/sbin/openrc shutdown
+
+			"""
+		let url = FileManager.default.temporaryDirectory.appendingPathComponent("inittab-\(UUID().uuidString)")
+
+		try inittab.write(to: url, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: url) }
+
+		// The guest runs busybox `sed -i`; macOS's BSD `sed` wants an (empty) backup suffix after `-i`.
+		let command = try XCTUnwrap(CloudInit.alpineDisableSerialGettyCommand.first)
+			.replacingOccurrences(of: "sed -i ", with: "sed -i '' ")
+			.replacingOccurrences(of: "/etc/inittab", with: url.path)
+
+		func run() throws {
+			let process = Process()
+
+			process.executableURL = URL(fileURLWithPath: "/bin/sh")
+			process.arguments = ["-c", command]
+			try process.run()
+			process.waitUntilExit()
+			XCTAssertEqual(process.terminationStatus, 0)
+		}
+
+		try run()
+
+		let expected = inittab
+			.replacingOccurrences(of: "ttyAMA0::respawn", with: "#ttyAMA0::respawn")
+			.replacingOccurrences(of: "ttyS0::respawn", with: "#ttyS0::respawn")
+
+		XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), expected)
+
+		try run()
+
+		XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), expected)
 	}
 }

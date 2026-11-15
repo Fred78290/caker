@@ -1,0 +1,124 @@
+# library-id: prometheus-grafana-alpine
+# library-name: Prometheus + Grafana + node_exporter (Alpine)
+# library-category: Monitoring
+# library-summary: Prometheus and Grafana on one Alpine VM scraping node_exporter on itself and on two other VMs; Prometheus (9090) and Grafana (3000) are forwarded to the host.
+# library-tags: alpine, prometheus, grafana, node_exporter, monitoring, metrics
+name: monitoring-alpine
+services:
+  node1:
+    image: alias:alpine324
+    user: alpine
+    password: alpine
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - sudo
+      - prometheus-node-exporter
+      - prometheus-node-exporter-openrc
+    post_commands:
+      - rc-update add node-exporter default
+      - rc-service node-exporter start
+  node2:
+    image: alias:alpine324
+    user: alpine
+    password: alpine
+    disk: 10          # GiB
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1024M
+    package_update: true
+    packages:
+      - sudo
+      - prometheus-node-exporter
+      - prometheus-node-exporter-openrc
+    post_commands:
+      - rc-update add node-exporter default
+      - rc-service node-exporter start
+  monitor:
+    image: alias:alpine324
+    user: alpine
+    password: alpine
+    disk: 20          # GiB
+    depends_on:
+      - node1
+      - node2
+    ports:
+      - 9090:9090
+      - 3000:3000
+    environment:
+      # The password of Grafana's admin account, taken at its first start (no quotes or spaces).
+      GRAFANA_ADMIN_PASSWORD: change-me
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - sudo
+      - prometheus
+      - prometheus-openrc
+      - prometheus-node-exporter
+      - prometheus-node-exporter-openrc
+      - grafana
+      - grafana-openrc
+    # Both files are written aside and copied once the packages are installed, so apk can't set them aside as
+    # `.apk-new` instead.
+    write_files:
+      - path: /usr/local/share/monitoring/prometheus.yml
+        content: |
+          global:
+            scrape_interval: 15s
+          scrape_configs:
+            - job_name: prometheus
+              static_configs:
+                - targets: ['localhost:9090']
+            - job_name: node
+              static_configs:
+                - targets:
+                    - monitor.monitoring-alpine.compose.internal:9100
+                    - node1.monitoring-alpine.compose.internal:9100
+                    - node2.monitoring-alpine.compose.internal:9100
+        permissions: '0644'
+      - path: /usr/local/share/monitoring/datasource.yml
+        content: |
+          apiVersion: 1
+          datasources:
+            - name: Prometheus
+              type: prometheus
+              access: proxy
+              url: http://localhost:9090
+              isDefault: true
+        permissions: '0644'
+      - path: /etc/motd
+        content: |
+          Prometheus: http://localhost:9090 on the host (forwarded). Targets: Status > Targets.
+          Grafana: http://localhost:3000 on the host (forwarded), user admin, password GRAFANA_ADMIN_PASSWORD.
+          Import dashboard 1860 (Node Exporter Full) from Dashboards > New > Import.
+        permissions: '0644'
+    post_commands:
+      - cp /usr/local/share/monitoring/prometheus.yml /etc/prometheus/prometheus.yml
+      - rc-update add prometheus default
+      - rc-service prometheus start
+      - rc-update add node-exporter default
+      - rc-service node-exporter start
+      - |
+        set -e
+        password=$(grep '^GRAFANA_ADMIN_PASSWORD=' /etc/environment | cut -d= -f2-)
+        # Alpine's service file provisions from /var/lib/grafana/provisioning.
+        mkdir -p /var/lib/grafana/provisioning/datasources
+        cp /usr/local/share/monitoring/datasource.yml /var/lib/grafana/provisioning/datasources/prometheus.yml
+        chown -R grafana:grafana /var/lib/grafana/provisioning
+        # The service listens on 127.0.0.1 by default: open it so the host's forward reaches it.
+        sed -i 's/server.http_addr=127.0.0.1/server.http_addr=0.0.0.0/' /etc/conf.d/grafana
+        # conf.d files are shell fragments read by the init script; the first start creates the admin account.
+        printf "export GF_SECURITY_ADMIN_PASSWORD='%s'\n" "$password" >> /etc/conf.d/grafana
+        rc-update add grafana default
+        rc-service grafana start

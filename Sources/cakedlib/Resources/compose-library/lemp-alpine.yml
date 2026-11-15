@@ -1,0 +1,120 @@
+# library-id: lemp-alpine
+# library-name: LEMP stack (Alpine)
+# library-category: Web
+# library-summary: Nginx with PHP-FPM on one Alpine VM and MariaDB on another, wired together through compose DNS.
+# library-tags: alpine, lemp, nginx, php, mariadb, web
+name: lemp-alpine
+services:
+  db:
+    image: alias:alpine324
+    user: alpine
+    password: alpine
+    disk: 20          # GiB
+    environment: &db-env    # single source of the credentials: the web service reuses it below
+      MYSQL_DATABASE: app
+      MYSQL_USER: app
+      MYSQL_PASSWORD: change-me
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 2048M
+    package_update: true
+    packages:
+      - sudo
+      - mariadb
+      - mariadb-client
+      - mariadb-openrc
+    post_commands:
+      # Creates the data directory (Alpine's init script does it on demand, not at install).
+      - rc-service mariadb setup
+      # Alpine ships MariaDB with `skip-networking`: turn it off and listen on every interface.
+      - sed -i 's/^skip-networking/#skip-networking/' /etc/my.cnf.d/mariadb-server.cnf
+      - printf '[mysqld]\nbind-address = 0.0.0.0\n' > /etc/my.cnf.d/zz-compose.cnf
+      - rc-update add mariadb default
+      - rc-service mariadb start
+      - |
+        # Read the raw values instead of sourcing /etc/environment: sourcing would split a value with a space
+        # and expand a `$` in it.
+        envval() { grep "^$1=" /etc/environment | cut -d= -f2-; }
+        MYSQL_DATABASE=$(envval MYSQL_DATABASE)
+        MYSQL_USER=$(envval MYSQL_USER)
+        MYSQL_PASSWORD=$(envval MYSQL_PASSWORD)
+        # Encode a value for a single-quoted MariaDB string literal: `\` becomes `\\` and `'` becomes `''`.
+        sqlesc() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/''/g"; }
+        # Encode a value for a backtick-quoted MariaDB identifier: a backtick becomes two (separate from sqlesc,
+        # which is for string literals). The backticks around it in the statement below are escaped for the shell.
+        sqlid() { printf '%s' "$1" | sed 's/`/``/g'; }
+        SQL_USER=$(sqlesc "$MYSQL_USER")
+        SQL_PASSWORD=$(sqlesc "$MYSQL_PASSWORD")
+        SQL_DATABASE=$(sqlid "$MYSQL_DATABASE")
+        mysql -u root -e "CREATE DATABASE IF NOT EXISTS \`$SQL_DATABASE\`; CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD'; GRANT ALL PRIVILEGES ON \`$SQL_DATABASE\`.* TO '$SQL_USER'@'%'; FLUSH PRIVILEGES;"
+
+  web:
+    image: alias:alpine324
+    user: alpine
+    password: alpine
+    disk: 10          # GiB
+    ports:
+      - 8080:80
+    depends_on:
+      - db
+    environment: *db-env   # lands in /etc/environment, read by index.php
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 1024M
+    package_update: true
+    packages:
+      - sudo
+      - nginx
+      - php85
+      - php85-fpm
+      - php85-mysqli
+    write_files:
+      # Staged outside /etc/nginx so the package's own default site can't clash with it; copied in below.
+      - path: /root/lemp-site.conf
+        content: |
+          server {
+              listen 80 default_server;
+              root /var/www/html;
+              index index.php index.html;
+              location / { try_files $uri $uri/ =404; }
+              location ~ \.php$ {
+                  include fastcgi.conf;
+                  fastcgi_pass 127.0.0.1:9000;
+              }
+          }
+        permissions: '0644'
+      # `db.lemp-alpine.compose.internal` is the db service's compose DNS name (<service>.<project>.<domain>).
+      - path: /var/www/html/index.php
+        content: |
+          <?php
+          mysqli_report(MYSQLI_REPORT_OFF);
+          // Same MYSQL_* values as the db service (the `environment:` block, written to /etc/environment).
+          // PHP-FPM clears its environment, so read the raw KEY=value lines instead of getenv().
+          $env = [];
+          foreach (@file('/etc/environment', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+              if (strpos($line, '=') > 0) {
+                  [$k, $v] = explode('=', $line, 2);
+                  $env[$k] = $v;
+              }
+          }
+          try {
+              $db = new mysqli('db.lemp-alpine.compose.internal', $env['MYSQL_USER'] ?? '', $env['MYSQL_PASSWORD'] ?? '', $env['MYSQL_DATABASE'] ?? '');
+              echo $db->connect_errno ? 'Database: ' . htmlspecialchars($db->connect_error) : 'Database: connected, MariaDB ' . $db->server_info;
+          } catch (Throwable $e) {
+              echo 'Database: ' . htmlspecialchars($e->getMessage());
+          }
+          echo '<hr>';
+          phpinfo();
+        permissions: '0644'
+    post_commands:
+      # PHP-FPM listens on 127.0.0.1:9000 by default (the www pool runs as nobody).
+      - cp /root/lemp-site.conf /etc/nginx/http.d/default.conf
+      - nginx -t
+      - rc-update add php-fpm85 default
+      - rc-update add nginx default
+      - rc-service php-fpm85 start
+      - rc-service nginx start

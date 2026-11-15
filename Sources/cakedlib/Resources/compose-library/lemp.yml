@@ -6,7 +6,7 @@
 name: lemp
 services:
   db:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 20          # GiB
@@ -35,7 +35,7 @@ services:
         mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE; CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%'; FLUSH PRIVILEGES;"
 
   web:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB
@@ -64,7 +64,7 @@ services:
               location / { try_files $uri $uri/ =404; }
               location ~ \.php$ {
                   include snippets/fastcgi-php.conf;
-                  fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+                  fastcgi_pass unix:/run/php/php8.5-fpm.sock;
               }
           }
         permissions: '0644'

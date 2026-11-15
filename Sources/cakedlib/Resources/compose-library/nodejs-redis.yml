@@ -6,7 +6,7 @@
 name: nodeapp
 services:
   cache:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB
@@ -25,7 +25,7 @@ services:
       - systemctl restart redis-server
 
   app:
-    image: ubuntu:24.04
+    image: ubuntu:26.04
     user: ubuntu
     password: ubuntu
     disk: 10          # GiB
