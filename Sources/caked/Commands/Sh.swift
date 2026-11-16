@@ -75,7 +75,9 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 		if result.started {
 			do {
-				_ = try await helper.shell(callOptions: callOptions)
+				let user = try? StorageLocation(runMode: self.common.runMode).find(self.shell.name).config().seamlessUser
+
+					_ = try await helper.shell(user: user, callOptions: callOptions)
 			} catch {
 				Logger.appendNewLine(self.common.format.render(error.reason))
 			}

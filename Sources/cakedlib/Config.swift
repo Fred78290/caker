@@ -813,6 +813,18 @@ extension VirtualMachineConfiguration {
 		return self.firstLaunch
 	}
 
+	/// The guest account the seamless windows belong to (the VM's user), nil when seamless windows are off. It is what
+	/// the agent's compositor runs for, and what shells and commands are run as (`ExecuteRequest`'s `user`), so that
+	/// the applications they start find the compositor. Only a plain user name is accepted: the service flags land
+	/// unquoted in a shell script.
+	public var seamlessUser: String? {
+		guard self.supportsSeamlessWindows, self.configuredUser.isEmpty == false, self.configuredUser.range(of: "^[a-z_][a-z0-9_.-]*$", options: .regularExpression) != nil else {
+			return nil
+		}
+
+		return self.configuredUser
+	}
+
 	/// Extra flags of `cakeagent service install`: the mounts, and the seamless windows compositor when the guest
 	/// shows its windows on the host (it runs as the VM's user, with the host's keyboard layout).
 	public var agentServiceFlags: String {
@@ -821,9 +833,8 @@ extension VirtualMachineConfiguration {
 		if self.supportsSeamlessWindows {
 			flags.append("--seamless")
 
-			// The flags land unquoted in a shell script: only a plain user name is passed on.
-			if self.configuredUser.isEmpty == false, self.configuredUser.range(of: "^[a-z_][a-z0-9_.-]*$", options: .regularExpression) != nil {
-				flags.append("--seamless-user=\(self.configuredUser)")
+			if let user = self.seamlessUser {
+				flags.append("--seamless-user=\(user)")
 			}
 
 			if let layout = SeamlessKeyboardLayout.hostXkbLayout() {

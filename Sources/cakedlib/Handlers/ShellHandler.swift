@@ -473,7 +473,7 @@ public struct ShellHandler {
 						}
 
 						shellStream.sendTerminalSize(rows: self.terminalSize.rows, cols: self.terminalSize.cols)
-						shellStream.sendShell()
+						shellStream.sendShell(user: try? self.location.config().seamlessUser)
 
 						$0 = shellStream
 					}

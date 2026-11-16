@@ -153,18 +153,22 @@ extension Caked_ExecuteResponse {
 }
 
 extension CakeAgent.ExecuteRequest {
-	init(_ from: Caked_ExecuteRequest) {
+	/// `user` is the guest account a shell or command is run as (the agent's own when nil).
+	init(_ from: Caked_ExecuteRequest, user: String? = nil) {
 		self = CakeAgent.ExecuteRequest.with { msg in
 			switch from.execute {
 			   case .command(let command):
 				   msg.command = CakeAgent.ExecuteRequest.ExecuteCommand.with { cmd in
 					   switch command.execute {
 					   case .shell:
-						   cmd.shell = true
+						   cmd.shell = CakeAgent.ExecuteRequest.ExecuteCommand.Shell.with { shell in
+							   shell.user = user ?? ""
+						   }
 					   case .command(let execute):
 						   cmd.command = CakeAgent.ExecuteRequest.ExecuteCommand.Command.with { cmd in
 							   cmd.command = execute.command
 							   cmd.args = execute.args
+							   cmd.user = user ?? ""
 						   }
 					   case .none:
 						   break
@@ -465,7 +469,8 @@ public final class CakeAgentConnection: Sendable {
 		try self.run(command: String(request.command), arguments: request.args, input: request.input, callOptions: callOptions)
 	}
 
-	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) async throws {
+	/// Relays an execute stream to the agent. `user` is the guest account the shell or command is run as.
+	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, user: String? = nil) async throws {
 		struct Message {
 			
 		}
@@ -533,7 +538,7 @@ public final class CakeAgentConnection: Sendable {
 							self.logger.debug("[\(msgID)] Forward message from client to agent: \(message)")
 							#endif
 
-							streamShell.sendMessage(.init(message)).whenComplete { result in
+							streamShell.sendMessage(.init(message, user: user)).whenComplete { result in
 								switch result {
 								case .success():
 									#if DEBUG
