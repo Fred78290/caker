@@ -46,17 +46,28 @@ SERVER="${CERTS}/server.pem"
 KEY="${CERTS}/server.key"
 UPDATE=0
 
+# The service flags (mounts, seamless windows...) the installed service was registered with. They live in the unit, so a
+# same-version agent still has to be registered again when they change (seamless windows turned on after the VM was
+# built): without it the agent never runs the compositor nor installs its helper files.
+FLAGS_FILE="$(dirname "${CERTS}")/service-flags"
+FLAGS_CHANGED=1
+
+if test -f "${FLAGS_FILE}" && test "$(cat "${FLAGS_FILE}")" = "${LINUX_MOUNTS}"
+then
+	FLAGS_CHANGED=0
+fi
+
 mkdir -p /usr/local/bin ${SSHDIR}
 
 if test -f /usr/local/bin/cakeagent
 then
-	if test -n "$(/usr/local/bin/cakeagent version|grep "${CAKEAGENT_SNAPSHOT}")"
+	if test -n "$(/usr/local/bin/cakeagent version|grep "${CAKEAGENT_SNAPSHOT}")" && test ${FLAGS_CHANGED} -eq 0
 	then
 		echo "CakeAgent already installed, skipping"
 		exit 0
 	else
 		echo "CakeAgent already installed, updating"
-		/usr/local/bin/cakeagent service stop
+		/usr/local/bin/cakeagent service stop || true
 		UPDATE=1
 	fi
 fi
@@ -180,8 +191,19 @@ fi
 
 chmod 755 /usr/local/bin/cakeagent
 
-if [ $UPDATE -eq 1 ]; then
+if [ $UPDATE -eq 1 ] && [ $FLAGS_CHANGED -eq 0 ]; then
 	/usr/local/bin/cakeagent service start
+elif [ $UPDATE -eq 1 ]; then
+	# Registered again with the new flags. Mounts may already be in place, which is not a reason to fail.
+	mkdir -p /etc/sysconfig
+	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+	chmod 644 /etc/sysconfig/cakeagent
+	/usr/local/bin/cakeagent service install \
+		--listen="vsock://any:${LISTEN_PORT}" \
+		--ca-cert="${CA}" \
+		--tls-cert="${SERVER}" \
+		--tls-key="${KEY}" ${LINUX_MOUNTS} || echo "CakeAgent service reinstall reported an error"
+	/usr/local/bin/cakeagent service start || true
 else
 	mkdir -p /etc/sysconfig
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
@@ -192,6 +214,8 @@ else
 		--tls-cert="${SERVER}" \
 		--tls-key="${KEY}" ${LINUX_MOUNTS}
 fi
+
+printf '%%s' "${LINUX_MOUNTS}" > "${FLAGS_FILE}"
 
 if test "${OSDISTRO}" = "linux"; then
 	mount /mnt/shared 2>/dev/null || true
