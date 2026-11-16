@@ -347,6 +347,13 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	private let displayMode: VMRunHandler.DisplayMode
 	private var applicationInited = false
 
+	/// A process that runs the VM without a UI (`vmrun --vnc`, what a background start uses) shows the guest's windows
+	/// too: it has no application of its own, so the manager makes it an accessory one (no Dock icon, no menu bar),
+	/// and `vmrun` runs its event loop. Caker.app, `vmrun --ui`/`--all` and `cakectl seamless` already have theirs.
+	private var runsWithoutUI: Bool {
+		self.displayMode == .none || self.displayMode == .vnc
+	}
+
 	public var guestName: String?
 	public var onSessionChange: ((Bool) -> Void)?
 
@@ -368,7 +375,27 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	/// Serves the guest compositor connection on `fd`, an already established stream socket (the manager owns it).
 	public func attach(fd: Int32) {
+		self.prepareApplication()
 		server.attach(fd: fd)
+	}
+
+	/// Windows need an `NSApplication` before the first one is made, and a guest can connect as soon as the VM runs.
+	private func prepareApplication() {
+		guard self.applicationInited == false else { return }
+
+		self.applicationInited = true
+
+		if self.runsWithoutUI {
+			NSApplication.shared.setActivationPolicy(.accessory)
+		}
+	}
+
+	/// An accessory application is never active by itself, so a window the guest opens would stay behind whatever
+	/// else is in front: the user just started that application, bring it forward like any new window.
+	private func activateForNewWindow() {
+		guard self.runsWithoutUI else { return }
+
+		NSApplication.shared.activate(ignoringOtherApps: true)
 	}
 
 	private static func currentScale120() -> UInt32 {
@@ -379,6 +406,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	public var windowCount: Int { windows.count }
 
 	public func start() throws {
+		self.prepareApplication()
 		try server.start()
 	}
 
@@ -471,7 +499,14 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			windows[id]?.setHints(hints)
 		case .windowFrame(let frame):
 			do {
-				try windows[frame.windowID]?.apply(frame)
+				let controller = windows[frame.windowID]
+				let isFirstFrame = controller?.hasContent == false
+
+				try controller?.apply(frame)
+
+				if isFirstFrame, controller?.info.kind == .toplevel {
+					self.activateForNewWindow()
+				}
 			} catch {
 				logger.warn("Seamless: bad frame for window \(frame.windowID): \(error)")
 			}

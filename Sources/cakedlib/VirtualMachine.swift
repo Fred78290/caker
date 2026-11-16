@@ -1474,16 +1474,11 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 		self.logger.error(error)
 	}
 
-	/// Starts the server the guest compositor connects to, in a process that can show windows: Caker.app, or one that
-	/// runs the VM with a window. A headless `caked` has nothing to draw them with.
+	/// Starts the server the guest compositor connects to. Any process that runs the VM can show the windows: Caker.app
+	/// and `vmrun --ui` have an application already, a `vmrun --vnc` makes an accessory one (`SeamlessWindowManager`,
+	/// `VMRun` runs its event loop). Only a VM run by the caked service doesn't: a client shows its windows through the tunnel.
 	func startSeamlessWindows() {
 		guard self.env.mode == .normal, self.config.supportsSeamlessWindows else { return }
-
-		/// Windows guest are shown in headless mode, so seamless windows is supported for them.
-		/*guard Bundle.runInCaker || self.env.display == .ui || self.env.display == .all else {
-			self.logger.info("VM \(self.location.name): seamless windows are enabled but this process has no UI to show them, start the VM from Caker.app or with a display")
-			return
-		}*/
 
 		// A VM run by the caked service has its windows shown by a client through the service's SeamlessTunnel
 		// (cakectl seamless), which listens on the socket itself: listening here would take it from the tunnel.
