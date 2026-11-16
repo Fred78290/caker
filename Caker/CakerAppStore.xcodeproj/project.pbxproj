@@ -130,6 +130,7 @@
 		9B29F7B12FCAE4B700AEBCB8 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
 		9B29F7B22FCAE4B700AEBCB8 /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
 		9B29F7B32FCAE4B700AEBCB8 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */; };
+		06C42B843D3462FACFA7C9E3 /* SeamlessTunnelSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */; };
 		9B29F7B42FCAE4B700AEBCB8 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7A3A2F3DE0B300F37D2C /* StartHandler.swift */; };
 		9B29F7B52FCAE4B700AEBCB8 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B29F7B62FCAE4B700AEBCB8 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
@@ -2012,6 +2013,7 @@
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
 		9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelSession.swift; sourceTree = "<group>"; };
 		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
@@ -2528,6 +2530,7 @@
 				9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */,
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
+				9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */,
@@ -4431,6 +4434,7 @@
 				9B29F7B12FCAE4B700AEBCB8 /* VirtualMachineWizard.swift in Sources */,
 				9B29F7B22FCAE4B700AEBCB8 /* AsyncButton.swift in Sources */,
 				9B29F7B32FCAE4B700AEBCB8 /* ConnectionManager.swift in Sources */,
+				06C42B843D3462FACFA7C9E3 /* SeamlessTunnelSession.swift in Sources */,
 				9BB032C32FF6A43600F4612F /* ImportVirtualMachineView.swift in Sources */,
 				9BDC05232FEADA9500802A3C /* ImportMultipassView.swift in Sources */,
 				9BB030EF2FF65FF200F4612F /* AdvancedSettingsView.swift in Sources */,

@@ -329,7 +329,11 @@ extension UTType {
 		return launchVMExternally
 	}
 
-	private(set) var virtualMachineConfig: VirtualMachineConfig = .init()
+	private(set) var virtualMachineConfig: VirtualMachineConfig = .init() {
+		didSet {
+			self.updateSeamlessTunnel()
+		}
+	}
 	var externalRunning: Bool = false
 	var canStart: Bool = false
 	var canStop: Bool = false
@@ -359,6 +363,9 @@ extension UTType {
 	var screenshot: Data!
 	var haveRequestStop: Bool = false
 
+	/// The windows of a Linux VM run by a caked service, relayed through its `SeamlessTunnel` (see `SeamlessTunnelSession`).
+	@ObservationIgnored private var seamlessSession: SeamlessTunnelSession?
+
 	var agent = AgentStatus.none {
 		didSet {
 			guard AppState.sharedLoaded else {
@@ -373,6 +380,8 @@ extension UTType {
 
 	var status: Status = .none {
 		didSet {
+			self.updateSeamlessTunnel()
+
 			guard AppState.sharedLoaded else {
 				return
 			}
@@ -442,6 +451,10 @@ extension UTType {
 	deinit {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
+
+		if let session = self.seamlessSession {
+			Task { @MainActor in session.stop() }
+		}
 
 		MainApp.app?.removeStateVirtualMachineDocument(with: self.url)
 
@@ -661,6 +674,31 @@ extension VirtualMachineDocument {
 	func updateCurrentStatus(_ newStatus: Status, vncURL: [URL]? = nil) {
 		self.status = newStatus
 		self.vncURL = vncURL
+	}
+
+	/// Shows the windows of a Linux VM whose seamless windows are on while the caked service runs it (a local or a
+	/// remote one): the service relays the guest's stream, there is no process of ours that could listen for it.
+	/// In `.app` mode the VM runs in this process, which listens itself.
+	func updateSeamlessTunnel() {
+		let wanted = self.connectionManager.connectionMode != .app && self.virtualMachineConfig.os == .linux && self.virtualMachineConfig.seamless && self.status == .running
+
+		guard wanted || self.seamlessSession != nil else { return }
+
+		let name = self.name
+		let connectionManager = self.connectionManager
+
+		Task { @MainActor in
+			if wanted {
+				if self.seamlessSession == nil {
+					self.seamlessSession = SeamlessTunnelSession(vmName: name, connectionManager: connectionManager)
+				}
+
+				self.seamlessSession?.start()
+			} else if let session = self.seamlessSession {
+				session.stop()
+				self.seamlessSession = nil
+			}
+		}
 	}
 
 	@MainActor

@@ -948,6 +948,7 @@
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
 		9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */; };
+		06C42B843D3462FACFA7C9E3 /* SeamlessTunnelSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */; };
 		9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */; };
 		9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */; };
 		9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */; };
@@ -2115,6 +2116,7 @@
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
 		9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelSession.swift; sourceTree = "<group>"; };
 		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
@@ -2693,6 +2695,7 @@
 				9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */,
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
+				9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9BB033762FF6AFC500F4612F /* Importers.swift */,
@@ -4677,6 +4680,7 @@
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
 				9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */,
+				06C42B843D3462FACFA7C9E3 /* SeamlessTunnelSession.swift in Sources */,
 				9B001B8E3001703F0048894C /* TemplateDetailView.swift in Sources */,
 				A199C421AA7B30AB6695C4A5 /* VirtualMachineDetailView.swift in Sources */,
 				9BBF7A3B2F3DE0B800F37D2C /* StartHandler.swift in Sources */,
