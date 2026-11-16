@@ -1489,6 +1489,9 @@ class CloudInit {
 
 		try? cdromURL.delete()
 
+		// The seed's install script registers the agent service with these flags on the first boot
+		config.agentInstalledFlags = config.agentServiceFlags
+
 		// create media
 		let media = try! ISOImageFileMedia(cdromURL, readOnly: false)
 		// prepare write options

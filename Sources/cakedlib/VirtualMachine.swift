@@ -1147,6 +1147,16 @@ extension VirtualMachine {
 					} else if self.env.mode == .normal {
 						self.logger.error("VM \(self.location.name) disabled to install agent on ip: \(runningIP)")
 					}
+				} else if runningIP != nil, self.env.mode == .normal, config.agentServiceNeedsUpdate {
+					// The agent is installed but its service was registered with other flags (seamless windows turned on
+					// or off, mounts changed since): the flags are part of the guest's service unit, so register it again.
+					self.logger.info("VM \(self.location.name) agent service flags changed, updating the agent")
+
+					do {
+						try self.location.updateAgentService(config: config, runMode: runMode)
+					} catch {
+						self.logger.warn("VM \(self.location.name) failed to update the agent service: \(error)")
+					}
 				}
 
 				return runningIP

@@ -1031,6 +1031,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
 			Logger(self).debug(result.output)
+
+			// The caller saves the config; this is what a later start compares with to know the service must be re-registered
+			config.agentInstalledFlags = config.agentServiceFlags
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 
@@ -1038,6 +1041,55 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		}
 
 		return true
+	}
+
+	/// Registers the agent service of a Linux guest again with the flags the config asks for (`agentServiceFlags`: mounts,
+	/// seamless windows), through the agent itself over vsock: nothing depends on the guest's network being reachable from
+	/// the host, as SSH does, and the agent binary is already there. Stopping the service kills the agent that is running the
+	/// command, so the work is handed to a transient systemd unit (or a detached shell where there is no systemd) that
+	/// outlives it. Returns once the work is started, the service is back a few seconds later.
+	public func updateAgentService(config: CakeConfig, runMode: Utils.RunMode) throws {
+		let certs = "/etc/cakeagent/ssl"
+		let work = #"""
+			sleep 1
+			/usr/local/bin/cakeagent service stop || true
+			mkdir -p /etc/sysconfig
+			echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+			chmod 644 /etc/sysconfig/cakeagent
+			/usr/local/bin/cakeagent service install --listen="vsock://any:$2" --ca-cert=\#(certs)/ca.pem --tls-cert=\#(certs)/server.pem --tls-key=\#(certs)/server.key $1 || echo "CakeAgent service reinstall reported an error"
+			/usr/local/bin/cakeagent service start || true
+			printf '%s' "$1" > /etc/cakeagent/service-flags
+			"""#
+		let launcher = #"""
+			cat > /run/cakeagent-reflag.sh <<'CAKEAGENT_EOS'
+			\#(work)
+			CAKEAGENT_EOS
+			if command -v systemd-run >/dev/null 2>&1; then
+				systemd-run --no-block --unit=cakeagent-reflag sh /run/cakeagent-reflag.sh "$1" "$2"
+			else
+				setsid sh /run/cakeagent-reflag.sh "$1" "$2" >/dev/null 2>&1 </dev/null &
+			fi
+			"""#
+
+		Logger(self).info("Updating the agent service of \(self.name), flags: \(config.agentServiceFlags.isEmpty ? "none" : config.agentServiceFlags)")
+
+		let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 30, runMode: runMode, retries: .upTo(10))
+
+		// The agent runs `/bin/sh -c "<command> <arguments joined by a space>"`: one properly quoted command line, with the
+		// script base64 encoded so that nothing in it can be taken apart by that join.
+		func quoted(_ value: String) -> String {
+			"'" + value.replacingOccurrences(of: "'", with: #"'\''"#) + "'"
+		}
+
+		let script = Data(launcher.utf8).base64EncodedString()
+		let reply = try client.run(command: "echo \(script) | base64 -d | sh -s -- \(quoted(config.agentServiceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))")
+
+		guard reply.exitCode == 0 else {
+			throw ServiceError(String(format: String(localized: "Agent service update failed on %@: %@"), self.name, reply.stderr.isEmpty ? "exit code \(reply.exitCode)" : String(decoding: reply.stderr, as: UTF8.self)))
+		}
+
+		// The caller saves the config; this is what a later start compares with
+		config.agentInstalledFlags = config.agentServiceFlags
 	}
 
 	/// Installs the agent in a Windows guest, or replaces it when its service is already there (the installer's first boot

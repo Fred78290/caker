@@ -269,6 +269,24 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.config["seamless"] as? Bool ?? false }
 	}
 
+	/// The `agentServiceFlags` the guest's agent service was last registered with: by the cloud-init seed written at
+	/// build time, or by the last agent install over SSH. nil for a VM created before this was recorded.
+	public var agentInstalledFlags: String? {
+		set { self.cake["agentInstalledFlags"] = newValue }
+		get { self.cake["agentInstalledFlags"] as? String }
+	}
+
+	/// An installed agent whose service flags (mounts, seamless windows) no longer match what the config asks for, e.g.
+	/// after `caked configure --seamless true`: the flags live in the guest's service unit, so it has to be re-registered.
+	/// A VM with no record counts as registered without flags. A Windows guest has no such flags.
+	public var agentServiceNeedsUpdate: Bool {
+		guard self.agent, self.isWindowsGuest == false else {
+			return false
+		}
+
+		return (self.agentInstalledFlags ?? String.empty) != self.agentServiceFlags
+	}
+
 	public var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
 		get {
