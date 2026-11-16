@@ -449,6 +449,64 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertEqual(info.st_mode & 0o777, 0o600)
 	}
 
+	/// A guest stream that arrives already connected (the tunnel's socketpair) is served like an accepted one.
+	func testAttachedConnectionIsServedLikeAnAcceptedOne() throws {
+		let recorder = Recorder()
+		let server = SeamlessServer(socketPath: "", delegate: recorder, delegateQueue: DispatchQueue(label: "test.seamless.delegate"))
+		var pair: [Int32] = [-1, -1]
+
+		XCTAssertEqual(socketpair(AF_UNIX, SOCK_STREAM, 0, &pair), 0)
+		defer { Darwin.close(pair[0]) }
+
+		server.outputScale120 = 240
+		server.attach(fd: pair[1])
+		defer { server.stop() }
+
+		write(pair[0], try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "tunnel")))
+		XCTAssertEqual(try readHost(pair[0], count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start tunnel"] })
+
+		// A manager that listens on no socket has nothing to remove or unlock when it stops.
+		server.stop()
+
+		Darwin.close(pair[0])
+		pair[0] = -1
+		XCTAssertTrue(wait { recorder.log.last == "end" })
+	}
+
+	func testOnlyOneListenerOwnsTheSocketOfAGuest() throws {
+		let path = "/tmp/seamless-\(UUID().uuidString.prefix(8)).sock"
+		defer { unlink(path + ".lock") }
+
+		let first = try XCTUnwrap(SeamlessServer.acquireListenerLock(for: path))
+
+		XCTAssertNil(SeamlessServer.acquireListenerLock(for: path), "a second process must not listen on the same socket")
+
+		SeamlessServer.releaseListenerLock(first)
+
+		let again = try XCTUnwrap(SeamlessServer.acquireListenerLock(for: path), "the lock is free again once released")
+
+		SeamlessServer.releaseListenerLock(again)
+	}
+
+	func testServerRefusesToListenWhereAnotherListenerOwnsTheSocket() throws {
+		let (server, _, path) = try makeServer()
+		defer { server.stop() }
+
+		let other = SeamlessServer(socketPath: path, delegate: Recorder(), delegateQueue: DispatchQueue(label: "test.seamless.other"))
+
+		XCTAssertThrowsError(try other.start())
+
+		// The refused listener must leave the owner's socket alone, and the owner keeps working.
+		other.stop()
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "still-there")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
+	}
+
 	func testDemoGuestRoundTripThroughTheServer() throws {
 		let (server, recorder, path) = try makeServer()
 		defer { server.stop() }

@@ -83,6 +83,7 @@
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3422F0AD87C0099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
+		6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
 		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
@@ -317,6 +318,7 @@
 		9B5F49C42F70280700AE1991 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F49C32F70280700AE1991 /* Subprocess */; };
 		9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C82F7028F200AE1991 /* VNC.swift */; };
+		09A9E951B9E177ACE3BA6B2C /* Seamless.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F73695BF3F4878F568C32 /* Seamless.swift */; };
 		9B5F4B532F728AF600AE1991 /* Authorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F4B522F728AF200AE1991 /* Authorization.swift */; };
 		9B5F529E300E5DC6004DD207 /* Containerization in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F529D300E5DC6004DD207 /* Containerization */; };
 		9B5F52A0300E5DC6004DD207 /* ContainerizationEXT4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F529F300E5DC6004DD207 /* ContainerizationEXT4 */; };
@@ -371,6 +373,7 @@
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
 		9B7E83E930AA263200723F8F /* SeamlessServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E83E530AA263200723F8F /* SeamlessServer.swift */; };
+		CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */; };
 		9B7E83EA30AA263200723F8F /* SeamlessDemoGuest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E83E230AA263200723F8F /* SeamlessDemoGuest.swift */; };
 		9B7E83EB30AA263200723F8F /* SeamlessKeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E83E330AA263200723F8F /* SeamlessKeyMap.swift */; };
 		9B7E83EC30AA263200723F8F /* SeamlessSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7E83E630AA263200723F8F /* SeamlessSurface.swift */; };
@@ -1485,6 +1488,7 @@
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
 		9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCTunnel.swift; sourceTree = "<group>"; };
+		F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnel.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
@@ -1735,6 +1739,7 @@
 		9B5F49BF2F70032800AE1991 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnectionLogger.swift; sourceTree = "<group>"; };
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
+		EF8F73695BF3F4878F568C32 /* Seamless.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless.swift; sourceTree = "<group>"; };
 		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
 		9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
@@ -1778,6 +1783,7 @@
 		9B7E83E330AA263200723F8F /* SeamlessKeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessKeyMap.swift; sourceTree = "<group>"; };
 		9B7E83E430AA263200723F8F /* SeamlessProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessProtocol.swift; sourceTree = "<group>"; };
 		9B7E83E530AA263200723F8F /* SeamlessServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessServer.swift; sourceTree = "<group>"; };
+		775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelClient.swift; sourceTree = "<group>"; };
 		9B7E83E630AA263200723F8F /* SeamlessSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessSurface.swift; sourceTree = "<group>"; };
 		9B7E83E730AA263200723F8F /* SeamlessWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessWindowManager.swift; sourceTree = "<group>"; };
 		9B80F59630987A8000E754ED /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
@@ -2517,6 +2523,14 @@
 			path = VNCTunnel;
 			sourceTree = "<group>";
 		};
+		65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */ = {
+			isa = PBXGroup;
+			children = (
+				F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */,
+			);
+			path = SeamlessTunnel;
+			sourceTree = "<group>";
+		};
 		9B1D8FD0308523EE009515C6 /* WIM */ = {
 			isa = PBXGroup;
 			children = (
@@ -2912,6 +2926,7 @@
 				9BD32F862D75FF060066A01E /* Umount.swift */,
 				9BDC059F2FEADB6900802A3C /* Up.swift */,
 				9B5F49C82F7028F200AE1991 /* VNC.swift */,
+				EF8F73695BF3F4878F568C32 /* Seamless.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -3144,6 +3159,7 @@
 				9B7E83E330AA263200723F8F /* SeamlessKeyMap.swift */,
 				9B7E83E430AA263200723F8F /* SeamlessProtocol.swift */,
 				9B7E83E530AA263200723F8F /* SeamlessServer.swift */,
+				775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */,
 				9B7E83E630AA263200723F8F /* SeamlessSurface.swift */,
 				9B7E83E730AA263200723F8F /* SeamlessWindowManager.swift */,
 			);
@@ -3489,6 +3505,7 @@
 				9B9438E72FF17EBF00F69AB6 /* IMDS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
+				65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -4790,6 +4807,7 @@
 				9B464B622D5A3E8900164BF5 /* WaitIP.swift in Sources */,
 				9B464B632D5A3E8900164BF5 /* Push.swift in Sources */,
 				9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */,
+				09A9E951B9E177ACE3BA6B2C /* Seamless.swift in Sources */,
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
 				9B32F994302624DA0099D3A5 /* Provision.swift in Sources */,
@@ -5028,6 +5046,7 @@
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
 				9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */,
+				6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */,
 				9BEBC6F82DF4400A0092B196 /* Launch.swift in Sources */,
 				9BEBC6F92DF4400A0092B196 /* Mount.swift in Sources */,
 				9BEBC6FA2DF4400A0092B196 /* Template.swift in Sources */,
@@ -5063,6 +5082,7 @@
 				9B9FE673309A44570006B008 /* AuthorizationHelperConnector.swift in Sources */,
 				9BEBC76B2DF440720092B196 /* ImageHandler.swift in Sources */,
 				9B7E83E930AA263200723F8F /* SeamlessServer.swift in Sources */,
+				CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */,
 				9B7E83EA30AA263200723F8F /* SeamlessDemoGuest.swift in Sources */,
 				9B7E83EB30AA263200723F8F /* SeamlessKeyMap.swift in Sources */,
 				9B7E83EC30AA263200723F8F /* SeamlessSurface.swift in Sources */,

@@ -473,6 +473,18 @@ public nonisolated struct Caked_Caked: Sendable {
     public init() {}
   }
 
+  public nonisolated struct SeamlessStream: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var stream: Data = Data()
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
   public nonisolated struct CpuCoreInfo: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -7780,6 +7792,36 @@ nonisolated extension Caked_Caked.VncStream: SwiftProtobuf.Message, SwiftProtobu
   }
 
   public static func ==(lhs: Caked_Caked.VncStream, rhs: Caked_Caked.VncStream) -> Bool {
+    if lhs.stream != rhs.stream {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.SeamlessStream: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".SeamlessStream"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}stream\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.stream) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.stream.isEmpty {
+      try visitor.visitSingularBytesField(value: self.stream, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.SeamlessStream, rhs: Caked_Caked.SeamlessStream) -> Bool {
     if lhs.stream != rhs.stream {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

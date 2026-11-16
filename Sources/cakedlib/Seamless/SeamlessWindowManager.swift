@@ -357,6 +357,17 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		self.server.outputScale120 = Self.currentScale120()
 	}
 
+	/// A manager that listens on no socket: the guest's stream comes from elsewhere and is handed over with
+	/// `attach(fd:)`, like the one a gRPC tunnel brings from a `caked` on another host.
+	public convenience init(vmName: String) {
+		self.init(vmName: vmName, socketPath: "")
+	}
+
+	/// Serves the guest compositor connection on `fd`, an already established stream socket (the manager owns it).
+	public func attach(fd: Int32) {
+		server.attach(fd: fd)
+	}
+
 	private static func currentScale120() -> UInt32 {
 		UInt32(((NSScreen.main?.backingScaleFactor ?? 2) * 120).rounded())
 	}

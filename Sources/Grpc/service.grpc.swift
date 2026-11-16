@@ -59,6 +59,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     handler: @escaping (Caked_Caked.VncStream) -> Void
   ) -> BidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream>
 
+  func seamlessTunnel(
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.SeamlessStream) -> Void
+  ) -> BidirectionalStreamingCall<Caked_Caked.SeamlessStream, Caked_Caked.SeamlessStream>
+
   func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions?,
@@ -392,6 +397,27 @@ extension Caked_ServiceClientProtocol {
       path: Caked_ServiceClientMetadata.Methods.vncTunnel.path,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? [],
+      handler: handler
+    )
+  }
+
+  /// SeamlessTunnel carries the seamless windows channel of a Linux guest (the VM is named by the CAKEAGENT_VMNAME header). The service listens for the guest compositor and relays its byte stream, which the client feeds to its window manager, and back. It lets a client on another host show the guest's windows.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func seamlessTunnel(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.SeamlessStream) -> Void
+  ) -> BidirectionalStreamingCall<Caked_Caked.SeamlessStream, Caked_Caked.SeamlessStream> {
+    return self.makeBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.seamlessTunnel.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSeamlessTunnelInterceptors() ?? [],
       handler: handler
     )
   }
@@ -1142,6 +1168,10 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream>
 
+  func makeSeamlessTunnelCall(
+    callOptions: CallOptions?
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.SeamlessStream, Caked_Caked.SeamlessStream>
+
   func makeLaunchCall(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions?
@@ -1416,6 +1446,16 @@ extension Caked_ServiceAsyncClientProtocol {
       path: Caked_ServiceClientMetadata.Methods.vncTunnel.path,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? []
+    )
+  }
+
+  public func makeSeamlessTunnelCall(
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.SeamlessStream, Caked_Caked.SeamlessStream> {
+    return self.makeAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.seamlessTunnel.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSeamlessTunnelInterceptors() ?? []
     )
   }
 
@@ -1970,6 +2010,30 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func seamlessTunnel<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.SeamlessStream> where RequestStream: Sequence, RequestStream.Element == Caked_Caked.SeamlessStream {
+    return self.performAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.seamlessTunnel.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSeamlessTunnelInterceptors() ?? []
+    )
+  }
+
+  public func seamlessTunnel<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.SeamlessStream> where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_Caked.SeamlessStream {
+    return self.performAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.seamlessTunnel.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSeamlessTunnelInterceptors() ?? []
+    )
+  }
+
   public func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
@@ -2446,6 +2510,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'vncTunnel'.
   func makeVncTunnelInterceptors() -> [ClientInterceptor<Caked_Caked.VncStream, Caked_Caked.VncStream>]
 
+  /// - Returns: Interceptors to use when invoking 'seamlessTunnel'.
+  func makeSeamlessTunnelInterceptors() -> [ClientInterceptor<Caked_Caked.SeamlessStream, Caked_Caked.SeamlessStream>]
+
   /// - Returns: Interceptors to use when invoking 'launch'.
   func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>]
 
@@ -2565,6 +2632,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.info,
       Caked_ServiceClientMetadata.Methods.vncInfos,
       Caked_ServiceClientMetadata.Methods.vncTunnel,
+      Caked_ServiceClientMetadata.Methods.seamlessTunnel,
       Caked_ServiceClientMetadata.Methods.launch,
       Caked_ServiceClientMetadata.Methods.list,
       Caked_ServiceClientMetadata.Methods.rename,
@@ -2649,6 +2717,12 @@ public enum Caked_ServiceClientMetadata {
     public static let vncTunnel = GRPCMethodDescriptor(
       name: "VncTunnel",
       path: "/caked.Service/VncTunnel",
+      type: GRPCCallType.bidirectionalStreaming
+    )
+
+    public static let seamlessTunnel = GRPCMethodDescriptor(
+      name: "SeamlessTunnel",
+      path: "/caked.Service/SeamlessTunnel",
       type: GRPCCallType.bidirectionalStreaming
     )
 
@@ -2894,6 +2968,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   /// VncTunnel establishes a bidirectional streaming tunnel for VNC traffic to a virtual machine's display. Clients can send VNC input events and receive VNC screen updates through this stream.
   func vncTunnel(context: StreamingResponseCallContext<Caked_Caked.VncStream>) -> EventLoopFuture<(StreamEvent<Caked_Caked.VncStream>) -> Void>
 
+  /// SeamlessTunnel carries the seamless windows channel of a Linux guest (the VM is named by the CAKEAGENT_VMNAME header). The service listens for the guest compositor and relays its byte stream, which the client feeds to its window manager, and back. It lets a client on another host show the guest's windows.
+  func seamlessTunnel(context: StreamingResponseCallContext<Caked_Caked.SeamlessStream>) -> EventLoopFuture<(StreamEvent<Caked_Caked.SeamlessStream>) -> Void>
+
   /// Launch creates and starts a new virtual machine.
   func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>) -> EventLoopFuture<GRPCStatus>
 
@@ -3083,6 +3160,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.VncStream>(),
         interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? [],
         observerFactory: self.vncTunnel(context:)
+      )
+
+    case "SeamlessTunnel":
+      return BidirectionalStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.SeamlessStream>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.SeamlessStream>(),
+        interceptors: self.interceptors?.makeSeamlessTunnelInterceptors() ?? [],
+        observerFactory: self.seamlessTunnel(context:)
       )
 
     case "Launch":
@@ -3465,6 +3551,13 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws
 
+  /// SeamlessTunnel carries the seamless windows channel of a Linux guest (the VM is named by the CAKEAGENT_VMNAME header). The service listens for the guest compositor and relays its byte stream, which the client feeds to its window manager, and back. It lets a client on another host show the guest's windows.
+  func seamlessTunnel(
+    requestStream: GRPCAsyncRequestStream<Caked_Caked.SeamlessStream>,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.SeamlessStream>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
+
   /// Launch creates and starts a new virtual machine.
   func launch(
     request: Caked_Caked.VMRequest.LaunchRequest,
@@ -3770,6 +3863,15 @@ extension Caked_ServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.VncStream>(),
         interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? [],
         wrapping: { try await self.vncTunnel(requestStream: $0, responseStream: $1, context: $2) }
+      )
+
+    case "SeamlessTunnel":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.SeamlessStream>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.SeamlessStream>(),
+        interceptors: self.interceptors?.makeSeamlessTunnelInterceptors() ?? [],
+        wrapping: { try await self.seamlessTunnel(requestStream: $0, responseStream: $1, context: $2) }
       )
 
     case "Launch":
@@ -4127,6 +4229,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeVncTunnelInterceptors() -> [ServerInterceptor<Caked_Caked.VncStream, Caked_Caked.VncStream>]
 
+  /// - Returns: Interceptors to use when handling 'seamlessTunnel'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeSeamlessTunnelInterceptors() -> [ServerInterceptor<Caked_Caked.SeamlessStream, Caked_Caked.SeamlessStream>]
+
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeLaunchInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>]
@@ -4281,6 +4387,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.info,
       Caked_ServiceServerMetadata.Methods.vncInfos,
       Caked_ServiceServerMetadata.Methods.vncTunnel,
+      Caked_ServiceServerMetadata.Methods.seamlessTunnel,
       Caked_ServiceServerMetadata.Methods.launch,
       Caked_ServiceServerMetadata.Methods.list,
       Caked_ServiceServerMetadata.Methods.rename,
@@ -4365,6 +4472,12 @@ public enum Caked_ServiceServerMetadata {
     public static let vncTunnel = GRPCMethodDescriptor(
       name: "VncTunnel",
       path: "/caked.Service/VncTunnel",
+      type: GRPCCallType.bidirectionalStreaming
+    )
+
+    public static let seamlessTunnel = GRPCMethodDescriptor(
+      name: "SeamlessTunnel",
+      path: "/caked.Service/SeamlessTunnel",
       type: GRPCCallType.bidirectionalStreaming
     )
 

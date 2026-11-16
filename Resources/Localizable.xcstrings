@@ -16346,6 +16346,56 @@
         }
       }
     },
+    "Show the windows of a Linux VM's applications on this desktop" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche sur ce bureau les fenêtres des applications d'une VM Linux"
+          }
+        }
+      }
+    },
+    "The guest's windows are relayed by caked over gRPC, so the VM can run under a caked on another host. The command runs until it is interrupted (Ctrl-C) or the service ends the stream." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fenêtres de l'invité sont relayées par caked via gRPC : la VM peut donc tourner sous un caked sur un autre hôte. La commande s'exécute jusqu'à son interruption (Ctrl-C) ou jusqu'à ce que le service termine le flux."
+          }
+        }
+      }
+    },
+    "Showing the windows of %@, press Ctrl-C to stop\n" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affichage des fenêtres de %@, appuyez sur Ctrl-C pour arrêter\n"
+          }
+        }
+      }
+    },
+    "VM %@ does not have seamless windows enabled" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ n'a pas les fenêtres intégrées activées"
+          }
+        }
+      }
+    },
+    "The windows of VM %@ are already shown by another process" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fenêtres de la VM %@ sont déjà affichées par un autre processus"
+          }
+        }
+      }
+    },
     "Show the main window." : {
       "localizations" : {
         "fr" : {

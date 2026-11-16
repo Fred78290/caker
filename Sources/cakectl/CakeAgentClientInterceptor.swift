@@ -231,6 +231,10 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		self.interceptors()
 	}
 
+	func makeSeamlessTunnelInterceptors() -> [ClientInterceptor<Caked_SeamlessStream, Caked_SeamlessStream>] {
+		self.interceptors()
+	}
+
 	func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
 		self.interceptors()
 	}

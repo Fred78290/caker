@@ -275,6 +275,10 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 		self.interceptors(self.chainedInterceptors?.makeVncTunnelInterceptors())
 	}
 	
+	public func makeSeamlessTunnelInterceptors() -> [ClientInterceptor<Caked_SeamlessStream, Caked_SeamlessStream>] {
+		self.interceptors(self.chainedInterceptors?.makeSeamlessTunnelInterceptors())
+	}
+	
 	public func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
 		self.interceptors(self.chainedInterceptors?.makeCheckReliabilityInterceptors())
 	}

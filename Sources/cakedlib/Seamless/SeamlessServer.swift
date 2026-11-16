@@ -107,6 +107,7 @@ public final class SeamlessServer: @unchecked Sendable {
 	private let lock = NSLock()
 	private var listenSource: DispatchSourceRead?
 	private var current: SeamlessSession?
+	private var listenerLock: Int32 = -1
 	private var scale: UInt32 = 120
 	private let logger = Logger("SeamlessServer")
 
@@ -141,9 +142,16 @@ public final class SeamlessServer: @unchecked Sendable {
 	}
 
 	public func start() throws {
+		guard let lockFD = Self.acquireListenerLock(for: socketPath) else {
+			throw ServiceError("seamless: the windows of this VM are already shown by another process (\(socketPath))")
+		}
+
 		let listener = socket(AF_UNIX, SOCK_STREAM, 0)
 
-		guard listener >= 0 else { throw ServiceError("seamless: socket() failed: \(String(cString: strerror(errno)))") }
+		guard listener >= 0 else {
+			Self.releaseListenerLock(lockFD)
+			throw ServiceError("seamless: socket() failed: \(String(cString: strerror(errno)))")
+		}
 
 		var address = sockaddr_un()
 		address.sun_family = sa_family_t(AF_UNIX)
@@ -153,6 +161,7 @@ public final class SeamlessServer: @unchecked Sendable {
 
 		guard pathBytes.count <= capacity else {
 			Darwin.close(listener)
+			Self.releaseListenerLock(lockFD)
 			throw ServiceError("seamless: socket path is too long: \(socketPath)")
 		}
 
@@ -171,6 +180,7 @@ public final class SeamlessServer: @unchecked Sendable {
 		guard bound == 0 else {
 			let reason = String(cString: strerror(errno))
 			Darwin.close(listener)
+			Self.releaseListenerLock(lockFD)
 			throw ServiceError("seamless: cannot bind \(socketPath): \(reason)")
 		}
 
@@ -180,6 +190,8 @@ public final class SeamlessServer: @unchecked Sendable {
 		guard Darwin.listen(listener, 4) == 0 else {
 			let reason = String(cString: strerror(errno))
 			Darwin.close(listener)
+			unlink(socketPath)
+			Self.releaseListenerLock(lockFD)
 			throw ServiceError("seamless: listen failed: \(reason)")
 		}
 
@@ -197,6 +209,7 @@ public final class SeamlessServer: @unchecked Sendable {
 
 		lock.lock()
 		listenSource = source
+		listenerLock = lockFD
 		lock.unlock()
 
 		source.resume()
@@ -206,13 +219,20 @@ public final class SeamlessServer: @unchecked Sendable {
 		lock.lock()
 		let source = listenSource
 		let session = current
+		let lockFD = listenerLock
 		listenSource = nil
 		current = nil
+		listenerLock = -1
 		lock.unlock()
 
 		source?.cancel()
 		session?.close()
-		unlink(socketPath)
+
+		// Only the owner removes the socket: without the lock it belongs to someone else.
+		if lockFD >= 0 {
+			unlink(socketPath)
+			Self.releaseListenerLock(lockFD)
+		}
 	}
 
 	private func acceptConnection(_ listener: Int32) {
@@ -220,6 +240,35 @@ public final class SeamlessServer: @unchecked Sendable {
 
 		guard fd >= 0 else { return }
 
+		self.attach(fd: fd)
+	}
+
+	/// Takes the right to listen on the seamless socket at `socketPath`: a lock on `<socketPath>.lock`, held while the
+	/// listener lives (the kernel drops it when the process dies, so a crash leaves nothing stale). Returns nil when
+	/// another process holds it: the windows of that guest are already shown by Caker.app, a `caked vmrun --ui` or a
+	/// tunnel. Probing the socket by connecting would not do, the listener would take the probe for the guest.
+	public static func acquireListenerLock(for socketPath: String) -> Int32? {
+		let descriptor = open(socketPath + ".lock", O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
+
+		guard descriptor >= 0 else { return nil }
+
+		guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
+			Darwin.close(descriptor)
+			return nil
+		}
+
+		return descriptor
+	}
+
+	public static func releaseListenerLock(_ descriptor: Int32) {
+		flock(descriptor, LOCK_UN)
+		Darwin.close(descriptor)
+	}
+
+	/// Serves a guest connection that is already established, instead of one accepted on the unix socket: a
+	/// client that receives the guest's stream from elsewhere (a gRPC tunnel from another host) hands its end of
+	/// it here. The server takes the descriptor over, and replaces the current session like a new connection does.
+	public func attach(fd: Int32) {
 		// BSD sockets inherit O_NONBLOCK from the (non blocking) listener, the reader thread wants blocking reads.
 		_ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK)
 

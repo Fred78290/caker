@@ -1484,6 +1484,13 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 			return
 		}
 
+		// A VM run by the caked service has its windows shown by a client through the service's SeamlessTunnel
+		// (cakectl seamless), which listens on the socket itself: listening here would take it from the tunnel.
+		guard VMRunHandler.launchedFromService == false else {
+			self.logger.info("VM \(self.location.name): seamless windows are relayed by the service, see \"cakectl seamless\"")
+			return
+		}
+
 		guard self.env.seamlessWindows == nil, let path = self.config.seamlessSocketPath else { return }
 
 		let name = self.location.name

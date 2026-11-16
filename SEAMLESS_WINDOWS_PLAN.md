@@ -57,6 +57,21 @@ The guest is untrusted: sizes, rectangle bounds, string lengths, floats and deco
 
 Verified on a freshly built VM (`caked build --alias ubuntu2604 --seamless`, agent snapshot `ee64e17b` installed by cloud-init: compositor in `/usr/libexec/caker/`, service flags in the unit, compositor connected on boot, the shell profile installed, and `gnome-terminal`, `nautilus` and `foot` typed as plain commands in an ssh login shell shown as host windows), and earlier with a VM started by a `caked vmrun --ui` built from this branch: Caker created the socket and the server, the guest compositor (run by a dev cakeagent) connected over vsock, `foot` opened as `[seamless-dev] foot`, keystrokes through the real window-focus path reached the guest shell, and stopping the VM removed the socket.
 
+## Windows of a VM that runs under a service, possibly on another host: `SeamlessTunnel`
+
+The VM's socket device connects to a unix socket on the VM's host, so whoever shows the windows has to listen there. A client that is not on that host (`cakectl`, talking to a `caked service` that may be remote) can't, so the stream travels over gRPC like the VNC one does:
+
+```
+guest compositor ──vsock──► socket device ──► seamless.sock ◄── caked service (SeamlessTunnel) ◄──gRPC──► cakectl seamless ──► SeamlessWindowManager
+```
+
+- **RPC**: `SeamlessTunnel(stream SeamlessStream) returns (stream SeamlessStream)`, `SeamlessStream{bytes stream}`, the VM named by the `CAKEAGENT_VMNAME` header (as `VncTunnel`). The bytes are the wire protocol above, untouched: the service never decodes them.
+- **Service side** (`Sources/caked/SeamlessTunnel/SeamlessTunnel.swift`): for as long as the client's stream lasts it listens on the VM's `seamless.sock` (NIO unix-socket server, `0600`) and pipes the guest connection to the stream and back; a new guest connection replaces the previous one. The compositor retries every second, so it connects once the listener exists and again after a restart; when the client leaves, the listener and the socket go. A listener that fails (NIO gives up on an accepted socket the guest already dropped) is bound again while the client is there. Errors a client can act on are gRPC statuses with a message (`notFound`, `failedPrecondition` when seamless is off, `alreadyExists`).
+- **One owner per socket**: `SeamlessServer.acquireListenerLock(for:)` is an `flock` on `<socket>.lock`, taken by `SeamlessServer.start()` and by the tunnel, so Caker.app, a `caked vmrun --ui` and a tunnel can't listen on the same guest. Probing the socket by connecting was tried first and is wrong: the listener takes the probe for the guest and drops the real session. The kernel releases the lock when the process dies.
+- **A VM run by the service doesn't listen itself** (`VMRunHandler.launchedFromService`, `VirtualMachine.startSeamlessWindows()`): its windows are shown through the tunnel.
+- **Client side** (`Sources/cakedlib/Seamless/SeamlessTunnelClient.swift`, `cakectl seamless <vm>`): the stream becomes one end of a `socketpair`, the other end goes to `SeamlessWindowManager.attach(fd:)` (`SeamlessServer.attach(fd:)`), so the manager works as with a local guest and needs no socket. The command runs an `NSApplication` until Ctrl-C or until the service ends the stream, and prints the service's error otherwise (`terminate` never returns to `run()`, so it is reported before).
+- **Verified** with a real service (`caked service listen`) and `cakectl` on the same host: the VM started through the service (`vmrun --service`), `cakectl seamless` shows `gnome-terminal` started by `cakectl exec` as `[seamless-new] Terminal` owned by `cakectl`, a second tunnel is refused with its message while the first keeps running, an unknown or non-seamless VM is reported, Ctrl-C removes the socket. Not run: a service on another host, Caker.app in remote mode (it still shows nothing: it would use the same `SeamlessTunnelClient`), a client that is slower than the guest (the gRPC callback API has no flow control, so the service-to-client direction buffers in the client's write queue; the frames in flight are capped by `SeamlessServer` once the manager reads).
+
 ## The guest compositor
 
 `Tools/SeamlessCompositor/` (`main.c`, `wire.c`, `README.md`, `caker-seamlessd.service`): a headless wlroots compositor with software (pixman) rendering.
@@ -73,7 +88,7 @@ Verified in a Caker VM: `weston-simple-shm`, `foot`. Also checked with the agent
 
 - XWayland (X11 apps), clipboard (`wl_data_device` is advertised but selections aren't synced), client-drawn cursor images, `text-input` (IME), `xdg_activation`.
 - Packaging: installing and starting `caker-seamlessd` from the cakeagent (it is built by hand in the guest for now), exposing guest `.desktop` entries.
-- Headless `caked` (service) VMs can't show windows: the stream would have to travel over gRPC to Caker.app like the VNC tunnel does. Also not wired: a menu to launch guest `.desktop` apps from Caker.
+- Caker.app connected to a remote caked (not `.app` mode) doesn't show the windows yet: it would use `SeamlessTunnelClient` like `cakectl seamless`. Not wired either: a menu to launch guest `.desktop` apps from Caker, and showing windows automatically from `cakectl start`/`shell`.
 - Clipboard and drag and drop (message ids are free, nothing is reserved).
 - Input methods / IME and character-level text input: keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu are not forwarded.
 - Host-driven output scale changes when a window moves between displays (`output` exists, nothing sends it on a screen change).

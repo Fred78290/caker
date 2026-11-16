@@ -28,6 +28,7 @@
 		4A6B88405ADA4D547DCD3148 /* SeamlessWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */; };
 		BCEA484CE3FB11B305A7A0CF /* SeamlessKeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */; };
 		808C49AE6CE8E5DFA8FB7A5C /* SeamlessServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B04CE3D283574239A73DBEA /* SeamlessServer.swift */; };
+		CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */; };
 		BFF5CCD4512D36EE810B7529 /* SeamlessSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC84769FE41D356A7DD5137B /* SeamlessSurface.swift */; };
 		5FBF980D6AB843D9F93DF9C9 /* SeamlessProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A664B7149AB46C59B539C1B9 /* SeamlessProtocol.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
@@ -74,6 +75,7 @@
 		9B11C0083084B510005BBCBD /* WindowsAudioDriverBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11C0073084B510005BBCBD /* WindowsAudioDriverBinaries.swift */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
+		6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
 		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
@@ -384,6 +386,7 @@
 		9B5F49C42F70280700AE1991 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F49C32F70280700AE1991 /* Subprocess */; };
 		9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C82F7028F200AE1991 /* VNC.swift */; };
+		09A9E951B9E177ACE3BA6B2C /* Seamless.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F73695BF3F4878F568C32 /* Seamless.swift */; };
 		9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */; };
 		9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F902FAA56FA00055543 /* LXDRootController.swift */; };
 		9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F922FAA56FA00055543 /* LXDModels.swift */; };
@@ -1392,6 +1395,7 @@
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
 		9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCTunnel.swift; sourceTree = "<group>"; };
+		F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnel.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
@@ -1646,6 +1650,7 @@
 		9B5F49BF2F70032800AE1991 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnectionLogger.swift; sourceTree = "<group>"; };
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
+		EF8F73695BF3F4878F568C32 /* Seamless.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless.swift; sourceTree = "<group>"; };
 		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
 		9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
@@ -2087,6 +2092,7 @@
 		0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessWindowManager.swift; sourceTree = "<group>"; };
 		A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessKeyMap.swift; sourceTree = "<group>"; };
 		9B04CE3D283574239A73DBEA /* SeamlessServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessServer.swift; sourceTree = "<group>"; };
+		775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessTunnelClient.swift; sourceTree = "<group>"; };
 		AC84769FE41D356A7DD5137B /* SeamlessSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessSurface.swift; sourceTree = "<group>"; };
 		A664B7149AB46C59B539C1B9 /* SeamlessProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessProtocol.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
@@ -2367,6 +2373,14 @@
 				9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */,
 			);
 			path = VNCTunnel;
+			sourceTree = "<group>";
+		};
+		65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */ = {
+			isa = PBXGroup;
+			children = (
+				F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */,
+			);
+			path = SeamlessTunnel;
 			sourceTree = "<group>";
 		};
 		9B1D8FD630853505009515C6 /* WIM */ = {
@@ -2763,6 +2777,7 @@
 				9BD32F862D75FF060066A01E /* Umount.swift */,
 				9BDC05312FEADB0E00802A3C /* Up.swift */,
 				9B5F49C82F7028F200AE1991 /* VNC.swift */,
+				EF8F73695BF3F4878F568C32 /* Seamless.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -3315,6 +3330,7 @@
 				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
+				65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -3481,6 +3497,7 @@
 				0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */,
 				A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */,
 				9B04CE3D283574239A73DBEA /* SeamlessServer.swift */,
+				775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */,
 				AC84769FE41D356A7DD5137B /* SeamlessSurface.swift */,
 				A664B7149AB46C59B539C1B9 /* SeamlessProtocol.swift */,
 				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
@@ -4546,6 +4563,7 @@
 				9B464B622D5A3E8900164BF5 /* WaitIP.swift in Sources */,
 				9B464B632D5A3E8900164BF5 /* Push.swift in Sources */,
 				9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */,
+				09A9E951B9E177ACE3BA6B2C /* Seamless.swift in Sources */,
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
 				9BDC05322FEADB0E00802A3C /* Compose.swift in Sources */,
 				9B32F99630262C4E0099D3A5 /* Provision.swift in Sources */,
@@ -4775,6 +4793,7 @@
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
 				9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */,
+				6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */,
 				9BEBC6F82DF4400A0092B196 /* Launch.swift in Sources */,
 				9BEBC6F92DF4400A0092B196 /* Mount.swift in Sources */,
 				9BEBC6FA2DF4400A0092B196 /* Template.swift in Sources */,
@@ -4843,6 +4862,7 @@
 				4A6B88405ADA4D547DCD3148 /* SeamlessWindowManager.swift in Sources */,
 				BCEA484CE3FB11B305A7A0CF /* SeamlessKeyMap.swift in Sources */,
 				808C49AE6CE8E5DFA8FB7A5C /* SeamlessServer.swift in Sources */,
+				CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */,
 				BFF5CCD4512D36EE810B7529 /* SeamlessSurface.swift in Sources */,
 				5FBF980D6AB843D9F93DF9C9 /* SeamlessProtocol.swift in Sources */,
 				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,

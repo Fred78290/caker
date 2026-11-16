@@ -133,6 +133,7 @@ public typealias Caked_SetScreenSizeRequest = Caked.SetScreenSizeRequest
 public typealias Caked_InstallAgentRequest = Caked.InstallAgentRequest
 public typealias Caked_ImageSource = Caked.Configuration.ImageSource
 public typealias Caked_VncStream = Caked.VncStream
+public typealias Caked_SeamlessStream = Caked.SeamlessStream
 
 public typealias Caked_CertificateRequest = Caked.CertificateRequest
 public typealias Caked_CertificateRequestCommand = Caked_CertificateRequest.CertificateCommand

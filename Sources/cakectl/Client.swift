@@ -230,6 +230,7 @@ struct Client: ParsableCommand {
 				Pull.self,
 				Push.self,
 				VNC.self,
+				Seamless.self,
 				SetOptions.self,
 				GetOptions.self,
 				Certificate.self,
