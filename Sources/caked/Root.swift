@@ -117,7 +117,6 @@ struct Root: ParsableCommand {
 				Stop.self,
 				Suspend.self,
 				Restart.self,
-				SeamlessDemo.self,
 				Template.self,
 				Umount.self,
 				Up.self,
@@ -198,6 +197,10 @@ struct Root: ParsableCommand {
 
 		#if USE_AUTHORIZATION_HELPER
 			configuration.subcommands.append(AuthorizationCommand.self)
+		#endif
+
+		#if DEBUG
+			configuration.subcommands.append(SeamlessDemo.self)
 		#endif
 
 		if try tryForkCommand() {
