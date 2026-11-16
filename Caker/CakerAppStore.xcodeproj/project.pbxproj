@@ -22,15 +22,9 @@
 
 /* Begin PBXBuildFile section */
 		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		06C42B843D3462FACFA7C9E3 /* SeamlessTunnelSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */; };
+		09A9E951B9E177ACE3BA6B2C /* Seamless.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F73695BF3F4878F568C32 /* Seamless.swift */; };
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
-		60CF05D095220BA2841B73EF /* SeamlessKeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC55BB83781519622B1BB5C4 /* SeamlessKeyboardLayout.swift */; };
-		31649975FE30FFC41B87847F /* SeamlessDemoGuest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115901D6AC5314B91281A968 /* SeamlessDemoGuest.swift */; };
-		4A6B88405ADA4D547DCD3148 /* SeamlessWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */; };
-		BCEA484CE3FB11B305A7A0CF /* SeamlessKeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */; };
-		808C49AE6CE8E5DFA8FB7A5C /* SeamlessServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B04CE3D283574239A73DBEA /* SeamlessServer.swift */; };
-		CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */; };
-		BFF5CCD4512D36EE810B7529 /* SeamlessSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC84769FE41D356A7DD5137B /* SeamlessSurface.swift */; };
-		5FBF980D6AB843D9F93DF9C9 /* SeamlessProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A664B7149AB46C59B539C1B9 /* SeamlessProtocol.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
@@ -38,6 +32,7 @@
 		2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */; };
 		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
 		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
@@ -75,7 +70,6 @@
 		9B11C0083084B510005BBCBD /* WindowsAudioDriverBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11C0073084B510005BBCBD /* WindowsAudioDriverBinaries.swift */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
-		6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
 		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
@@ -130,7 +124,6 @@
 		9B29F7B12FCAE4B700AEBCB8 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
 		9B29F7B22FCAE4B700AEBCB8 /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
 		9B29F7B32FCAE4B700AEBCB8 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */; };
-		06C42B843D3462FACFA7C9E3 /* SeamlessTunnelSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */; };
 		9B29F7B42FCAE4B700AEBCB8 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7A3A2F3DE0B300F37D2C /* StartHandler.swift */; };
 		9B29F7B52FCAE4B700AEBCB8 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B29F7B62FCAE4B700AEBCB8 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
@@ -387,7 +380,6 @@
 		9B5F49C42F70280700AE1991 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F49C32F70280700AE1991 /* Subprocess */; };
 		9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C82F7028F200AE1991 /* VNC.swift */; };
-		09A9E951B9E177ACE3BA6B2C /* Seamless.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8F73695BF3F4878F568C32 /* Seamless.swift */; };
 		9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */; };
 		9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F902FAA56FA00055543 /* LXDRootController.swift */; };
 		9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F922FAA56FA00055543 /* LXDModels.swift */; };
@@ -407,6 +399,14 @@
 		9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */; };
 		9B612F492FEC32050045F79F /* CakeHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B612F482FEC32030045F79F /* CakeHome.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
+		9B6A565B30AB562E0074FDB4 /* SeamlessServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565630AB562E0074FDB4 /* SeamlessServer.swift */; };
+		9B6A565C30AB562E0074FDB4 /* SeamlessDemoGuest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565230AB562E0074FDB4 /* SeamlessDemoGuest.swift */; };
+		9B6A565D30AB562E0074FDB4 /* SeamlessWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565930AB562E0074FDB4 /* SeamlessWindowManager.swift */; };
+		9B6A565E30AB562E0074FDB4 /* SeamlessKeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565430AB562E0074FDB4 /* SeamlessKeyMap.swift */; };
+		9B6A565F30AB562E0074FDB4 /* SeamlessProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565530AB562E0074FDB4 /* SeamlessProtocol.swift */; };
+		9B6A566030AB562E0074FDB4 /* SeamlessKeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565330AB562E0074FDB4 /* SeamlessKeyboardLayout.swift */; };
+		9B6A566130AB562E0074FDB4 /* SeamlessTunnelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565830AB562E0074FDB4 /* SeamlessTunnelClient.swift */; };
+		9B6A566230AB562E0074FDB4 /* SeamlessSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6A565730AB562E0074FDB4 /* SeamlessSurface.swift */; };
 		9B6EC45E30037F6600ABFDED /* VMLifecycleHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC45D30037F6600ABFDED /* VMLifecycleHooks.swift */; };
 		9B6EC46330037FA400ABFDED /* IMDSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC46030037FA400ABFDED /* IMDSCoordinator.swift */; };
 		9B6EC46430037FA400ABFDED /* IMDSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC46130037FA400ABFDED /* IMDSServer.swift */; };
@@ -737,7 +737,6 @@
 		9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CC2DF4400A0092B196 /* Root.swift */; };
 		9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CB2DF4400A0092B196 /* MainApp.swift */; };
 		9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC69B2DF4400A0092B196 /* Delete.swift */; };
-		E5D1EC1864DD5052389352F9 /* SeamlessDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAF1B9B0ED80677FA4B04C6 /* SeamlessDemo.swift */; };
 		9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */; };
 		9BEBC6F82DF4400A0092B196 /* Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A02DF4400A0092B196 /* Launch.swift */; };
 		9BEBC6F92DF4400A0092B196 /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A42DF4400A0092B196 /* Mount.swift */; };
@@ -942,6 +941,7 @@
 		DD18FD82084E8F0B3A5B3130 /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
 		E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */; };
 		E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */; };
+		E5D1EC1864DD5052389352F9 /* SeamlessDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAF1B9B0ED80677FA4B04C6 /* SeamlessDemo.swift */; };
 		E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		EC403890050087209287101F /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
@@ -1363,6 +1363,7 @@
 		7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningVideoRecorder.swift; sourceTree = "<group>"; };
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
+		8AAF1B9B0ED80677FA4B04C6 /* SeamlessDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessDemo.swift; sourceTree = "<group>"; };
 		8DC16F9D9878F3C1849C6564 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
 		92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSForwarder.swift; sourceTree = "<group>"; };
@@ -1396,7 +1397,6 @@
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
 		9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCTunnel.swift; sourceTree = "<group>"; };
-		F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnel.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
@@ -1651,7 +1651,6 @@
 		9B5F49BF2F70032800AE1991 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnectionLogger.swift; sourceTree = "<group>"; };
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
-		EF8F73695BF3F4878F568C32 /* Seamless.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless.swift; sourceTree = "<group>"; };
 		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
 		9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
@@ -1673,6 +1672,14 @@
 		9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificatesController.swift; sourceTree = "<group>"; };
 		9B612F482FEC32030045F79F /* CakeHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHome.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
+		9B6A565230AB562E0074FDB4 /* SeamlessDemoGuest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessDemoGuest.swift; sourceTree = "<group>"; };
+		9B6A565330AB562E0074FDB4 /* SeamlessKeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessKeyboardLayout.swift; sourceTree = "<group>"; };
+		9B6A565430AB562E0074FDB4 /* SeamlessKeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessKeyMap.swift; sourceTree = "<group>"; };
+		9B6A565530AB562E0074FDB4 /* SeamlessProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessProtocol.swift; sourceTree = "<group>"; };
+		9B6A565630AB562E0074FDB4 /* SeamlessServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessServer.swift; sourceTree = "<group>"; };
+		9B6A565730AB562E0074FDB4 /* SeamlessSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessSurface.swift; sourceTree = "<group>"; };
+		9B6A565830AB562E0074FDB4 /* SeamlessTunnelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelClient.swift; sourceTree = "<group>"; };
+		9B6A565930AB562E0074FDB4 /* SeamlessWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessWindowManager.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B6EC45D30037F6600ABFDED /* VMLifecycleHooks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLifecycleHooks.swift; sourceTree = "<group>"; };
 		9B6EC46030037FA400ABFDED /* IMDSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMDSCoordinator.swift; sourceTree = "<group>"; };
@@ -1899,7 +1906,6 @@
 		9BEBC6982DF4400A0092B196 /* Certificates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificates.swift; sourceTree = "<group>"; };
 		9BEBC69A2DF4400A0092B196 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9BEBC69B2DF4400A0092B196 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
-		8AAF1B9B0ED80677FA4B04C6 /* SeamlessDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessDemo.swift; sourceTree = "<group>"; };
 		9BEBC69C2DF4400A0092B196 /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9BEBC69D2DF4400A0092B196 /* Exec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exec.swift; sourceTree = "<group>"; };
 		9BEBC69E2DF4400A0092B196 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
@@ -2013,7 +2019,6 @@
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
 		9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
-		9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelSession.swift; sourceTree = "<group>"; };
 		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
@@ -2086,17 +2091,10 @@
 		9BFE87442F7E6480005CC9B2 /* VM.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VM.png; sourceTree = "<group>"; };
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
+		9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelSession.swift; sourceTree = "<group>"; };
 		A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
-		CC55BB83781519622B1BB5C4 /* SeamlessKeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessKeyboardLayout.swift; sourceTree = "<group>"; };
-		115901D6AC5314B91281A968 /* SeamlessDemoGuest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessDemoGuest.swift; sourceTree = "<group>"; };
-		0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessWindowManager.swift; sourceTree = "<group>"; };
-		A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessKeyMap.swift; sourceTree = "<group>"; };
-		9B04CE3D283574239A73DBEA /* SeamlessServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessServer.swift; sourceTree = "<group>"; };
-		775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessTunnelClient.swift; sourceTree = "<group>"; };
-		AC84769FE41D356A7DD5137B /* SeamlessSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessSurface.swift; sourceTree = "<group>"; };
-		A664B7149AB46C59B539C1B9 /* SeamlessProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless/SeamlessProtocol.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
@@ -2104,7 +2102,9 @@
 		DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
+		EF8F73695BF3F4878F568C32 /* Seamless.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless.swift; sourceTree = "<group>"; };
 		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
+		F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnel.swift; sourceTree = "<group>"; };
 		FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2314,6 +2314,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */ = {
+			isa = PBXGroup;
+			children = (
+				F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */,
+			);
+			path = SeamlessTunnel;
+			sourceTree = "<group>";
+		};
 		68AB87B329B993A41A1A0F0B /* ComposeDNS */ = {
 			isa = PBXGroup;
 			children = (
@@ -2375,14 +2383,6 @@
 				9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */,
 			);
 			path = VNCTunnel;
-			sourceTree = "<group>";
-		};
-		65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */ = {
-			isa = PBXGroup;
-			children = (
-				F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */,
-			);
-			path = SeamlessTunnel;
 			sourceTree = "<group>";
 		};
 		9B1D8FD630853505009515C6 /* WIM */ = {
@@ -3005,6 +3005,21 @@
 			path = REST;
 			sourceTree = "<group>";
 		};
+		9B6A565A30AB562E0074FDB4 /* Seamless */ = {
+			isa = PBXGroup;
+			children = (
+				9B6A565230AB562E0074FDB4 /* SeamlessDemoGuest.swift */,
+				9B6A565330AB562E0074FDB4 /* SeamlessKeyboardLayout.swift */,
+				9B6A565430AB562E0074FDB4 /* SeamlessKeyMap.swift */,
+				9B6A565530AB562E0074FDB4 /* SeamlessProtocol.swift */,
+				9B6A565630AB562E0074FDB4 /* SeamlessServer.swift */,
+				9B6A565730AB562E0074FDB4 /* SeamlessSurface.swift */,
+				9B6A565830AB562E0074FDB4 /* SeamlessTunnelClient.swift */,
+				9B6A565930AB562E0074FDB4 /* SeamlessWindowManager.swift */,
+			);
+			path = Seamless;
+			sourceTree = "<group>";
+		};
 		9B6EC46230037FA400ABFDED /* IMDS */ = {
 			isa = PBXGroup;
 			children = (
@@ -3495,14 +3510,6 @@
 				9BDC05242FEADADE00802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
-				CC55BB83781519622B1BB5C4 /* SeamlessKeyboardLayout.swift */,
-				115901D6AC5314B91281A968 /* SeamlessDemoGuest.swift */,
-				0EE6D22FEFDEACB2C471813F /* SeamlessWindowManager.swift */,
-				A4A0D317F4293AD0CAADD24A /* SeamlessKeyMap.swift */,
-				9B04CE3D283574239A73DBEA /* SeamlessServer.swift */,
-				775C88B0E84A2FEAB510C565 /* SeamlessTunnelClient.swift */,
-				AC84769FE41D356A7DD5137B /* SeamlessSurface.swift */,
-				A664B7149AB46C59B539C1B9 /* SeamlessProtocol.swift */,
 				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
 				11C9B97AB76F002BE94CAE4E /* ComposeLibrary.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
@@ -3545,6 +3552,7 @@
 				FB420C69A167056615FAD715 /* PackerLite */,
 				9B081B592FC75A1A0029B259 /* Qcow2 */,
 				58DBE321060213C953A161FE /* Resources */,
+				9B6A565A30AB562E0074FDB4 /* Seamless */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC74C2DF440720092B196 /* UI */,
 				9BF2DA9C2FE5490300218073 /* VirtualInstall */,
@@ -4861,14 +4869,6 @@
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				802CE90ABB8EDBA72C8EBF07 /* ComposeLibrary.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
-				60CF05D095220BA2841B73EF /* SeamlessKeyboardLayout.swift in Sources */,
-				31649975FE30FFC41B87847F /* SeamlessDemoGuest.swift in Sources */,
-				4A6B88405ADA4D547DCD3148 /* SeamlessWindowManager.swift in Sources */,
-				BCEA484CE3FB11B305A7A0CF /* SeamlessKeyMap.swift in Sources */,
-				808C49AE6CE8E5DFA8FB7A5C /* SeamlessServer.swift in Sources */,
-				CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */,
-				BFF5CCD4512D36EE810B7529 /* SeamlessSurface.swift in Sources */,
-				5FBF980D6AB843D9F93DF9C9 /* SeamlessProtocol.swift in Sources */,
 				C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
@@ -4910,6 +4910,14 @@
 				2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
+				9B6A565B30AB562E0074FDB4 /* SeamlessServer.swift in Sources */,
+				9B6A565C30AB562E0074FDB4 /* SeamlessDemoGuest.swift in Sources */,
+				9B6A565D30AB562E0074FDB4 /* SeamlessWindowManager.swift in Sources */,
+				9B6A565E30AB562E0074FDB4 /* SeamlessKeyMap.swift in Sources */,
+				9B6A565F30AB562E0074FDB4 /* SeamlessProtocol.swift in Sources */,
+				9B6A566030AB562E0074FDB4 /* SeamlessKeyboardLayout.swift in Sources */,
+				9B6A566130AB562E0074FDB4 /* SeamlessTunnelClient.swift in Sources */,
+				9B6A566230AB562E0074FDB4 /* SeamlessSurface.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
 				9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */,
 				9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */,
