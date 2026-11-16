@@ -41,7 +41,7 @@ struct Seamless: GrpcParsableCommand {
 
 			app.setActivationPolicy(.regular)
 
-			let manager = SeamlessWindowManager(vmName: name)
+			let manager = SeamlessWindowManager(vmName: name, displayMode: .ui)
 			let tunnel = SeamlessTunnelClient()
 			let descriptor = try tunnel.open(client: client, vmName: name) { error in
 				DispatchQueue.main.async {

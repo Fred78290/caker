@@ -38,7 +38,7 @@ struct SeamlessDemo: ParsableCommand {
 
 			app.setActivationPolicy(.regular)
 
-			let manager = SeamlessWindowManager(vmName: "demo", socketPath: path)
+			let manager = SeamlessWindowManager(vmName: "demo", displayMode: .ui, socketPath: path)
 			let guest = SeamlessDemoGuest(socketPath: path)
 			var sawSession = false
 

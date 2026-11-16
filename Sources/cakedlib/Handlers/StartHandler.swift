@@ -55,9 +55,7 @@ public struct StartHandler {
 			if startMode == .foreground {
 				arguments.append("--ui")
 			} else if startMode == .background {
-				// A headless process can't show a guest's windows: with seamless windows on (what "caked shell"
-				// or "exec" starts the VM for) the process needs its UI, not only a VNC server.
-				arguments.append(config.supportsSeamlessWindows ? "--all" : "--vnc")
+				arguments.append("--vnc")
 			} else if startMode == .service {
 				arguments.append("--service")
 				arguments.append("--vnc")

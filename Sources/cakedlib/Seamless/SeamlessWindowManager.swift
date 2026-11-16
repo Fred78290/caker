@@ -344,6 +344,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	private var windows: [UInt32: SeamlessWindowController] = [:]
 	private let titlePrefix: String
 	private let logger = Logger("SeamlessWindowManager")
+	private let displayMode: VMRunHandler.DisplayMode
+	private var applicationInited = false
 
 	public var guestName: String?
 	public var onSessionChange: ((Bool) -> Void)?
@@ -351,16 +353,17 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	/// - Parameters:
 	///   - vmName: shown before every title, so a guest can't pass its windows off as a host application's.
 	///   - socketPath: unix socket the guest's vsock connection is bridged to.
-	public init(vmName: String, socketPath: String) {
+	public init(vmName: String, displayMode: VMRunHandler.DisplayMode, socketPath: String) {
 		self.titlePrefix = "[\(vmName)] "
+		self.displayMode = displayMode
 		self.server = SeamlessServer(socketPath: socketPath, delegate: self, delegateQueue: .main)
 		self.server.outputScale120 = Self.currentScale120()
 	}
 
 	/// A manager that listens on no socket: the guest's stream comes from elsewhere and is handed over with
 	/// `attach(fd:)`, like the one a gRPC tunnel brings from a `caked` on another host.
-	public convenience init(vmName: String) {
-		self.init(vmName: vmName, socketPath: "")
+	public convenience init(vmName: String, displayMode: VMRunHandler.DisplayMode) {
+		self.init(vmName: vmName, displayMode: displayMode, socketPath: "")
 	}
 
 	/// Serves the guest compositor connection on `fd`, an already established stream socket (the manager owns it).

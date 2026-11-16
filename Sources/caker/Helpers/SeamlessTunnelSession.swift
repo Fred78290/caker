@@ -74,7 +74,7 @@ final class SeamlessTunnelSession {
 		self.generation += 1
 
 		let generation = self.generation
-		let manager = SeamlessWindowManager(vmName: self.vmName)
+		let manager = SeamlessWindowManager(vmName: self.vmName, displayMode: .ui)
 		let tunnel = SeamlessTunnelClient()
 
 		do {

@@ -1479,10 +1479,11 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 	func startSeamlessWindows() {
 		guard self.env.mode == .normal, self.config.supportsSeamlessWindows else { return }
 
-		guard Bundle.runInCaker || self.env.display == .ui else {
+		/// Windows guest are shown in headless mode, so seamless windows is supported for them.
+		/*guard Bundle.runInCaker || self.env.display == .ui || self.env.display == .all else {
 			self.logger.info("VM \(self.location.name): seamless windows are enabled but this process has no UI to show them, start the VM from Caker.app or with a display")
 			return
-		}
+		}*/
 
 		// A VM run by the caked service has its windows shown by a client through the service's SeamlessTunnel
 		// (cakectl seamless), which listens on the socket itself: listening here would take it from the tunnel.
@@ -1497,7 +1498,7 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 
 		Task { @MainActor in
 			do {
-				let manager = SeamlessWindowManager(vmName: name, socketPath: path)
+				let manager = SeamlessWindowManager(vmName: name, displayMode: self.env.display, socketPath: path)
 
 				try manager.start()
 				self.env.seamlessWindows = manager
