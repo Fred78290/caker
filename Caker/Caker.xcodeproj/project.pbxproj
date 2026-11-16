@@ -2920,6 +2920,7 @@
 				9B464A7E2D5A3E0300164BF5 /* Remote.swift */,
 				9B464A7F2D5A3E0300164BF5 /* Rename.swift */,
 				9BBF7B382F3E084600F37D2C /* Restart.swift */,
+				EF8F73695BF3F4878F568C32 /* Seamless.swift */,
 				9B464A812D5A3E0300164BF5 /* Sh.swift */,
 				9B464A822D5A3E0300164BF5 /* Start.swift */,
 				9B464A832D5A3E0300164BF5 /* Stop.swift */,
@@ -2929,7 +2930,6 @@
 				9BD32F862D75FF060066A01E /* Umount.swift */,
 				9BDC059F2FEADB6900802A3C /* Up.swift */,
 				9B5F49C82F7028F200AE1991 /* VNC.swift */,
-				EF8F73695BF3F4878F568C32 /* Seamless.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
