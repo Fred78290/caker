@@ -357,6 +357,37 @@ static struct wlr_surface *root_surface_of(struct window *w) {
 	return w->xdg->surface;
 }
 
+/* One wl_pointer axis frame. A wheel sends libinput's 15 units per click plus the discrete value120 step, a trackpad its pixels as a
+ * finger source, and a value of zero from a finger source is what wlroots turns into axis_stop. */
+static void notify_axis_one(struct server *s, enum wl_pointer_axis orientation, enum axis_source source, float delta) {
+	enum wl_pointer_axis_source wl_source = source == AXIS_WHEEL ? WL_POINTER_AXIS_SOURCE_WHEEL : WL_POINTER_AXIS_SOURCE_FINGER;
+	double value = 0;
+	int32_t discrete = 0;
+
+	if (source == AXIS_WHEEL) {
+		if (delta == 0.0f)
+			return;
+
+		value = delta * 15.0;
+		discrete = (int32_t)lroundf(delta * 120.0f);
+	} else if (source == AXIS_CONTINUOUS) {
+		if (delta == 0.0f)
+			return;
+
+		value = delta;
+	}
+
+	wlr_seat_pointer_notify_axis(s->seat, now_msec(), orientation, value, discrete, wl_source, WL_POINTER_AXIS_RELATIVE_DIRECTION_IDENTICAL);
+}
+
+static void notify_axis(struct server *s, const struct host_msg *m) {
+	enum axis_source source = (enum axis_source)m->u32a;
+
+	notify_axis_one(s, WL_POINTER_AXIS_VERTICAL_SCROLL, source, m->y);
+	notify_axis_one(s, WL_POINTER_AXIS_HORIZONTAL_SCROLL, source, m->x);
+	wlr_seat_pointer_notify_frame(s->seat);
+}
+
 static void handle_host_message(struct server *s, const struct host_msg *m) {
 	struct window *w = window_by_id(s, m->id);
 
@@ -414,17 +445,8 @@ static void handle_host_message(struct server *s, const struct host_msg *m) {
 		}
 		break;
 	case H_POINTER_AXIS:
-		if (w) {
-			if (m->y != 0.0f)
-				wlr_seat_pointer_notify_axis(s->seat, now_msec(), WL_POINTER_AXIS_VERTICAL_SCROLL, m->y, 0, WL_POINTER_AXIS_SOURCE_FINGER,
-					WL_POINTER_AXIS_RELATIVE_DIRECTION_IDENTICAL);
-
-			if (m->x != 0.0f)
-				wlr_seat_pointer_notify_axis(s->seat, now_msec(), WL_POINTER_AXIS_HORIZONTAL_SCROLL, m->x, 0, WL_POINTER_AXIS_SOURCE_FINGER,
-					WL_POINTER_AXIS_RELATIVE_DIRECTION_IDENTICAL);
-
-			wlr_seat_pointer_notify_frame(s->seat);
-		}
+		if (w)
+			notify_axis(s, m);
 		break;
 	case H_KEY: {
 		struct wlr_keyboard_key_event ev = {

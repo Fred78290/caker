@@ -173,10 +173,18 @@ int wire_parse_host(uint8_t type, const uint8_t *payload, size_t n, struct host_
 		break;
 	case H_POINTER_ENTER:
 	case H_POINTER_MOTION:
+		out->id = rd_u32(&r);
+		out->x = rd_f32(&r);
+		out->y = rd_f32(&r);
+		break;
 	case H_POINTER_AXIS:
 		out->id = rd_u32(&r);
 		out->x = rd_f32(&r);
 		out->y = rd_f32(&r);
+		out->u32a = rd_u8(&r);
+
+		if (out->u32a > AXIS_STOP)
+			r.bad = true;
 		break;
 	case H_POINTER_BUTTON:
 		out->id = rd_u32(&r);

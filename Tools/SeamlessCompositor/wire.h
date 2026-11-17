@@ -1,4 +1,4 @@
-// Seamless window protocol, guest side. Mirror of Sources/cakedlib/Seamless/SeamlessProtocol.swift (version 1):
+// Seamless window protocol, guest side. Mirror of Sources/cakedlib/Seamless/SeamlessProtocol.swift (version 2):
 // every message is `u32 length` (type byte + payload) + `u8 type` + payload, little endian, strings are
 // `u16 length` + UTF-8. Types 0x01..0x7F go guest -> host, 0x81..0xFF host -> guest.
 
@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SEAMLESS_VERSION 1
+#define SEAMLESS_VERSION 2
 #define SEAMLESS_DEFAULT_VSOCK_PORT 5100
 #define SEAMLESS_MAX_STRING 4096
 #define SEAMLESS_MAX_RECTS 1024
@@ -65,11 +65,18 @@ void wbuf_str(struct wbuf *b, const char *s);
 size_t wire_begin(struct wbuf *b, uint8_t type);
 void wire_end(struct wbuf *b, size_t start);
 
+/* H_POINTER_AXIS source (host_msg.u32a). */
+enum axis_source {
+	AXIS_CONTINUOUS = 0, /* trackpad: x/y in logical pixels */
+	AXIS_WHEEL = 1,      /* mouse wheel: x/y in notches */
+	AXIS_STOP = 2,       /* fingers lifted: x/y ignored */
+};
+
 /* A decoded host message. Unused fields are zero. */
 struct host_msg {
 	uint8_t type;
 	uint32_t id;
-	uint32_t u32a, u32b; /* helloAck/output: scale120 in u32a; resize: width, height; button: button */
+	uint32_t u32a, u32b; /* helloAck/output: scale120 in u32a; resize: width, height; button: button; axis: enum axis_source in u32a */
 	float x, y;          /* pointer position or axis deltas */
 	bool flag;           /* focused / pressed */
 	uint16_t version;

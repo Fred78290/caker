@@ -98,10 +98,21 @@ final class SeamlessSurfaceView: NSView {
 	override func otherMouseUp(with event: NSEvent) { button(event, pressed: false) }
 
 	override func scrollWheel(with event: NSEvent) {
-		// AppKit's natural scrolling already flips the sign the way a Wayland client expects it inverted.
-		let scale: CGFloat = event.hasPreciseScrollingDeltas ? 1 : 10
+		// AppKit reports the direction the content moves (natural scrolling included), Wayland the direction of the scroll: opposite signs.
+		let dx = Float(-event.scrollingDeltaX)
+		let dy = Float(-event.scrollingDeltaY)
 
-		onPointer?(.pointerAxis(id: windowID, dx: Float(-event.scrollingDeltaX * scale), dy: Float(-event.scrollingDeltaY * scale)))
+		guard event.hasPreciseScrollingDeltas else {
+			// A mouse wheel: whole notches, the guest turns them into discrete steps.
+			if dx != 0 || dy != 0 { onPointer?(.pointerAxis(id: windowID, dx: dx, dy: dy, source: .wheel)) }
+			return
+		}
+
+		// A trackpad. The momentum after the fingers left is dropped: the stop below lets the guest's toolkit do its own kinetic scrolling.
+		guard event.momentumPhase.isEmpty else { return }
+
+		if dx != 0 || dy != 0 { onPointer?(.pointerAxis(id: windowID, dx: dx, dy: dy, source: .continuous)) }
+		if event.phase.contains(.ended) || event.phase.contains(.cancelled) { onPointer?(.pointerAxis(id: windowID, dx: 0, dy: 0, source: .stop)) }
 	}
 
 	override func keyDown(with event: NSEvent) {

@@ -45,7 +45,7 @@ final class SeamlessWindowTests: XCTestCase {
 
 	func testGuestMessagesRoundTrip() throws {
 		let messages: [SeamlessGuestMessage] = [
-			.hello(version: 1, name: "weston"),
+			.hello(version: SeamlessProtocol.version, name: "weston"),
 			.windowCreate(SeamlessWindowInfo(id: 7, parentID: 3, kind: .popup, x: -12, y: 40, title: "Menü ☕", appID: "org.gnome.gedit")),
 			.windowTitle(id: 7, title: "new title"),
 			.windowAppID(id: 7, appID: "x"),
@@ -61,7 +61,7 @@ final class SeamlessWindowTests: XCTestCase {
 
 	func testHostMessagesRoundTrip() throws {
 		let messages: [SeamlessHostMessage] = [
-			.helloAck(version: 1, scale120: 240),
+			.helloAck(version: SeamlessProtocol.version, scale120: 240),
 			.output(scale120: 180),
 			.windowResize(id: 1, width: 800, height: 600),
 			.windowClose(id: 1),
@@ -70,7 +70,9 @@ final class SeamlessWindowTests: XCTestCase {
 			.pointerLeave(id: 1),
 			.pointerMotion(id: 1, x: -3, y: 4),
 			.pointerButton(id: 1, button: SeamlessProtocol.buttonRight, pressed: false),
-			.pointerAxis(id: 1, dx: 0, dy: -15),
+			.pointerAxis(id: 1, dx: 0, dy: -15, source: .continuous),
+			.pointerAxis(id: 1, dx: 0.5, dy: 2, source: .wheel),
+			.pointerAxis(id: 1, dx: 0, dy: 0, source: .stop),
 			.key(code: 30, pressed: true),
 		]
 

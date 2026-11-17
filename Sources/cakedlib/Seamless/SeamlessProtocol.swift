@@ -16,8 +16,18 @@ import Foundation
 //
 // The guest is not trusted: every length, dimension and rectangle is bounds checked, decoding never traps.
 
+/// What a `pointerAxis` message carries (`wl_pointer.axis_source`).
+public enum SeamlessAxisSource: UInt8, Sendable {
+	/// Trackpad: `dx`/`dy` are logical pixels, the guest reports them as a finger scroll.
+	case continuous = 0
+	/// Mouse wheel: `dx`/`dy` are notches (1 == one click), the guest reports discrete steps.
+	case wheel = 1
+	/// The fingers left the trackpad: the guest sends `axis_stop` (`dx`/`dy` are ignored).
+	case stop = 2
+}
+
 public enum SeamlessProtocol {
-	public static let version: UInt16 = 1
+	public static let version: UInt16 = 2
 	/// vsock port the guest compositor connects to.
 	public static let defaultVsockPort = 5100
 
@@ -183,8 +193,8 @@ public enum SeamlessHostMessage: Equatable, Sendable {
 	case pointerLeave(id: UInt32)
 	case pointerMotion(id: UInt32, x: Float, y: Float)
 	case pointerButton(id: UInt32, button: UInt32, pressed: Bool)
-	/// Scroll in logical units, positive `dy` scrolls content down like `wl_pointer.axis`.
-	case pointerAxis(id: UInt32, dx: Float, dy: Float)
+	/// Scroll, positive `dy` scrolls content down like `wl_pointer.axis`. The unit of `dx`/`dy` depends on `source`.
+	case pointerAxis(id: UInt32, dx: Float, dy: Float, source: SeamlessAxisSource)
 	/// Linux evdev key code (`KEY_A` == 30), delivered to the focused window.
 	case key(code: UInt32, pressed: Bool)
 }
@@ -486,11 +496,12 @@ public enum SeamlessCodec {
 			w.u32(id)
 			w.u32(button)
 			w.u8(pressed ? 1 : 0)
-		case .pointerAxis(let id, let dx, let dy):
+		case .pointerAxis(let id, let dx, let dy, let source):
 			type = .pointerAxis
 			w.u32(id)
 			w.f32(dx)
 			w.f32(dy)
+			w.u8(source.rawValue)
 		case .key(let code, let pressed):
 			type = .key
 			w.u32(code)
@@ -623,7 +634,12 @@ public enum SeamlessCodec {
 		case .pointerButton:
 			message = .pointerButton(id: try r.u32(), button: try r.u32(), pressed: try r.u8() != 0)
 		case .pointerAxis:
-			message = .pointerAxis(id: try r.u32(), dx: try r.f32(), dy: try r.f32())
+			let id = try r.u32(), dx = try r.f32(), dy = try r.f32()
+			let rawSource = try r.u8()
+
+			guard let source = SeamlessAxisSource(rawValue: rawSource) else { throw SeamlessProtocolError.invalidValue("axis source \(rawSource)") }
+
+			message = .pointerAxis(id: id, dx: dx, dy: dy, source: source)
 		case .key:
 			message = .key(code: try r.u32(), pressed: try r.u8() != 0)
 		}

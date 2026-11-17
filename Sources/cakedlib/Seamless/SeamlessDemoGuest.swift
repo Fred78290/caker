@@ -227,8 +227,8 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 			} else if id == windowID, button == SeamlessProtocol.buttonLeft, pressed, popupOpen {
 				closePopup()
 			}
-		case .pointerAxis(let id, let dx, let dy):
-			record("axis \(id) \(Int(dx)),\(Int(dy))")
+		case .pointerAxis(let id, let dx, let dy, let source):
+			record("axis \(id) \(Int(dx)),\(Int(dy)) \(source)")
 		case .key(let code, let pressed):
 			record("key \(code) \(pressed)")
 		}
