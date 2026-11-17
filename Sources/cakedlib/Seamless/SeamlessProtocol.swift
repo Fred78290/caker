@@ -28,6 +28,11 @@ public enum SeamlessAxisSource: UInt8, Sendable {
 
 public enum SeamlessProtocol {
 	public static let version: UInt16 = 2
+	/// The oldest guest version the host still talks to: it answers with the guest's version and leaves out what that version lacks
+	/// (version 1 has no scroll wheel, `pointerAxis` is never sent to it).
+	public static let minimumVersion: UInt16 = 1
+	/// First version with the `pointerAxis` source byte, so the first with scrolling.
+	public static let axisVersion: UInt16 = 2
 	/// vsock port the guest compositor connects to.
 	public static let defaultVsockPort = 5100
 

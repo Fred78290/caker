@@ -397,6 +397,25 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertTrue(wait { recorder.log.last == "end" })
 	}
 
+	func testGuestOnProtocolOneIsAcceptedWithoutScrolling() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: 1, name: "old")))
+		// The host answers with the guest's version, an older compositor refuses any other.
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: 1, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start old"] })
+		XCTAssertEqual(recorder.session?.negotiatedVersion, 1)
+
+		// Scrolling is dropped, everything else still goes through.
+		recorder.session?.send(.pointerAxis(id: 3, dx: 0, dy: 1, source: .wheel))
+		recorder.session?.send(.pointerMotion(id: 3, x: 1, y: 2))
+		XCTAssertEqual(try readHost(fd, count: 1), [.pointerMotion(id: 3, x: 1, y: 2)])
+	}
+
 	func testServerClosesOnProtocolViolations() throws {
 		let (server, recorder, path) = try makeServer()
 		defer { server.stop() }

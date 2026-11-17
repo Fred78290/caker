@@ -16,9 +16,23 @@ public final class SeamlessSession: @unchecked Sendable {
 	private let writeQueue = DispatchQueue(label: "com.aldunelabs.caker.seamless.write")
 	private var fd: Int32
 	private var closed = false
+	private var protocolVersion = SeamlessProtocol.version
 
 	init(fd: Int32) {
 		self.fd = fd
+	}
+
+	/// The protocol version agreed with the guest, the lower of the two. Messages a version doesn't know are not sent.
+	public var negotiatedVersion: UInt16 {
+		lock.lock()
+		defer { lock.unlock() }
+		return protocolVersion
+	}
+
+	func negotiate(_ version: UInt16) {
+		lock.lock()
+		protocolVersion = version
+		lock.unlock()
 	}
 
 	public var isClosed: Bool {
@@ -29,6 +43,9 @@ public final class SeamlessSession: @unchecked Sendable {
 
 	/// Queues a message, never blocks the caller (the main thread sends input through here).
 	public func send(_ message: SeamlessHostMessage) {
+		// A guest on protocol 1 has no scrolling: the message would make it close the connection.
+		if case .pointerAxis = message, negotiatedVersion < SeamlessProtocol.axisVersion { return }
+
 		guard let data = try? SeamlessCodec.encode(message) else { return }
 
 		self.writeQueue.async { [self] in
@@ -336,12 +353,17 @@ public final class SeamlessServer: @unchecked Sendable {
 							throw SeamlessProtocolError.invalidValue("the first message must be hello")
 						}
 
-						guard version == SeamlessProtocol.version else {
+						guard (SeamlessProtocol.minimumVersion...SeamlessProtocol.version).contains(version) else {
 							throw SeamlessProtocolError.invalidValue("unsupported protocol version \(version)")
 						}
 
+						if version < SeamlessProtocol.version {
+							logger.warn("Seamless guest \(name) speaks protocol \(version), the host \(SeamlessProtocol.version): mouse wheel scrolling is disabled until its agent is updated")
+						}
+
 						helloDone = true
-						session.send(.helloAck(version: SeamlessProtocol.version, scale120: outputScale120))
+						session.negotiate(version)
+						session.send(.helloAck(version: version, scale120: outputScale120))
 						delegateQueue.async { [weak self] in
 							guard let self, let delegate = self.delegate else { return }
 							delegate.seamlessServer(self, sessionDidStart: session, guestName: name)
