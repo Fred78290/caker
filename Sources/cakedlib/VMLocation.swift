@@ -584,7 +584,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	public func writeProvisionning() throws {
 		FileManager.default.createFile(atPath: self.provisionningURL.path(percentEncoded: false), contents: nil)
-		
+
 		try self.writePID()
 	}
 
@@ -991,6 +991,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			return try await installWindowsAgent(config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
 		}
 
+		let home = try Home(runMode: runMode)
 		let imageSource = config.source
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii).base64EncodedString()
@@ -1001,8 +1002,19 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = String(
 			format: try loadBundledShellScript(named: "ssh-install-cakeagent", runMode: runMode),
-			config.configuredUser, CAKEAGENT_SNAPSHOT, "\(VMLocation.defaultAgentListenPort)", config.agentServiceFlags, sshPublicKeys, caCert, serverPem, serverKey,
-			AppStoreGuestDNS.sshFragment(domain: ComposeDNS.domainSuffix, ip: BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"), port: "\(ComposeDNS.internalBindPort)"))
+			config.configuredUser,
+			CAKEAGENT_SNAPSHOT,
+			"\(VMLocation.defaultAgentListenPort)",
+			config.agentServiceFlags,
+			sshPublicKeys,
+			caCert,
+			serverPem,
+			serverKey,
+			AppStoreGuestDNS.sshFragment(
+				domain: ComposeDNS.domainSuffix,
+				ip: BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"),
+				port: "\(ComposeDNS.internalBindPort)")
+		)
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
@@ -1013,6 +1025,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
 			try ssh.authenticate(
 				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
+		} else if let exists = try? home.sshPrivateKey.exists(), exists && (config.clearPassword == false || config.configuredPassword == nil) {
+			try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false))
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
@@ -1144,7 +1158,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
-	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode, progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler) async throws {
+	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode, progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler)
+		async throws
+	{
 		Logger(self).info("Running post-boot commands on \(self.name)")
 
 		let imageSource = config.source
