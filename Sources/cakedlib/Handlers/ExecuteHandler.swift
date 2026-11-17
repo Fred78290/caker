@@ -42,6 +42,6 @@ public struct ExecuteHandler {
 			}
 		}
 
-		try await client.execute(requestStream: requestStream, responseStream: responseStream, user: try? location.config().seamlessUser)
+		try await client.execute(requestStream: requestStream, responseStream: responseStream, user: try? location.config().configuredUser)
 	}
 }

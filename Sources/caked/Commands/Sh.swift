@@ -7,7 +7,7 @@ import GRPCLib
 import NIO
 
 struct Sh: CakeAgentAsyncParsableCommand {
-	
+
 	static let configuration = ShellOptions.configuration
 
 	@OptionGroup(title: String(localized: "Global options"))
@@ -67,7 +67,11 @@ struct Sh: CakeAgentAsyncParsableCommand {
 			}
 		}
 
-		guard let result = try? CakedLib.StartHandler.startVM(name: self.shell.name, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: self.shell.waitIPTimeout, startMode: self.shell.foreground ? .foreground : .background, gcd: false, recoveryMode: false, runMode: self.common.runMode) else {
+		guard
+			let result = try? CakedLib.StartHandler.startVM(
+				name: self.shell.name, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: self.shell.waitIPTimeout, startMode: self.shell.foreground ? .foreground : .background, gcd: false, recoveryMode: false,
+				runMode: self.common.runMode)
+		else {
 			Logger.appendNewLine(self.common.format.render("Failed to start VM"))
 
 			return
@@ -75,9 +79,9 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 		if result.started {
 			do {
-				let user = try? StorageLocation(runMode: self.common.runMode).find(self.shell.name).config().seamlessUser
+				let user = try? StorageLocation(runMode: self.common.runMode).find(self.shell.name).config().configuredUser
 
-					_ = try await helper.shell(user: user, callOptions: callOptions)
+				_ = try await helper.shell(user: user, callOptions: callOptions)
 			} catch {
 				Logger.appendNewLine(self.common.format.render(error.reason))
 			}
