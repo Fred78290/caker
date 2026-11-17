@@ -8,8 +8,9 @@ import GRPCLib
 import NIO
 import NIOPosix
 import NIOSSL
+import Logging
 
-struct Sh: AsyncGrpcParsableCommand {
+struct Sh: GrpcParsableCommand {
 	static let configuration = ShellOptions.configuration
 
 	@OptionGroup(title: String(localized: "Client options"))
@@ -18,17 +19,30 @@ struct Sh: AsyncGrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Shell options"))
 	var shell: ShellOptions
 
+	@Flag(name: .customLong("seamless"), help: ArgumentHelp(String(localized: "Disable seamless mode if the VM supports it")))
+	var disableSeamless: Bool = false
+
+	static var disableLoggingOutput = false
+
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
 		try? CakeServiceClientInterceptorFactory(inputHandle: FileHandle.standardInput)
+	}
+
+	func logHandler(_ label: String) -> LogHandler {
+		if Self.disableLoggingOutput {
+			SwiftLogNoOpLogHandler()
+		} else {
+			StreamLogHandler.standardError(label: label)
+		}
 	}
 
 	@MainActor
 	static func seamless(_ name: String, client: CakedServiceClient) throws {
 		let app = NSApplication.shared
 
-		app.setActivationPolicy(.regular)
+		app.setActivationPolicy(.accessory)
 
-		let manager = SeamlessWindowManager(vmName: name, displayMode: .ui)
+		let manager = SeamlessWindowManager(vmName: name, displayMode: .none)
 		let tunnel = SeamlessTunnelClient()
 		let descriptor = try tunnel.open(client: client, vmName: name) { error in
 			DispatchQueue.main.async {
@@ -51,10 +65,12 @@ struct Sh: AsyncGrpcParsableCommand {
 		manager.stop()
 	}
 
-	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let config = try client.info(name: self.shell.name, includeConfig: true).vms.status.config
 
-		if config.seamless {
+		if config.seamless && disableSeamless == false {
+			Self.disableLoggingOutput = true
+
 			let name = self.shell.name
 
 			// The seamless task blocks the main thread in NSApplication.run(), so a task group
@@ -70,12 +86,17 @@ struct Sh: AsyncGrpcParsableCommand {
 			}
 
 			// Returns once the seamless windows are closed
-			try await Self.seamless(name, client: client)
+			// ArgumentParser runs the command on the main thread
+			try MainActor.assumeIsolated {
+				try Self.seamless(name, client: client)
+			}
 
 			shellTask.cancel()
 			Foundation.exit(0)
 		} else {
-			Foundation.exit(try await client.shell(name: self.shell.name, callOptions: callOptions))
+			try Task.sync {
+				Foundation.exit(try await client.shell(name: self.shell.name, callOptions: callOptions))
+			}
 		}
 	}
 }
