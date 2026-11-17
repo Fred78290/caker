@@ -30,7 +30,7 @@ Caker is a macOS toolchain for building, running and managing virtual machines w
 - Bundled templates for macOS 12 to 27, plus your own with `--template` and `--var key=value`
 - **Record** a template by hand with `caked record`, then replay it
 - Re-run provisioning later with `provision <vm>`, locally or through `cakectl`, with a live VNC view and an optional debug video of the run
-- Windows 11 can be installed unattended from a Microsoft ISO (direct-download build): the guest gets the virtio drivers, directory sharing, OpenSSH, sound, the agent and a display that follows the window size (see the [provisioning guide](wiki/provisioning.md))
+- Windows 11 can be installed unattended from a Microsoft ISO (direct-download build): by default the guest gets the virtio drivers, directory sharing, OpenSSH, sound, the agent and, while a user is logged on, a display that follows the window size; the WHQL-only driver option leaves out sound and resizing (see the [provisioning guide](wiki/provisioning.md))
 
 **Compose: multi-VM environments**
 - Describe a group of related VMs in a `compose.yml` (a subset of the Docker Compose format) with `depends_on` ordering, ports, volumes, networks and cloud-init extensions (`packages`, `write_files`, `post_commands`, ...)
@@ -99,6 +99,7 @@ cakectl build --alias macos15 --autoinstall mac-vm
 cakectl compose init
 cakectl compose up
 
+mkdir lamp && cd lamp
 cakectl compose library clone lamp
 cakectl compose up
 ```
