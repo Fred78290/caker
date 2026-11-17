@@ -45,10 +45,13 @@
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_subcompositor.h>
+#include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_viewporter.h>
+#include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/types/wlr_xdg_toplevel_icon_v1.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon.h>
@@ -1397,6 +1400,17 @@ int main(int argc, char **argv) {
 	s->decoration_manager = wlr_xdg_decoration_manager_v1_create(s->display);
 	s->seat = wlr_seat_create(s->display, "seat0");
 
+	/*
+	 * Globals that clients probe and complain about when they are missing (foot warns "no XDG activation support" and
+	 * "text input interface not implemented by compositor"). Which window is focused is up to the host, so an
+	 * activation request is accepted and otherwise ignored, and with no input method behind it text-input only has
+	 * to exist: clients enable it and get no preedit/commit back, like a bare keyboard.
+	 */
+	wlr_xdg_activation_v1_create(s->display);
+	wlr_text_input_manager_v3_create(s->display);
+	/* Window icons: accepted, not forwarded (the host has no use for them yet), so foot stops warning about it. */
+	wlr_xdg_toplevel_icon_manager_v1_create(s->display, 1);
+
 	/* One big virtual output so maximize/popup placement has room; the host window size is what matters. */
 	s->output = wlr_headless_add_output(s->backend, 3840, 2160);
 
@@ -1496,6 +1510,17 @@ int main(int argc, char **argv) {
 
 	transport_close(s);
 	wl_display_destroy_clients(s->display);
+
+	/* wlroots asserts that nobody is still listening when the display goes away (SIGTERM aborted with a core dump) */
+	wl_list_remove(&s->new_surface.link);
+	wl_list_remove(&s->new_toplevel.link);
+	wl_list_remove(&s->new_popup.link);
+	wl_list_remove(&s->new_decoration.link);
+	wl_list_remove(&s->request_set_shape.link);
+	wl_list_remove(&s->request_set_cursor.link);
+	wl_list_remove(&s->kb_key.link);
+	wl_list_remove(&s->kb_modifiers.link);
+
 	wl_display_destroy(s->display);
 
 	return 0;
