@@ -1222,7 +1222,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La mise à jour du service d'agent a échoué sur : %1$@:%2$@"
+            "value" : "La mise à jour du service d'agent a échoué sur %1$@: %2$@"
           }
         }
       }
