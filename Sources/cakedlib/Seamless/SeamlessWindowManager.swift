@@ -488,9 +488,16 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 				return
 			}
 
-			windows[info.id] = SeamlessWindowController(
+			let controller = SeamlessWindowController(
 				info: info, parent: parent, titlePrefix: titlePrefix, scale120: server.outputScale120,
 				send: { [weak self] in self?.send($0) })
+			windows[info.id] = controller
+
+			if displayMode == .none || displayMode == .vnc {
+				NSApplication.shared.activate(ignoringOtherApps: true)
+				controller.window.orderFrontRegardless()
+			}
+
 		case .windowTitle(let id, let title):
 			windows[id]?.setTitle(title)
 		case .windowAppID:
