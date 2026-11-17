@@ -30,16 +30,19 @@ Caker is a macOS toolchain for building, running and managing virtual machines w
 - Bundled templates for macOS 12 to 27, plus your own with `--template` and `--var key=value`
 - **Record** a template by hand with `caked record`, then replay it
 - Re-run provisioning later with `provision <vm>`, locally or through `cakectl`, with a live VNC view and an optional debug video of the run
-- Windows 11 for ARM can be installed unattended too (see the [provisioning guide](wiki/provisioning.md))
+- Windows 11 can be installed unattended from a Microsoft ISO (direct-download build): the guest gets the virtio drivers, directory sharing, OpenSSH, sound, the agent and a display that follows the window size (see the [provisioning guide](wiki/provisioning.md))
 
 **Compose: multi-VM environments**
 - Describe a group of related VMs in a `compose.yml` (a subset of the Docker Compose format) with `depends_on` ordering, ports, volumes, networks and cloud-init extensions (`packages`, `write_files`, `post_commands`, ...)
-- `cakectl compose up | down | ps | rm | ls | edit`, plus a Compose editor in Caker.app
-- Built-in **DNS** so services reach each other by name (`<service>.<project>.compose.internal`, and `<vm>.compose.internal` for every running VM), with a configurable domain
+- `cakectl compose up | down | ps | rm | ls | edit | init`, plus a Compose editor in Caker.app
+- A **template library** of ready-made stacks (LAMP/LEMP, PostgreSQL, Redis, k3s, Gitea, Prometheus and Grafana, Ansible lab, ...), on Ubuntu 26.04 or Alpine 3.24: `cakectl compose library list | show | clone | sync`, or the Library sheet in Caker.app
+- A service's `image:` can name a catalog id with `alias:` (for example `image: alias:alpine324`)
+- Built-in **DNS** so services reach each other by name (`<service>.<project>.compose.internal`, and `<vm>.compose.internal` for every running VM), with a configurable domain; the resolver runs with each network that has DNS enabled, so there is nothing extra to start
 - `.cakerenv` files for multi-VM environments with dependency ordering, driven by `up`/`down`
 
 **Networking and sharing**
-- Bridged, hosted and NAT networks, created and managed with `cakectl networks`
+- Shared, host-only and bridged networks, created and managed with `cakectl networks` or Caker.app; every VM gets the shared `default` network (`192.168.32.0/24` unless changed in Advanced Settings), where VMs can reach each other
+- In the direct-download build, each shared or host network runs its own DHCP server and DNS resolver, with its own lease table
 - Port forwarding between the VM and the host over TCP or Unix sockets, updated dynamically while VMs run
 - Directory sharing through virtiofs
 - **IMDS**: an instance metadata service for Linux guests
@@ -53,7 +56,8 @@ Caker is a macOS toolchain for building, running and managing virtual machines w
 - gRPC API between `cakectl`, `Caker.app` and `caked`
 - Optional **LXD-compatible REST API** (`caked service listen --rest`), so `lxc` and other LXD clients can talk to Caker
 - A **web UI** served by `caked` at `/ui` (sources in [`webui/`](webui))
-- Long-running tasks (`build`, `launch`, `provision`) can be listed and cancelled with `cakectl tasks`
+- Long-running tasks (`build`, `launch`, `provision`) can be listed and cancelled with `cakectl tasks`, and Ctrl-C on `cakectl build`/`launch`/`provision` cancels the task on the daemon
+- `caked check-update`/`cakectl check-update` report whether a newer release is published (direct-download build)
 
 ## Documentation
 
@@ -91,8 +95,11 @@ cakectl sh myvm
 # Unattended macOS install from the catalog
 cakectl build --alias macos15 --autoinstall mac-vm
 
-# A multi-VM environment
+# A multi-VM environment, from scratch or from the template library
 cakectl compose init
+cakectl compose up
+
+cakectl compose library clone lamp
 cakectl compose up
 ```
 
@@ -138,7 +145,7 @@ Its main role is to:
 - Embed and run standalone virtual machines directly in `Caker.app`, or connect to a local or remote `caked`
 - Show the live display of a VM, including during unattended installation
 - Record a `boot_command` template from your own clicks and keystrokes
-- Manage networks, templates, remotes, Compose projects and running tasks
+- Manage networks, templates, remotes, the image cache, Compose projects (with the template library) and running tasks
 - Expose logs, status, and diagnostics in an accessible UI
 - Integrate with the local daemon and CLI tooling without requiring manual low-level setup
 
