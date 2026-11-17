@@ -1216,6 +1216,17 @@
         }
       }
     },
+    "Agent service update failed on %@: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La mise à jour du service d'agent a échoué sur : %1$@:%2$@"
+          }
+        }
+      }
+    },
     "agentReady" : {
       "extractionState" : "manual",
       "localizations" : {

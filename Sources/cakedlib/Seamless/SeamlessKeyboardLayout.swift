@@ -5,11 +5,31 @@ import Foundation
 /// compositor has to use the same layout as the host's keyboard.
 public enum SeamlessKeyboardLayout {
 	private static let layouts: [String: String] = [
-		"US": "us", "ABC": "us", "USExtended": "us", "USInternational-PC": "us",
-		"British": "gb", "French": "fr", "German": "de", "Spanish": "es", "Italian": "it", "Dutch": "nl",
-		"Portuguese": "pt", "Brazilian": "br", "Swedish": "se", "Norwegian": "no", "Danish": "dk", "Finnish": "fi",
-		"Belgian": "be", "Swiss": "ch", "Irish": "ie", "Russian": "ru", "Polish": "pl", "Czech": "cz",
-		"Hungarian": "hu", "Turkish-QWERTY": "tr", "Canadian-CSA": "ca",
+		"US": "us",
+		"ABC": "us",
+		"USExtended": "us",
+		"USInternational-PC": "us",
+		"British": "gb",
+		"French": "fr",
+		"German": "de",
+		"Spanish": "es",
+		"Italian": "it",
+		"Dutch": "nl",
+		"Portuguese": "pt",
+		"Brazilian": "br",
+		"Swedish": "se",
+		"Norwegian": "no",
+		"Danish": "dk",
+		"Finnish": "fi",
+		"Belgian": "be",
+		"Swiss": "ch",
+		"Irish": "ie",
+		"Russian": "ru",
+		"Polish": "pl",
+		"Czech": "cz",
+		"Hungarian": "hu",
+		"Turkish-QWERTY": "tr",
+		"Canadian-CSA": "ca",
 	]
 
 	/// XKB layout for a macOS input source id (`com.apple.keylayout.French`), nil when there is no plain equivalent
