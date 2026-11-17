@@ -16,9 +16,14 @@ protocol GrpcCommand {
 	var retries: ConnectionBackoff.Retries { get }
 	var callOptions: CallOptions? { get }
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
+	func logHandler(_ label: String) -> LogHandler
 }
 
 extension GrpcCommand {
+	func logHandler(_ label: String) -> LogHandler {
+		StreamLogHandler.standardError(label: label)
+	}
+
 	var retries: ConnectionBackoff.Retries {
 		.upTo(1)
 	}
@@ -282,11 +287,6 @@ struct Client: ParsableCommand {
 	}()
 
 	public static func main() async throws {
-		// Set up logging to stderr
-		LoggingSystem.bootstrap { label in
-			StreamLogHandler.standardError(label: label)
-		}
-
 		// Handle cancellation by Ctrl+C ourselves
 		let task = withUnsafeCurrentTask { $0 }!
 
@@ -309,6 +309,19 @@ struct Client: ParsableCommand {
 		do {
 			var command = try Self.parseAsRoot()
 
+			if let grpcCommand = command as? GrpcCommand {
+				// The factory is called once, synchronously, by bootstrap
+				nonisolated(unsafe) let grpcCommand = grpcCommand
+
+				LoggingSystem.bootstrap { label in
+					grpcCommand.logHandler(label)
+				}
+			} else {
+				// Set up logging to stderr
+				LoggingSystem.bootstrap { label in
+					StreamLogHandler.standardError(label: label)
+				}
+			}
 			if var command = command as? AsyncParsableCommand {
 				try await command.run()
 			} else {
