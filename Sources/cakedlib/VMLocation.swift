@@ -1003,7 +1003,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let install_agent = String(
 			format: try loadBundledShellScript(named: "ssh-install-cakeagent", runMode: runMode),
 			config.configuredUser,
-			CAKEAGENT_SNAPSHOT,
+			CAKEAGENT_VERSION,
 			"\(VMLocation.defaultAgentListenPort)",
 			config.agentServiceFlags,
 			sshPublicKeys,
@@ -1109,11 +1109,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	/// Installs the agent in a Windows guest, or replaces it when its service is already there (the installer's first boot
 	/// does the first install, this is what updates it, or installs it in a guest where it is missing). The executable and a
 	/// PowerShell script go over SSH to `C:\ProgramData\caker` and the script runs elevated: an administrator's SSH session
-	/// is. `installAgent` is true only when the agent runs with the snapshot this build asks for.
+	/// is. `installAgent` is true only when the agent runs with the version this build asks for.
 	private func installWindowsAgent(config: CakeConfig, runningIP: String, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let script = WindowsInstallResources.agentUpdatePowerShell(
-			snapshot: CAKEAGENT_SNAPSHOT, port: UInt16(VMLocation.defaultAgentListenPort),
+			version: CAKEAGENT_VERSION, port: UInt16(VMLocation.defaultAgentListenPort),
 			caCert: try String(contentsOf: certificates.caCertURL, encoding: .ascii),
 			serverCert: try String(contentsOf: certificates.serverCertURL, encoding: .ascii),
 			serverKey: try String(contentsOf: certificates.serverKeyURL, encoding: .ascii))

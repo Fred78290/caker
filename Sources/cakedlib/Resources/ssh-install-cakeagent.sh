@@ -4,7 +4,7 @@ trap 'sync; sync' EXIT
 set -xe
 
 CONFIGURED_USER="%1$@"
-CAKEAGENT_SNAPSHOT="%2$@"
+CAKEAGENT_VERSION="%2$@"
 LISTEN_PORT="%3$@"
 LINUX_MOUNTS="%4$@"
 SSH_PUBLIC_KEYS='%5$@'
@@ -61,7 +61,7 @@ mkdir -p /usr/local/bin ${SSHDIR}
 
 if test -f /usr/local/bin/cakeagent
 then
-	if test -n "$(/usr/local/bin/cakeagent version|grep -F "is: ${CAKEAGENT_SNAPSHOT},")" && test ${FLAGS_CHANGED} -eq 0
+	if test -n "$(/usr/local/bin/cakeagent version|grep -F "is: ${CAKEAGENT_VERSION},")" && test ${FLAGS_CHANGED} -eq 0
 	then
 		echo "CakeAgent already installed, skipping"
 		exit 0
@@ -74,7 +74,7 @@ fi
 
 if test ! -f /tmp/cakeagent
 then
-	AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/${CAKEAGENT_SNAPSHOT}/cakeagent-${OSDISTRO}-${ARCH}"
+	AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/${CAKEAGENT_VERSION}/cakeagent-${OSDISTRO}-${ARCH}"
 
 	echo "Downloading CakeAgent from ${AGENT_URL}"
 

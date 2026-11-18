@@ -1963,7 +1963,7 @@ extension VirtualMachineDocument {
 			self.logger.debug("VM \(self.name) is ready with IP: \(firstIP)")
 		}
 
-		if infos.agentVersion != CAKEAGENT_SNAPSHOT {
+		if infos.agentVersion != CAKEAGENT_VERSION {
 			#if DEBUG
 				self.logger.debug("Agent monitoring: VM \(self.name) agent need to be updated")
 			#endif

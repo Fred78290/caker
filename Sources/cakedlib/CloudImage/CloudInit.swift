@@ -8,7 +8,7 @@ import Yams
 
 /// The cakeagent release the guests run: the tag of its GitHub release, which is also the version the agent reports.
 /// cakeagent now tags `v<BASE_VERSION>.<commit count>` (like Caker); older releases are `SNAPSHOT-<sha>`.
-public let CAKEAGENT_SNAPSHOT = "v1.0.310"
+public let CAKEAGENT_VERSION = "v1.0.310"
 
 /// `Bundle.module` only exists in `swift build`/`swift test` builds; the Xcode projects compile `CakedLib` as a
 /// plain native target, so the lookup branches on the build system (same pattern as `VMImageCatalog.swift`).
@@ -1056,10 +1056,10 @@ class CloudInit {
 		let arch = Architecture.current().rawValue
 		let os = config.os.rawValue
 		let home: Home = try Home(runMode: self.runMode)
-		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
+		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_VERSION)-\(os)-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
-			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_VERSION)/cakeagent-\(os)-\(arch)") else {
 				throw CloudInitGenerateError("unable to get remote cakeagent")
 			}
 

@@ -392,15 +392,15 @@ enum WindowsInstallResources {
 	static let agentUpdateScript = "install-agent.ps1"
 
 	/// PowerShell run in the guest over SSH to install the agent, or to replace it when the service is already there:
-	/// the same steps as `SetupComplete.cmd`, for a guest whose agent is missing or older than `snapshot`. The new
+	/// the same steps as `SetupComplete.cmd`, for a guest whose agent is missing or older than `version`. The new
 	/// executable is already at `C:\ProgramData\caker\cakeagent-update.exe`. The script deletes itself (it carries the
-	/// agent's private key) and the executable, whatever happens. Exit code 0 means the agent is running with `snapshot`.
-	static func agentUpdatePowerShell(snapshot: String, port: UInt16, caCert: String, serverCert: String, serverKey: String) -> String {
+	/// agent's private key) and the executable, whatever happens. Exit code 0 means the agent is running with `version`.
+	static func agentUpdatePowerShell(version: String, port: UInt16, caCert: String, serverCert: String, serverKey: String) -> String {
 		#"""
 		$ErrorActionPreference = 'Stop'
 		$ProgressPreference = 'SilentlyContinue'
 
-		$snapshot = '\#(snapshot)'
+		$agentVersion = '\#(version)'
 		$new = 'C:\ProgramData\caker\\#(agentUpdateExecutable)'
 		$dir = 'C:\Program Files\CakeAgent'
 		$exe = "$dir\cakeagent.exe"
@@ -417,7 +417,7 @@ enum WindowsInstallResources {
 			$service = Get-Service cakeagent -ErrorAction SilentlyContinue
 
 			if ($service -and (Test-Path $exe)) {
-				if ((& $exe version 2>&1 | Out-String) -match ('is: ' + [regex]::Escape($snapshot) + ',')) {
+				if ((& $exe version 2>&1 | Out-String) -match ('is: ' + [regex]::Escape($agentVersion) + ',')) {
 					Write-Output 'CakeAgent already installed, skipping'
 					exit 0
 				}
