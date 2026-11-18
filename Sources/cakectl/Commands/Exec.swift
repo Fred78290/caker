@@ -13,8 +13,8 @@ struct Exec: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Exec options"))
 	var execute: ExecOptions
 
-	@Flag(name: .customLong("seamless"), help: ArgumentHelp(String(localized: "Disable seamless mode if the VM supports it")))
-	var disableSeamless: Bool = false
+	@Option(name: .customLong("seamless"), help: ArgumentHelp(String(localized: "Allows seamless mode if the VM supports it")))
+	var allowSeamless: Bool = true
 
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
 		try? CakeServiceClientInterceptorFactory(inputHandle: FileHandle.standardInput)
@@ -33,7 +33,7 @@ struct Exec: GrpcParsableCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let config = try client.info(name: self.execute.name, includeConfig: true).vms.status.config
 
-		if config.seamless && disableSeamless == false {
+		if config.seamless && allowSeamless {
 			Self.disableLoggingOutput = true
 
 			let name = self.execute.name
@@ -43,7 +43,7 @@ struct Exec: GrpcParsableCommand {
 			// ends the process instead, which kills the other one.
 			let shellTask = Task {
 				do {
-					Foundation.exit(try await client.exec(name: self.execute.name, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))
+					Foundation.exit(try await client.exec(name: self.execute.name, shellUser: self.execute.shellUser, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))
 				} catch {
 					fputs("Error: \(error)\n", stderr)
 					Foundation.exit(1)
@@ -60,7 +60,7 @@ struct Exec: GrpcParsableCommand {
 			Foundation.exit(0)
 		} else {
 			try Task.sync {
-				Foundation.exit(try await client.exec(name: self.execute.name, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))
+				Foundation.exit(try await client.exec(name: self.execute.name, shellUser: self.execute.shellUser, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))
 			}
 		}
 	}

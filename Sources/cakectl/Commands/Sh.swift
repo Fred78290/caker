@@ -19,8 +19,8 @@ struct Sh: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Shell options"))
 	var shell: ShellOptions
 
-	@Flag(name: .customLong("seamless"), help: ArgumentHelp(String(localized: "Disable seamless mode if the VM supports it")))
-	var disableSeamless: Bool = false
+	@Option(name: .customLong("seamless"), help: ArgumentHelp(String(localized: "Allows seamless mode if the VM supports it")))
+	var allowSeamless: Bool = true
 
 	static var disableLoggingOutput = false
 
@@ -67,7 +67,7 @@ struct Sh: GrpcParsableCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let config = try client.info(name: self.shell.name, includeConfig: true).vms.status.config
 
-		if config.seamless && disableSeamless == false {
+		if config.seamless && allowSeamless {
 			Self.disableLoggingOutput = true
 
 			let name = self.shell.name
@@ -77,7 +77,7 @@ struct Sh: GrpcParsableCommand {
 			// ends the process instead, which kills the other one.
 			let shellTask = Task {
 				do {
-					Foundation.exit(try await client.shell(name: name, callOptions: callOptions))
+					Foundation.exit(try await client.shell(name: name, shellUser: self.shell.shellUser, callOptions: callOptions))
 				} catch {
 					fputs("Error: \(error)\n", stderr)
 					Foundation.exit(1)
@@ -94,7 +94,7 @@ struct Sh: GrpcParsableCommand {
 			Foundation.exit(0)
 		} else {
 			try Task.sync {
-				Foundation.exit(try await client.shell(name: self.shell.name, callOptions: callOptions))
+				Foundation.exit(try await client.shell(name: self.shell.name, shellUser: self.shell.shellUser, callOptions: callOptions))
 			}
 		}
 	}
