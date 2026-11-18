@@ -729,6 +729,17 @@ extension VirtualMachineDocument {
 
 	@MainActor
 	func setStateAsRunning(_ status: Status, vncURL: [URL]?) {
+		guard self.status != .running else {
+			if self.agentReady {
+				if self.interactiveShell == nil && self.inView {
+					self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
+				}
+			}
+
+			self.vncURL = vncURL
+			return
+		}
+
 		#if DEBUG
 			self.logger.debug("setStateAsRunning: \(status) vncURL: \(vncURL?.map { $0.absoluteString } ?? [])")
 		#endif
@@ -2027,6 +2038,8 @@ extension VirtualMachineDocument {
 
 						if isWaitingForAgent {
 							try? await Task.sleep(nanoseconds: 1_000_000_000)
+						} else {
+							self.agentReady = true
 						}
 					}
 				},
