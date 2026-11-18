@@ -55,22 +55,27 @@ struct Sh: GrpcParsableCommand {
 	}
 
 	@MainActor
-	private final class SeamlessConnection {
+	final class SeamlessConnection {
 		let name: String
 		let client: CakedServiceClient
+		let displayMode: VMRunHandler.DisplayMode
+		let announceWaiting: Bool
 		var manager: SeamlessWindowManager?
 		var tunnel: SeamlessTunnelClient?
 		var stopped = false
+		var waitingAnnounced = false
 
-		init(name: String, client: CakedServiceClient) {
+		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false) {
 			self.name = name
 			self.client = client
+			self.displayMode = displayMode
+			self.announceWaiting = announceWaiting
 		}
 
 		func connect() throws {
 			guard self.stopped == false else { return }
 
-			let manager = SeamlessWindowManager(vmName: self.name, displayMode: .none)
+			let manager = SeamlessWindowManager(vmName: self.name, displayMode: self.displayMode)
 			let tunnel = SeamlessTunnelClient()
 			let descriptor = try tunnel.open(client: self.client, vmName: self.name) { [weak self] error in
 				DispatchQueue.main.async {
@@ -92,6 +97,11 @@ struct Sh: GrpcParsableCommand {
 			if let status = error as? GRPCStatus, status.code == .alreadyExists {
 				// Someone else shows the windows: try again until they let go.
 				self.release()
+
+				if self.announceWaiting && self.waitingAnnounced == false {
+					self.waitingAnnounced = true
+					fputs(String(format: String(localized: "The windows of VM %@ are shown by another process, waiting for it to let them go\n"), self.name), stderr)
+				}
 
 				DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
 					MainActor.assumeIsolated {

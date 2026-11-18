@@ -18970,6 +18970,16 @@
       },
       "shouldTranslate" : false
     },
+    "The windows of VM %@ are shown by another process, waiting for it to let them go\n" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fenêtres de la VM %@ sont affichées par un autre processus, attente de leur libération\n"
+          }
+        }
+      }
+    },
     "The windows of VM %@ are already shown by another process" : {
       "extractionState" : "stale",
       "localizations" : {

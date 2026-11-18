@@ -41,27 +41,16 @@ struct Seamless: GrpcParsableCommand {
 
 			app.setActivationPolicy(.regular)
 
-			let manager = SeamlessWindowManager(vmName: name, displayMode: .ui)
-			let tunnel = SeamlessTunnelClient()
-			let descriptor = try tunnel.open(client: client, vmName: name) { error in
-				DispatchQueue.main.async {
-					// terminate() ends the process without returning to run(): report the failure here.
-					if let error {
-						fputs("Error: \(error.reason)\n", stderr)
-						Foundation.exit(1)
-					}
+			// Another process (a `sh`, an `exec`, Caker.app) may already show the windows: wait for it instead of failing.
+			let connection = Sh.SeamlessConnection(name: name, client: client, displayMode: .ui, announceWaiting: true)
 
-					NSApplication.shared.terminate(nil)
-				}
-			}
-
-			manager.attach(fd: descriptor)
+			try connection.connect()
 
 			let source = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
 
 			signal(SIGINT, SIG_IGN)
 			source.setEventHandler {
-				tunnel.close()
+				connection.stop()
 				NSApplication.shared.terminate(nil)
 			}
 			source.resume()
@@ -72,8 +61,7 @@ struct Seamless: GrpcParsableCommand {
 			app.run()
 
 			source.cancel()
-			tunnel.close()
-			manager.stop()
+			connection.stop()
 		}
 
 		return String.empty
