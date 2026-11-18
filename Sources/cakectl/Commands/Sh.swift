@@ -58,7 +58,6 @@ struct Sh: GrpcParsableCommand {
 
 		manager.attach(fd: descriptor)
 
-		app.activate(ignoringOtherApps: true)
 		app.run()
 
 		tunnel.close()
