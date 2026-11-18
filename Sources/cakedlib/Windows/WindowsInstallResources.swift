@@ -417,7 +417,7 @@ enum WindowsInstallResources {
 			$service = Get-Service cakeagent -ErrorAction SilentlyContinue
 
 			if ($service -and (Test-Path $exe)) {
-				if ((& $exe version 2>&1 | Out-String) -match $snapshot) {
+				if ((& $exe version 2>&1 | Out-String) -match ('is: ' + [regex]::Escape($snapshot) + ',')) {
 					Write-Output 'CakeAgent already installed, skipping'
 					exit 0
 				}

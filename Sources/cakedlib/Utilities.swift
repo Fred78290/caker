@@ -1234,7 +1234,7 @@ public struct Utilities {
 		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
-			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
 				throw ServiceError(String(localized: "unable to get remote cakeagent"))
 			}
 
@@ -1251,7 +1251,7 @@ public struct Utilities {
 		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-windows-\(arch).exe", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
-			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-windows-\(arch).exe") else {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_SNAPSHOT)/cakeagent-windows-\(arch).exe") else {
 				throw ServiceError(String(localized: "unable to get remote cakeagent"))
 			}
 
