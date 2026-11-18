@@ -49,11 +49,14 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 	}
 
 	init(_ location: VMLocation, operationId: String, context: LXDExecContext) throws {
+		let shellUser = try? location.config().configuredUser
+
 		self.operationId = operationId
 		self.context = context
 		self.location = location
 		self.shellStream = try ShellHandler.shell(
 			vmURL: location.url,
+			shellUser: shellUser,
 			terminalSize: ShellHandler.TerminalSize(rows: Int32(context.height), cols: Int32(context.width)),
 			connectionTimeout: 30,
 			runMode: context.runMode

@@ -1,3 +1,5 @@
+import CakeAgentLib
+import CakedLib
 //
 //  InteractiveShell.swift
 //  Caker
@@ -5,8 +7,6 @@
 //  Created by Frederic BOLTZ on 13/01/2026.
 //
 import Foundation
-import CakedLib
-import CakeAgentLib
 import GRPC
 import GRPCLib
 import SwiftUI
@@ -37,7 +37,7 @@ class InteractiveShell {
 		guard let terminalView else {
 			let terminalView = VirtualMachineTerminalView(interactiveShell: self, frame: frame, font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
 			self.terminalView = terminalView
-			
+
 			return terminalView
 		}
 
@@ -55,13 +55,13 @@ class InteractiveShell {
 			self.logger.debug("Terminal size no shell: \(rows)x\(cols) for VM: \(self.name)")
 		}
 	}
-	
+
 	func sendDatas(data: ArraySlice<UInt8>) {
 		if let shellStream = self.shellStream {
 			shellStream.sendDatas(data: data)
 		}
 	}
-	
+
 	private func cancelledShell() {
 		if let shellStream {
 			shellStream.closeShell()
@@ -97,7 +97,7 @@ class InteractiveShell {
 		guard let shellStream else {
 			return
 		}
-		
+
 		self.shellStream = nil
 
 		shellStream.closeShell()
@@ -110,7 +110,7 @@ class InteractiveShell {
 
 		// Reset cancellation state when starting a new shell session
 		self.cancelled = false
-		
+
 		self.task = Task { [weak self] in
 			guard let self else { return }
 
@@ -124,47 +124,51 @@ class InteractiveShell {
 			return
 		}
 
-		await withTaskCancellationHandler(operation: {
-			defer {
-				self.closeShell {
-					self.logger.debug("Shell ended, VM: \(self.name)")
-				}
-			}
-
-			while Task.isCancelled == false && self.cancelled == false {
-				do {
-					let shellStream = try ShellHandler.shell(vmURL: self.vmURL,
-															 terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)),
-															 connectionTimeout: 5,
-															 runMode: AppState.shared.connectionMode.runMode)
-					self.shellStream = shellStream
-
-					for try await message in shellStream {
-						await handler(message)
+		await withTaskCancellationHandler(
+			operation: {
+				defer {
+					self.closeShell {
+						self.logger.debug("Shell ended, VM: \(self.name)")
 					}
-					self.logger.debug("Shell stream closed, VM: \(self.name)")
-				} catch {
-					guard self.handleAgentHealthCheckFailure(error: error) else {
-						return
-					}
-
-					self.closeShell()
-
-					self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
-
-					try? await Task.sleep(nanoseconds: 1_000_000_000)
 				}
-			}
 
-			self.logger.debug("Leave shell run loop, VM: \(self.name)")
-			self.task = nil
-		}, onCancel: {
-			self.logger.debug("Shell cancelled, VM: \(self.name)")
+				while Task.isCancelled == false && self.cancelled == false {
+					do {
+						let shellStream = try ShellHandler.shell(
+							vmURL: self.vmURL,
+							shellUser: nil,
+							terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)),
+							connectionTimeout: 5,
+							runMode: AppState.shared.connectionMode.runMode)
+						self.shellStream = shellStream
 
-			self.cancelledShell()
-		})
+						for try await message in shellStream {
+							await handler(message)
+						}
+						self.logger.debug("Shell stream closed, VM: \(self.name)")
+					} catch {
+						guard self.handleAgentHealthCheckFailure(error: error) else {
+							return
+						}
+
+						self.closeShell()
+
+						self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
+
+						try? await Task.sleep(nanoseconds: 1_000_000_000)
+					}
+				}
+
+				self.logger.debug("Leave shell run loop, VM: \(self.name)")
+				self.task = nil
+			},
+			onCancel: {
+				self.logger.debug("Shell cancelled, VM: \(self.name)")
+
+				self.cancelledShell()
+			})
 	}
-	
+
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
 		self.logger.debug("VM \(self.name) shell is not ready \(error)")
 
@@ -199,8 +203,7 @@ class InteractiveShell {
 			self.logger.error("VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
 			return false
 		}
-		
+
 		return true
 	}
 }
-

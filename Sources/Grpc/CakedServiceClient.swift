@@ -93,8 +93,14 @@ extension CakedServiceClient {
 		).response.wait()
 	}
 
-	public func shell(name: String, rows: Int32, cols: Int32, handler: @escaping (Caked_ExecuteResponse) -> Void) throws -> BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse> {
-		let stream = self.execute(callOptions: CallOptions(customMetadata: .init([("CAKEAGENT_VMNAME", name)]), timeLimit: .none), handler: handler)
+	public func shell(name: String, shellUser: String?, rows: Int32, cols: Int32, handler: @escaping (Caked_ExecuteResponse) -> Void) throws -> BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse> {
+		var callOptions = CallOptions(customMetadata: .init([(CakedServiceClient.META_CAKEAGENT_VMNAME, name)]), timeLimit: .none)
+
+		if let shellUser {
+			callOptions.customMetadata.add(name: CakedServiceClient.META_CAKEAGENT_SHELLUSER, value: shellUser)
+		}
+
+		let stream = self.execute(callOptions: callOptions, handler: handler)
 
 		try stream.sendTerminalSize(rows: rows, cols: cols).wait()
 		try stream.sendShell().wait()
@@ -104,6 +110,7 @@ extension CakedServiceClient {
 
 	internal func exec(
 		name: String,
+		shellUser: String?,
 		command: CakedChannelStreamer.ExecuteCommand,
 		inputHandle: FileHandle = FileHandle.standardInput,
 		outputHandle: FileHandle = FileHandle.standardOutput,
@@ -114,7 +121,11 @@ extension CakedServiceClient {
 		var callOptions = callOptions ?? CallOptions()
 
 		callOptions.timeLimit = .none
-		callOptions.customMetadata.add(name: "CAKEAGENT_VMNAME", value: name)
+		callOptions.customMetadata.add(name: CakedServiceClient.META_CAKEAGENT_VMNAME, value: name)
+
+		if let shellUser {
+			callOptions.customMetadata.add(name: CakedServiceClient.META_CAKEAGENT_SHELLUSER, value: shellUser)
+		}
 
 		return try await handler.stream(command: command) {
 			return self.execute(callOptions: callOptions, handler: handler.handleResponse)
@@ -123,6 +134,7 @@ extension CakedServiceClient {
 
 	public func exec(
 		name: String,
+		shellUser: String?,
 		command: String,
 		arguments: [String],
 		inputHandle: FileHandle = FileHandle.standardInput,
@@ -130,17 +142,18 @@ extension CakedServiceClient {
 		errorHandle: FileHandle = FileHandle.standardError,
 		callOptions: CallOptions? = nil
 	) async throws -> Int32 {
-		return try await self.exec(name: name, command: .execute(command, arguments), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
+		return try await self.exec(name: name, shellUser: shellUser, command: .execute(command, arguments), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
 	}
 
 	public func shell(
 		name: String,
+		shellUser: String?,
 		inputHandle: FileHandle = FileHandle.standardInput,
 		outputHandle: FileHandle = FileHandle.standardOutput,
 		errorHandle: FileHandle = FileHandle.standardError,
 		callOptions: CallOptions? = nil
 	) async throws -> Int32 {
-		return try await self.exec(name: name, command: .shell(), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
+		return try await self.exec(name: name, shellUser: shellUser, command: .shell(), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
 	}
 
 	/// Creates a local VNC tunnel server and forwards connections to the remote VM
@@ -185,7 +198,7 @@ private final class VNCTunnelHandler: ChannelInboundHandler, Identifiable {
 
 		// Create gRPC call options with VM name header
 		let callOptions = CallOptions(
-			customMetadata: .init([("CAKEAGENT_VMNAME", vmName)]),
+			customMetadata: .init([(CakedServiceClient.META_CAKEAGENT_VMNAME, vmName)]),
 			timeLimit: .none
 		)
 

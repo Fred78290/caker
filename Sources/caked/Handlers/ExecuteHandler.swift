@@ -21,6 +21,7 @@ struct ExecuteHandler: CakedCommandAsync {
 	let requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>
 	let responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>
 	let vmname: String
+	let shellUser: String?
 	let client: CakeAgentConnection
 
 	init(provider: CakedProvider, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) throws {
@@ -34,11 +35,12 @@ struct ExecuteHandler: CakedCommandAsync {
 		self.requestStream = requestStream
 		self.responseStream = responseStream
 		self.vmname = vmname
+		self.shellUser = context.request.headers.first(name: CakedServiceClient.META_CAKEAGENT_SHELLUSER)
 	}
 
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		do {
-			try await CakedLib.ExecuteHandler.execute(on: on, runMode: runMode, requestStream: requestStream, responseStream: responseStream, vmname: vmname, client: client)
+			try await CakedLib.ExecuteHandler.execute(on: on, runMode: runMode, requestStream: requestStream, responseStream: responseStream, vmname: vmname, shellUser: shellUser, client: client)
 		} catch {
 			return replyError(error: error)
 		}

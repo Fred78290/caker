@@ -13,8 +13,8 @@ import NIO
 import CakeAgentLib
 import SwiftUI
 
-public struct ExecuteHandler {
-	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) async throws {
+public struct ExecuteHandler {	
+	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, shellUser: String?, client: CakeAgentConnection) async throws {
 		var vmname = vmname
 
 		if vmname == String.empty {
@@ -31,6 +31,7 @@ public struct ExecuteHandler {
 		}
 
 		let location: VMLocation = try StorageLocation(runMode: runMode).find(vmname)
+		let shellUser = shellUser ?? (try? location.config().configuredUser)
 
 		if case .stopped = location.status {
 			Logger(self).info("Starting \(vmname)")
@@ -42,6 +43,6 @@ public struct ExecuteHandler {
 			}
 		}
 
-		try await client.execute(requestStream: requestStream, responseStream: responseStream, user: try? location.config().configuredUser)
+		try await client.execute(requestStream: requestStream, responseStream: responseStream, user: shellUser)
 	}
 }

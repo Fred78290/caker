@@ -9358,6 +9358,17 @@
         }
       }
     },
+    "Login user" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisateur de connexion"
+          }
+        }
+      }
+    },
     "Logout from a registry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18472,6 +18483,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La bibliothèque est à jour"
+          }
+        }
+      }
+    },
+    "The login user in guest used for shell, default is configured user" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'utilisateur de connexion dans guest utilisé pour le shell, par défaut c’est l’utilisateur configuré."
           }
         }
       }
