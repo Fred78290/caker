@@ -350,7 +350,11 @@ extension UTType {
 	var isVoiceOverActived: Bool = false
 	var hasRecordedActions: Bool = false
 	var vncURL: [URL]? = nil
-	var agentReady: Bool = false
+	var agentReady: Bool = false {
+		didSet {
+			self.logger.debug("Agent ready for \(self.name): \(self.agentReady)")
+		}
+	}
 	var connection: VNCConnection! = nil
 	var vncTunnel: VNCTunnel? = nil
 	var vncStatus: VncStatus = .disconnected
@@ -368,6 +372,8 @@ extension UTType {
 
 	var agent = AgentStatus.none {
 		didSet {
+			self.logger.debug("Agent state for \(self.name): \(self.agent)")
+
 			guard AppState.sharedLoaded else {
 				return
 			}
@@ -380,10 +386,19 @@ extension UTType {
 
 	var status: Status = .none {
 		didSet {
+			self.logger.debug("Set status for \(self.name): \(self.status)")
+
 			self.updateSeamlessTunnel()
 
 			guard AppState.sharedLoaded else {
 				return
+			}
+
+			// Start agent monitoring when VM is running
+			if self.status == .running {
+				startAgentMonitoring()
+			} else if self.status == .stopped || self.status == .deleted {
+				stopAgentMonitoring()
 			}
 
 			if let vm = self.virtualMachine {
@@ -494,18 +509,6 @@ extension UTType {
 		// live) catches the write as a real event moments later.
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.status = .init(location.status)
-
-		// If the PID file already existed by the time the monitor above started watching (the VM
-		// was fully up before this document was even created — plausible for the same reason the
-		// status race above is), no "file added" event will ever fire for it: a `FileMonitor` only
-		// delivers changes that happen *after* it starts, not a backlog of what's already on disk.
-		// `fileDidChanged`'s own `.caked`-mode handling (the only place that otherwise starts agent
-		// monitoring for this run mode) would then never run at all, leaving agent readiness
-		// unnoticed indefinitely. Starting it directly here too is safe — `startAgentMonitoring()`
-		// is a no-op once a monitoring task already exists.
-		if self.status == .running {
-			self.startAgentMonitoring()
-		}
 	}
 
 	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
@@ -749,8 +752,6 @@ extension VirtualMachineDocument {
 		self.agentReady = false
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
-		// Start agent monitoring when VM is running
-		self.startAgentMonitoring()
 		AppState.shared.openVirtualMachineDocument(self)
 	}
 
@@ -909,9 +910,6 @@ extension VirtualMachineDocument {
 			}
 
 			retrieveVNCURL()
-
-			// Start agent monitoring if VM is running
-			self.startAgentMonitoring()
 
 			return location.rootURL
 		} catch {
@@ -1583,19 +1581,6 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 							self.externalRunning = true
 							self.status = .running
 							self.retrieveVNCURL()
-							// Unlike the `.caker` case below (which goes through `setStateAsRunning`,
-							// always starting agent monitoring as part of it), this branch used to
-							// depend entirely on `retrieveVNCURL()` happening to call
-							// `setStateAsRunning` as a side effect of successfully fetching VNC info —
-							// itself an unrelated concern. If that VNC lookup failed or wasn't ready
-							// yet at this exact moment (the only time this event fires), agent
-							// monitoring silently never started at all: a `.caked`-mode VM — exactly
-							// what a background `caked vmrun` process reports, which is what `compose
-							// up` launches — could sit fully running with the agent long since ready,
-							// while this document stayed stuck never noticing. Called directly and
-							// unconditionally here instead; safe to also reach via `retrieveVNCURL()`
-							// afterward, since `startAgentMonitoring()` is a no-op once already running.
-							self.startAgentMonitoring()
 						case .caker:
 							self.externalRunning = false
 							self.setStateAsRunning(.running, vncURL: nil)
