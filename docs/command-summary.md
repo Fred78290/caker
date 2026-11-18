@@ -202,6 +202,24 @@ caked record my-vm --output ./mon-template.packerlite.yaml
 
 **Voir la page dédiée [Provisioning & Recording](provisioning#provision-fr)** pour le détail complet : résolution de version/plateforme stockée par la VM, options, l'enregistrement vidéo de débogage automatique du provisioning, et pour `record` — pause/reprise, clics assistés par OCR (mode repérage), le repli des délais dans `timeout=`, le routage `pre_boot_command` pour Linux, et le format du fichier produit.
 
+### `exec` et `sh` : l'utilisateur dans l'invité
+
+`caked`/`cakectl` `exec` et `sh` s'exécutent dans l'invité **sous le compte configuré de la VM** (celui de `--user` à la construction, `admin` par défaut), **et non plus en root**. L'agent tourne en root dans l'invité Linux ; il démarre le shell ou la commande avec les uid, gid et groupes de ce compte, `HOME`, `USER`, `SHELL`, `XDG_RUNTIME_DIR` et la propriété du terminal. Pour une VM avec les [fenêtres seamless](https://github.com/Fred78290/cakeagent/wiki/seamless-windows), c'est aussi ce qui permet à un programme graphique lancé depuis ce shell de s'ouvrir sur l'hôte : le compositeur appartient à l'utilisateur, pas à root.
+
+L'option `--user <nom>` choisit un autre compte :
+
+```bash
+cakectl exec myvm -- id                  # sous le compte configuré de la VM (pas root)
+cakectl exec --user root myvm -- id      # explicitement root
+cakectl sh --user bob myvm               # shell de l'utilisateur bob
+cakectl exec myvm -- sudo apt update     # une commande qui exige root : sudo dans l'invité
+```
+
+- Pour obtenir root, passez `--user root` ou utilisez `sudo` dans l'invité : un script qui supposait root par défaut doit être adapté.
+- Si le compte n'existe pas dans l'invité, la commande échoue avec un message explicite au lieu de retomber sur root.
+- Un utilisateur autre que celui de la VM obtient, pour une VM seamless, son propre compositeur de fenêtres à la demande (ses fenêtres portent le préfixe `<utilisateur> :`).
+- Cela demande un cakeagent récent dans l'invité Linux (v1.0.310 ou plus). Les invités macOS (agent Swift) et Windows ignorent `--user` et gardent le compte de l'agent ; un agent ancien aussi.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -623,6 +641,24 @@ caked record my-vm --output ./my-template.packerlite.yaml
 ```
 
 **See the dedicated [Provisioning & Recording](provisioning#provision)** page for the full detail: resolving the VM's stored version/platform, options, the automatic provisioning debug video recording, and for `record` — pause/resume, OCR-assisted clicks (locate mode), folding wait gaps into `timeout=`, `pre_boot_command` routing for Linux, and the format of the produced file.
+
+### `exec` and `sh`: the user inside the guest
+
+`caked`/`cakectl` `exec` and `sh` run in the guest **as the VM's configured account** (the one from `--user` at build time, `admin` by default), **not as root any more**. The agent runs as root in a Linux guest; it starts the shell or command with that account's uid, gid and groups, `HOME`, `USER`, `SHELL`, `XDG_RUNTIME_DIR` and ownership of the terminal. For a VM with [seamless windows](https://github.com/Fred78290/cakeagent/wiki/seamless-windows) that is also what lets a graphical program started from that shell open on the host: the compositor belongs to the user, not to root.
+
+`--user <name>` picks another account:
+
+```bash
+cakectl exec myvm -- id                  # as the VM's configured account (not root)
+cakectl exec --user root myvm -- id      # explicitly root
+cakectl sh --user bob myvm               # bob's shell
+cakectl exec myvm -- sudo apt update     # a command that needs root: sudo inside the guest
+```
+
+- To get root pass `--user root` or use `sudo` in the guest: a script that assumed root by default needs adapting.
+- If the account does not exist in the guest the command fails with an explicit message instead of falling back to root.
+- For a seamless VM, a user other than the VM's own gets a window compositor of their own on demand (their windows are titled `<user>: `).
+- This needs a recent cakeagent in the Linux guest (v1.0.310 or later). macOS guests (the Swift agent) and Windows guests ignore `--user` and keep the agent's own account, and so does an older agent.
 
 ## Notes
 
