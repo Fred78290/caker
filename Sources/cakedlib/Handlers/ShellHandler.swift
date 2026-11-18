@@ -296,9 +296,26 @@ public struct ShellHandler {
 					self.logger.debug("Start shell, VM: \(self.name)")
 
 					try self.cakedShellStream.withLock {
-						$0 = try self.serviceClient.shell(name: self.name, shellUser: self.shellUser, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
+						let shellStream = try self.serviceClient.shell(name: self.name, shellUser: self.shellUser, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
 							continuation.yield(ExecuteResponse(response))
 						}
+
+						// Finish the stream when the gRPC call terminates (daemon restarted, connection lost, ...)
+						// otherwise consumers wait forever on a dead stream and never reconnect.
+						shellStream.status.whenComplete { result in
+							switch result {
+							case .success(let status):
+								if status.isOk {
+									continuation.finish()
+								} else {
+									continuation.finish(throwing: status)
+								}
+							case .failure(let error):
+								continuation.finish(throwing: error)
+							}
+						}
+
+						$0 = shellStream
 
 						self.logger.debug("Shell started, VM: \(self.name)")
 					}
@@ -476,6 +493,21 @@ public struct ShellHandler {
 
 						let shellStream = helper.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
 							continuation.yield(ExecuteResponse(response))
+						}
+
+						// Finish the stream when the gRPC call terminates (agent updated/restarted, connection lost, ...)
+						// otherwise consumers wait forever on a dead stream and never reconnect.
+						shellStream.status.whenComplete { result in
+							switch result {
+							case .success(let status):
+								if status.isOk {
+									continuation.finish()
+								} else {
+									continuation.finish(throwing: status)
+								}
+							case .failure(let error):
+								continuation.finish(throwing: error)
+							}
 						}
 
 						shellStream.sendTerminalSize(rows: self.terminalSize.rows, cols: self.terminalSize.cols)

@@ -127,6 +127,9 @@ class InteractiveShell {
 		await withTaskCancellationHandler(
 			operation: {
 				defer {
+					// Always reset the task, otherwise startShell() would never be able to start a new shell
+					self.task = nil
+
 					self.closeShell {
 						self.logger.debug("Shell ended, VM: \(self.name)")
 					}
@@ -147,20 +150,23 @@ class InteractiveShell {
 						}
 						self.logger.debug("Shell stream closed, VM: \(self.name)")
 					} catch {
-						guard self.handleAgentHealthCheckFailure(error: error) else {
-							return
-						}
-
-						self.closeShell()
-
-						self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
-
-						try? await Task.sleep(nanoseconds: 1_000_000_000)
+						// Whatever the error is (agent updated/restarted, connection refused, ...) keep trying to reconnect
+						self.handleAgentHealthCheckFailure(error: error)
 					}
+
+					// The stream is over (normally or not): release it and reconnect
+					self.releaseShellStream()
+
+					guard Task.isCancelled == false && self.cancelled == false else {
+						break
+					}
+
+					self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
+
+					try? await Task.sleep(nanoseconds: 1_000_000_000)
 				}
 
 				self.logger.debug("Leave shell run loop, VM: \(self.name)")
-				self.task = nil
 			},
 			onCancel: {
 				self.logger.debug("Shell cancelled, VM: \(self.name)")
@@ -169,6 +175,17 @@ class InteractiveShell {
 			})
 	}
 
+	/// Close the current shell stream without touching the terminal view, so a reconnection keeps displaying in it.
+	private func releaseShellStream() {
+		guard let shellStream else {
+			return
+		}
+
+		self.shellStream = nil
+		shellStream.closeShell()
+	}
+
+	@discardableResult
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
 		self.logger.debug("VM \(self.name) shell is not ready \(error)")
 
