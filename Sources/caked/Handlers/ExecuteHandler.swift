@@ -24,10 +24,10 @@ struct ExecuteHandler: CakedCommandAsync {
 	let client: CakeAgentConnection
 
 	init(provider: CakedProvider, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) throws {
-		guard let vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			Logger("ExecuteHandler").error("no CAKEAGENT_VMNAME header")
+		guard let vmname = context.request.headers.first(name: CakedServiceClient.META_CAKEAGENT_VMNAME) else {
+			Logger("ExecuteHandler").error("no \(CakedServiceClient.META_CAKEAGENT_VMNAME) header")
 
-			throw ServiceError(String(localized: "no CAKEAGENT_VMNAME header"))
+			throw ServiceError(String(localized: "no \(CakedServiceClient.META_CAKEAGENT_VMNAME) header"))
 		}
 
 		self.client = try provider.createCakeAgentConnection(vmName: vmname)

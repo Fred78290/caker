@@ -68,6 +68,9 @@ public final class VNCTunnel {
 }
 
 extension CakedServiceClient {
+	public static let META_CAKEAGENT_VMNAME = "CAKEAGENT_VMNAME"
+	public static let META_CAKEAGENT_SHELLUSER = "CAKEAGENT_SHELLUSER"
+
 	public func stopService(timeout: Int64 = 5) throws {
 		_ = try self.stopService(Caked_Empty(), callOptions: CallOptions(timeLimit: .timeout(.seconds(timeout)))).response.wait()
 	}

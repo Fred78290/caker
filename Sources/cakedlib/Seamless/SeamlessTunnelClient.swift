@@ -39,7 +39,7 @@ public final class SeamlessTunnelClient: @unchecked Sendable {
 
 		self.local = pair[0]
 
-		let options = CallOptions(customMetadata: .init([("CAKEAGENT_VMNAME", vmName)]), timeLimit: .none)
+		let options = CallOptions(customMetadata: .init([(CakedServiceClient.META_CAKEAGENT_VMNAME, vmName)]), timeLimit: .none)
 
 		let call = client.seamlessTunnel(callOptions: options) { [weak self] response in
 			guard let self, response.stream.isEmpty == false else { return }

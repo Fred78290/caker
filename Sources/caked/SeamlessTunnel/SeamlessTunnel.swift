@@ -70,10 +70,10 @@ final class SeamlessTunnel: @unchecked Sendable {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
-		guard let vmName = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			self.logger.error("no CAKEAGENT_VMNAME header")
+		guard let vmName = context.request.headers.first(name: CakedServiceClient.META_CAKEAGENT_VMNAME) else {
+			self.logger.error("no \(CakedServiceClient.META_CAKEAGENT_VMNAME) header")
 
-			throw ServiceError(String(localized: "no CAKEAGENT_VMNAME header"))
+			throw ServiceError(String(localized: "no \(CakedServiceClient.META_CAKEAGENT_VMNAME) header"))
 		}
 
 		// What a client can act on is a status with its message, not an "internal error".
