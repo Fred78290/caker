@@ -1651,10 +1651,14 @@ extension VirtualMachine {
 		}
 	}
 
-	public func restartFromUI() {
+	public func restartFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
-			self._stopVM { result in
-				self.startFromUI()
+			self._stopVM { error in
+				if let error {
+					completionHandler?(.failure(error))
+				} else {
+					self.startFromUI(completionHandler: completionHandler)
+				}
 			}
 		}
 	}

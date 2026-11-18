@@ -279,6 +279,9 @@ extension UTType {
 	/// Identifies the start (or resume) in flight. `cancelPendingStart()` clears it, so a start that
 	/// completes afterwards sees it no longer matches and stops the VM instead of marking it running.
 	private var startToken: UUID?
+	/// True while an embedded VM is being restarted (stop then start). The stop removes the PID file, and without this the
+	/// file watcher would treat it as a real stop and drop `virtualMachine`, leaving the view on "Virtual machine not loaded".
+	private var isRestarting = false
 	private var inView: Bool = false
 	/// When this document last wrote its own configuration (see `saveConfiguration(_:)`). File
 	/// events are delivered asynchronously, after the save has returned, so a flag cleared at the
@@ -1136,7 +1139,18 @@ extension VirtualMachineDocument {
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
-			virtualMachine.restartFromUI()
+			self.isRestarting = true
+
+			virtualMachine.restartFromUI { result in
+				DispatchQueue.main.async {
+					self.isRestarting = false
+
+					if case .failure(let error) = result {
+						self.setStateAsStopped()
+						alertError(error)
+					}
+				}
+			}
 		}
 	}
 
@@ -1592,6 +1606,11 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 							break
 						}
 					case .stopped:
+						// The PID file is removed by the stop half of a restart: the VM is coming back, keep it loaded.
+						guard self.isRestarting == false else {
+							break
+						}
+
 						self.externalRunning = false
 						self.setStateAsStopped()
 					default:
