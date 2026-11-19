@@ -1108,35 +1108,12 @@ extension VirtualMachineConfiguration {
 		}.directorySharingAttachments(os: self.os)
 	}
 
-	/// Unix socket the seamless windows server listens on, the target of the guest's vsock connection. It sits in the
-	/// VM's directory, or in a short temporary path when that one would not fit in a `sockaddr_un` (104 bytes).
-	public var seamlessSocketPath: String? {
-		let path = self.locationURL.appendingPathComponent("seamless.sock").path(percentEncoded: false)
-
-		if path.utf8.count < 100 {
-			return path
-		}
-
-		// FNV-1a: stable across processes, unlike hashValue.
-		let hash = path.utf8.reduce(UInt32(2_166_136_261)) { ($0 ^ UInt32($1)) &* 16_777_619 }
-
-		for directory in ["/tmp", NSTemporaryDirectory()] {
-			let candidate = (directory as NSString).appendingPathComponent(String(format: "caker-seamless-%08x.sock", hash))
-
-			if candidate.utf8.count < 100 {
-				return candidate
-			}
-		}
-
-		return nil
-	}
-
 	/// Whether this guest can show its windows on the host: a Linux guest that asked for it.
 	public var supportsSeamlessWindows: Bool {
 		self.seamless && self.os == .linux && self.isWindowsGuest == false
 	}
 
-	public func socketDeviceAttachments(agentURL: URL) throws -> [SocketDevice] {
+	public func socketDeviceAttachments(agentURL: URL, seamlessSocketURL: URL) throws -> [SocketDevice] {
 		let vsock = agentURL.absoluteURL.path(percentEncoded: false)
 		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: VMLocation.defaultAgentListenPort, bind: vsock)]
 
@@ -1162,16 +1139,13 @@ extension VirtualMachineConfiguration {
 
 		// The guest compositor connects to the host's seamless windows server through this socket device.
 		if self.supportsSeamlessWindows {
-			if let path = self.seamlessSocketPath {
-				let seamless = SocketDevice(mode: .connect, port: SeamlessProtocol.defaultVsockPort, bind: path)
+			let path = seamlessSocketURL.path(percentEncoded: false)
+			let seamless = SocketDevice(mode: .connect, port: SeamlessProtocol.defaultVsockPort, bind: path)
 
-				if Bundle.fileAccessRestricted && Utilities.isSandboxedPath(path, runMode: .current) == false {
-					Logger(self).warn(".fileAccessRestricted is enabled, skipping seamless windows socket: \(seamless.description)")
-				} else {
-					sockets.append(seamless)
-				}
+			if Bundle.fileAccessRestricted && Utilities.isSandboxedPath(path, runMode: .current) == false {
+				Logger(self).warn(".fileAccessRestricted is enabled, skipping seamless windows socket: \(seamless.description)")
 			} else {
-				Logger(self).warn("No usable socket path for seamless windows, they are disabled for this run")
+				sockets.append(seamless)
 			}
 		}
 

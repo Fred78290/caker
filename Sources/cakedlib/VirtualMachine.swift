@@ -349,7 +349,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 
 		if mode == .normal {
-			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
+			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL, seamlessSocketURL: location.seamlessSocketURL)
 			let consoleURL = try config.consoleAttachment()
 
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
@@ -1517,8 +1517,7 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 			return
 		}
 
-		guard let path = self.config.seamlessSocketPath else { return }
-
+		let socketPath = self.location.seamlessSocketURL.path(percentEncoded: false)
 		let name = self.location.name
 		let request = self.env.nextSeamlessRequest()
 
@@ -1532,11 +1531,11 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 			self.env.seamlessWindows = nil
 
 			do {
-				let manager = SeamlessWindowManager(vmName: name, displayMode: self.env.display, socketPath: path)
+				let manager = SeamlessWindowManager(vmName: name, displayMode: self.env.display, socketPath: socketPath)
 
 				try manager.start()
 				self.env.seamlessWindows = manager
-				self.logger.info("VM \(name): seamless windows listening on \(path)")
+				self.logger.info("VM \(name): seamless windows listening on \(socketPath)")
 			} catch {
 				self.logger.error("VM \(name): cannot start seamless windows: \(error)")
 			}

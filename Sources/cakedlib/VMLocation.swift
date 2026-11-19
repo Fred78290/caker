@@ -238,6 +238,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "svc")
 	}
 
+	public var seamlessSocketURL: URL {
+		return rootURL.resolvingSymlinksInPath().socketPath(name: "smls")
+	}
+
 	public var name: String {
 		rootURL.deletingPathExtension().lastPathComponent
 	}

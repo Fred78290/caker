@@ -63,11 +63,12 @@ final class SeamlessIntegrationTests: XCTestCase {
 		let config = try makeConfig(seamless: true)
 		let agent = config.locationURL.appendingPathComponent("agent.sock")
 
-		let sockets = try config.socketDeviceAttachments(agentURL: agent)
+		let location = VMLocation(rootURL: config.locationURL)
+		let sockets = try config.socketDeviceAttachments(agentURL: agent, seamlessSocketURL: location.seamlessSocketURL)
 		let seamless = try XCTUnwrap(sockets.first { $0.port == SeamlessProtocol.defaultVsockPort })
 
 		XCTAssertEqual(seamless.mode, .connect)
-		XCTAssertEqual(seamless.bind, config.seamlessSocketPath)
+		XCTAssertEqual(seamless.bind, location.seamlessSocketURL.path(percentEncoded: false))
 		XCTAssertLessThan(seamless.bind.utf8.count, 104)
 		// The agent's own socket is still there.
 		XCTAssertTrue(sockets.contains { $0.port == VMLocation.defaultAgentListenPort })
@@ -75,7 +76,8 @@ final class SeamlessIntegrationTests: XCTestCase {
 
 	func testNoSeamlessSocketWhenDisabled() throws {
 		let config = try makeConfig(seamless: false)
-		let sockets = try config.socketDeviceAttachments(agentURL: config.locationURL.appendingPathComponent("agent.sock"))
+		let location = VMLocation(rootURL: config.locationURL)
+		let sockets = try config.socketDeviceAttachments(agentURL: config.locationURL.appendingPathComponent("agent.sock"), seamlessSocketURL: location.seamlessSocketURL)
 
 		XCTAssertFalse(sockets.contains { $0.port == SeamlessProtocol.defaultVsockPort })
 	}
@@ -87,13 +89,14 @@ final class SeamlessIntegrationTests: XCTestCase {
 		try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 		defer { try? FileManager.default.removeItem(at: base) }
 
-		let config = Self.config(at: dir, os: .linux, user: "admin")
-		let path = try XCTUnwrap(config.seamlessSocketPath)
+		// The path comes from the VM's location (the same one for the server, the tunnel and the socket device).
+		let location = VMLocation(rootURL: dir)
+		let path = location.seamlessSocketURL.path(percentEncoded: false)
 
-		XCTAssertLessThan(path.utf8.count, 100)
-		XCTAssertTrue(path.hasSuffix(".sock"))
-		// Stable: the server and the socket device compute it separately.
-		XCTAssertEqual(path, config.seamlessSocketPath)
+		XCTAssertLessThan(path.utf8.count, 104)
+		XCTAssertTrue(path.hasSuffix(".smls"), path)
+		// Stable: computed separately by each user of it.
+		XCTAssertEqual(path, VMLocation(rootURL: dir).seamlessSocketURL.path(percentEncoded: false))
 	}
 
 	// MARK: - Agent service flags

@@ -136,21 +136,24 @@ final class SeamlessTunnel: @unchecked Sendable {
 		}
 
 		// What a client can act on is a status with its message, not an "internal error".
+		let location: VMLocation
 		let config: CakeConfig
 
 		do {
-			config = try StorageLocation(runMode: self.runMode).find(vmName).config()
+			location = try StorageLocation(runMode: self.runMode).find(vmName)
+			config = try location.config()
 		} catch {
 			throw GRPCStatus(code: .notFound, message: error.reason)
 		}
 
-		guard config.supportsSeamlessWindows, let path = config.seamlessSocketPath else {
+		guard config.supportsSeamlessWindows else {
 			throw GRPCStatus(code: .failedPrecondition, message: String(format: String(localized: "VM %@ does not have seamless windows enabled"), vmName))
 		}
 
 		// Caker.app or a process with a UI already shows them: two listeners would fight over the socket. Only a lock
 		// held by another process says that: a lock file that can't be opened is a setup problem to report as such.
 		let lock: Int32
+		let path = location.seamlessSocketURL.path(percentEncoded: false)
 
 		switch SeamlessServer.tryAcquireListenerLock(for: path) {
 		case .acquired(let descriptor):
