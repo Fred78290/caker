@@ -210,7 +210,7 @@ struct VMRun: AsyncParsableCommand {
 		if display == .ui || display == .all {
 			MainApp.runUI(vm, params: handler, cancellation: cancellable)
 		} else if seamless {
-			NSApplication.shared.setActivationPolicy(.accessory)
+			NSApplication.shared.setActivationPolicy(.prohibited)
 			NSApplication.shared.run()
 		} else {
 			await semaphore.wait()
