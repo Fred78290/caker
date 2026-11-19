@@ -121,6 +121,11 @@ if [[ -f "${WIKI_DIR}/provisioning.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/provisioning.md" "${DOCS_DIR}/provisioning.md" "Provisioning & Recording" "14"
 fi
 
+# Seamless windows (nav_order: 15)
+if [[ -f "${WIKI_DIR}/seamless-windows.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/seamless-windows.md" "${DOCS_DIR}/seamless-windows.md" "Seamless windows" "15"
+fi
+
 # Privacy Policy (nav_order: 99)
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"
