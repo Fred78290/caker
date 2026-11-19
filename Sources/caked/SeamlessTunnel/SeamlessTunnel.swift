@@ -85,7 +85,7 @@ final class SeamlessTunnel: @unchecked Sendable {
 		}
 
 		func withLock<R>(_ body: (inout Value) -> R) -> R {
-			self.storage.withLock(body)
+			self.storage.withLock { body(&$0) }
 		}
 	}
 
