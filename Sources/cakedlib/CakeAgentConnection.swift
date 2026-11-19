@@ -514,12 +514,38 @@ public final class CakeAgentConnection: Sendable {
 				continuation.yield(.init(response))
 			})
 
+			// The agent's side of the call is over whether or not it sent an exit code (a rejected request, a lost
+			// connection): the relay ends with it. Without this the agent-to-client loop waits for a response that
+			// never comes, and the call stays open for as long as the client keeps its input open.
+			streamShell.status.whenComplete { _ in
+				continuation.finish()
+			}
+
 			defer {
 				#if DEBUG
 				self.logger.debug("Send end to agent")
 				#endif
 				streamShell.sendEnd(promise: nil)
 			}
+
+			final class Done: @unchecked Sendable {
+				private let lock = NSLock()
+				private var value = false
+
+				var isSet: Bool {
+					lock.lock()
+					defer { lock.unlock() }
+					return value
+				}
+
+				func set() {
+					lock.lock()
+					value = true
+					lock.unlock()
+				}
+			}
+
+			let agentDone = Done()
 
 			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 				group.addTask {
@@ -554,7 +580,9 @@ public final class CakeAgentConnection: Sendable {
 							}
 						}
 					} catch {
-						self.logger.error("Error forward task from client to agent: \(error)")
+						if error is CancellationError == false {
+							self.logger.error("Error forward task from client to agent: \(error)")
+						}
 
 						if handleFailure(error) {
 							try? await responseStream.send(.with {
@@ -608,9 +636,16 @@ public final class CakeAgentConnection: Sendable {
 					#if DEBUG
 					self.logger.debug("Leave forward from agent to client")
 					#endif
+
+					agentDone.set()
 				}
 
-				try await group.waitForAll()
+				// The client's input may stay open after the agent is done: stop reading it then, so the group can end.
+				while try await group.next() != nil {
+					if agentDone.isSet {
+						group.cancelAll()
+					}
+				}
 
 				
 				if interceptor.errorCaught.load() == nil && exitCodeSent == false {

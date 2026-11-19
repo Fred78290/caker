@@ -49,7 +49,7 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 	}
 
 	init(_ location: VMLocation, operationId: String, context: LXDExecContext) throws {
-		let shellUser = try? location.config().configuredUser
+		let shellUser = try location.config().configuredUser
 
 		self.operationId = operationId
 		self.context = context

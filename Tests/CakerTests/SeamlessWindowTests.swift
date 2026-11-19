@@ -254,6 +254,7 @@ final class SeamlessWindowTests: XCTestCase {
 
 		XCTAssertEqual(SeamlessKeyMap.evdev(forMacKeyCode: 0), 30)  // A
 		XCTAssertEqual(SeamlessKeyMap.evdev(forMacKeyCode: 36), 28)  // Return
+		XCTAssertEqual(SeamlessKeyMap.evdev(forMacKeyCode: 10), 86)  // ISO key next to Left Shift
 		XCTAssertEqual(SeamlessKeyMap.evdev(forMacKeyCode: 49), 57)  // Space
 		XCTAssertEqual(SeamlessKeyMap.evdev(forMacKeyCode: 126), 103)  // Up
 		XCTAssertEqual(SeamlessKeyMap.evdev(forMacKeyCode: 55), 125)  // Left command -> Super
@@ -508,6 +509,26 @@ final class SeamlessWindowTests: XCTestCase {
 		let again = try XCTUnwrap(SeamlessServer.acquireListenerLock(for: path), "the lock is free again once released")
 
 		SeamlessServer.releaseListenerLock(again)
+	}
+
+	func testListenerLockTellsContentionFromASetupFailure() throws {
+		let path = "/tmp/seamless-\(UUID().uuidString.prefix(8)).sock"
+		defer { unlink(path + ".lock") }
+
+		guard case .acquired(let first) = SeamlessServer.tryAcquireListenerLock(for: path) else { return XCTFail("a free lock must be acquired") }
+
+		if case .contended = SeamlessServer.tryAcquireListenerLock(for: path) {
+		} else {
+			XCTFail("a lock held by someone else is contention")
+		}
+
+		SeamlessServer.releaseListenerLock(first)
+
+		// The directory does not exist: nobody shows the windows, the setup is what is wrong
+		if case .failed = SeamlessServer.tryAcquireListenerLock(for: "/tmp/seamless-missing-\(UUID().uuidString.prefix(8))/guest.sock") {
+		} else {
+			XCTFail("a lock file that can't be opened is not contention")
+		}
 	}
 
 	func testServerRefusesToListenWhereAnotherListenerOwnsTheSocket() throws {

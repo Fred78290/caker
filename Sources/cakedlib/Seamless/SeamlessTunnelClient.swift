@@ -18,6 +18,14 @@ public final class SeamlessTunnelClient: @unchecked Sendable {
 	private var local: Int32 = -1
 	private var stream: BidirectionalStreamingCall<Caked_SeamlessStream, Caked_SeamlessStream>?
 	private var ended = false
+	/// Writes to `local` in flight: the descriptor is closed once none can use it, a closed number could be reused.
+	private var activeWrites = 0
+	private var closePending = false
+	/// What the service sent and the window manager has not read yet. The gRPC callback API can't pause delivery, so
+	/// a manager that stops reading would make this grow without bound: past the budget the tunnel ends instead
+	/// (bytes can't be dropped from a framed stream), and the client connects again.
+	private var queuedBytes = 0
+	private static let maxQueuedBytes = 16 * 1024 * 1024
 
 	public init() {}
 
@@ -43,6 +51,18 @@ public final class SeamlessTunnelClient: @unchecked Sendable {
 
 		let call = client.seamlessTunnel(callOptions: options) { [weak self] response in
 			guard let self, response.stream.isEmpty == false else { return }
+
+			self.lock.lock()
+			self.queuedBytes += response.stream.count
+			let overflow = self.queuedBytes > Self.maxQueuedBytes
+			self.lock.unlock()
+
+			if overflow {
+				self.logger.warn("Seamless tunnel: the window manager does not read, ending the tunnel")
+				self.close()
+
+				return
+			}
 
 			self.writeQueue.async { self.write(response.stream) }
 		}
@@ -118,11 +138,18 @@ public final class SeamlessTunnelClient: @unchecked Sendable {
 			chunk.deallocate()
 
 			self.lock.lock()
-			self.local = -1
 			let call = self.stream
+
+			if self.activeWrites > 0 {
+				// A write is still in flight: the last one to leave closes the descriptor.
+				self.closePending = true
+			} else {
+				self.local = -1
+				Darwin.close(descriptor)
+			}
+
 			self.lock.unlock()
 
-			Darwin.close(descriptor)
 			call?.sendEnd(promise: nil)
 		}
 
@@ -153,7 +180,28 @@ public final class SeamlessTunnelClient: @unchecked Sendable {
 	private func write(_ data: Data) {
 		self.lock.lock()
 		let descriptor = self.ended ? -1 : self.local
+
+		if descriptor >= 0 {
+			self.activeWrites += 1
+		}
+
 		self.lock.unlock()
+
+		defer {
+			self.lock.lock()
+			self.queuedBytes = max(0, self.queuedBytes - data.count)
+
+			if descriptor >= 0 {
+				self.activeWrites -= 1
+
+				if self.activeWrites == 0 && self.closePending && self.local >= 0 {
+					Darwin.close(self.local)
+					self.local = -1
+				}
+			}
+
+			self.lock.unlock()
+		}
 
 		guard descriptor >= 0 else { return }
 

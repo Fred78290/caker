@@ -202,8 +202,9 @@ elif [ $UPDATE -eq 1 ]; then
 		--listen="vsock://any:${LISTEN_PORT}" \
 		--ca-cert="${CA}" \
 		--tls-cert="${SERVER}" \
-		--tls-key="${KEY}" ${LINUX_MOUNTS} || echo "CakeAgent service reinstall reported an error"
-	/usr/local/bin/cakeagent service start || true
+		--tls-key="${KEY}" ${LINUX_MOUNTS} || { echo "CakeAgent service reinstall reported an error"; exit 1; }
+	# The previous flags stay recorded when this fails: the next start tries again
+	/usr/local/bin/cakeagent service start || exit 1
 else
 	mkdir -p /etc/sysconfig
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
@@ -212,7 +213,7 @@ else
 		--listen="vsock://any:${LISTEN_PORT}" \
 		--ca-cert="${CA}" \
 		--tls-cert="${SERVER}" \
-		--tls-key="${KEY}" ${LINUX_MOUNTS}
+		--tls-key="${KEY}" ${LINUX_MOUNTS} || exit 1
 fi
 
 printf '%%s' "${LINUX_MOUNTS}" > "${FLAGS_FILE}"

@@ -85,7 +85,7 @@ if [ -n "$CIDATA" ]; then
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
 	chmod 644 /etc/sysconfig/cakeagent
 	chmod +x /usr/local/bin/cakeagent
-	/usr/local/bin/cakeagent service install --listen=vsock://any:${LISTEN_PORT} --ca-cert=${CA_CERT_PATH} --tls-cert=${TLS_CERT_PATH} --tls-key=${TLS_KEY_PATH} ${LINUX_MOUNTS}
+	/usr/local/bin/cakeagent service install --listen=vsock://any:${LISTEN_PORT} --ca-cert=${CA_CERT_PATH} --tls-cert=${TLS_CERT_PATH} --tls-key=${TLS_KEY_PATH} ${LINUX_MOUNTS} || exit 1
 	# Recorded so that a later install over SSH knows the service flags it was registered with (see ssh-install-cakeagent.sh)
 	printf '%%s' "${LINUX_MOUNTS}" > /etc/cakeagent/service-flags
 else

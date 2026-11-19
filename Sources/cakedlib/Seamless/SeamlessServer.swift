@@ -16,6 +16,8 @@ public final class SeamlessSession: @unchecked Sendable {
 	private let writeQueue = DispatchQueue(label: "com.aldunelabs.caker.seamless.write")
 	private var fd: Int32
 	private var closed = false
+	private var activeWrites = 0
+	private var closePending = false
 	private var protocolVersion = SeamlessProtocol.version
 
 	init(fd: Int32) {
@@ -56,9 +58,28 @@ public final class SeamlessSession: @unchecked Sendable {
 	private func writeAll(_ data: Data) {
 		lock.lock()
 		let descriptor = closed ? -1 : fd
+
+		if descriptor >= 0 {
+			activeWrites += 1
+		}
+
 		lock.unlock()
 
 		guard descriptor >= 0 else { return }
+
+		// The descriptor is only closed once no write can use it: a number closed under a writer could be reused
+		// by the replacement session, and the old session's bytes would go to it.
+		defer {
+			lock.lock()
+			activeWrites -= 1
+
+			if activeWrites == 0 && closePending && fd >= 0 {
+				Darwin.close(fd)
+				fd = -1
+			}
+
+			lock.unlock()
+		}
 
 		var failed = false
 
@@ -100,7 +121,13 @@ public final class SeamlessSession: @unchecked Sendable {
 
 		closed = true
 
-		if fd >= 0 {
+		guard fd >= 0 else { return }
+
+		if activeWrites > 0 {
+			// A writer is still in flight: wake it, the last one to leave closes the descriptor.
+			Darwin.shutdown(fd, SHUT_RDWR)
+			closePending = true
+		} else {
 			Darwin.close(fd)
 			fd = -1
 		}
@@ -125,12 +152,27 @@ public final class SeamlessServer: @unchecked Sendable {
 	private var listenSource: DispatchSourceRead?
 	private var current: SeamlessSession?
 	private var listenerLock: Int32 = -1
+	/// Changes whenever the listener starts or stops: an accept that was already running for an older one must not install a session.
+	private var listenGeneration = 0
 	private var scale: UInt32 = 120
 	private let logger = Logger("SeamlessServer")
 
 	/// Frames decoded but not yet applied by the delegate; the reader waits above this, so a guest that floods
 	/// frames can't make the host buffer without bound.
 	private static let maxFramesInFlight = 8
+
+	/// The same for every other message (titles, hints, cursors...): small, but a flood of them would otherwise
+	/// pile up on the main queue. Messages stay in order, the reader just waits.
+	private static let maxControlMessagesInFlight = 256
+
+	/// The outcome of taking the right to listen on a seamless socket.
+	public enum ListenerLockResult {
+		case acquired(Int32)
+		/// Another process (Caker.app, a `caked vmrun --ui`, a tunnel) already shows the windows of this guest.
+		case contended
+		/// The lock file could not be opened or locked: nothing is shown by anyone, the setup is wrong.
+		case failed(String)
+	}
 
 	public init(socketPath: String, delegate: SeamlessServerDelegate, delegateQueue: DispatchQueue = .main) {
 		self.socketPath = socketPath
@@ -159,8 +201,15 @@ public final class SeamlessServer: @unchecked Sendable {
 	}
 
 	public func start() throws {
-		guard let lockFD = Self.acquireListenerLock(for: socketPath) else {
-			throw ServiceError("seamless: the windows of this VM are already shown by another process (\(socketPath))")
+		let lockFD: Int32
+
+		switch Self.tryAcquireListenerLock(for: socketPath) {
+		case .acquired(let descriptor):
+			lockFD = descriptor
+		case .contended:
+			throw ServiceError(String(format: String(localized: "seamless: the windows of this VM are already shown by another process (%@)"), socketPath))
+		case .failed(let reason):
+			throw ServiceError(String(format: String(localized: "seamless: cannot take the listener lock of %@: %@"), socketPath, reason))
 		}
 
 		let listener = socket(AF_UNIX, SOCK_STREAM, 0)
@@ -201,8 +250,15 @@ public final class SeamlessServer: @unchecked Sendable {
 			throw ServiceError("seamless: cannot bind \(socketPath): \(reason)")
 		}
 
-		// The guest controls what is shown on the desktop, so only this user may connect.
-		chmod(socketPath, 0o600)
+		// The guest controls what is shown on the desktop, so only this user may connect. Nothing accepts before
+		// listen(), and a socket that stays open to others is never published.
+		guard chmod(socketPath, 0o600) == 0 else {
+			let reason = String(cString: strerror(errno))
+			Darwin.close(listener)
+			unlink(socketPath)
+			Self.releaseListenerLock(lockFD)
+			throw ServiceError(String(format: String(localized: "seamless: cannot restrict %@: %@"), socketPath, reason))
+		}
 
 		guard Darwin.listen(listener, 4) == 0 else {
 			let reason = String(cString: strerror(errno))
@@ -216,8 +272,13 @@ public final class SeamlessServer: @unchecked Sendable {
 
 		let source = DispatchSource.makeReadSource(fileDescriptor: listener, queue: DispatchQueue(label: "com.aldunelabs.caker.seamless.accept"))
 
+		lock.lock()
+		listenGeneration += 1
+		let generation = listenGeneration
+		lock.unlock()
+
 		source.setEventHandler { [weak self] in
-			self?.acceptConnection(listener)
+			self?.acceptConnection(listener, generation: generation)
 		}
 
 		source.setCancelHandler {
@@ -240,6 +301,7 @@ public final class SeamlessServer: @unchecked Sendable {
 		listenSource = nil
 		current = nil
 		listenerLock = -1
+		listenGeneration += 1
 		lock.unlock()
 
 		source?.cancel()
@@ -252,12 +314,14 @@ public final class SeamlessServer: @unchecked Sendable {
 		}
 	}
 
-	private func acceptConnection(_ listener: Int32) {
+	private func acceptConnection(_ listener: Int32, generation: Int) {
 		let fd = Darwin.accept(listener, nil, nil)
 
 		guard fd >= 0 else { return }
 
-		self.attach(fd: fd)
+		// Cancelling a dispatch source does not interrupt a handler that is running: check, under the lock that
+		// installs the session, that this listener is still the current one.
+		self.install(fd: fd, generation: generation)
 	}
 
 	/// Takes the right to listen on the seamless socket at `socketPath`: a lock on `<socketPath>.lock`, held while the
@@ -265,16 +329,29 @@ public final class SeamlessServer: @unchecked Sendable {
 	/// another process holds it: the windows of that guest are already shown by Caker.app, a `caked vmrun --ui` or a
 	/// tunnel. Probing the socket by connecting would not do, the listener would take the probe for the guest.
 	public static func acquireListenerLock(for socketPath: String) -> Int32? {
-		let descriptor = open(socketPath + ".lock", O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
-
-		guard descriptor >= 0 else { return nil }
-
-		guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
-			Darwin.close(descriptor)
-			return nil
+		if case .acquired(let descriptor) = tryAcquireListenerLock(for: socketPath) {
+			return descriptor
 		}
 
-		return descriptor
+		return nil
+	}
+
+	/// Same as `acquireListenerLock(for:)`, but tells a lock held by another process apart from a lock file that
+	/// can't be opened (a missing directory, a permission): only the first means "someone else shows the windows".
+	public static func tryAcquireListenerLock(for socketPath: String) -> ListenerLockResult {
+		let descriptor = open(socketPath + ".lock", O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
+
+		guard descriptor >= 0 else { return .failed(String(cString: strerror(errno))) }
+
+		guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
+			let code = errno
+
+			Darwin.close(descriptor)
+
+			return code == EWOULDBLOCK ? .contended : .failed(String(cString: strerror(code)))
+		}
+
+		return .acquired(descriptor)
 	}
 
 	public static func releaseListenerLock(_ descriptor: Int32) {
@@ -286,6 +363,11 @@ public final class SeamlessServer: @unchecked Sendable {
 	/// client that receives the guest's stream from elsewhere (a gRPC tunnel from another host) hands its end of
 	/// it here. The server takes the descriptor over, and replaces the current session like a new connection does.
 	public func attach(fd: Int32) {
+		self.install(fd: fd, generation: nil)
+	}
+
+	/// `generation` is set for a connection accepted by the listener: it is dropped when that listener is no longer current.
+	private func install(fd: Int32, generation: Int?) {
 		// BSD sockets inherit O_NONBLOCK from the (non blocking) listener, the reader thread wants blocking reads.
 		_ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK)
 
@@ -296,6 +378,13 @@ public final class SeamlessServer: @unchecked Sendable {
 		let session = SeamlessSession(fd: fd)
 
 		lock.lock()
+
+		if let generation, generation != listenGeneration {
+			lock.unlock()
+			Darwin.close(fd)
+			return
+		}
+
 		let previous = current
 		current = session
 		lock.unlock()
@@ -314,6 +403,7 @@ public final class SeamlessServer: @unchecked Sendable {
 		var decoder = SeamlessFrameDecoder()
 		var helloDone = false
 		let inFlight = DispatchSemaphore(value: Self.maxFramesInFlight)
+		let controlInFlight = DispatchSemaphore(value: Self.maxControlMessagesInFlight)
 		let chunk = UnsafeMutableRawBufferPointer.allocate(byteCount: 256 * 1024, alignment: 16)
 
 		defer {
@@ -379,10 +469,12 @@ public final class SeamlessServer: @unchecked Sendable {
 
 					if case .windowFrame = message { isFrame = true }
 
-					if isFrame { inFlight.wait() }
+					let slots = isFrame ? inFlight : controlInFlight
+
+					slots.wait()
 
 					delegateQueue.async { [weak self] in
-						defer { if isFrame { inFlight.signal() } }
+						defer { slots.signal() }
 
 						guard let self, let delegate = self.delegate else { return }
 						delegate.seamlessServer(self, session: session, didReceive: message)

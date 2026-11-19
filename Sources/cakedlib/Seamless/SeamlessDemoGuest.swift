@@ -84,7 +84,22 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 
 	/// Starts the reader and the animation, returns at once.
 	public func start() throws {
-		try send(.hello(version: SeamlessProtocol.version, name: "demo-guest"))
+		do {
+			try send(.hello(version: SeamlessProtocol.version, name: "demo-guest"))
+		} catch {
+			// The reader is not started: nothing else would close the descriptor.
+			lock.lock()
+			let descriptor = fd
+			fd = -1
+			running = false
+			lock.unlock()
+
+			if descriptor >= 0 {
+				Darwin.close(descriptor)
+			}
+
+			throw error
+		}
 
 		let reader = Thread { [self] in self.readLoop() }
 
@@ -208,6 +223,13 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 		case .pointerEnter(let id, let x, let y):
 			record("enter \(id) \(Int(x)),\(Int(y))")
 		case .pointerLeave(let id):
+			if id == windowID {
+				// The dot goes: the next frame redraws the area it covered
+				lock.lock()
+				pointer = nil
+				lock.unlock()
+			}
+
 			record("leave \(id)")
 		case .pointerMotion(let id, let x, let y):
 			if id == windowID {
@@ -246,7 +268,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	}
 
 	private func openWindow() {
-		try? send(.windowCreate(SeamlessWindowInfo(id: windowID, title: "Seamless demo", appID: "com.aldunelabs.caker.demo")))
+		try? send(.windowCreate(SeamlessWindowInfo(id: windowID, title: String(localized: "Seamless demo"), appID: "com.aldunelabs.caker.demo")))
 		try? send(.windowHints(id: windowID, hints: SeamlessSizeHints(minWidth: 160, minHeight: 120)))
 		try? send(.cursor(id: windowID, shape: "crosshair"))
 		try? sendFrame(full: true)
@@ -304,7 +326,15 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 		}
 	}
 
+	/// A frame is computed and sent while holding this: the animator and a resize both produce frames, and a frame
+	/// computed for the old size must not go out after the one for the new size.
+	private let frameLock = NSLock()
+	private var lastDotRect: (x: Int, y: Int, w: Int, h: Int)?
+
 	private func sendFrame(full: Bool) throws {
+		frameLock.lock()
+		defer { frameLock.unlock() }
+
 		let (w, h) = pixelSize()
 		let size = max(min(w, h) / 5, 8)
 		let span = max(w - size, 1)
@@ -331,6 +361,11 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 				rects.append((Int(r.x), Int(r.y), Int(r.width), Int(r.height)))
 			}
 
+			// Where the dot was, so that it is erased, and where it is.
+			if let old = lastDotRect {
+				rects.append(old)
+			}
+
 			if let dot = dot {
 				let x0 = max(dot.0 - radius - 2, 0)
 				let y0 = max(dot.1 - radius - 2, 0)
@@ -339,6 +374,12 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 
 				if x1 > x0 && y1 > y0 { rects.append((x0, y0, x1 - x0, y1 - y0)) }
 			}
+		}
+
+		if let dot = dot {
+			lastDotRect = (max(dot.0 - radius - 2, 0), max(dot.1 - radius - 2, 0), (radius + 2) * 2, (radius + 2) * 2)
+		} else {
+			lastDotRect = nil
 		}
 
 		var items: [SeamlessFrameRect] = []
@@ -371,7 +412,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 		let w = Int(140 * k)
 		let h = Int(90 * k)
 
-		try? send(.windowCreate(SeamlessWindowInfo(id: popupID, parentID: windowID, kind: .popup, x: Int32(px), y: Int32(py), title: "popup")))
+		try? send(.windowCreate(SeamlessWindowInfo(id: popupID, parentID: windowID, kind: .popup, x: Int32(px), y: Int32(py), title: String(localized: "popup"))))
 
 		var pixels = [UInt8](repeating: 0, count: w * h * 4)
 

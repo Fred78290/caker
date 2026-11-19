@@ -79,7 +79,8 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 		if result.started {
 			do {
-				let user = self.shell.shellUser ?? (try? StorageLocation(runMode: self.common.runMode).find(self.shell.name).config().configuredUser)
+				// A configuration that can't be read is an error: an empty user would run the shell as the agent's own (root).
+				let user = try self.shell.shellUser ?? StorageLocation(runMode: self.common.runMode).find(self.shell.name).config().configuredUser
 
 				_ = try await helper.shell(user: user, callOptions: callOptions)
 			} catch {

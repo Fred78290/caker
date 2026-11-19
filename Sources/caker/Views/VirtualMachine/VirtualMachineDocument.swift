@@ -686,14 +686,17 @@ extension VirtualMachineDocument {
 	/// remote one): the service relays the guest's stream, there is no process of ours that could listen for it.
 	/// In `.app` mode the VM runs in this process, which listens itself.
 	func updateSeamlessTunnel() {
-		let wanted = self.connectionManager.connectionMode != .app && self.virtualMachineConfig.os == .linux && self.virtualMachineConfig.seamless && self.status == .running
-
-		guard wanted || self.seamlessSession != nil else { return }
-
 		let name = self.name
 		let connectionManager = self.connectionManager
 
 		Task { @MainActor in
+			// Decided when the task runs, not when it was queued: a start queued while the VM was running must not
+			// open a session for a document that has stopped since (and the stop must not be discarded because the
+			// session did not exist yet when it was asked).
+			let wanted = connectionManager.connectionMode != .app && self.virtualMachineConfig.os == .linux && self.virtualMachineConfig.seamless && self.status == .running
+
+			guard wanted || self.seamlessSession != nil else { return }
+
 			if wanted {
 				if self.seamlessSession == nil {
 					self.seamlessSession = SeamlessTunnelSession(vmName: name, connectionManager: connectionManager)
@@ -2040,10 +2043,10 @@ extension VirtualMachineDocument {
 					while Task.isCancelled == false && isWaitingForAgent {
 						isWaitingForAgent = await self.performAgentMonitoring()
 
+						// Readiness is written by agentMonitoringSuccess() only: the loop also ends on a failure
+						// that retrying won't change, and that must not read as "ready".
 						if isWaitingForAgent {
 							try? await Task.sleep(nanoseconds: 1_000_000_000)
-						} else {
-							self.agentReady = true
 						}
 					}
 				},

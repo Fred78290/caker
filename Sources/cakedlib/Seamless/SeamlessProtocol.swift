@@ -68,20 +68,20 @@ public enum SeamlessProtocolError: Error, Equatable, CustomStringConvertible {
 
 	public var description: String {
 		switch self {
-		case .truncated: return "truncated message"
-		case .frameTooLarge(let n): return "frame of \(n) bytes exceeds the limit"
-		case .emptyFrame: return "empty frame"
-		case .unknownMessageType(let t): return "unknown message type 0x\(String(t, radix: 16))"
-		case .stringTooLong(let n): return "string of \(n) bytes exceeds the limit"
-		case .invalidUTF8: return "invalid UTF-8 string"
-		case .invalidValue(let what): return "invalid value: \(what)"
-		case .invalidDimensions(let w, let h): return "invalid dimensions \(w)x\(h)"
-		case .rectOutOfBounds: return "rectangle outside of the buffer"
-		case .tooManyRects(let n): return "\(n) rectangles in one frame"
-		case .unknownPixelFormat(let f): return "unknown pixel format \(f)"
-		case .unknownCompression(let c): return "unknown compression \(c)"
-		case .decompressionFailed: return "decompression failed"
-		case .trailingBytes(let n): return "\(n) unexpected trailing bytes"
+		case .truncated: return String(localized: "truncated message")
+		case .frameTooLarge(let n): return String(format: String(localized: "frame of %d bytes exceeds the limit"), n)
+		case .emptyFrame: return String(localized: "empty frame")
+		case .unknownMessageType(let t): return String(format: String(localized: "unknown message type 0x%@"), String(t, radix: 16))
+		case .stringTooLong(let n): return String(format: String(localized: "string of %d bytes exceeds the limit"), n)
+		case .invalidUTF8: return String(localized: "invalid UTF-8 string")
+		case .invalidValue(let what): return String(format: String(localized: "invalid value: %@"), what)
+		case .invalidDimensions(let w, let h): return String(format: String(localized: "invalid dimensions %u x %u"), w, h)
+		case .rectOutOfBounds: return String(localized: "rectangle outside of the buffer")
+		case .tooManyRects(let n): return String(format: String(localized: "%d rectangles in one frame"), n)
+		case .unknownPixelFormat(let f): return String(format: String(localized: "unknown pixel format %d"), Int(f))
+		case .unknownCompression(let c): return String(format: String(localized: "unknown compression %d"), Int(c))
+		case .decompressionFailed: return String(localized: "decompression failed")
+		case .trailingBytes(let n): return String(format: String(localized: "%d unexpected trailing bytes"), n)
 		}
 	}
 }

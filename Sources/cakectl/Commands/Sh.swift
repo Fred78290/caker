@@ -39,13 +39,31 @@ struct Sh: GrpcParsableCommand {
 	/// Shows the guest's windows while the shell runs. Only one process can own the windows of a VM: when another one
 	/// already does (a first `sh`, `exec` or `seamless`), this one keeps its shell and waits, taking the windows over
 	/// as soon as the other lets them go, instead of failing.
+	/// The terminal as it is before the shell stream makes it raw, to give it back when the process ends by `exit`
+	/// (which skips the stream's own restoration).
+	static func saveTerminal() -> termios? {
+		let input = FileHandle.standardInput
+
+		guard input.isTTY() else { return nil }
+
+		return try? input.getState()
+	}
+
+	static func exit(_ code: Int32, restoring terminal: termios?) -> Never {
+		if var terminal {
+			try? FileHandle.standardInput.restoreState(&terminal)
+		}
+
+		Foundation.exit(code)
+	}
+
 	@MainActor
-	static func seamless(_ name: String, client: CakedServiceClient) throws {
+	static func seamless(_ name: String, client: CakedServiceClient, terminal: termios? = nil) throws {
 		let app = NSApplication.shared
 
 		app.setActivationPolicy(.accessory)
 
-		let connection = SeamlessConnection(name: name, client: client)
+		let connection = SeamlessConnection(name: name, client: client, terminal: terminal)
 
 		try connection.connect()
 
@@ -60,16 +78,18 @@ struct Sh: GrpcParsableCommand {
 		let client: CakedServiceClient
 		let displayMode: VMRunHandler.DisplayMode
 		let announceWaiting: Bool
+		let terminal: termios?
 		var manager: SeamlessWindowManager?
 		var tunnel: SeamlessTunnelClient?
 		var stopped = false
 		var waitingAnnounced = false
 
-		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false) {
+		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false, terminal: termios? = nil) {
 			self.name = name
 			self.client = client
 			self.displayMode = displayMode
 			self.announceWaiting = announceWaiting
+			self.terminal = terminal
 		}
 
 		func connect() throws {
@@ -94,11 +114,12 @@ struct Sh: GrpcParsableCommand {
 		private func ended(_ error: Error?) {
 			guard self.stopped == false else { return }
 
-			if let status = error as? GRPCStatus, status.code == .alreadyExists {
-				// Someone else shows the windows: try again until they let go.
+			// Retrying can change these: someone else shows the windows (until they let go), or the guest
+			// compositor went away or restarted (the client's protocol state belongs to one guest connection).
+			if let status = error as? GRPCStatus, status.code == .alreadyExists || status.code == .unavailable {
 				self.release()
 
-				if self.announceWaiting && self.waitingAnnounced == false {
+				if status.code == .alreadyExists && self.announceWaiting && self.waitingAnnounced == false {
 					self.waitingAnnounced = true
 					fputs(String(format: String(localized: "The windows of VM %@ are shown by another process, waiting for it to let them go\n"), self.name), stderr)
 				}
@@ -109,7 +130,7 @@ struct Sh: GrpcParsableCommand {
 							try self.connect()
 						} catch {
 							fputs("Error: \(error.reason)\n", stderr)
-							Foundation.exit(1)
+							Sh.exit(1, restoring: self.terminal)
 						}
 					}
 				}
@@ -120,7 +141,7 @@ struct Sh: GrpcParsableCommand {
 			// terminate() ends the process without returning to run(): report the failure here.
 			if let error {
 				fputs("Error: \(error.reason)\n", stderr)
-				Foundation.exit(1)
+				Sh.exit(1, restoring: self.terminal)
 			}
 
 			NSApplication.shared.terminate(nil)
@@ -146,27 +167,28 @@ struct Sh: GrpcParsableCommand {
 			Self.disableLoggingOutput = true
 
 			let name = self.shell.name
+			let terminal = Self.saveTerminal()
 
 			// The seamless task blocks the main thread in NSApplication.run(), so a task group
 			// can't cancel it (the group waits for every child). Whichever side ends first
 			// ends the process instead, which kills the other one.
 			let shellTask = Task {
 				do {
-					Foundation.exit(try await client.shell(name: name, shellUser: self.shell.shellUser, callOptions: callOptions))
+					Self.exit(try await client.shell(name: name, shellUser: self.shell.shellUser, callOptions: callOptions), restoring: terminal)
 				} catch {
 					fputs("Error: \(error)\n", stderr)
-					Foundation.exit(1)
+					Self.exit(1, restoring: terminal)
 				}
 			}
 
 			// Returns once the seamless windows are closed
 			// ArgumentParser runs the command on the main thread
 			try MainActor.assumeIsolated {
-				try Self.seamless(name, client: client)
+				try Self.seamless(name, client: client, terminal: terminal)
 			}
 
 			shellTask.cancel()
-			Foundation.exit(0)
+			Self.exit(0, restoring: terminal)
 		} else {
 			try Task.sync {
 				Foundation.exit(try await client.shell(name: self.shell.name, shellUser: self.shell.shellUser, callOptions: callOptions))

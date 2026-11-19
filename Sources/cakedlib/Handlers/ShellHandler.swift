@@ -486,7 +486,7 @@ public struct ShellHandler {
 				do {
 					_ = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
-					let shellUser = self.shellUser ?? (try? self.location.config().configuredUser)
+					let shellUser = try self.shellUser ?? self.location.config().configuredUser
 
 					self.cakedShellStream.withLock {
 						self.logger.debug("Start shell, VM: \(self.location.name)")

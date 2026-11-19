@@ -673,6 +673,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.provisioned = config.provisioned
 		// A source without one (a config from an older caked/caker, or never loaded from disk) gets one here, so that the
 		self.imdsMacAddress = config.imdsMacAddress ?? VZMACAddress.randomLocallyAdministered().string
+		self.seamless = config.seamless
 	}
 
 	public func update(_ from: CakeConfig) {

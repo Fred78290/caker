@@ -998,6 +998,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let serverKey: String = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii).base64EncodedString()
 		let serverPem = try String(contentsOf: certificates.serverCertURL, encoding: .ascii).base64EncodedString()
 		let sshPublicKeys = try getPublicSSHKeys(config: config, runMode: runMode).joined(separator: "\n")
+		// The flags are read once: the host keyboard layout in them can change while the agent is installed, and what is
+		// recorded as installed must be what the script registered.
+		let serviceFlags = config.agentServiceFlags
 		let ssh = try createSSH(host: runningIP, timeout: timeout)
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = String(
@@ -1005,7 +1008,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			config.configuredUser,
 			CAKEAGENT_VERSION,
 			"\(VMLocation.defaultAgentListenPort)",
-			config.agentServiceFlags,
+			serviceFlags,
 			sshPublicKeys,
 			caCert,
 			serverPem,
@@ -1039,7 +1042,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			try tempFileURL.delete()
 		}
 
-		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee ~/install-agent.log'"
+		// The installer's own exit status is the command's: `| tee` would replace it with tee's (sh has no pipefail).
+		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh > ~/install-agent.log 2>&1; status=$?; cat ~/install-agent.log; exit $status'"
 		let result = try ssh.capture(cmd)
 
 		if result.status == 0 {
@@ -1047,7 +1051,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			Logger(self).debug(result.output)
 
 			// The caller saves the config; this is what a later start compares with to know the service must be re-registered
-			config.agentInstalledFlags = config.agentServiceFlags
+			config.agentInstalledFlags = serviceFlags
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 
@@ -1070,8 +1074,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			mkdir -p /etc/sysconfig
 			echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
 			chmod 644 /etc/sysconfig/cakeagent
-			/usr/local/bin/cakeagent service install --listen="vsock://any:$2" --ca-cert=\#(certs)/ca.pem --tls-cert=\#(certs)/server.pem --tls-key=\#(certs)/server.key $1 || echo "CakeAgent service reinstall reported an error"
-			/usr/local/bin/cakeagent service start || true
+			/usr/local/bin/cakeagent service install --listen="vsock://any:$2" --ca-cert=\#(certs)/ca.pem --tls-cert=\#(certs)/server.pem --tls-key=\#(certs)/server.key $1 || { echo "CakeAgent service reinstall reported an error"; exit 1; }
+			/usr/local/bin/cakeagent service start || exit 1
+			# Only a registration that worked is recorded: the host reads this back before it trusts the update
 			printf '%s' "$1" > /etc/cakeagent/service-flags
 			"""#
 		let launcher = #"""
@@ -1085,7 +1090,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			fi
 			"""#
 
-		Logger(self).info("Updating the agent service of \(self.name), flags: \(config.agentServiceFlags.isEmpty ? "none" : config.agentServiceFlags)")
+		// One snapshot for the script and for the record (the host keyboard layout in the flags can change meanwhile)
+		let serviceFlags = config.agentServiceFlags
+
+		Logger(self).info("Updating the agent service of \(self.name), flags: \(serviceFlags.isEmpty ? "none" : serviceFlags)")
 
 		let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 30, runMode: runMode, retries: .upTo(10))
 
@@ -1096,14 +1104,34 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		}
 
 		let script = Data(launcher.utf8).base64EncodedString()
-		let reply = try client.run(command: "echo \(script) | base64 -d | sh -s -- \(quoted(config.agentServiceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))")
+		let reply = try client.run(command: "echo \(script) | base64 -d | sh -s -- \(quoted(serviceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))")
 
 		guard reply.exitCode == 0 else {
 			throw ServiceError(String(format: String(localized: "Agent service update failed on %@: %@"), self.name, reply.stderr.isEmpty ? "exit code \(reply.exitCode)" : String(decoding: reply.stderr, as: UTF8.self)))
 		}
 
-		// The caller saves the config; this is what a later start compares with
-		config.agentInstalledFlags = config.agentServiceFlags
+		// A zero exit only says the work was handed over. The guest writes `service-flags` once the service is registered
+		// and started again: wait for the agent to come back and read it, so a failed registration stays eligible for a retry.
+		let expected = serviceFlags
+		let deadline = Date().addingTimeInterval(60)
+
+		while Date() < deadline {
+			Thread.sleep(forTimeInterval: 2)
+
+			guard let probe = try? CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 10, runMode: runMode, retries: .upTo(1)),
+				let recorded = try? probe.run(command: "cat /etc/cakeagent/service-flags"), recorded.exitCode == 0
+			else {
+				continue
+			}
+
+			if String(decoding: recorded.stdout, as: UTF8.self) == expected {
+				// The caller saves the config; this is what a later start compares with
+				config.agentInstalledFlags = expected
+				return
+			}
+		}
+
+		throw ServiceError(String(format: String(localized: "Agent service update was not confirmed on %@: the service did not come back with the new flags"), self.name))
 	}
 
 	/// Installs the agent in a Windows guest, or replaces it when its service is already there (the installer's first boot

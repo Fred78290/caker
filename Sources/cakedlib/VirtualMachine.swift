@@ -235,6 +235,26 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
 	/// Shows the guest's windows on the host while the VM runs (see `SeamlessWindowManager`).
 	var seamlessWindows: SeamlessWindowManager? = nil
+	/// Counts the start and stop requests, taken in the order they are made: the work runs later on the main actor,
+	/// and only the latest request may act, so a stale start or cleanup can't undo a newer one (a restart).
+	private let seamlessRequests = NSLock()
+	private var seamlessRequestCount = 0
+
+	func nextSeamlessRequest() -> Int {
+		self.seamlessRequests.lock()
+		defer { self.seamlessRequests.unlock() }
+
+		self.seamlessRequestCount += 1
+
+		return self.seamlessRequestCount
+	}
+
+	var latestSeamlessRequest: Int {
+		self.seamlessRequests.lock()
+		defer { self.seamlessRequests.unlock() }
+
+		return self.seamlessRequestCount
+	}
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
 	var mode: VirtualMachine.Mode
@@ -1497,11 +1517,20 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 			return
 		}
 
-		guard self.env.seamlessWindows == nil, let path = self.config.seamlessSocketPath else { return }
+		guard let path = self.config.seamlessSocketPath else { return }
 
 		let name = self.location.name
+		let request = self.env.nextSeamlessRequest()
 
 		Task { @MainActor in
+			// The decision is made here, on the main actor, where the previous manager's cleanup also runs: a start
+			// that is not the latest request any more (the VM stopped meanwhile) must not create a listener.
+			guard request == self.env.latestSeamlessRequest else { return }
+
+			// A manager of the previous run that is still there goes first (a restart: its stop has not run yet).
+			self.env.seamlessWindows?.stop()
+			self.env.seamlessWindows = nil
+
 			do {
 				let manager = SeamlessWindowManager(vmName: name, displayMode: self.env.display, socketPath: path)
 
@@ -1515,9 +1544,12 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 	}
 
 	func stopSeamlessWindows() {
-		guard self.env.seamlessWindows != nil else { return }
+		let request = self.env.nextSeamlessRequest()
 
 		Task { @MainActor in
+			// A start requested after this stop owns the manager now.
+			guard request == self.env.latestSeamlessRequest else { return }
+
 			self.env.seamlessWindows?.stop()
 			self.env.seamlessWindows = nil
 		}

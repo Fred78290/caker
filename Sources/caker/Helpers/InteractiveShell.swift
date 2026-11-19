@@ -62,6 +62,9 @@ class InteractiveShell {
 		}
 	}
 
+	/// The run that owns the shell stream and the terminal view.
+	private var activeOperation: UUID?
+
 	private func cancelledShell() {
 		if let shellStream {
 			shellStream.closeShell()
@@ -124,14 +127,23 @@ class InteractiveShell {
 			return
 		}
 
+		// Cancelling this task clears `self.task` at once, so startShell() can start another while this one is still
+		// unwinding (suspended in the handler). What it releases and clears at the end belongs to the run that owns
+		// the token, not to the one that replaced it.
+		let operation = UUID()
+
+		self.activeOperation = operation
+
 		await withTaskCancellationHandler(
 			operation: {
 				defer {
-					// Always reset the task, otherwise startShell() would never be able to start a new shell
-					self.task = nil
+					if self.activeOperation == operation {
+						// Always reset the task, otherwise startShell() would never be able to start a new shell
+						self.task = nil
 
-					self.closeShell {
-						self.logger.debug("Shell ended, VM: \(self.name)")
+						self.closeShell {
+							self.logger.debug("Shell ended, VM: \(self.name)")
+						}
 					}
 				}
 
@@ -155,6 +167,10 @@ class InteractiveShell {
 					}
 
 					// The stream is over (normally or not): release it and reconnect
+					guard self.activeOperation == operation else {
+						break
+					}
+
 					self.releaseShellStream()
 
 					guard Task.isCancelled == false && self.cancelled == false else {

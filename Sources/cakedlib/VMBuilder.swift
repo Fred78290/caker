@@ -242,6 +242,11 @@ public struct VMBuilder {
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 			config.source = imageSource
 
+			// Also for a configuration loaded from an image: the option is a request for this VM, not for the image.
+			if options.seamless && virtualizedOS == .linux {
+				config.seamless = true
+			}
+
 			try config.save()
 
 			if virtualizedOS == .linux && config.useCloudInit {

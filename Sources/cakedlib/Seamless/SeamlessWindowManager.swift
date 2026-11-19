@@ -17,6 +17,7 @@ final class SeamlessSurfaceView: NSView {
 	}
 
 	private var heldModifiers = Set<UInt16>()
+	private var heldKeys = Set<UInt32>()
 
 	override var isFlipped: Bool { true }
 	override var acceptsFirstResponder: Bool { true }
@@ -119,12 +120,14 @@ final class SeamlessSurfaceView: NSView {
 		// The guest compositor generates its own repeats from the held key.
 		guard !event.isARepeat, let code = SeamlessKeyMap.evdev(forMacKeyCode: event.keyCode) else { return }
 
+		heldKeys.insert(code)
 		onKey?(code, true)
 	}
 
 	override func keyUp(with event: NSEvent) {
 		guard let code = SeamlessKeyMap.evdev(forMacKeyCode: event.keyCode) else { return }
 
+		heldKeys.remove(code)
 		onKey?(code, false)
 	}
 
@@ -145,13 +148,24 @@ final class SeamlessSurfaceView: NSView {
 		}
 	}
 
-	override func resignFirstResponder() -> Bool {
-		// Release what is still held, otherwise the guest sees a stuck modifier.
+	/// Releases what is still held, otherwise the guest sees a stuck key or modifier: a release that happens in
+	/// another application never reaches this view, and the compositor would give the pressed keys to the next window.
+	func releaseHeldKeys() {
 		for keyCode in heldModifiers {
 			if let code = SeamlessKeyMap.evdev(forMacKeyCode: keyCode) { onKey?(code, false) }
 		}
 
 		heldModifiers.removeAll()
+
+		for code in heldKeys {
+			onKey?(code, false)
+		}
+
+		heldKeys.removeAll()
+	}
+
+	override func resignFirstResponder() -> Bool {
+		releaseHeldKeys()
 
 		return super.resignFirstResponder()
 	}
@@ -224,15 +238,11 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 	}
 
 	func setHints(_ hints: SeamlessSizeHints) {
-		if hints.minWidth > 0 || hints.minHeight > 0 {
-			window.contentMinSize = NSSize(width: CGFloat(hints.minWidth), height: CGFloat(hints.minHeight))
-		}
-
-		if hints.maxWidth > 0 || hints.maxHeight > 0 {
-			window.contentMaxSize = NSSize(
-				width: hints.maxWidth > 0 ? CGFloat(hints.maxWidth) : CGFloat.greatestFiniteMagnitude,
-				height: hints.maxHeight > 0 ? CGFloat(hints.maxHeight) : CGFloat.greatestFiniteMagnitude)
-		}
+		// Every update applies: a guest that drops a limit sends zeros, which mean "unconstrained".
+		window.contentMinSize = NSSize(width: CGFloat(hints.minWidth), height: CGFloat(hints.minHeight))
+		window.contentMaxSize = NSSize(
+			width: hints.maxWidth > 0 ? CGFloat(hints.maxWidth) : CGFloat.greatestFiniteMagnitude,
+			height: hints.maxHeight > 0 ? CGFloat(hints.maxHeight) : CGFloat.greatestFiniteMagnitude)
 	}
 
 	func setCursor(_ shape: String) {
@@ -320,6 +330,9 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 	}
 
 	func windowDidResignKey(_ notification: Notification) {
+		// Before the focus loss, while the guest still sends them to this window. The window stays the first responder
+		// when it loses key, so the view's own resignFirstResponder does not run.
+		view.releaseHeldKeys()
 		sendToGuest(.windowFocus(id: info.id, focused: false))
 	}
 }
@@ -432,7 +445,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		windows.removeAll()
 	}
 
-	private func send(_ message: SeamlessHostMessage) {
+	/// `session` is the one the window was created by: what the user does in a window never reaches another guest connection.
+	private func send(_ message: SeamlessHostMessage, via session: SeamlessSession?) {
 		switch message {
 		case .pointerMotion, .pointerAxis:
 			break
@@ -447,6 +461,13 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	public nonisolated func seamlessServer(_ server: SeamlessServer, sessionDidStart session: SeamlessSession, guestName: String) {
 		MainActor.assumeIsolated {
+			// A new session while the previous one has not ended yet (its end callback comes later and finds it
+			// replaced): its windows go now, so the new guest can reuse their ids and nothing of the old one is
+			// left to receive the new guest's frames.
+			if let previous = self.session, previous !== session {
+				self.closeAllWindows()
+			}
+
 			self.session = session
 			self.guestName = guestName
 			self.logger.info("Seamless: guest compositor \(guestName) connected")
@@ -501,13 +522,11 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 			let controller = SeamlessWindowController(
 				info: info, parent: parent, titlePrefix: titlePrefix, scale120: server.outputScale120,
-				send: { [weak self] in self?.send($0) })
+				send: { [weak self, weak owner = self.session] in self?.send($0, via: owner) })
 			windows[info.id] = controller
 
-			if displayMode == .none || displayMode == .vnc {
-				NSApplication.shared.activate(ignoringOtherApps: true)
-				controller.window.orderFrontRegardless()
-			}
+			// Nothing is shown yet: the first valid frame sizes, places and shows the window (and activates the app
+			// when there is no UI), so a late or invalid first frame never leaves an empty window on screen.
 
 		case .windowTitle(let id, let title):
 			windows[id]?.setTitle(title)

@@ -210,7 +210,8 @@ A Linux VM can show its applications on your Mac desktop, one native window each
 ```bash
 cakectl build my-vm --alias ubuntu2604 --seamless
 
-# or on an existing VM (the agent service is updated at the next start)
+# or on an existing VM: update its agent first (an older agent ignores the
+# seamless flags), the agent service is then updated at the next start
 cakectl configure my-vm --seamless true
 ```
 

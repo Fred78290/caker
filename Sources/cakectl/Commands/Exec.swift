@@ -37,27 +37,28 @@ struct Exec: GrpcParsableCommand {
 			Self.disableLoggingOutput = true
 
 			let name = self.execute.name
+			let terminal = Sh.saveTerminal()
 
 			// The seamless task blocks the main thread in NSApplication.run(), so a task group
 			// can't cancel it (the group waits for every child). Whichever side ends first
 			// ends the process instead, which kills the other one.
 			let shellTask = Task {
 				do {
-					Foundation.exit(try await client.exec(name: self.execute.name, shellUser: self.execute.shellUser, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))
+					Sh.exit(try await client.exec(name: self.execute.name, shellUser: self.execute.shellUser, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions), restoring: terminal)
 				} catch {
 					fputs("Error: \(error)\n", stderr)
-					Foundation.exit(1)
+					Sh.exit(1, restoring: terminal)
 				}
 			}
 
 			// Returns once the seamless windows are closed
 			// ArgumentParser runs the command on the main thread
 			try MainActor.assumeIsolated {
-				try Sh.seamless(name, client: client)
+				try Sh.seamless(name, client: client, terminal: terminal)
 			}
 
 			shellTask.cancel()
-			Foundation.exit(0)
+			Sh.exit(0, restoring: terminal)
 		} else {
 			try Task.sync {
 				Foundation.exit(try await client.exec(name: self.execute.name, shellUser: self.execute.shellUser, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))

@@ -159,7 +159,7 @@ Under the hood, a small Wayland compositor runs in the guest and sends every win
 ### Turning it on
 
 - In the creation wizard, switch on **Seamless windows** in the **Options** step (Linux images only).
-- For an existing VM, switch it on in the VM's **Settings** sheet. The agent service in the guest is updated the next time you start the VM.
+- For an existing VM, first make sure it runs a recent Caker agent (use **Update agent** in the VM window): an older agent ignores the seamless flags. Then switch it on in the VM's **Settings** sheet. The agent service in the guest is updated the next time you start the VM.
 
 ![The Seamless windows toggle in the VM settings](images/caker-app/24-seamless-settings-toggle.png)
 <!-- TODO screenshot: VM settings sheet (or wizard Options step) with the "Seamless windows" toggle on -->
@@ -177,7 +177,7 @@ The command runs in the guest as the VM's own user, and its window shows up on y
 
 Each user of the guest can have windows: run `cakectl exec --user bob my-vm foot` and Bob's compositor is started and his windows appear, titled `[my-vm] bob: foot`. The windows of a VM that runs under a `caked` service, even on another Mac, reach the app through the same connection as everything else, so seamless windows work in all of the app's connection modes.
 
-Only one process shows a VM's windows at a time. If Caker.app is showing them, a `cakectl exec` in a terminal waits and shows them as soon as the app lets go, instead of failing.
+Only one process shows a VM's windows at a time. If Caker.app is showing them, a `cakectl exec` in a terminal waits and shows them as soon as the app lets go, instead of failing. It only waits while its command is running: if the command ends first, it exits without taking the windows over. To keep a listener that takes them over whenever they are free, run `cakectl seamless my-vm`.
 
 ### What it does not do yet
 
