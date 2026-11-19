@@ -292,6 +292,7 @@
 		9B32F98F302623290099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98E302623290099D3A5 /* ProvisionHandler.swift */; };
 		9B32F991302623370099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F990302623370099D3A5 /* ProvisionHandler.swift */; };
 		9B32F99630262C4E0099D3A5 /* Provision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F99530262C4E0099D3A5 /* Provision.swift */; };
+		9B34CC2A30AF4FAE00BAF6A5 /* NetworkStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B34CC2930AF4FAE00BAF6A5 /* NetworkStarter.swift */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
 		9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B37938A2FD5694500D3D54C /* Sandbox.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
@@ -1495,6 +1496,7 @@
 		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
 		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
 		9B345C132DB4EB700047D00B /* RemoteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTest.swift; sourceTree = "<group>"; };
+		9B34CC2930AF4FAE00BAF6A5 /* NetworkStarter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStarter.swift; sourceTree = "<group>"; };
 		9B352EDB2FAF43C100F8F6B6 /* auth.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = auth.ts; sourceTree = "<group>"; };
 		9B352EDC2FAF43C100F8F6B6 /* client.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = client.ts; sourceTree = "<group>"; };
 		9B352EDD2FAF43C100F8F6B6 /* images.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = images.ts; sourceTree = "<group>"; };
@@ -3341,14 +3343,15 @@
 				9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */,
 				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CB2DF4400A0092B196 /* MainApp.swift */,
+				9B34CC2930AF4FAE00BAF6A5 /* NetworkStarter.swift */,
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
+				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
 				9B6EC46230037FA400ABFDED /* IMDS */,
-				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9B602F962FAA56FA00055543 /* REST */,
-				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 				65C11C4A18B2EBE8644D1E1B /* SeamlessTunnel */,
+				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -4716,6 +4719,7 @@
 				9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */,
 				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
+				9B34CC2A30AF4FAE00BAF6A5 /* NetworkStarter.swift in Sources */,
 				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
 				9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */,
 				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
