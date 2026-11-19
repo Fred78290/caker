@@ -90,6 +90,7 @@ struct Root: ParsableCommand {
 			version: CI.version,
 			subcommands: [
 				Aliases.self,
+				Apps.self,
 				Build.self,
 				Provision.self,
 				Certificates.self,

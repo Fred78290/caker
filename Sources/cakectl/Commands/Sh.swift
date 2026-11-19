@@ -78,17 +78,20 @@ struct Sh: GrpcParsableCommand {
 		let client: CakedServiceClient
 		let displayMode: VMRunHandler.DisplayMode
 		let announceWaiting: Bool
+		/// `false` ends the process, successfully, when another process already shows the windows: `app run` only has to start the application.
+		let waitsForOwner: Bool
 		let terminal: termios?
 		var manager: SeamlessWindowManager?
 		var tunnel: SeamlessTunnelClient?
 		var stopped = false
 		var waitingAnnounced = false
 
-		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false, terminal: termios? = nil) {
+		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false, waitsForOwner: Bool = true, terminal: termios? = nil) {
 			self.name = name
 			self.client = client
 			self.displayMode = displayMode
 			self.announceWaiting = announceWaiting
+			self.waitsForOwner = waitsForOwner
 			self.terminal = terminal
 		}
 
@@ -118,6 +121,12 @@ struct Sh: GrpcParsableCommand {
 			// compositor went away or restarted (the client's protocol state belongs to one guest connection).
 			if let status = error as? GRPCStatus, status.code == .alreadyExists || status.code == .unavailable {
 				self.release()
+
+				if status.code == .alreadyExists && self.waitsForOwner == false {
+					NSApplication.shared.terminate(nil)
+
+					return
+				}
 
 				if status.code == .alreadyExists && self.announceWaiting && self.waitingAnnounced == false {
 					self.waitingAnnounced = true

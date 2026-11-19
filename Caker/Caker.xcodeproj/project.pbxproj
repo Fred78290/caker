@@ -35,6 +35,7 @@
 		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1276B7682990108E5C70CEB6 /* CachedImageKind.swift */; };
+		4DC8C504E8D8CE368B125D4E /* GuestApplicationLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0974B3C8FBA6953ED9914849 /* GuestApplicationLauncher.swift */; };
 		50B325E5494C4C8396E606DB /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		6C35D6F42A709BA2C8E7C99E /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */; };
 		6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */; };
@@ -42,6 +43,7 @@
 		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
+		799C896E417F48D0E645F384 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC885C356BB01EBC9BF7161F /* App.swift */; };
 		7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
 		8D19AE739219331A241BE422 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		91C2CE30A7DA428FBABEB441 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
@@ -993,6 +995,7 @@
 		A9452BFC8CA1EDBE39800554 /* ComposeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504B0E2431C13909F09D81FC /* ComposeLibrary.swift */; };
 		AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */; };
 		AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
+		BA41A4BA644763B3B9A15373 /* GuestApplications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13376B3350E987BFB98477BC /* GuestApplications.swift */; };
 		C67C4C7F7CAAA38DDCDB6738 /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
 		C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */; };
 		CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */; };
@@ -1000,10 +1003,12 @@
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
 		D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */; };
+		DA1729FD71D42D5FC0CFDACA /* GuestApplicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D411EA904E78F67E46F197EC /* GuestApplicationsView.swift */; };
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		E5D1EC1864DD5052389352F9 /* SeamlessDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAF1B9B0ED80677FA4B04C6 /* SeamlessDemo.swift */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
+		F0711AAE9DCEC88C9109C7F8 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C37308C5590BFBFAD9C4D499 /* App.swift */; };
 		F91906CBB193D754B7162A64 /* ComposeLibraryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB46CA76DA2257D24005D46 /* ComposeLibraryCommand.swift */; };
 /* End PBXBuildFile section */
 
@@ -1425,12 +1430,14 @@
 
 /* Begin PBXFileReference section */
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
+		0974B3C8FBA6953ED9914849 /* GuestApplicationLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestApplicationLauncher.swift; sourceTree = "<group>"; };
 		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
 		0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnvTests.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
 		1276B7682990108E5C70CEB6 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
 		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
+		13376B3350E987BFB98477BC /* GuestApplications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestApplications.swift; sourceTree = "<group>"; };
 		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
 		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
@@ -2188,9 +2195,12 @@
 		9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelSession.swift; sourceTree = "<group>"; };
 		A5E145017E842ED52C4E307F /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
+		C37308C5590BFBFAD9C4D499 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
+		CC885C356BB01EBC9BF7161F /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
+		D411EA904E78F67E46F197EC /* GuestApplicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestApplicationsView.swift; sourceTree = "<group>"; };
 		D5A2C708269BF975C1AF4532 /* ComposeLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeLibraryView.swift; sourceTree = "<group>"; };
 		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
 		DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
@@ -2628,6 +2638,7 @@
 				9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */,
 				9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */,
 				9B4517E62F067E7B0088F093 /* GraphCapsule.swift */,
+				D411EA904E78F67E46F197EC /* GuestApplicationsView.swift */,
 				9B2BFAB12DFED25E000045C3 /* HostVirtualMachineView.swift */,
 				9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */,
 				9B2BFAB02DFED25E000045C3 /* VirtualMachineDocument.swift */,
@@ -2895,6 +2906,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8902303F4FA7007AFA2A /* Aliases.swift */,
+				C37308C5590BFBFAD9C4D499 /* App.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B1835172FAE4FB200D150FD /* Certificate.swift */,
 				9BDC059C2FEADB6900802A3C /* Compose.swift */,
@@ -3158,6 +3170,8 @@
 		9B7E83E830AA263200723F8F /* Seamless */ = {
 			isa = PBXGroup;
 			children = (
+				0974B3C8FBA6953ED9914849 /* GuestApplicationLauncher.swift */,
+				13376B3350E987BFB98477BC /* GuestApplications.swift */,
 				9B7E83E230AA263200723F8F /* SeamlessDemoGuest.swift */,
 				9B6A565030AB3D1E0074FDB4 /* SeamlessKeyboardLayout.swift */,
 				9B7E83E330AA263200723F8F /* SeamlessKeyMap.swift */,
@@ -3407,6 +3421,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8904303F4FBA007AFA2A /* Aliases.swift */,
+				CC885C356BB01EBC9BF7161F /* App.swift */,
 				9BD685AC30A47D7900031AE8 /* AuthorizationCommand.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9B612FA22FEC345B0045F79F /* CakeHome.swift */,
@@ -4713,6 +4728,7 @@
 				9B30BA4E2E0BF37300256A9D /* RegexParseableFormatStyle.swift in Sources */,
 				9B215B732E0C388F00AFC89D /* MountDetailView.swift in Sources */,
 				9B2BFABF2DFED25E000045C3 /* HostVirtualMachineView.swift in Sources */,
+				DA1729FD71D42D5FC0CFDACA /* GuestApplicationsView.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
 				9B1970002F59867100B424DB /* Root.swift in Sources */,
 				9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */,
@@ -4840,6 +4856,7 @@
 				9BDC05A22FEADB6900802A3C /* Down.swift in Sources */,
 				9BDC05A32FEADB6900802A3C /* EnvInit.swift in Sources */,
 				9BFB8903303F4FA7007AFA2A /* Aliases.swift in Sources */,
+				F0711AAE9DCEC88C9109C7F8 /* App.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
 				9BD32F872D75FF060066A01E /* Umount.swift in Sources */,
@@ -4982,6 +4999,7 @@
 				9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */,
 				9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */,
 				9BFB8905303F4FBA007AFA2A /* Aliases.swift in Sources */,
+				799C896E417F48D0E645F384 /* App.swift in Sources */,
 				D206198BD7C0DA5A00B1130A /* Record.swift in Sources */,
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
@@ -5089,6 +5107,8 @@
 				CC9E77D96881ADF8BC354324 /* SeamlessTunnelClient.swift in Sources */,
 				9B7E83EA30AA263200723F8F /* SeamlessDemoGuest.swift in Sources */,
 				9B7E83EB30AA263200723F8F /* SeamlessKeyMap.swift in Sources */,
+				4DC8C504E8D8CE368B125D4E /* GuestApplicationLauncher.swift in Sources */,
+				BA41A4BA644763B3B9A15373 /* GuestApplications.swift in Sources */,
 				9B7E83EC30AA263200723F8F /* SeamlessSurface.swift in Sources */,
 				9B7E83ED30AA263200723F8F /* SeamlessWindowManager.swift in Sources */,
 				9B7E83EE30AA263200723F8F /* SeamlessProtocol.swift in Sources */,

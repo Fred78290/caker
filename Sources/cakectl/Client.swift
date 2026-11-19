@@ -205,6 +205,7 @@ struct Client: ParsableCommand {
 			version: CI.version,
 			subcommands: [
 				Aliases.self,
+				Apps.self,
 				Build.self,
 				Configure.self,
 				Delete.self,

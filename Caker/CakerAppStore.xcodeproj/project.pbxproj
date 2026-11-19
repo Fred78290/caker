@@ -32,6 +32,7 @@
 		2C85DA39DAA2C2059B04F4BC /* AppStoreGuestDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */; };
 		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		5321AF685259C36B0D0E3203 /* GuestApplicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1876DC477FA0A8A6592D5A4 /* GuestApplicationsView.swift */; };
 		6E1EEDEEAEAB386ED72F9484 /* SeamlessTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
@@ -39,6 +40,7 @@
 		70F97BECEED1C4B704A9EA72 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
+		73A23DE0DA005ED6334021F1 /* GuestApplicationLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7B07484637DCA9DD73FACD /* GuestApplicationLauncher.swift */; };
 		7EBCF7017495C220912EF643 /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
 		802CE90ABB8EDBA72C8EBF07 /* ComposeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C9B97AB76F002BE94CAE4E /* ComposeLibrary.swift */; };
 		93CB405B609544A713FF8469 /* ComposeLibraryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24757C25D2900F8987CD4867 /* ComposeLibraryCommand.swift */; };
@@ -934,11 +936,14 @@
 		C510D27CC0FA17DEAF6B4A53 /* CakedKeyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC16F9D9878F3C1849C6564 /* CakedKeyConfigTests.swift */; };
 		C6CC135F2881B3CEACA387B7 /* DNSForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B8B31E2C99BD755A51BE2E /* DNSForwarder.swift */; };
 		CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */; };
+		CA4E895AF064DB5B87BE63D8 /* GuestApplications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D423B53B1ED3B875180EC8 /* GuestApplications.swift */; };
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
 		D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */; };
+		D4AB924864E575FD83B874D4 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64E262C8A2162F612F7B9EF /* App.swift */; };
 		D4D33DDB84921E0532E27A47 /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
+		DC3D735B24B35139FEEE891A /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F9F7BA416B21F6FBEFFC93 /* App.swift */; };
 		DD18FD82084E8F0B3A5B3130 /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
 		E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */; };
 		E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */; };
@@ -1342,6 +1347,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		04F9F7BA416B21F6FBEFFC93 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
@@ -1357,6 +1363,7 @@
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
+		46D423B53B1ED3B875180EC8 /* GuestApplications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestApplications.swift; sourceTree = "<group>"; };
 		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
 		7249153760D3126DEED2A935 /* AppStoreGuestDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreGuestDNS.swift; sourceTree = "<group>"; };
@@ -2095,6 +2102,8 @@
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		9E49B2A2D406663CD094CD5B /* SeamlessTunnelSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnelSession.swift; sourceTree = "<group>"; };
 		A5E1B590053BCC4C4683657E /* ssh-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "ssh-install-cakeagent.sh"; sourceTree = "<group>"; };
+		A64E262C8A2162F612F7B9EF /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		AC7B07484637DCA9DD73FACD /* GuestApplicationLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestApplicationLauncher.swift; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
 		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
@@ -2106,6 +2115,7 @@
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
 		EF8F73695BF3F4878F568C32 /* Seamless.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Seamless.swift; sourceTree = "<group>"; };
 		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
+		F1876DC477FA0A8A6592D5A4 /* GuestApplicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestApplicationsView.swift; sourceTree = "<group>"; };
 		F1C0D38F9A6EE229BAA76453 /* SeamlessTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeamlessTunnel.swift; sourceTree = "<group>"; };
 		FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -2464,6 +2474,7 @@
 				9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */,
 				9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */,
 				9B4517E62F067E7B0088F093 /* GraphCapsule.swift */,
+				F1876DC477FA0A8A6592D5A4 /* GuestApplicationsView.swift */,
 				9B2BFAB12DFED25E000045C3 /* HostVirtualMachineView.swift */,
 				9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */,
 				9B2BFAB02DFED25E000045C3 /* VirtualMachineDocument.swift */,
@@ -2748,6 +2759,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8907303F558C007AFA2A /* Aliases.swift */,
+				A64E262C8A2162F612F7B9EF /* App.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B1835172FAE4FB200D150FD /* Certificate.swift */,
 				9BDC052E2FEADB0E00802A3C /* Compose.swift */,
@@ -3010,6 +3022,8 @@
 		9B6A565A30AB562E0074FDB4 /* Seamless */ = {
 			isa = PBXGroup;
 			children = (
+				AC7B07484637DCA9DD73FACD /* GuestApplicationLauncher.swift */,
+				46D423B53B1ED3B875180EC8 /* GuestApplications.swift */,
 				9B6A565230AB562E0074FDB4 /* SeamlessDemoGuest.swift */,
 				9B6A565330AB562E0074FDB4 /* SeamlessKeyboardLayout.swift */,
 				9B6A565430AB562E0074FDB4 /* SeamlessKeyMap.swift */,
@@ -3250,6 +3264,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8909303F55A3007AFA2A /* Aliases.swift */,
+				04F9F7BA416B21F6FBEFFC93 /* App.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9B612F482FEC32030045F79F /* CakeHome.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
@@ -4483,6 +4498,7 @@
 				9B29F7CB2FCAE4B700AEBCB8 /* RegexParseableFormatStyle.swift in Sources */,
 				9B29F7CC2FCAE4B700AEBCB8 /* MountDetailView.swift in Sources */,
 				9B29F7CD2FCAE4B700AEBCB8 /* HostVirtualMachineView.swift in Sources */,
+				5321AF685259C36B0D0E3203 /* GuestApplicationsView.swift in Sources */,
 				9B29F7CE2FCAE4B700AEBCB8 /* FileHelpers.swift in Sources */,
 				9B29F7CF2FCAE4B700AEBCB8 /* Root.swift in Sources */,
 				9B29F7D02FCAE4B700AEBCB8 /* BridgeVirtualDocument.swift in Sources */,
@@ -4607,6 +4623,7 @@
 				9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */,
 				9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */,
 				9BFB8908303F558C007AFA2A /* Aliases.swift in Sources */,
+				D4AB924864E575FD83B874D4 /* App.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
 				9BD32F872D75FF060066A01E /* Umount.swift in Sources */,
@@ -4717,6 +4734,7 @@
 				9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */,
 				9B081CBC2FC88D160029B259 /* Convert.swift in Sources */,
 				9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */,
+				DC3D735B24B35139FEEE891A /* App.swift in Sources */,
 				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
 				9B34CC2A30AF4FAE00BAF6A5 /* NetworkStarter.swift in Sources */,
@@ -4918,6 +4936,8 @@
 				9B6A565C30AB562E0074FDB4 /* SeamlessDemoGuest.swift in Sources */,
 				9B6A565D30AB562E0074FDB4 /* SeamlessWindowManager.swift in Sources */,
 				9B6A565E30AB562E0074FDB4 /* SeamlessKeyMap.swift in Sources */,
+				73A23DE0DA005ED6334021F1 /* GuestApplicationLauncher.swift in Sources */,
+				CA4E895AF064DB5B87BE63D8 /* GuestApplications.swift in Sources */,
 				9B6A565F30AB562E0074FDB4 /* SeamlessProtocol.swift in Sources */,
 				9B6A566030AB562E0074FDB4 /* SeamlessKeyboardLayout.swift in Sources */,
 				9B6A566130AB562E0074FDB4 /* SeamlessTunnelClient.swift in Sources */,
