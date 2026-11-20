@@ -64,9 +64,13 @@ cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (my
 
 Le texte copié dans l'invité passe dans le presse-papiers du Mac, et le texte copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout ce qui n'est pas du texte, plus de 1 Mio, et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.326 ou plus dans l'invité (protocole 3) ; un agent plus ancien n'a pas de presse-papiers.
 
+## Applications X11
+
+Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par XWayland : le compositeur de l'invité sert un affichage X et lance `Xwayland` à la première connexion d'un client X11. Il faut le programme `Xwayland` dans l'invité (les scripts d'installation de l'agent installent le paquet quand les fenêtres seamless sont activées) et un cakeagent v1.0.329 ou plus. Le curseur dessiné par un client X11 n'est pas transmis, et sur un écran Retina les fenêtres X11 sont plus floues (elles ignorent l'échelle).
+
 ## Limites
 
-- Le presse-papiers est partagé pour le **texte** seulement (images et fichiers non) ; pas de glisser-déposer, pas de méthode de saisie (IME), pas de XWayland, pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
+- Le presse-papiers est partagé pour le **texte** seulement (images et fichiers non) ; pas de glisser-déposer, pas de méthode de saisie (IME), pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
 - Une application démarre sans argument ni fichier.
 - Un invité Windows ou macOS ne l'a pas. L'installation de la VM App Store n'a pas été vérifiée.
 - Un redémarrage du service `caked` coupe le tunnel ; Caker.app se reconnecte toutes les 3 secondes.
@@ -133,9 +137,13 @@ cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (
 
 Text copied in the guest goes to the Mac's clipboard, and text copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, anything that isn't text, more than 1 MiB, and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.326 or later in the guest (protocol 3); an older agent has no clipboard.
 
+## X11 applications
+
+An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through XWayland: the guest's compositor serves an X display and runs `Xwayland` when the first X11 client connects. The guest needs the `Xwayland` program (the agent's install scripts install the package when seamless windows are on) and cakeagent v1.0.329 or later. The cursor an X11 client draws is not forwarded, and on a Retina display X11 windows look softer (they ignore the scale).
+
 ## Limits
 
-- The clipboard is shared for **text** only (no images or files); no drag and drop, no input method (IME), no XWayland, no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
+- The clipboard is shared for **text** only (no images or files); no drag and drop, no input method (IME), no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
 - An application starts without arguments or files.
 - A Windows or macOS guest doesn't have it. The App Store build has not been checked.
 - Restarting the `caked` service drops the tunnel; Caker.app reconnects every 3 seconds.

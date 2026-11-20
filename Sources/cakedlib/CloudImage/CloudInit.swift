@@ -8,7 +8,7 @@ import Yams
 
 /// The cakeagent release the guests run: the tag of its GitHub release, which is also the version the agent reports.
 /// cakeagent now tags `v<BASE_VERSION>.<commit count>` (like Caker); older releases are `SNAPSHOT-<sha>`.
-public let CAKEAGENT_VERSION = "v1.0.326"
+public let CAKEAGENT_VERSION = "v1.0.329"
 
 /// `Bundle.module` only exists in `swift build`/`swift test` builds; the Xcode projects compile `CakedLib` as a
 /// plain native target, so the lookup branches on the build system (same pattern as `VMImageCatalog.swift`).
