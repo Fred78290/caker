@@ -3,6 +3,7 @@
 //  CakerTests
 //
 
+import AppKit
 import Foundation
 import XCTest
 
@@ -54,6 +55,7 @@ final class SeamlessWindowTests: XCTestCase {
 			.cursor(id: 7, shape: "text"),
 			.clipboard(text: "Texte copié ☕\nsur deux lignes"),
 			.clipboard(text: ""),
+			.clipboardImage(png: Data(SeamlessProtocol.pngSignature + [1, 2, 3])),
 		]
 
 		for message in messages {
@@ -77,6 +79,7 @@ final class SeamlessWindowTests: XCTestCase {
 			.pointerAxis(id: 1, dx: 0, dy: 0, source: .stop),
 			.key(code: 30, pressed: true),
 			.clipboard(text: "from the Mac"),
+			.clipboardImage(png: Data(SeamlessProtocol.pngSignature + [4, 5, 6])),
 		]
 
 		for message in messages {
@@ -452,6 +455,111 @@ final class SeamlessWindowTests: XCTestCase {
 
 		recorder.session?.send(.clipboard(text: "from the Mac"))
 		XCTAssertEqual(try readHost(fd, count: 1), [.clipboard(text: "from the Mac")])
+	}
+
+	/// A PNG file of `size` bytes: the signature, then filler (the codec checks the signature and the size, not the image).
+	private func pngFile(size: Int) -> Data {
+		Data(SeamlessProtocol.pngSignature + [UInt8](repeating: 7, count: size - SeamlessProtocol.pngSignature.count))
+	}
+
+	func testClipboardImageLimitsAndFormat() throws {
+		let png = pngFile(size: 64)
+
+		// Both directions carry it, byte for byte.
+		XCTAssertEqual(try SeamlessCodec.decodeGuest(type: 0x09, payload: Array(try SeamlessCodec.encode(SeamlessGuestMessage.clipboardImage(png: png)).dropFirst(5))), .clipboardImage(png: png))
+		XCTAssertEqual(try SeamlessCodec.decodeHost(type: 0x8C, payload: Array(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: png)).dropFirst(5))), .clipboardImage(png: png))
+
+		// The largest image goes, one more byte does not, and what is not a PNG does not.
+		XCTAssertNoThrow(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: pngFile(size: SeamlessProtocol.maxClipboardImageBytes))))
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: pngFile(size: SeamlessProtocol.maxClipboardImageBytes + 1))))
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: Data(repeating: 0, count: 64))))
+
+		// A guest that lies: a length over the limit, too short for a signature, a missing signature, bytes left over.
+		var oversize: [UInt8] = [1]
+		withUnsafeBytes(of: UInt32(SeamlessProtocol.maxClipboardImageBytes + 1).littleEndian) { oversize.append(contentsOf: $0) }
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: oversize))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [1, 4, 0, 0, 0, 0x89, 0x50, 0x4E, 0x47]))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [1, 8, 0, 0, 0] + [UInt8](repeating: 0, count: 8)))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [1, 8, 0, 0, 0] + SeamlessProtocol.pngSignature + [0]))
+	}
+
+	/// A private pasteboard, so the test does not touch the user's clipboard.
+	@MainActor
+	private func scratchPasteboard() -> NSPasteboard {
+		let pasteboard = NSPasteboard(name: NSPasteboard.Name("com.aldunelabs.caker.test.\(UUID().uuidString)"))
+
+		pasteboard.clearContents()
+
+		return pasteboard
+	}
+
+	@MainActor
+	func testPasteboardImageIsSentAsAPNG() throws {
+		let pasteboard = scratchPasteboard()
+		defer { pasteboard.releaseGlobally() }
+
+		// Nothing, or something that is not an image: nothing to send.
+		XCTAssertNil(SeamlessWindowManager.pngImage(of: pasteboard))
+		pasteboard.setString("text", forType: .string)
+		XCTAssertNil(SeamlessWindowManager.pngImage(of: pasteboard))
+
+		// A TIFF, what most applications put on the pasteboard, is converted.
+		let bitmap = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 8, pixelsHigh: 8, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+		let tiff = try XCTUnwrap(bitmap.representation(using: .tiff, properties: [:]))
+
+		pasteboard.clearContents()
+		pasteboard.setData(tiff, forType: .tiff)
+
+		let converted = try XCTUnwrap(SeamlessWindowManager.pngImage(of: pasteboard))
+
+		XCTAssertTrue(converted.starts(with: SeamlessProtocol.pngSignature))
+		XCTAssertEqual(NSBitmapImageRep(data: converted)?.pixelsWide, 8)
+
+		// A PNG is sent as it is.
+		let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+
+		pasteboard.clearContents()
+		pasteboard.setData(png, forType: .png)
+		XCTAssertEqual(SeamlessWindowManager.pngImage(of: pasteboard), png)
+	}
+
+	func testClipboardImageOnlyGoesToAGuestThatHasIt() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		// Protocol 3 has the clipboard, not its images: the message would make that guest close the connection.
+		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.clipboardVersion, name: "text-only")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.clipboardVersion, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start text-only"] })
+
+		recorder.session?.send(.clipboardImage(png: pngFile(size: 64)))
+		recorder.session?.send(.clipboard(text: "text goes"))
+		XCTAssertEqual(try readHost(fd, count: 1), [.clipboard(text: "text goes")])
+	}
+
+	func testClipboardImageReachesTheDelegateAndTheGuest() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "unit")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start unit"] })
+
+		let fromGuest = pngFile(size: 4096)
+
+		write(fd, try SeamlessCodec.encode(SeamlessGuestMessage.clipboardImage(png: fromGuest)))
+		XCTAssertTrue(wait { recorder.received == [.clipboardImage(png: fromGuest)] })
+
+		let fromMac = pngFile(size: 8192)
+
+		recorder.session?.send(.clipboardImage(png: fromMac))
+		XCTAssertEqual(try readHost(fd, count: 1), [.clipboardImage(png: fromMac)])
 	}
 
 	func testGuestOnProtocolOneIsAcceptedWithoutScrolling() throws {

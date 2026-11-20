@@ -22,7 +22,8 @@ final class SeamlessTunnel: @unchecked Sendable {
 	/// What the daemon keeps queued for the guest before it gives up on the session: a guest that stops reading must
 	/// not make it buffer what the client keeps sending without bound. Dropping bytes from a framed stream would
 	/// corrupt it, so the session ends instead and the client connects again.
-	private static let maxQueuedBytes = 16 * 1024 * 1024
+	/// A clipboard image (32 MiB at most) is one message for the guest, so the queue holds one and some more.
+	private static let maxQueuedBytes = 48 * 1024 * 1024
 
 	/// The byte stream going to the guest: the guest connection gets what the client sends.
 	private final class Relay: @unchecked Sendable {

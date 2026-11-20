@@ -108,7 +108,7 @@ The agent already lists the guest's `.desktop` applications and starts them with
 
 ## Clipboard (copy and paste)
 
-Text, both ways (protocol 3, needs a cakeagent with it: the compositor and the hub are in the cakeagent repository, cakeagent#34, released in `v1.0.326` which `CAKEAGENT_VERSION` pins).
+Text, both ways (protocol 3), and PNG images, both ways (protocol 4: format 1, at most 32 MiB, must start with the PNG signature; a protocol 3 peer gets text only, the hub checks the size and signature per link version; the Mac pasteboard's image is sent as a PNG only when it has no text; the guest reads `image/png` from the selection, text first; checked with GIMP-style X11 clients through Xwayland, which only bridges selections while one of its surfaces has keyboard focus). Text needs a cakeagent with protocol 3 (the compositor and the hub are in the cakeagent repository, cakeagent#34, released in `v1.0.326`); images need protocol 4, for which `CAKEAGENT_VERSION` must be bumped once the cakeagent images PR is released.
 
 - **Guest to host**: when an application sets the selection, the compositor reads its `text/plain` at once (a pipe, 1 MiB, 3 s) and sends `clipboard`; `SeamlessWindowManager.setHostClipboard` puts it on `NSPasteboard.general` and remembers the change count, so it isn't sent back.
 - **Host to guest**: `syncClipboardToGuest()` sends the pasteboard text when its change count differs from the last one seen, on a window becoming key (`SeamlessWindowController.onFocus`, after the focus message, so the hub already routes it to that user) and every 0.5 s while the application is active with a key window (there is no pasteboard notification). The guest compositor makes it the selection of its seat, offered as plain text.
@@ -123,7 +123,7 @@ An application that only speaks X11 (GIMP 2.10 is GTK2) failed with "Cannot open
 
 ## Not done yet / known gaps
 
-- Clipboard formats other than text (images, files), drag and drop (message ids are free, nothing is reserved), client-drawn cursor images.
+- Clipboard formats other than text and PNG images (files, rich text), drag and drop (message ids are free, nothing is reserved), client-drawn cursor images.
 - Input methods / IME and character-level text input: `text-input` is advertised and ignored, keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu (Cmd+Q, Cmd+W, Cmd+H...) are not forwarded; the others are, as Control (see Clipboard).
 - Launching with arguments or files (`%U`, `%F`) is not supported: `cakeagent seamless launch --desktop` starts the application bare. Not done: a launcher for a VM of a remote service, grouping by `Categories`.
 - Host-driven output scale changes when a window moves between displays (`output` exists, nothing sends it on a screen change).

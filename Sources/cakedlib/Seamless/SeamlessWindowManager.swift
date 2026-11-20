@@ -620,6 +620,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			windows[id]?.setCursor(shape)
 		case .clipboard(let text):
 			self.setHostClipboard(text)
+		case .clipboardImage(let png):
+			self.setHostClipboardImage(png)
 		}
 	}
 
@@ -645,8 +647,38 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		self.logger.debug("Seamless: the guest's clipboard (\(text.utf8.count) bytes) is now the host's")
 	}
 
-	/// Sends the host's clipboard to the guest when it changed since it was last seen (either way). Text only, and
-	/// never what is marked private.
+	/// Sets the host's clipboard to the guest's image (a PNG file), like `setHostClipboard` does for text.
+	private func setHostClipboardImage(_ png: Data) {
+		let pasteboard = NSPasteboard.general
+
+		guard !png.isEmpty, pasteboard.data(forType: .png) != png else { return }
+
+		pasteboard.clearContents()
+
+		if !pasteboard.setData(png, forType: .png) {
+			self.logger.warn("Seamless: unable to set the clipboard of the host")
+		}
+
+		self.pasteboardChangeCount = pasteboard.changeCount
+		self.logger.debug("Seamless: the guest's clipboard image (\(png.count) bytes) is now the host's")
+	}
+
+	/// The image on a pasteboard as a PNG file: it is taken as it is when it is one, a TIFF (what most applications put
+	/// there) or any other image the system reads is converted. Nil when there is none or it is too big.
+	static func pngImage(of pasteboard: NSPasteboard) -> Data? {
+		var png = pasteboard.data(forType: .png)
+
+		if png == nil, let data = pasteboard.data(forType: .tiff) ?? pasteboard.data(forType: NSPasteboard.PasteboardType("public.jpeg")) {
+			png = NSBitmapImageRep(data: data)?.representation(using: .png, properties: [:])
+		}
+
+		guard let png, png.count <= SeamlessProtocol.maxClipboardImageBytes, png.starts(with: SeamlessProtocol.pngSignature) else { return nil }
+
+		return png
+	}
+
+	/// Sends the host's clipboard to the guest when it changed since it was last seen (either way): its text, else its
+	/// image when the guest takes images. Never what is marked private.
 	func syncClipboardToGuest() {
 		guard let session, session.negotiatedVersion >= SeamlessProtocol.clipboardVersion else { return }
 
@@ -658,9 +690,19 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		let types = Set((pasteboard.types ?? []).map(\.rawValue))
 
-		guard types.isDisjoint(with: Self.privatePasteboardTypes), let text = pasteboard.string(forType: .string), !text.isEmpty, text.utf8.count <= SeamlessProtocol.maxClipboardBytes else { return }
+		guard types.isDisjoint(with: Self.privatePasteboardTypes) else { return }
 
-		self.send(.clipboard(text: text), via: session)
+		if let text = pasteboard.string(forType: .string), !text.isEmpty {
+			if text.utf8.count <= SeamlessProtocol.maxClipboardBytes {
+				self.send(.clipboard(text: text), via: session)
+			}
+
+			return
+		}
+
+		if session.negotiatedVersion >= SeamlessProtocol.clipboardImageVersion, let png = Self.pngImage(of: pasteboard) {
+			self.send(.clipboardImage(png: png), via: session)
+		}
 	}
 
 	/// The clipboard follows the focus (a window becoming key), and changes made while the application is in front (in

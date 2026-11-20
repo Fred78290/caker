@@ -27,7 +27,7 @@ public enum SeamlessAxisSource: UInt8, Sendable {
 }
 
 public enum SeamlessProtocol {
-	public static let version: UInt16 = 3
+	public static let version: UInt16 = 4
 	/// The oldest guest version the host still talks to: it answers with the guest's version and leaves out what that version lacks
 	/// (version 1 has no scroll wheel, `pointerAxis` is never sent to it).
 	public static let minimumVersion: UInt16 = 1
@@ -35,8 +35,14 @@ public enum SeamlessProtocol {
 	public static let axisVersion: UInt16 = 2
 	/// First version with the clipboard (`clipboard` in both directions).
 	public static let clipboardVersion: UInt16 = 3
+	/// First version whose clipboard also carries images (format 1, a PNG file).
+	public static let clipboardImageVersion: UInt16 = 4
 	/// The most text a clipboard message carries, in bytes: a bigger selection is not shared.
 	public static let maxClipboardBytes = 1024 * 1024
+	/// The most a clipboard image (a PNG file) may weigh, in bytes.
+	public static let maxClipboardImageBytes = 32 * 1024 * 1024
+	/// The eight bytes every PNG file starts with.
+	public static let pngSignature: [UInt8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
 	/// vsock port the guest compositor connects to.
 	public static let defaultVsockPort = 5100
 
@@ -188,6 +194,8 @@ public enum SeamlessGuestMessage: Equatable, Sendable {
 	case cursor(id: UInt32, shape: String)
 	/// The text of the guest's selection. It sets the host's clipboard.
 	case clipboard(text: String)
+	/// The image (a PNG file) of the guest's selection, from protocol 4.
+	case clipboardImage(png: Data)
 }
 
 /// Host -> guest. Coordinates and sizes are logical (what Wayland calls surface coordinates), a buffer is
@@ -210,6 +218,8 @@ public enum SeamlessHostMessage: Equatable, Sendable {
 	case key(code: UInt32, pressed: Bool)
 	/// The text of the host's clipboard. It becomes the selection of the guest.
 	case clipboard(text: String)
+	/// The image (a PNG file) of the host's clipboard, from protocol 4.
+	case clipboardImage(png: Data)
 }
 
 // MARK: - Primitives
@@ -465,6 +475,9 @@ public enum SeamlessCodec {
 		case .clipboard(let text):
 			type = .clipboard
 			try Self.writeClipboard(text, &w)
+		case .clipboardImage(let png):
+			type = .clipboard
+			try Self.writeClipboardImage(png, &w)
 		}
 
 		return try wrap(type: type.rawValue, w)
@@ -525,12 +538,24 @@ public enum SeamlessCodec {
 		case .clipboard(let text):
 			type = .clipboard
 			try Self.writeClipboard(text, &w)
+		case .clipboardImage(let png):
+			type = .clipboard
+			try Self.writeClipboardImage(png, &w)
 		}
 
 		return try wrap(type: type.rawValue, w)
 	}
 
-	/// `u8 format (0: UTF-8 text) + u32 length + bytes`, the payload of both clipboard messages.
+	/// `u8 format (0: UTF-8 text, 1: PNG image) + u32 length + bytes`, the payload of both clipboard messages.
+	private static func writeClipboardImage(_ png: Data, _ w: inout SeamlessWriter) throws {
+		guard png.count <= SeamlessProtocol.maxClipboardImageBytes else { throw SeamlessProtocolError.invalidValue("clipboard image of \(png.count) bytes") }
+		guard png.starts(with: SeamlessProtocol.pngSignature) else { throw SeamlessProtocolError.invalidValue("clipboard image is not a PNG") }
+
+		w.u8(1)
+		w.u32(UInt32(png.count))
+		w.data.append(contentsOf: png)
+	}
+
 	private static func writeClipboard(_ text: String, _ w: inout SeamlessWriter) throws {
 		let bytes = Array(text.utf8)
 
@@ -541,17 +566,36 @@ public enum SeamlessCodec {
 		w.data.append(contentsOf: bytes)
 	}
 
-	private static func readClipboard(_ r: inout SeamlessReader) throws -> String {
+	/// What a clipboard message holds.
+	private enum ClipboardContent {
+		case text(String)
+		case png(Data)
+	}
+
+	private static func readClipboard(_ r: inout SeamlessReader) throws -> ClipboardContent {
 		let format = try r.u8()
 
-		guard format == 0 else { throw SeamlessProtocolError.invalidValue("clipboard format \(format)") }
+		switch format {
+		case 0:
+			let length = Int(try r.u32())
 
-		let length = Int(try r.u32())
+			guard length <= SeamlessProtocol.maxClipboardBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(length) bytes") }
 
-		guard length <= SeamlessProtocol.maxClipboardBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(length) bytes") }
+			// Text with a broken sequence is still text: it is not worth ending the session for.
+			return .text(String(decoding: try r.slice(length), as: UTF8.self))
+		case 1:
+			let length = Int(try r.u32())
 
-		// Text with a broken sequence is still text: it is not worth ending the session for.
-		return String(decoding: try r.slice(length), as: UTF8.self)
+			guard length >= SeamlessProtocol.pngSignature.count, length <= SeamlessProtocol.maxClipboardImageBytes else { throw SeamlessProtocolError.invalidValue("clipboard image of \(length) bytes") }
+
+			let bytes = try r.slice(length)
+
+			guard bytes.starts(with: SeamlessProtocol.pngSignature) else { throw SeamlessProtocolError.invalidValue("clipboard image is not a PNG") }
+
+			return .png(Data(bytes))
+		default:
+			throw SeamlessProtocolError.invalidValue("clipboard format \(format)")
+		}
 	}
 
 	// MARK: Decode
@@ -587,7 +631,10 @@ public enum SeamlessCodec {
 		case .cursor:
 			message = .cursor(id: try r.u32(), shape: try r.string())
 		case .clipboard:
-			message = .clipboard(text: try readClipboard(&r))
+			switch try readClipboard(&r) {
+			case .text(let text): message = .clipboard(text: text)
+			case .png(let png): message = .clipboardImage(png: png)
+			}
 		}
 
 		try r.finish()
@@ -688,7 +735,10 @@ public enum SeamlessCodec {
 		case .key:
 			message = .key(code: try r.u32(), pressed: try r.u8() != 0)
 		case .clipboard:
-			message = .clipboard(text: try readClipboard(&r))
+			switch try readClipboard(&r) {
+			case .text(let text): message = .clipboard(text: text)
+			case .png(let png): message = .clipboardImage(png: png)
+			}
 		}
 
 		try r.finish()

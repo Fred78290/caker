@@ -988,7 +988,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public func installAgent(updateAgent: Bool, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) async throws -> Bool {
-		Logger(self).info("Installing agent on \(self.name)")
+		Logger(self).info("Installing agent on \(self.name), version=\(CAKEAGENT_VERSION)")
 
 		// A Windows guest has no shell like the others: PowerShell over its OpenSSH server (installed with the guest)
 		if config.isWindowsGuest {
