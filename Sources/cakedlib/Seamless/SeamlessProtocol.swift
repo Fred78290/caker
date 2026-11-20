@@ -27,12 +27,16 @@ public enum SeamlessAxisSource: UInt8, Sendable {
 }
 
 public enum SeamlessProtocol {
-	public static let version: UInt16 = 2
+	public static let version: UInt16 = 3
 	/// The oldest guest version the host still talks to: it answers with the guest's version and leaves out what that version lacks
 	/// (version 1 has no scroll wheel, `pointerAxis` is never sent to it).
 	public static let minimumVersion: UInt16 = 1
 	/// First version with the `pointerAxis` source byte, so the first with scrolling.
 	public static let axisVersion: UInt16 = 2
+	/// First version with the clipboard (`clipboard` in both directions).
+	public static let clipboardVersion: UInt16 = 3
+	/// The most text a clipboard message carries, in bytes: a bigger selection is not shared.
+	public static let maxClipboardBytes = 1024 * 1024
 	/// vsock port the guest compositor connects to.
 	public static let defaultVsockPort = 5100
 
@@ -182,6 +186,8 @@ public enum SeamlessGuestMessage: Equatable, Sendable {
 	case windowDestroy(id: UInt32)
 	/// CSS cursor name (`default`, `text`, `pointer`, `crosshair`, `ew-resize`, ...), as in `wp_cursor_shape`.
 	case cursor(id: UInt32, shape: String)
+	/// The text of the guest's selection. It sets the host's clipboard.
+	case clipboard(text: String)
 }
 
 /// Host -> guest. Coordinates and sizes are logical (what Wayland calls surface coordinates), a buffer is
@@ -202,6 +208,8 @@ public enum SeamlessHostMessage: Equatable, Sendable {
 	case pointerAxis(id: UInt32, dx: Float, dy: Float, source: SeamlessAxisSource)
 	/// Linux evdev key code (`KEY_A` == 30), delivered to the focused window.
 	case key(code: UInt32, pressed: Bool)
+	/// The text of the host's clipboard. It becomes the selection of the guest.
+	case clipboard(text: String)
 }
 
 // MARK: - Primitives
@@ -341,11 +349,11 @@ enum SeamlessLZ4 {
 
 public enum SeamlessCodec {
 	private enum GuestType: UInt8 {
-		case hello = 0x01, windowCreate, windowTitle, windowAppID, windowHints, windowFrame, windowDestroy, cursor
+		case hello = 0x01, windowCreate, windowTitle, windowAppID, windowHints, windowFrame, windowDestroy, cursor, clipboard
 	}
 
 	private enum HostType: UInt8 {
-		case helloAck = 0x81, output, windowResize, windowClose, windowFocus, pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, key
+		case helloAck = 0x81, output, windowResize, windowClose, windowFocus, pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, key, clipboard
 	}
 
 	private static let pixelFormatBGRA: UInt8 = 0
@@ -454,6 +462,9 @@ public enum SeamlessCodec {
 			type = .cursor
 			w.u32(id)
 			try w.string(shape)
+		case .clipboard(let text):
+			type = .clipboard
+			try Self.writeClipboard(text, &w)
 		}
 
 		return try wrap(type: type.rawValue, w)
@@ -511,9 +522,36 @@ public enum SeamlessCodec {
 			type = .key
 			w.u32(code)
 			w.u8(pressed ? 1 : 0)
+		case .clipboard(let text):
+			type = .clipboard
+			try Self.writeClipboard(text, &w)
 		}
 
 		return try wrap(type: type.rawValue, w)
+	}
+
+	/// `u8 format (0: UTF-8 text) + u32 length + bytes`, the payload of both clipboard messages.
+	private static func writeClipboard(_ text: String, _ w: inout SeamlessWriter) throws {
+		let bytes = Array(text.utf8)
+
+		guard bytes.count <= SeamlessProtocol.maxClipboardBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(bytes.count) bytes") }
+
+		w.u8(0)
+		w.u32(UInt32(bytes.count))
+		w.data.append(contentsOf: bytes)
+	}
+
+	private static func readClipboard(_ r: inout SeamlessReader) throws -> String {
+		let format = try r.u8()
+
+		guard format == 0 else { throw SeamlessProtocolError.invalidValue("clipboard format \(format)") }
+
+		let length = Int(try r.u32())
+
+		guard length <= SeamlessProtocol.maxClipboardBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(length) bytes") }
+
+		// Text with a broken sequence is still text: it is not worth ending the session for.
+		return String(decoding: try r.slice(length), as: UTF8.self)
 	}
 
 	// MARK: Decode
@@ -548,6 +586,8 @@ public enum SeamlessCodec {
 			message = .windowDestroy(id: try r.u32())
 		case .cursor:
 			message = .cursor(id: try r.u32(), shape: try r.string())
+		case .clipboard:
+			message = .clipboard(text: try readClipboard(&r))
 		}
 
 		try r.finish()
@@ -647,6 +687,8 @@ public enum SeamlessCodec {
 			message = .pointerAxis(id: id, dx: dx, dy: dy, source: source)
 		case .key:
 			message = .key(code: try r.u32(), pressed: try r.u8() != 0)
+		case .clipboard:
+			message = .clipboard(text: try readClipboard(&r))
 		}
 
 		try r.finish()

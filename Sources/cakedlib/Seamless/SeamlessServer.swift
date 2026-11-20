@@ -47,6 +47,8 @@ public final class SeamlessSession: @unchecked Sendable {
 	public func send(_ message: SeamlessHostMessage) {
 		// A guest on protocol 1 has no scrolling: the message would make it close the connection.
 		if case .pointerAxis = message, negotiatedVersion < SeamlessProtocol.axisVersion { return }
+		// Likewise a guest older than the clipboard.
+		if case .clipboard = message, negotiatedVersion < SeamlessProtocol.clipboardVersion { return }
 
 		guard let data = try? SeamlessCodec.encode(message) else { return }
 
@@ -448,7 +450,7 @@ public final class SeamlessServer: @unchecked Sendable {
 						}
 
 						if version < SeamlessProtocol.version {
-							logger.warn("Seamless guest \(name) speaks protocol \(version), the host \(SeamlessProtocol.version): mouse wheel scrolling is disabled until its agent is updated")
+							logger.warn("Seamless guest \(name) speaks protocol \(version), the host \(SeamlessProtocol.version): \(version < SeamlessProtocol.axisVersion ? "mouse wheel scrolling and the clipboard are" : "the clipboard is") disabled until its agent is updated")
 						}
 
 						helloDone = true

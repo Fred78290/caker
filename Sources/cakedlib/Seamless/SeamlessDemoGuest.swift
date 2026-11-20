@@ -253,6 +253,8 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 			record("axis \(id) \(Int(dx)),\(Int(dy)) \(source)")
 		case .key(let code, let pressed):
 			record("key \(code) \(pressed)")
+		case .clipboard(let text):
+			record("clipboard \(text.utf8.count) bytes")
 		}
 	}
 

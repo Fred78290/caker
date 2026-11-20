@@ -33,13 +33,15 @@ connect://vsock:5100/<path to the seamless socket>
 
 The guest compositor connects to vsock port `5100` (`SeamlessProtocol.defaultVsockPort`), the bridge in `VirtualSocketDevices.swift` forwards it to the socket `SeamlessServer` listens on.
 
-## Protocol (version 2)
+## Protocol (version 3)
 
 Frame: `u32 length` (type byte + payload) + `u8 type` + payload, little endian, strings `u16 length` + UTF-8. Types `0x01...0x7F` guest to host, `0x81...0xFF` host to guest. First message must be `hello`; the host answers `helloAck` with the output scale (`120` == 1x, fractional-scale units).
 
-Guest to host: `hello`, `windowCreate` (id, parent, toplevel/popup, popup offset, title, app id), `windowTitle`, `windowAppID`, `windowHints` (min/max size), `windowFrame`, `windowDestroy`, `cursor` (CSS cursor name).
+Guest to host: `hello`, `windowCreate` (id, parent, toplevel/popup, popup offset, title, app id), `windowTitle`, `windowAppID`, `windowHints` (min/max size), `windowFrame`, `windowDestroy`, `cursor` (CSS cursor name), `clipboard` (`0x09`, version 3).
 
 Host to guest: `helloAck`, `output` (scale change), `windowResize` (logical size), `windowClose` (request, the guest answers `windowDestroy`), `windowFocus`, `pointerEnter/Leave/Motion/Button/Axis` (logical surface coordinates, evdev button codes; `Axis` carries a source: `continuous` trackpad pixels, `wheel` mouse notches reported to clients as discrete `value120` steps, `stop` when the fingers leave the trackpad. Version 2 added the source byte. The host still accepts a version 1 guest: it answers `helloAck` with the guest's version and never sends `Axis` to it, so such a guest works without the mouse wheel until its agent is updated; a guest newer than the host is refused), `key` (evdev code, delivered to the focused window).
+
+`clipboard` (`0x09` guest to host, `0x8C` host to guest, version 3): `u8 format` (0, UTF-8 text) + `u32 length` + bytes, at most 1 MiB (`SeamlessProtocol.maxClipboardBytes`, `SEAMLESS_MAX_CLIPBOARD`). A guest on protocol 2 is accepted without it (the host never sends `clipboard` to it and logs that the clipboard is disabled until its agent is updated); a text with a broken UTF-8 sequence is decoded loosely rather than ending the session.
 
 `windowFrame`: buffer size in pixels + damage rectangles. Pixels are BGRA premultiplied (`wl_shm` ARGB8888 on little endian). Each rectangle is raw or an LZ4 **raw block** (what `LZ4_compress_default` writes); the guest picks per rectangle. Buffer pixels = logical size * scale / 120.
 
@@ -104,10 +106,21 @@ The agent already lists the guest's `.desktop` applications and starts them with
 - **Caker.app**: an "Applications" button in the VM window toolbar (`HostVirtualMachineView.applicationsButton`, `GuestApplicationsView`) for a running Linux VM with seamless windows and an agent that answers; a popover with a search field, the list (each row shows the application's icon, read from the guest as the row appears by `GuestIconLoader`: one application at a time, two agent calls each, kept for the popover's life; the initial in a tile meanwhile and when there is none), a click starts the application (the windows come through the tunnel or the embedded server the app already has), a "create launcher" button (`plus.app`) shown on the row under the pointer writes the same bundle (`GuestApplicationsHandler.launcherTool`): with the `cakectl` inside the app for a VM of the local service (`.user`/`.system`), and with the `caked` inside the app for a VM the app runs itself (`.app` mode, no service to connect to: `caked app run --start` reaches the agent directly, and the windows stay in the app while it runs the VM). Not for a remote service, whose address the app doesn't pass. The `.app` mode path builds but was not run from the GUI.
 - A `Terminal=true` application (htop, vim) runs inside the guest's terminal emulator (`foot -e htop`, found through the `TerminalEmulator` category): started alone by the agent it exited at once. Unit-tested (`GuestApplicationsTests`) and **run against a real Ubuntu guest**: `caked app list`, `cakectl app list`, `app run foot` and `app run htop` (a `[vm] foot` window on the host), `create-launcher` and `open` of the generated `.app`. **Not checked**: the `Run` call's 5 s limit on a guest with many `.desktop` files, a non-default `--seamless-user`, the popover and the toolbar button, a Finder double-click (an unsigned script bundle and Gatekeeper), `--start` waiting for a VM to boot.
 
+## Clipboard (copy and paste)
+
+Text, both ways (protocol 3, needs a cakeagent with it: the compositor and the hub are in the cakeagent repository, branch `feat/seamless-clipboard`, to be released and pinned in `CAKEAGENT_VERSION`).
+
+- **Guest to host**: when an application sets the selection, the compositor reads its `text/plain` at once (a pipe, 1 MiB, 3 s) and sends `clipboard`; `SeamlessWindowManager.setHostClipboard` puts it on `NSPasteboard.general` and remembers the change count, so it isn't sent back.
+- **Host to guest**: `syncClipboardToGuest()` sends the pasteboard text when its change count differs from the last one seen, on a window becoming key (`SeamlessWindowController.onFocus`, after the focus message, so the hub already routes it to that user) and every 0.5 s while the application is active with a key window (there is no pasteboard notification). The guest compositor makes it the selection of its seat, offered as plain text.
+- **Not shared**: a pasteboard marked `org.nspasteboard.ConcealedType`/`TransientType`/`AutoGeneratedType` or by 1Password, anything that isn't text, more than 1 MiB, and the clipboard of a user of the guest who doesn't have the focus (the hub drops it, and gives the host's only to the focused user's compositor).
+- **Cmd as Control** (`SeamlessSurfaceView`): a Linux application expects Control+C/V/X/A, a Mac user presses Command. Command held with a key is sent as Left Control plus that key, and Command pressed and released alone is the Super key. A Control key already held is left alone.
+- The compositor also accepts selection requests (copy and paste between guest applications did not work before either), handles the primary selection (guest only) and offers `wlr-data-control`, so `wl-copy`/`wl-paste` work without a focused surface.
+- **Verified**: the compositor against a test host speaking the protocol (`wl-copy`/`wl-paste` both directions, 900 KB host to guest, a 1.1 MB copy dropped), and guest to Mac through the real hub, a running `caked` and `pbpaste` (text with accents). **Not verified in a real session**: Mac to guest (a window becoming key, the timer), Cmd as Control, a user pressing the keys; the guest's apps copying with Ctrl+C. Unit-tested: codec limits and formats, version gating, delivery through the server; the hub's routing and validation.
+
 ## Not done yet / known gaps
 
-- XWayland (X11 apps), clipboard (`wl_data_device` is advertised but selections aren't synced), drag and drop (message ids are free, nothing is reserved), client-drawn cursor images.
-- Input methods / IME and character-level text input: `text-input` is advertised and ignored, keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu are not forwarded.
+- XWayland (X11 apps), clipboard formats other than text (images, files), drag and drop (message ids are free, nothing is reserved), client-drawn cursor images.
+- Input methods / IME and character-level text input: `text-input` is advertised and ignored, keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu (Cmd+Q, Cmd+W, Cmd+H...) are not forwarded; the others are, as Control (see Clipboard).
 - Launching with arguments or files (`%U`, `%F`) is not supported: `cakeagent seamless launch --desktop` starts the application bare. Not done: a launcher for a VM of a remote service, grouping by `Categories`.
 - Host-driven output scale changes when a window moves between displays (`output` exists, nothing sends it on a screen change).
 - Rendering: each frame snapshots the whole buffer into a `CGImage`. Replace with an `IOSurface` ring and per-damage updates, and coalesce to the display refresh.

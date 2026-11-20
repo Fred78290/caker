@@ -54,9 +54,13 @@ cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (my
 - Les applications en terminal (`htop`, `vim`) sont lancées dans l'émulateur de terminal de l'invité.
 - Le détail des options est dans [`app`](command-summary).
 
+## Copier-coller
+
+Le texte copié dans l'invité passe dans le presse-papiers du Mac, et le texte copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout ce qui n'est pas du texte, plus de 1 Mio, et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent récent dans l'invité (protocole 3) ; un agent plus ancien n'a pas de presse-papiers.
+
 ## Limites
 
-- Pas de presse-papiers partagé, pas de glisser-déposer, pas de méthode de saisie (IME), pas de XWayland, pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
+- Le presse-papiers est partagé pour le **texte** seulement (images et fichiers non) ; pas de glisser-déposer, pas de méthode de saisie (IME), pas de XWayland, pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
 - Une application démarre sans argument ni fichier.
 - Un invité Windows ou macOS ne l'a pas. L'installation de la VM App Store n'a pas été vérifiée.
 - Un redémarrage du service `caked` coupe le tunnel ; Caker.app se reconnecte toutes les 3 secondes.
@@ -119,9 +123,13 @@ cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (
 - Terminal applications (`htop`, `vim`) are started in the guest's terminal emulator.
 - The options are detailed under [`app`](command-summary).
 
+## Copy and paste
+
+Text copied in the guest goes to the Mac's clipboard, and text copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, anything that isn't text, more than 1 MiB, and the clipboard of a guest user other than the one whose window has the focus. It needs a recent cakeagent in the guest (protocol 3); an older agent has no clipboard.
+
 ## Limits
 
-- No shared clipboard, no drag and drop, no input method (IME), no XWayland, no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
+- The clipboard is shared for **text** only (no images or files); no drag and drop, no input method (IME), no XWayland, no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
 - An application starts without arguments or files.
 - A Windows or macOS guest doesn't have it. The App Store build has not been checked.
 - Restarting the `caked` service drops the tunnel; Caker.app reconnects every 3 seconds.

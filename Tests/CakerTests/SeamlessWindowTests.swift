@@ -52,6 +52,8 @@ final class SeamlessWindowTests: XCTestCase {
 			.windowHints(id: 7, hints: SeamlessSizeHints(minWidth: 100, minHeight: 50, maxWidth: 0, maxHeight: 900)),
 			.windowDestroy(id: 7),
 			.cursor(id: 7, shape: "text"),
+			.clipboard(text: "Texte copié ☕\nsur deux lignes"),
+			.clipboard(text: ""),
 		]
 
 		for message in messages {
@@ -74,6 +76,7 @@ final class SeamlessWindowTests: XCTestCase {
 			.pointerAxis(id: 1, dx: 0.5, dy: 2, source: .wheel),
 			.pointerAxis(id: 1, dx: 0, dy: 0, source: .stop),
 			.key(code: 30, pressed: true),
+			.clipboard(text: "from the Mac"),
 		]
 
 		for message in messages {
@@ -396,6 +399,59 @@ final class SeamlessWindowTests: XCTestCase {
 		// The guest going away ends the session.
 		Darwin.close(fd)
 		XCTAssertTrue(wait { recorder.log.last == "end" })
+	}
+
+	func testClipboardLimitsAndFormat() throws {
+		// A text over the limit is not encoded (the sender checks first), and a guest can't send one either.
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboard(text: String(repeating: "a", count: SeamlessProtocol.maxClipboardBytes + 1))))
+		XCTAssertNoThrow(try SeamlessCodec.encode(SeamlessHostMessage.clipboard(text: String(repeating: "a", count: SeamlessProtocol.maxClipboardBytes))))
+
+		var oversize: [UInt8] = [0]
+		withUnsafeBytes(of: UInt32(SeamlessProtocol.maxClipboardBytes + 1).littleEndian) { oversize.append(contentsOf: $0) }
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: oversize))
+
+		// An unknown format, a length that lies, and bytes left over.
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [7, 1, 0, 0, 0, 97]))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [0, 5, 0, 0, 0, 97]))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [0, 1, 0, 0, 0, 97, 98]))
+
+		// Text with a broken UTF-8 sequence is still text: it must not end the session.
+		XCTAssertEqual(try SeamlessCodec.decodeGuest(type: 0x09, payload: [0, 2, 0, 0, 0, 0xC3, 0x28]), .clipboard(text: "\u{FFFD}("))
+	}
+
+	func testClipboardOnlyGoesToAGuestThatHasIt() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.axisVersion, name: "scrolls")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.axisVersion, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start scrolls"] })
+
+		// Protocol 2 has no clipboard: the message would make the guest close the connection.
+		recorder.session?.send(.clipboard(text: "no"))
+		recorder.session?.send(.pointerMotion(id: 3, x: 1, y: 2))
+		XCTAssertEqual(try readHost(fd, count: 1), [.pointerMotion(id: 3, x: 1, y: 2)])
+	}
+
+	func testClipboardReachesTheDelegateAndTheGuest() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "unit")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start unit"] })
+
+		write(fd, try SeamlessCodec.encode(SeamlessGuestMessage.clipboard(text: "from the guest")))
+		XCTAssertTrue(wait { recorder.received == [.clipboard(text: "from the guest")] })
+
+		recorder.session?.send(.clipboard(text: "from the Mac"))
+		XCTAssertEqual(try readHost(fd, count: 1), [.clipboard(text: "from the Mac")])
 	}
 
 	func testGuestOnProtocolOneIsAcceptedWithoutScrolling() throws {

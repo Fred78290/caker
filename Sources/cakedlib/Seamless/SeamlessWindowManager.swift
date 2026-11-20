@@ -18,6 +18,13 @@ final class SeamlessSurfaceView: NSView {
 
 	private var heldModifiers = Set<UInt16>()
 	private var heldKeys = Set<UInt32>()
+	/// The Command keys held (54 right, 55 left). Command is what Mac users press for copy, paste, select all..., which a
+	/// Linux application expects as Control: it is sent as Control once a key goes with it, and as the Super key (what
+	/// it is on the guest's keyboard) only when it is pressed and released on its own.
+	private var heldCommandKeys = Set<UInt16>()
+	private var commandActsAsControl = false
+	private var commandAloneKey: UInt16?
+	private static let evdevLeftControl: UInt32 = 29
 
 	override var isFlipped: Bool { true }
 	override var acceptsFirstResponder: Bool { true }
@@ -120,6 +127,16 @@ final class SeamlessSurfaceView: NSView {
 		// The guest compositor generates its own repeats from the held key.
 		guard !event.isARepeat, let code = SeamlessKeyMap.evdev(forMacKeyCode: event.keyCode) else { return }
 
+		if !heldCommandKeys.isEmpty {
+			// Command + key: the guest sees Control + key, unless a Control key is already down.
+			commandAloneKey = nil
+
+			if !commandActsAsControl && !heldModifiers.contains(59) && !heldModifiers.contains(62) {
+				commandActsAsControl = true
+				onKey?(Self.evdevLeftControl, true)
+			}
+		}
+
 		heldKeys.insert(code)
 		onKey?(code, true)
 	}
@@ -131,8 +148,39 @@ final class SeamlessSurfaceView: NSView {
 		onKey?(code, false)
 	}
 
+	private func commandChanged(_ keyCode: UInt16, code: UInt32) {
+		if heldCommandKeys.contains(keyCode) {
+			heldCommandKeys.remove(keyCode)
+
+			if heldCommandKeys.isEmpty {
+				if commandActsAsControl {
+					commandActsAsControl = false
+					onKey?(Self.evdevLeftControl, false)
+				} else if let alone = commandAloneKey, let superCode = SeamlessKeyMap.evdev(forMacKeyCode: alone) {
+					// Pressed and released with nothing between: the Super key, as it would have been before.
+					onKey?(superCode, true)
+					onKey?(superCode, false)
+				}
+
+				commandAloneKey = nil
+			}
+		} else {
+			if heldCommandKeys.isEmpty {
+				commandAloneKey = keyCode
+			}
+
+			heldCommandKeys.insert(keyCode)
+		}
+	}
+
 	override func flagsChanged(with event: NSEvent) {
 		guard SeamlessKeyMap.modifierKeyCodes.contains(event.keyCode), let code = SeamlessKeyMap.evdev(forMacKeyCode: event.keyCode) else { return }
+
+		if event.keyCode == 54 || event.keyCode == 55 {
+			commandChanged(event.keyCode, code: code)
+
+			return
+		}
 
 		// The flags are the combined state of both keys of a pair, so track each physical key by toggling.
 		if event.keyCode == 57 {
@@ -151,6 +199,14 @@ final class SeamlessSurfaceView: NSView {
 	/// Releases what is still held, otherwise the guest sees a stuck key or modifier: a release that happens in
 	/// another application never reaches this view, and the compositor would give the pressed keys to the next window.
 	func releaseHeldKeys() {
+		if commandActsAsControl {
+			onKey?(Self.evdevLeftControl, false)
+		}
+
+		commandActsAsControl = false
+		commandAloneKey = nil
+		heldCommandKeys.removeAll()
+
 		for keyCode in heldModifiers {
 			if let code = SeamlessKeyMap.evdev(forMacKeyCode: keyCode) { onKey?(code, false) }
 		}
@@ -226,6 +282,8 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 	}
 
 	private var titlePrefix = ""
+	/// Called when the window becomes the key window, once the guest knows.
+	var onFocus: (() -> Void)?
 
 	private func logicalSize(width: Int, height: Int) -> NSSize {
 		let k = 120.0 / Double(max(scale120, 1))
@@ -327,6 +385,8 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 
 	func windowDidBecomeKey(_ notification: Notification) {
 		sendToGuest(.windowFocus(id: info.id, focused: true))
+		// After the focus: the guest hands the clipboard to the focused user's compositor.
+		onFocus?()
 	}
 
 	func windowDidResignKey(_ notification: Notification) {
@@ -370,6 +430,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	private let logger = Logger("SeamlessWindowManager")
 	private let displayMode: VMRunHandler.DisplayMode
 	private var applicationInited = false
+	private var pasteboardChangeCount = NSPasteboard.general.changeCount
+	private var clipboardTimer: Timer?
 
 	/// A process that runs the VM without a UI (`vmrun --vnc`, what a background start uses) shows the guest's windows
 	/// too: it has no application of its own, so the manager makes it an accessory one (no Dock icon, no menu bar),
@@ -470,6 +532,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 			self.session = session
 			self.guestName = guestName
+			self.startClipboardTimer()
 			self.logger.info("Seamless: guest compositor \(guestName) connected")
 			self.onSessionChange?(true)
 		}
@@ -481,6 +544,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			guard self.session === session else { return }
 
 			self.session = nil
+			self.stopClipboardTimer()
 			self.logger.info("Seamless: guest compositor disconnected")
 			self.closeAllWindows()
 			self.onSessionChange?(false)
@@ -523,6 +587,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			let controller = SeamlessWindowController(
 				info: info, parent: parent, titlePrefix: titlePrefix, scale120: server.outputScale120,
 				send: { [weak self, weak owner = self.session] in self?.send($0, via: owner) })
+			controller.onFocus = { [weak self] in self?.syncClipboardToGuest() }
 			windows[info.id] = controller
 
 			// Nothing is shown yet: the first valid frame sizes, places and shows the window (and activates the app
@@ -553,6 +618,67 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			}
 		case .cursor(let id, let shape):
 			windows[id]?.setCursor(shape)
+		case .clipboard(let text):
+			self.setHostClipboard(text)
 		}
+	}
+
+	// MARK: Clipboard
+
+	/// Pasteboard types a password manager (or any application) puts on what it copies so that it isn't kept or shared.
+	private static let privatePasteboardTypes = ["org.nspasteboard.ConcealedType", "org.nspasteboard.TransientType", "org.nspasteboard.AutoGeneratedType", "com.agilebits.onepassword"]
+
+	/// Sets the host's clipboard to the guest's selection. The change count it gives is remembered: it is the guest's own text,
+	/// not a change to send back.
+	private func setHostClipboard(_ text: String) {
+		let pasteboard = NSPasteboard.general
+
+		guard !text.isEmpty, pasteboard.string(forType: .string) != text else { return }
+
+		pasteboard.clearContents()
+
+		if !pasteboard.setString(text, forType: .string) {
+			self.logger.warn("Seamless: unable to set the clipboard of the host")
+		}
+
+		self.pasteboardChangeCount = pasteboard.changeCount
+		self.logger.debug("Seamless: the guest's clipboard (\(text.utf8.count) bytes) is now the host's")
+	}
+
+	/// Sends the host's clipboard to the guest when it changed since it was last seen (either way). Text only, and
+	/// never what is marked private.
+	func syncClipboardToGuest() {
+		guard let session, session.negotiatedVersion >= SeamlessProtocol.clipboardVersion else { return }
+
+		let pasteboard = NSPasteboard.general
+
+		guard pasteboard.changeCount != self.pasteboardChangeCount else { return }
+
+		self.pasteboardChangeCount = pasteboard.changeCount
+
+		let types = Set((pasteboard.types ?? []).map(\.rawValue))
+
+		guard types.isDisjoint(with: Self.privatePasteboardTypes), let text = pasteboard.string(forType: .string), !text.isEmpty, text.utf8.count <= SeamlessProtocol.maxClipboardBytes else { return }
+
+		self.send(.clipboard(text: text), via: session)
+	}
+
+	/// The clipboard follows the focus (a window becoming key), and changes made while the application is in front (in
+	/// another window of it, or by a menu) are picked up here: there is no notification for the pasteboard.
+	private func startClipboardTimer() {
+		guard self.clipboardTimer == nil else { return }
+
+		self.clipboardTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+			MainActor.assumeIsolated {
+				guard let self, NSApplication.shared.isActive, NSApplication.shared.keyWindow != nil else { return }
+
+				self.syncClipboardToGuest()
+			}
+		}
+	}
+
+	private func stopClipboardTimer() {
+		self.clipboardTimer?.invalidate()
+		self.clipboardTimer = nil
 	}
 }
