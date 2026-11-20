@@ -16,7 +16,7 @@ Les fenêtres portent le préfixe `[<vm>]` dans leur titre (`[myvm] foot`), et `
 
 ## Prérequis
 
-- Une VM **Linux** (pas macOS, pas Windows) avec un cakeagent récent dans l'invité (**v1.0.321 ou plus** ; un agent plus ancien ignore l'option et n'affiche rien).
+- Une VM **Linux** (pas macOS, pas Windows) avec un cakeagent récent dans l'invité (**v1.0.326 ou plus** ; un agent plus ancien ignore l'option et n'affiche rien).
 - La VM tourne et son agent répond.
 
 ## Activer
@@ -62,7 +62,7 @@ cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (my
 
 ## Copier-coller
 
-Le texte copié dans l'invité passe dans le presse-papiers du Mac, et le texte copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout ce qui n'est pas du texte, plus de 1 Mio, et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent récent dans l'invité (protocole 3) ; un agent plus ancien n'a pas de presse-papiers.
+Le texte copié dans l'invité passe dans le presse-papiers du Mac, et le texte copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout ce qui n'est pas du texte, plus de 1 Mio, et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.326 ou plus dans l'invité (protocole 3) ; un agent plus ancien n'a pas de presse-papiers.
 
 ## Limites
 
@@ -85,7 +85,7 @@ Windows are titled `[<vm>]` first (`[myvm] foot`), then `<user>: ` for an accoun
 
 ## Requirements
 
-- A **Linux** VM (not macOS, not Windows) with a recent cakeagent in the guest (**v1.0.321 or later**; an older agent ignores the option and shows nothing).
+- A **Linux** VM (not macOS, not Windows) with a recent cakeagent in the guest (**v1.0.326 or later**; an older agent ignores the option and shows nothing).
 - The VM is running and its agent answers.
 
 ## Turn it on
@@ -131,7 +131,7 @@ cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (
 
 ## Copy and paste
 
-Text copied in the guest goes to the Mac's clipboard, and text copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, anything that isn't text, more than 1 MiB, and the clipboard of a guest user other than the one whose window has the focus. It needs a recent cakeagent in the guest (protocol 3); an older agent has no clipboard.
+Text copied in the guest goes to the Mac's clipboard, and text copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, anything that isn't text, more than 1 MiB, and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.326 or later in the guest (protocol 3); an older agent has no clipboard.
 
 ## Limits
 
