@@ -1237,6 +1237,19 @@ extension VNCConnection {
 		}
 	}
 
+	/// The size travels in a FramebufferUpdate of its own, before the pixels. The client reads a whole message against
+	/// the framebuffer it had when the message began: the pixels of a new size in the same message are drawn into the
+	/// old framebuffer ("Invalid region") and the client stays black, with only the later differences showing.
+	private func sendSizeMessage(size: VNCSize, reason: UInt16, status: ResizeStatus) async throws {
+		var message = VNCFramebufferUpdateMsg()
+
+		message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		message.numberOfRectangles = UInt16(1).bigEndian
+
+		try await self.sendDatas(message)
+		try await self.sendSizeRectangle(size: size, reason: reason, status: status)
+	}
+
 	/// Answer to a SetDesktopSize that changes nothing, or that the guest did not follow.
 	func sendResizeAnswer(size: VNCSize, status: ResizeStatus) async {
 		guard self.isAuthenticated && self.connection.state == .ready && self.encodings.useNewFBSize else {
@@ -1245,15 +1258,14 @@ extension VNCConnection {
 
 		do {
 			try await self.gated {
-				var message = VNCFramebufferUpdateMsg()
+				// The client may rebuild its framebuffer on an answer (a different screen layout): repaint it
+				let tile = self.fullFramebufferTile()
+				let tileSize = VNCSize(width: UInt16(tile.bounds.width), height: UInt16(tile.bounds.height))
 
-				message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-				message.numberOfRectangles = UInt16(1).bigEndian
+				self.desktopState.withLock { $0.announcedSize = tileSize }
 
-				self.desktopState.withLock { $0.announcedSize = size }
-
-				try await self.sendDatas(message)
-				try await self.sendSizeRectangle(size: size, reason: 1, status: status)
+				try await self.sendSizeMessage(size: tileSize, reason: 1, status: status)
+				try await self.sendUpdateBuffer([tile])
 			}
 		} catch {
 			self.logger.error("send resize answer failed: \(error)")
@@ -1261,7 +1273,7 @@ extension VNCConnection {
 		}
 	}
 
-	private func sendUpdateBuffer(_ tiles: [VNCFramebuffer.VNCFramebufferTile], sizeAnnounce: (size: VNCSize, reason: UInt16)? = nil) async throws {
+	private func sendUpdateBuffer(_ tiles: [VNCFramebuffer.VNCFramebufferTile]) async throws {
 		let transformedTiles = tiles.compactMap { tile in
 			VNCFramebuffer.VNCFramebufferTile(bounds: tile.bounds, pixels: transformPixel(tile.pixels, width: Int(tile.bounds.width), height: Int(tile.bounds.height)), sha256: nil)
 		}
@@ -1273,15 +1285,9 @@ extension VNCConnection {
 
 		message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
 		message.padding = 0
-		message.numberOfRectangles = UInt16(tiles.count + (sizeAnnounce == nil ? 0 : 1)).bigEndian
+		message.numberOfRectangles = UInt16(tiles.count).bigEndian
 
 		try await self.sendDatas(message)
-
-		// The size and the pixels of the new size travel in the same message: the client sends one update request
-		// per message it receives, so a second message would leave one more request in flight for ever
-		if let sizeAnnounce {
-			try await self.sendSizeRectangle(size: sizeAnnounce.size, reason: sizeAnnounce.reason, status: .noError)
-		}
 
 #if DEBUGVNC
 		var index = 0
@@ -1378,7 +1384,11 @@ extension VNCConnection {
 				self.logger.debug("sendFramebufferUpdateThrowing: \(tiles.count) tiles, size: \(size), announce: \(String(describing: sizeAnnounce)), cursorPosition: \(String(describing: cursorPosition))")
 			#endif
 
-			try await self.sendUpdateBuffer(tiles, sizeAnnounce: sizeAnnounce)
+			if let sizeAnnounce {
+				try await self.sendSizeMessage(size: sizeAnnounce.size, reason: sizeAnnounce.reason, status: .noError)
+			}
+
+			try await self.sendUpdateBuffer(tiles)
 
 			if let cursorPosition, self.encodings.cursorWasMoved && self.encodings.enableCursorPosUpdates {
 				self.encodings.cursorWasMoved = false

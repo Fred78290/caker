@@ -86,6 +86,22 @@ final class VNCResizeLoopbackTests: XCTestCase {
 		return (server, client, connection)
 	}
 
+	/// True when the client's framebuffer holds the picture (not black)
+	private func isPainted(_ connection: RoyalVNCKit.VNCConnection) -> Bool {
+		guard let image = connection.framebuffer?.cgImage, let data = image.dataProvider?.data as Data?, data.isEmpty == false else {
+			return false
+		}
+
+		let bytesPerPixel = max(image.bitsPerPixel / 8, 1)
+		let offset = (image.height / 2) * image.bytesPerRow + (image.width / 2) * bytesPerPixel
+
+		guard offset + 3 < data.count else {
+			return false
+		}
+
+		return data[offset] != 0 || data[offset + 1] != 0 || data[offset + 2] != 0
+	}
+
 	private func makeGuest() -> Guest {
 		let view = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
 
@@ -198,5 +214,37 @@ final class VNCResizeLoopbackTests: XCTestCase {
 		pump(1.5)
 
 		XCTAssertEqual(client.sizes.count, settled)
+	}
+
+	func testTheClientKeepsTheWholePictureThroughEveryKindOfResize() throws {
+		let guest = makeGuest()
+		let (server, client, connection) = try connect(guest: guest)
+
+		defer {
+			connection.disconnect()
+			server.stop()
+		}
+
+		try XCTSkipUnless(client.ready, "no VNC connection over loopback in this environment")
+
+		pump(1)
+		XCTAssertTrue(isPainted(connection), "after connect")
+
+		// Same size: only an answer comes back
+		connection.setDesktopSize(CGSize(width: 640, height: 480))
+		pump(1)
+		XCTAssertTrue(isPainted(connection), "after a request for the current size")
+
+		// A new size
+		connection.setDesktopSize(CGSize(width: 900, height: 700))
+		pump(3) { connection.framebuffer?.cgSize == CGSize(width: 900, height: 700) }
+		pump(1)
+		XCTAssertTrue(isPainted(connection), "after a resize")
+
+		// A guest that does not follow: the answer comes after the timeout
+		guest.follow = nil
+		connection.setDesktopSize(CGSize(width: 500, height: 400))
+		pump(3)
+		XCTAssertTrue(isPainted(connection), "after a resize the guest ignored")
 	}
 }
