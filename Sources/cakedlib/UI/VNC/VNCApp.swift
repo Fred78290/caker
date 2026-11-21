@@ -486,6 +486,13 @@ struct VNCContentView: View {
 	}
 
 	func setContentSize(_ size: CGSize, window: NSWindow, animated: Bool) {
+		// Sized by the view, not by a title bar height: see NSWindow.fitContent
+		if let vncView = self.appState.vncView, vncView.window === window {
+			window.fitContent(of: vncView, to: size, animated: false)
+
+			return
+		}
+
 		let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
 		var frame = window.frame
 

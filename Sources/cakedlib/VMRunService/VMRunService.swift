@@ -299,7 +299,7 @@ class VMRunService: NSObject {
 	}
 
 	func setScreenSize(width: Int, height: Int) {
-		//vm.setScreenSize(width: width, height: height)
+		vm.setScreenSize(width: width, height: height)
 	}
 
 	func getScreenSize() throws -> (Int, Int) {

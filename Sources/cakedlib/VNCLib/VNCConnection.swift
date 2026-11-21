@@ -5,6 +5,7 @@ import CryptoKit
 import Foundation
 import Network
 import Semaphore
+import Synchronization
 import System
 import CakeAgentLib
 
@@ -100,6 +101,24 @@ final class VNCConnection: @unchecked Sendable {
 	private var messageClientStream: AsyncStream<VNCClientMessageType>!
 	private var messageClientContinuation: AsyncStream<VNCClientMessageType>.Continuation!
 	private let sharedZStream: ZlibDeflateStream
+
+	/// What this client knows about the desktop size. `announcedSize` is the last size sent to it
+	/// (nil until the first update), `requestedSize` the size it asked for with SetDesktopSize and
+	/// that hasn't been answered yet: the answer carries reason 1 instead of 0.
+	private struct DesktopState {
+		var announcedSize: VNCSize? = nil
+		var requestedSize: VNCSize? = nil
+	}
+
+	private let desktopState = Mutex<DesktopState>(.init())
+
+	/// Every server message is made of several writes: two messages written by two tasks at the same time
+	/// (a reply to a request and a pushed frame) must never interleave on the wire.
+	private let sendGate = AsyncSemaphore(value: 1)
+
+	/// Bounds of a desktop a client may ask for. Anything inside is accepted.
+	static let minimumDesktopSize = VNCSize(width: 160, height: 120)
+	static let maximumDesktopSize = VNCSize(width: 8192, height: 4320)
 
 	// VNC Auth constants
 	private static let VNC_AUTH_NONE: UInt32 = 1
@@ -951,27 +970,18 @@ extension VNCConnection {
 		self.encodings = setEncoding
 
 		if setEncoding.enableContinousUpdate {
-			try await self.sendDatas(Data(repeating: 150, count: 1))
+			try await self.gated { try await self.sendDatas(Data(repeating: 150, count: 1)) }
 		}
 	}
 
 	private func receiveFramebufferUpdateRequest() async throws {
 		let value = try await self.receiveDatas(ofType: VNCFramebufferUpdateRequest.self, dataLength: 9)
-		var newSizePending = false
-
 		#if DEBUG
 			self.logger.trace("Client request update: \(value)")
 		#endif
 
-		if self.encodings.useExtDesktopSize && value.incremental == 0 {
-			newSizePending = true
-		}
-
-		// Send framebuffer update
-		let tile = self.framebuffer.pixelData.withLock {
-			VNCFramebuffer.VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: Int(self.framebuffer.viewSize.width), height: Int(self.framebuffer.viewSize.height)), pixels: $0, sha256: nil)
-		}
-
+		// Whether the size must be announced is decided by sendFramebufferUpdateThrowing, once per size
+		let tile = self.fullFramebufferTile()
 		let size = VNCSize(width: UInt16(tile.bounds.width), height: UInt16(tile.bounds.height))
 		var cursorPosition: VNCPoint? = nil
 
@@ -979,7 +989,7 @@ extension VNCConnection {
 			cursorPosition = .init(position)
 		}
 
-		try await self.sendFramebufferUpdateThrowing(tiles: [tile], size: size, cursorPosition: cursorPosition, newSizePending: newSizePending)
+		try await self.sendFramebufferUpdateThrowing(tiles: [tile], size: size, cursorPosition: cursorPosition, newSizePending: false)
 	}
 
 	private func receiveFramebufferUpdateContinue() async throws {
@@ -992,7 +1002,7 @@ extension VNCConnection {
 		#endif
 
 		if value.active == 0 {
-			try await self.sendDatas(Data(repeating: 150, count: 1))
+			try await self.gated { try await self.sendDatas(Data(repeating: 150, count: 1)) }
 		}
 	}
 
@@ -1072,13 +1082,62 @@ extension VNCConnection {
 			self.logger.debug("Client set desktop size: \(value)")
 		#endif
 
-		let screens = try await self.receiveDatas(ofType: VNCScreenDesktop.self, countOf: Int(value.numberOfScreen))
+		var screens = try await self.receiveDatas(ofType: VNCScreenDesktop.self, countOf: Int(value.numberOfScreen))
 
 		#if DEBUG
 			self.logger.debug("desktops: \(screens)")
 		#endif
 
+		guard screens.isEmpty == false else {
+			return
+		}
+
+		// Everything is accepted, the size is only kept inside sane bounds
+		let requested = VNCSize(
+			width: min(max(value.width, Self.minimumDesktopSize.width), Self.maximumDesktopSize.width),
+			height: min(max(value.height, Self.minimumDesktopSize.height), Self.maximumDesktopSize.height))
+		let current = self.framebuffer.viewSize
+
+		guard requested != current else {
+			// Nothing to do, but the client waits for an answer: tell it the size it already has
+			self.desktopState.withLock { $0.requestedSize = nil }
+
+			await self.sendResizeAnswer(size: current, status: .noError)
+			return
+		}
+
+		self.desktopState.withLock { $0.requestedSize = requested }
+
+		screens[0].width = requested.width
+		screens[0].height = requested.height
+
 		self.setDesktopSize(screens)
+
+		// The answer is the next size announce. If the guest never changes its display (provisioning,
+		// refit disabled...) the client still gets one, with the size it really has.
+		Task { [weak self] in
+			try? await Task.sleep(for: .seconds(1.5))
+
+			await self?.expireResizeRequest(requested)
+		}
+	}
+
+	private func expireResizeRequest(_ requested: VNCSize) async {
+		let expired = self.desktopState.withLock { state -> Bool in
+			guard state.requestedSize == requested else {
+				return false
+			}
+
+			state.requestedSize = nil
+
+			return true
+		}
+
+		if expired {
+			self.logger.debug("Resize to \(requested) not applied, keep \(self.framebuffer.viewSize)")
+
+			await self.sendResizeAnswer(size: self.framebuffer.viewSize, status: .outOfResources)
+		}
 	}
 
 	private func receiveGIIClientVersion() async throws {
@@ -1121,53 +1180,88 @@ extension VNCConnection {
 
 // MARK: - Send server message
 extension VNCConnection {
-	func sendNewFBSize(size: VNCSize) async throws {
-		#if DEBUG
-			self.logger.debug("sendNewFBSize: \(size)")
-		#endif
-
-		var payload = VNCFramebufferUpdatePayload()
-
-		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-		payload.message.padding = 0
-		payload.message.numberOfRectangles = UInt16(1).bigEndian
-
-		payload.rectangle.x = 0
-		payload.rectangle.y = 0
-		payload.rectangle.width = size.width.bigEndian
-		payload.rectangle.height = size.height.bigEndian
-		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingNewFBSize.rawValue.bigEndian
-
-		try await self.sendDatas(payload)
+	/// Status codes of an ExtendedDesktopSize rectangle (RFB, "ExtendedDesktopSize pseudo-encoding").
+	enum ResizeStatus: UInt16 {
+		case noError = 0
+		case prohibited = 1
+		case outOfResources = 2
+		case invalidLayout = 3
 	}
 
-	private func sendExDesktopSize(size: VNCSize) async throws {
-		#if DEBUG
-			self.logger.debug("sendExDesktopSize: \(size)")
-		#endif
-
-		var payload = VNCFramebufferUpdatePayload()
-		var message = VNCExtDesktopSizeMessage()
-
-		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-		payload.message.padding = 0
-		payload.message.numberOfRectangles = UInt16(1).bigEndian
-
-		payload.rectangle.x = 0
-		payload.rectangle.y = 0
-		payload.rectangle.width = size.width.bigEndian
-		payload.rectangle.height = size.height.bigEndian
-		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian
-
-		message.numOfScreens = 1
-		message.screen.height = size.height.bigEndian
-		message.screen.width = size.width.bigEndian
-
-		try await self.sendDatas(payload)
-		try await self.sendDatas(message)
+	/// Full framebuffer as one tile. The size is read under the same lock the producer holds while it swaps pixels and size.
+	func fullFramebufferTile() -> VNCFramebuffer.VNCFramebufferTile {
+		self.framebuffer.pixelData.withLock {
+			VNCFramebuffer.VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: Int(self.framebuffer.viewSize.width), height: Int(self.framebuffer.viewSize.height)), pixels: $0, sha256: nil)
+		}
 	}
 
-	private func sendUpdateBuffer(_ tiles: [VNCFramebuffer.VNCFramebufferTile]) async throws {
+	private func gated<T>(_ body: () async throws -> T) async rethrows -> T {
+		await self.sendGate.wait()
+
+		defer {
+			self.sendGate.signal()
+		}
+
+		return try await body()
+	}
+
+	/// One rectangle telling the client the desktop size: ExtendedDesktopSize (reason in x, status in y) or, for
+	/// a client that only knows NewFBSize, a plain size change. Part of a FramebufferUpdate message, never alone.
+	private func sendSizeRectangle(size: VNCSize, reason: UInt16, status: ResizeStatus) async throws {
+		var rectangle = VNCRectangle()
+
+		rectangle.width = size.width.bigEndian
+		rectangle.height = size.height.bigEndian
+
+		#if DEBUG
+			self.logger.debug("sendSizeRectangle: \(size), reason: \(reason), status: \(status), ext: \(self.encodings.useExtDesktopSize)")
+		#endif
+
+		if self.encodings.useExtDesktopSize {
+			var message = VNCExtDesktopSizeMessage()
+
+			rectangle.x = reason.bigEndian
+			rectangle.y = status.rawValue.bigEndian
+			rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian
+
+			message.numOfScreens = 1
+			message.screen.width = size.width.bigEndian
+			message.screen.height = size.height.bigEndian
+
+			try await self.sendDatas(rectangle)
+			try await self.sendDatas(message)
+		} else {
+			rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingNewFBSize.rawValue.bigEndian
+
+			try await self.sendDatas(rectangle)
+		}
+	}
+
+	/// Answer to a SetDesktopSize that changes nothing, or that the guest did not follow.
+	func sendResizeAnswer(size: VNCSize, status: ResizeStatus) async {
+		guard self.isAuthenticated && self.connection.state == .ready && self.encodings.useNewFBSize else {
+			return
+		}
+
+		do {
+			try await self.gated {
+				var message = VNCFramebufferUpdateMsg()
+
+				message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+				message.numberOfRectangles = UInt16(1).bigEndian
+
+				self.desktopState.withLock { $0.announcedSize = size }
+
+				try await self.sendDatas(message)
+				try await self.sendSizeRectangle(size: size, reason: 1, status: status)
+			}
+		} catch {
+			self.logger.error("send resize answer failed: \(error)")
+			self.didReceiveError(error)
+		}
+	}
+
+	private func sendUpdateBuffer(_ tiles: [VNCFramebuffer.VNCFramebufferTile], sizeAnnounce: (size: VNCSize, reason: UInt16)? = nil) async throws {
 		let transformedTiles = tiles.compactMap { tile in
 			VNCFramebuffer.VNCFramebufferTile(bounds: tile.bounds, pixels: transformPixel(tile.pixels, width: Int(tile.bounds.width), height: Int(tile.bounds.height)), sha256: nil)
 		}
@@ -1179,9 +1273,15 @@ extension VNCConnection {
 
 		message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
 		message.padding = 0
-		message.numberOfRectangles = UInt16(tiles.count).bigEndian
+		message.numberOfRectangles = UInt16(tiles.count + (sizeAnnounce == nil ? 0 : 1)).bigEndian
 
 		try await self.sendDatas(message)
+
+		// The size and the pixels of the new size travel in the same message: the client sends one update request
+		// per message it receives, so a second message would leave one more request in flight for ever
+		if let sizeAnnounce {
+			try await self.sendSizeRectangle(size: sizeAnnounce.size, reason: sizeAnnounce.reason, status: .noError)
+		}
 
 #if DEBUGVNC
 		var index = 0
@@ -1220,31 +1320,65 @@ extension VNCConnection {
 	}
 
 	func sendFramebufferUpdateThrowing(tiles: [VNCFramebuffer.VNCFramebufferTile], size: VNCSize, cursorPosition: VNCPoint?, newSizePending: Bool) async throws {
-		if isAuthenticated && self.connection.state == .ready {
+		guard isAuthenticated && self.connection.state == .ready else {
+			return
+		}
+
+		try await self.gated {
 			var sendSupportedMessages = false
 			var sendSupportedEncodings = false
-
-			self.logger.debug("sendFramebufferUpdateThrowing: \(tiles.count) tiles, size: \(size), cursorPosition: \(String(describing: cursorPosition)), newSizePending: \(newSizePending)")
+			var tiles = tiles
+			var size = size
+			var sizeAnnounce: (size: VNCSize, reason: UInt16)? = nil
 
 			if self.encodings.enableSupportedEncodings {
 				sendSupportedEncodings = true
 				self.encodings.enableSupportedEncodings = false
 			}
-			
+
 			if self.encodings.enableSupportedMessages {
 				sendSupportedMessages = true
 				self.encodings.enableSupportedMessages = false
 			}
-			
-			if newSizePending && self.encodings.useNewFBSize {
-				if self.encodings.useExtDesktopSize {
-					try await sendExDesktopSize(size: size)
-				} else {
-					try await sendNewFBSize(size: size)
+
+			if self.encodings.useNewFBSize {
+				// A client is told a size once. Without a size change in between it must not be told again:
+				// a client that sees the same size twice has nothing to do, but one that is told a different
+				// one gets a new framebuffer, and answers by asking for its own size.
+				let announce = self.desktopState.withLock { state -> (previous: VNCSize?, reason: UInt16)? in
+					if state.announcedSize == size && newSizePending == false {
+						return nil
+					}
+
+					let previous = state.announcedSize
+					let reason: UInt16 = state.requestedSize == nil ? 0 : 1
+
+					state.announcedSize = size
+					state.requestedSize = nil
+
+					return (previous, reason)
+				}
+
+				if let announce {
+					if let previous = announce.previous, previous != size {
+						// This client skipped the frame the size changed on: it needs the whole picture, not a difference
+						let tile = self.fullFramebufferTile()
+
+						tiles = [tile]
+						size = VNCSize(width: UInt16(tile.bounds.width), height: UInt16(tile.bounds.height))
+
+						self.desktopState.withLock { $0.announcedSize = size }
+					}
+
+					sizeAnnounce = (size, announce.reason)
 				}
 			}
-			
-			try await sendUpdateBuffer(tiles)
+
+			#if DEBUG
+				self.logger.debug("sendFramebufferUpdateThrowing: \(tiles.count) tiles, size: \(size), announce: \(String(describing: sizeAnnounce)), cursorPosition: \(String(describing: cursorPosition))")
+			#endif
+
+			try await self.sendUpdateBuffer(tiles, sizeAnnounce: sizeAnnounce)
 
 			if let cursorPosition, self.encodings.cursorWasMoved && self.encodings.enableCursorPosUpdates {
 				self.encodings.cursorWasMoved = false
@@ -1261,7 +1395,7 @@ extension VNCConnection {
 			if sendSupportedMessages {
 				try await self.sendSupportedMessages()
 			}
-			
+
 			if sendSupportedEncodings {
 				try await self.sendSupportedEncodings()
 			}

@@ -1621,17 +1621,11 @@ extension VirtualMachine {
 			logger.info("Will resize screen to \(width)x\(height). \(file):\(line)")
 
 			if let window = vzMachineView.window {
-				let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
-				var frame = window.frame
+				// Never animated: the intermediate sizes of an animation each reconfigure the guest display
+				// and are each announced to the VNC clients.
+				logger.info("Resize vm window so that the view is \(width)x\(height). \(file):\(line)")
 
-				frame = window.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, CGFloat(width), CGFloat(height) + titleBarHeight))
-				frame.origin.y += window.frame.size.height
-				frame.origin.y -= frame.size.height
-
-				if frame != window.frame {
-					logger.info("Resize vm window to \(frame.size). \(file):\(line)")
-					window.setFrame(frame, display: true, animate: true)
-				}
+				window.fitContent(of: vzMachineView, to: newSize, animated: false)
 			} else {
 				let bounds = vzMachineView.bounds
 

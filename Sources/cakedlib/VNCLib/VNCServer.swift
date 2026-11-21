@@ -36,6 +36,8 @@ public enum VNCFrameUpdateState {
 	case frame(CGImage)
 	case cursor(NSCursor)
 	case cursorPosition(NSPoint)
+	/// Sent by the server to itself: the display size stopped changing, see `VNCServer.startFramebufferUpdates`.
+	case sizeSettled
 }
 
 public protocol VNCFrameBufferProducer {
@@ -239,6 +241,13 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
+	/// A resize of the guest display is not one step: the view goes through intermediate sizes (window animation,
+	/// live resize, display reconfiguration). Announcing each of them makes every client chase the server,
+	/// which is how a resize ends in a loop. A frame whose size differs from the current one is held until
+	/// the size has stopped changing for `sizeSettleDelay`, or for `sizeSettleLimit` whatever happens.
+	static let sizeSettleDelay: Duration = .milliseconds(120)
+	static let sizeSettleLimit: TimeInterval = 0.6
+
 	private func startFramebufferUpdates() {
 		guard isRunning == false else {
 			return
@@ -253,16 +262,55 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 			await withTaskCancellationHandler(
 				operation: {
+					var heldImage: CGImage? = nil
+					var heldSince: Date = .distantPast
+					var settleTask: Task<Void, Never>? = nil
+
 					for await update in stream.stream {
 						switch update {
 						case .frame(let image):
-							await self.updateFramebufferRequest(cgImage: image)
+							let currentSize = self.framebuffer.viewSize
+
+							if image.width == Int(currentSize.width) && image.height == Int(currentSize.height) {
+								heldImage = nil
+								settleTask?.cancel()
+								await self.updateFramebufferRequest(cgImage: image)
+							} else {
+								if heldImage == nil {
+									heldSince = Date()
+								}
+
+								heldImage = image
+								settleTask?.cancel()
+
+								if Date().timeIntervalSince(heldSince) >= Self.sizeSettleLimit {
+									heldImage = nil
+									await self.updateFramebufferRequest(cgImage: image)
+								} else {
+									let continuation = stream.continuation
+
+									settleTask = Task {
+										try? await Task.sleep(for: Self.sizeSettleDelay)
+
+										if Task.isCancelled == false {
+											continuation.yield(.sizeSettled)
+										}
+									}
+								}
+							}
+						case .sizeSettled:
+							if let image = heldImage {
+								heldImage = nil
+								await self.updateFramebufferRequest(cgImage: image)
+							}
 						case .cursor(let cursor):
 							await self.updateCursor(cursor: cursor)
 						case .cursorPosition(let pos):
 							await self.updateCursorPosition(cursorPosition: pos)
 						}
 					}
+
+					settleTask?.cancel()
 
 					self.framebuffer.stopFramebufferUpdate()
 
@@ -335,7 +383,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 
 		#if DEBUG
-		self.logger.debug("updateFramebufferRequest: receive image: \(cgImage.width)x\(cgImage.height), connections: \(connections.count), changedTiles: \(changedTiles.tiles.count), newSize: \(changedTiles.newSize)")
+		self.logger.trace("updateFramebufferRequest: receive image: \(cgImage.width)x\(cgImage.height), connections: \(connections.count), changedTiles: \(changedTiles.tiles.count), newSize: \(changedTiles.newSize)")
 		#endif
 
 		if connections.isEmpty == false {

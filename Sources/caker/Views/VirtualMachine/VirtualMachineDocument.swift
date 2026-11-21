@@ -1652,9 +1652,12 @@ extension VirtualMachineDocument {
 				self.logger.debug("setVncScreenSize: \(screenSize.description)")
 			#endif
 
-			if self.connectionManager.connectionMode == .remote {
-				self.vncView?.setDesktopSize()
-			} else {
+			// One channel at a time. The VNC view asks for its own size, the one the framebuffer has to fill; sending
+			// the window's size over gRPC as well gives the server two different sizes (they differ by the toolbar)
+			// and it switches from one to the other for ever. gRPC is only for a VM whose view is not connected yet.
+			if let vncView = self.vncView {
+				vncView.setDesktopSize()
+			} else if self.connectionManager.connectionMode != .remote {
 				Task {
 					await self.connectionManager.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
 				}

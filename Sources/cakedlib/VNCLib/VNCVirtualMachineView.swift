@@ -497,6 +497,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	private let minInterval = 1.0 / maxFrameRate
 	private var lastFrameEmitTime: CFAbsoluteTime = 0
 	private var inDisplayReconfiguration = false
+	private var trailingFrame: DispatchWorkItem?
 
 	/// Pure observer tap for `caked record`'s local-window capture path (see `ActionRecorder.swift`
 	/// and `RecordHandler.swift`): called with the already-resolved values for every mouse/keyboard
@@ -871,6 +872,9 @@ extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
 				return
 			}
 
+			// Reset whatever follows: a guard that returns early must not leave every frame suppressed for good
+			self.inDisplayReconfiguration = false
+
 			// func _takeScreenshotWithCompletionHandler(_ completionHandler: @escaping (CGImage?) -> Void)
 			/*let screenshotSelector = NSSelectorFromString("_takeScreenshotWithCompletionHandler:")
 
@@ -896,11 +900,9 @@ extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
 					return
 				}
 
-				self.logger.debug("displayDidEndReconfiguration: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
+				self.logger.trace("displayDidEndReconfiguration: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
 
 				continuation.yield(.frame(cgImage))
-
-				self.inDisplayReconfiguration = false
 			}
 		}
 	}
@@ -934,25 +936,43 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 	}
 
 	open func didUpdateFrame(_ framebufferView: NSView) {
+		// Frames of a display being reconfigured are dropped: displayDidEndReconfiguration emits the final one
 		guard self.inDisplayReconfiguration == false else {
 			return
 		}
 
-		// Throttle to maxFrameRate (default 30 fps)
-		guard let surface = self.surface() else {
+		// Throttle to maxFrameRate (default 30 fps). A frame dropped by the throttle is not lost: the last
+		// one of a burst is emitted once the interval is over, otherwise the picture stays on the one before it.
+		let elapsed = CFAbsoluteTimeGetCurrent() - self.lastFrameEmitTime
+
+		if self.lastFrameEmitTime > 0 && elapsed < minInterval {
+			if self.trailingFrame == nil {
+				let work = DispatchWorkItem { [weak self] in
+					self?.trailingFrame = nil
+					self?.emitFrame()
+				}
+
+				self.trailingFrame = work
+
+				DispatchQueue.main.asyncAfter(deadline: .now() + (minInterval - elapsed), execute: work)
+			}
+
 			return
 		}
 
-		let now = CFAbsoluteTimeGetCurrent()
-		let frameSize = CGSize(width: surface.width, height: surface.height)
+		self.trailingFrame?.cancel()
+		self.trailingFrame = nil
 
-		if self.lastFrameEmitTime > 0 && (now - self.lastFrameEmitTime) < minInterval {
+		self.emitFrame()
+	}
+
+	/// Whatever size the surface has is emitted: the server settles size changes before announcing them.
+	private func emitFrame() {
+		guard self.inDisplayReconfiguration == false, self.surface() != nil else {
 			return
 		}
 
-		self.lastFrameEmitTime = now
-
-		self.logger.debug("didUpdateFrame: emitting frame update: \(frameSize) -> \(self.bounds.size)")
+		self.lastFrameEmitTime = CFAbsoluteTimeGetCurrent()
 
 		self.continuation.withLock {
 			guard let continuation = $0 else {
@@ -963,7 +983,7 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 				return
 			}
 
-			self.logger.debug("didUpdateFrame: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
+			self.logger.trace("emit frame: \(cgImage.width)x\(cgImage.height), view: \(self.bounds.size), display: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
 
 			continuation.yield(.frame(cgImage))
 		}
