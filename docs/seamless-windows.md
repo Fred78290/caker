@@ -62,7 +62,7 @@ cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (my
 
 ## Copier-coller
 
-Le texte copié dans l'invité passe dans le presse-papiers du Mac, et le texte copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout ce qui n'est pas du texte, plus de 1 Mio, et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.326 ou plus dans l'invité (protocole 3) ; un agent plus ancien n'a pas de presse-papiers.
+Ce qui est copié dans l'invité (texte, images, PDF et tout type MIME que le Mac sait représenter) passe dans le presse-papiers du Mac, et ce qui est copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, les types que le Mac ne sait pas représenter, plus de 32 Mio au total (16 éléments au plus), et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.332 ou plus dans l'invité (protocole 4) ; un agent v1.0.326 à v1.0.329 ne partage que le texte (1 Mio au plus), un agent plus ancien n'a pas de presse-papiers.
 
 ## Applications X11
 
@@ -135,7 +135,7 @@ cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (
 
 ## Copy and paste
 
-Text copied in the guest goes to the Mac's clipboard, and text copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, anything that isn't text, more than 1 MiB, and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.326 or later in the guest (protocol 3); an older agent has no clipboard.
+What is copied in the guest (text, images, PDF and any MIME type the Mac can represent) goes to the Mac's clipboard, and what is copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, types the Mac can't represent, more than 32 MiB in all (16 items at most), and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.332 or later in the guest (protocol 4); v1.0.326 to v1.0.329 share text only (1 MiB at most), an older agent has no clipboard.
 
 ## X11 applications
 
