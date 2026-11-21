@@ -496,7 +496,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	private static let maxFrameRate: Double = 30.0
 	private let minInterval = 1.0 / maxFrameRate
 	private var lastFrameEmitTime: CFAbsoluteTime = 0
-	private var lastFrameSize: CGSize = .zero
+	private var inDisplayReconfiguration = false
 
 	/// Pure observer tap for `caked record`'s local-window capture path (see `ActionRecorder.swift`
 	/// and `RecordHandler.swift`): called with the already-resolved values for every mouse/keyboard
@@ -836,8 +836,22 @@ extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	}
 }
 
-@available(macOS 27.0, *)
 extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
+	public func displayDidBeginReconfiguration(_ display: VZGraphicsDisplay) {
+		// VZVirtualMachineView may privately conform to VZGraphicsDisplayObserver: forward to it when it does
+		let selector = #selector(VZGraphicsDisplayObserver.displayDidBeginReconfiguration(_:))
+
+		if let superclass = VNCVirtualMachineView.superclass(), let method = class_getInstanceMethod(superclass, selector) {
+			typealias Implementation = @convention(c) (AnyObject, Selector, VZGraphicsDisplay) -> Void
+
+			let implementation = unsafeBitCast(method_getImplementation(method), to: Implementation.self)
+
+			implementation(self, selector, display)
+		}
+
+		self.inDisplayReconfiguration = true
+	}
+
 	public func displayDidEndReconfiguration(_ display: VZGraphicsDisplay) {
 		self.logger.debug("displayDidEndReconfiguration: \(display.sizeInPixels)")
 
@@ -852,11 +866,7 @@ extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
 			implementation(self, selector, display)
 		}
 
-		guard let queue = self.virtualMachine?.queue else {
-			return
-		}
-
-		queue.async { [weak self] in
+		DispatchQueue.main.async { [weak self] in
 			guard let self else {
 				return
 			}
@@ -889,6 +899,8 @@ extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
 				self.logger.debug("displayDidEndReconfiguration: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
 
 				continuation.yield(.frame(cgImage))
+
+				self.inDisplayReconfiguration = false
 			}
 		}
 	}
@@ -922,6 +934,10 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 	}
 
 	open func didUpdateFrame(_ framebufferView: NSView) {
+		guard self.inDisplayReconfiguration == false else {
+			return
+		}
+
 		// Throttle to maxFrameRate (default 30 fps)
 		guard let surface = self.surface() else {
 			return
@@ -935,11 +951,6 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 		}
 
 		self.lastFrameEmitTime = now
-
-		if #available(macOS 27.0, *), frameSize != self.bounds.size {
-			self.logger.debug("didUpdateFrame: discard frame update: \(frameSize) -> \(self.bounds.size)")
-			return
-		}
 
 		self.logger.debug("didUpdateFrame: emitting frame update: \(frameSize) -> \(self.bounds.size)")
 

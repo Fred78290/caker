@@ -53,7 +53,7 @@ public struct StartHandler {
 			try config.startNetworkServices(runMode: runMode)
 
 			if startMode == .foreground {
-				arguments.append("--ui")
+				arguments.append("--all")
 			} else if startMode == .background {
 				arguments.append("--vnc")
 			} else if startMode == .service {
