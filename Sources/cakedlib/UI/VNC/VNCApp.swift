@@ -135,6 +135,9 @@ public class VNCConnectionAppState: Codable {
 	public var vncView: NSVNCView? = nil
 	public var vncStatus: VncStatus
 	public var screenSize: ViewSize
+	/// Size of the framebuffer the server announced last, set by nothing but the server's resizes (unlike
+	/// `screenSize`, which also takes the size of the window): the window follows this one.
+	public var framebufferSize: ViewSize = ViewSize(width: 0, height: 0)
 	public var allowClientResize: Bool
 	public let provisionning: Bool
 
@@ -373,12 +376,11 @@ extension VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate {
 	}
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
-		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
-			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
+		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
-			DispatchQueue.main.async {
-				self.screenSize = .init(framebuffer.cgSize)
-			}
+		DispatchQueue.main.async {
+			self.screenSize = .init(framebuffer.cgSize)
+			self.framebufferSize = .init(framebuffer.cgSize)
 		}
 	}
 
@@ -430,6 +432,16 @@ struct VNCContentView: View {
 					handleDidResizeNotification(notification)
 				}.onReceive(NSWindow.willCloseNotification) { notification in
 					handleWillCloseNotification(notification)
+				}.onChange(of: appState.framebufferSize) { _, size in
+					// The guest display changed on its own (its window was resized, the guest changed mode): the window
+					// follows, like Caker's does. A size asked by this window is already the window's: nothing moves.
+					guard self.appState.allowClientResize, self.liveResizeWindow == false, size.width > 0, size.height > 0, let window = self.window, window.styleMask.contains(.fullScreen) == false else {
+						return
+					}
+
+					DispatchQueue.main.async {
+						self.setContentSize(size.cgSize, window: window, animated: false)
+					}
 				}.onGeometryChange(for: CGRect.self) { proxy in
 					proxy.frame(in: .global)
 				} action: { newValue in
@@ -486,6 +498,13 @@ struct VNCContentView: View {
 	}
 
 	func setContentSize(_ size: CGSize, window: NSWindow, animated: Bool) {
+		// Sized by the view, not by a title bar height: see NSWindow.fitContent
+		if let vncView = self.appState.vncView, vncView.window === window {
+			window.fitContent(of: vncView, to: size, animated: false)
+
+			return
+		}
+
 		let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
 		var frame = window.frame
 

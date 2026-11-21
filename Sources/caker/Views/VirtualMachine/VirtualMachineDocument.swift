@@ -1647,14 +1647,17 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 // MARK: - VNC handling
 extension VirtualMachineDocument {
 	func setVncScreenSize(_ screenSize: ViewSize) {
-		if self.externalRunning && (self.status == .running || self.status == .provisioning) {
+		if self.externalRunning && self.status.isRunning {
 			#if DEBUG
 				self.logger.debug("setVncScreenSize: \(screenSize.description)")
 			#endif
 
-			if self.connectionManager.connectionMode == .remote {
-				self.vncView?.setDesktopSize()
-			} else {
+			// One channel at a time. The VNC view asks for its own size, the one the framebuffer has to fill; sending
+			// the window's size over gRPC as well gives the server two different sizes (they differ by the toolbar)
+			// and it switches from one to the other for ever. gRPC is only for a VM whose view is not connected yet.
+			if let vncView = self.vncView {
+				vncView.setDesktopSize()
+			} else if self.connectionManager.connectionMode != .remote {
 				Task {
 					await self.connectionManager.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
 				}
@@ -1865,14 +1868,12 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
 		#endif
 
-		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
-			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
+		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
-			DispatchQueue.main.async {
-				self.setDocumentSize(.init(framebuffer.cgSize))
+		DispatchQueue.main.async {
+			self.setDocumentSize(.init(framebuffer.cgSize))
 
-				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
-			}
+			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
 		}
 	}
 

@@ -11,6 +11,71 @@ import Cocoa
 import RoyalVNCKit
 import CakeAgentLib
 
+/// Decides when a VNC client may ask the server for a new desktop size. Window and framebuffer follow each other
+/// (the window is sized to the framebuffer, the framebuffer to the window), so without rules the two chase each
+/// other for ever. The rules: never ask for the size the framebuffer already has, never ask twice for the same
+/// size, and never have more than one request waiting for its answer.
+public struct DesktopSizeNegotiator: Sendable {
+	/// A request that has not been answered by then (by a size change) is considered lost.
+	public static let answerTimeout: TimeInterval = 2
+
+	public private(set) var lastRequested: CGSize?
+	public private(set) var requestedAt: Date?
+
+	public init() {
+	}
+
+	/// Whole, positive and finite, or nil
+	public static func normalized(_ size: CGSize) -> CGSize? {
+		guard size.width.isFinite, size.height.isFinite else {
+			return nil
+		}
+
+		let size = CGSize(width: size.width.rounded(.down), height: size.height.rounded(.down))
+
+		guard size.width >= 1, size.height >= 1, size.width <= CGFloat(UInt16.max), size.height <= CGFloat(UInt16.max) else {
+			return nil
+		}
+
+		return size
+	}
+
+	public func isWaiting(now: Date) -> Bool {
+		guard let requestedAt else {
+			return false
+		}
+
+		return now.timeIntervalSince(requestedAt) < Self.answerTimeout
+	}
+
+	/// The framebuffer changed size: the request, if any, has been answered.
+	public mutating func framebufferDidChange() {
+		self.requestedAt = nil
+	}
+
+	/// The size to send to the server for a view that wants `target`, or nil when nothing must be sent.
+	public mutating func request(_ target: CGSize, framebuffer: CGSize, now: Date) -> CGSize? {
+		guard let target = Self.normalized(target) else {
+			return nil
+		}
+
+		// Nothing is sent: a size that was not sent is not recorded as requested (the guest may leave this
+		// size later and the user ask for it again), and a request still waiting for its answer keeps waiting.
+		if target == framebuffer {
+			return nil
+		}
+
+		if target == self.lastRequested || self.isWaiting(now: now) {
+			return nil
+		}
+
+		self.lastRequested = target
+		self.requestedAt = now
+
+		return target
+	}
+}
+
 public protocol NSVNCViewDelegate: AnyObject {
 	func viewDidEndLiveResize(_ view: NSVNCView)
 }
@@ -32,6 +97,12 @@ public class NSVNCView: NSView {
 	private var checkVNCReconfigurationTimeoutAttempts: Int = 20
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
 	public weak var delegate: NSVNCViewDelegate?
+	private var negotiator = DesktopSizeNegotiator()
+	private var wantedDesktopSize: CGSize? = nil
+	private var desktopSizeWork: DispatchWorkItem?
+
+	/// A resize is asked once the view has stopped changing size for this long
+	private static let desktopSizeDebounce: TimeInterval = 0.15
 
 	private let isScalingEnabled: Bool
 	private let useDisplayLink: Bool
@@ -168,6 +239,7 @@ public class NSVNCView: NSView {
 		self.liveViewResize = false
 		self.startWaitVNCReconfiguration()
 		self.delegate?.viewDidEndLiveResize(self)
+		self.setDesktopSize()
 	}
 
 	public override func viewWillMove(toWindow newWindow: NSWindow?) {
@@ -311,6 +383,10 @@ extension NSVNCView {
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		self.didResizeFramebuffer = true
 		self.stopWaitVNCReconfiguration()
+
+		DispatchQueue.main.async { [weak self] in
+			self?.negotiator.framebufferDidChange()
+		}
 	}
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
@@ -671,16 +747,57 @@ extension NSVNCView {
 }
 
 extension NSVNCView {
+	/// Asks the server for a desktop of `size`. Not sent at once: see `DesktopSizeNegotiator` and `sendWantedDesktopSize`.
 	@objc public func setDesktopSize(_ size: CGSize) {
 		guard size != .zero && allowClientResize else {
 			return
 		}
 
-		self.connection?.setDesktopSize(size)
+		self.wantedDesktopSize = size
+		self.scheduleDesktopSize(after: Self.desktopSizeDebounce)
 	}
 
+	/// Asks the server for a desktop the size of this view, the size the framebuffer has to fill.
 	@objc public func setDesktopSize() {
-		self.setDesktopSize(self.bounds.size)
+		guard allowClientResize else {
+			return
+		}
+
+		self.wantedDesktopSize = nil
+		self.scheduleDesktopSize(after: Self.desktopSizeDebounce)
+	}
+
+	private func scheduleDesktopSize(after delay: TimeInterval) {
+		self.desktopSizeWork?.cancel()
+
+		let work = DispatchWorkItem { [weak self] in
+			self?.sendWantedDesktopSize()
+		}
+
+		self.desktopSizeWork = work
+
+		DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+	}
+
+	private func sendWantedDesktopSize() {
+		self.desktopSizeWork = nil
+
+		// viewDidEndLiveResize asks again once the user lets go
+		guard self.liveViewResize == false, let connection = self.connection, let framebuffer = connection.framebuffer else {
+			return
+		}
+
+		let target = self.wantedDesktopSize ?? self.bounds.size
+		let now = Date()
+
+		if let size = self.negotiator.request(target, framebuffer: framebuffer.cgSize, now: now) {
+			self.logger.debug("Ask desktop size \(size), framebuffer is \(framebuffer.cgSize)")
+
+			connection.setDesktopSize(size)
+		} else if self.negotiator.isWaiting(now: now), DesktopSizeNegotiator.normalized(target) != framebuffer.cgSize {
+			// A request is waiting for its answer: the latest size is asked as soon as it came
+			self.scheduleDesktopSize(after: 0.25)
+		}
 	}
 
 	@objc func displayLinkDidUpdate() {
@@ -716,4 +833,27 @@ extension NSVNCView {
 		cancelWaitVNCReconfiguration = nil
 	}
 
+}
+
+extension NSWindow {
+	/// Resizes the window so that `view` ends up `size`, keeping the top-left corner. The change is the difference
+	/// between the view and the wanted size, so whatever the window adds around it (title bar, toolbar, safe area)
+	/// is taken into account exactly once. Computing a frame from the content size and the title bar height counts
+	/// the title bar twice, and a window that follows a framebuffer that follows the window then grows for ever.
+	public func fitContent(of view: NSView, to size: CGSize, animated: Bool) {
+		let deltaWidth = size.width - view.bounds.width
+		let deltaHeight = size.height - view.bounds.height
+
+		guard abs(deltaWidth) >= 0.5 || abs(deltaHeight) >= 0.5 else {
+			return
+		}
+
+		var frame = self.frame
+
+		frame.size.width += deltaWidth
+		frame.size.height += deltaHeight
+		frame.origin.y -= deltaHeight
+
+		self.setFrame(frame, display: true, animate: animated)
+	}
 }

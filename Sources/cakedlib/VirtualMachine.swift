@@ -1465,7 +1465,13 @@ extension VirtualMachine {
 			self.env.vzMachineView = vzMachineView
 			self.env.vncServer.delegate = self
 
-			try self.env.vncServer.start()
+			do {
+				try self.env.vncServer.start()
+			} catch {
+				// A server that did not start must not stay: the next call would return its URLs without starting it
+				self.env.vncServer = nil
+				throw error
+			}
 		}
 
 		return self.env.vncServer.urls
@@ -1587,19 +1593,19 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 
 // MARK: - Screen sizing
 extension VirtualMachine {
-	func setScreenSize(width: Int, height: Int) {
+	func setScreenSize(width: Int, height: Int, file: String = #file, line: Int = #line) {
 		guard width != 0 && height != 0 else {
 			self.logger.info("Try resizing screen to zero size, but nothing to do.")
 			return
 		}
 
 		self.vmQueue.async {
-			let newSize = CGSize(width: width, height: height)
 			let logger = Logger(self)
-
-			logger.info("Will resize screen to \(width)x\(height)")
+			let newSize = CGSize(width: width, height: height)
 
 			guard let vzMachineView = self.env.vzMachineView else {
+				logger.info("Will resize all displays to \(width)x\(height). \(file):\(line)")
+
 				if #available(macOS 14.0, *) {
 					self.virtualMachine.graphicsDevices.forEach { device in
 						device.displays.forEach { display in
@@ -1614,17 +1620,18 @@ extension VirtualMachine {
 				return
 			}
 
+			if newSize == vzMachineView.bounds.size {
+				return
+			}
+
+			logger.info("Will resize screen to \(width)x\(height). \(file):\(line)")
+
 			if let window = vzMachineView.window {
-				let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
-				var frame = window.frame
+				// Never animated: the intermediate sizes of an animation each reconfigure the guest display
+				// and are each announced to the VNC clients.
+				logger.info("Resize vm window so that the view is \(width)x\(height). \(file):\(line)")
 
-				frame = window.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, CGFloat(width), CGFloat(height) + titleBarHeight))
-				frame.origin.y += window.frame.size.height
-				frame.origin.y -= frame.size.height
-
-				if frame != window.frame {
-					window.setFrame(frame, display: true, animate: true)
-				}
+				window.fitContent(of: vzMachineView, to: newSize, animated: false)
 			} else {
 				let bounds = vzMachineView.bounds
 
@@ -2136,7 +2143,21 @@ extension VirtualMachine {
 		}
 
 		public func windowWillStartLiveResize(_ notification: Notification) {
-			self.logger.info("Window will start live resize")
+			guard let vzMachineView = self.env.vzMachineView, let window = vzMachineView.window else {
+				self.logger.info("Window will start live resize")
+				return
+			}
+
+			self.logger.info("Window will start live resize: \(window.frame.size.width)x\(window.frame.size.height)")
+		}
+
+		public func windowDidEndLiveResize(_ notification: Notification) {
+			guard let vzMachineView = self.env.vzMachineView, let window = vzMachineView.window else {
+				self.logger.info("Window did end live resize")
+				return
+			}
+
+			self.logger.info("Window did end live resize: \(window.frame.size.width)x\(window.frame.size.height)")
 		}
 	}
 #endif

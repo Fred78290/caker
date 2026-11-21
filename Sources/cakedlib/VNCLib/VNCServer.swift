@@ -4,10 +4,9 @@ import CakeAgentLib
 import Darwin
 import Foundation
 import Metal
+import NIOCore
 import Network
 import QuartzCore
-import CakeAgentLib
-import NIOCore
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
@@ -37,6 +36,8 @@ public enum VNCFrameUpdateState {
 	case frame(CGImage)
 	case cursor(NSCursor)
 	case cursorPosition(NSPoint)
+	/// Sent by the server to itself: the display size stopped changing, see `VNCServer.startFramebufferUpdates`.
+	case sizeSettled
 }
 
 public protocol VNCFrameBufferProducer {
@@ -46,6 +47,23 @@ public protocol VNCFrameBufferProducer {
 	var cgImage: CGImage? { get }
 	func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation)
 	func stopFramebufferUpdate()
+}
+
+extension URL {
+	/// The URL as a string without the password, for logs
+	public var removingPassword: String {
+		guard self.password != nil, var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
+			return self.absoluteString
+		}
+
+		components.password = nil
+
+		if components.user?.isEmpty == true {
+			components.user = nil
+		}
+
+		return components.string ?? self.absoluteString
+	}
 }
 
 open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
@@ -240,6 +258,13 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
+	/// A resize of the guest display is not one step: the view goes through intermediate sizes (window animation,
+	/// live resize, display reconfiguration). Announcing each of them makes every client chase the server,
+	/// which is how a resize ends in a loop. A frame whose size differs from the current one is held until
+	/// the size has stopped changing for `sizeSettleDelay`, or for `sizeSettleLimit` whatever happens.
+	static let sizeSettleDelay: Duration = .milliseconds(120)
+	static let sizeSettleLimit: TimeInterval = 0.6
+
 	private func startFramebufferUpdates() {
 		guard isRunning == false else {
 			return
@@ -254,16 +279,55 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 			await withTaskCancellationHandler(
 				operation: {
+					var heldImage: CGImage? = nil
+					var heldSince: Date = .distantPast
+					var settleTask: Task<Void, Never>? = nil
+
 					for await update in stream.stream {
 						switch update {
 						case .frame(let image):
-							await self.updateFramebufferRequest(cgImage: image)
+							let currentSize = self.framebuffer.viewSize
+
+							if image.width == Int(currentSize.width) && image.height == Int(currentSize.height) {
+								heldImage = nil
+								settleTask?.cancel()
+								await self.updateFramebufferRequest(cgImage: image)
+							} else {
+								if heldImage == nil {
+									heldSince = Date()
+								}
+
+								heldImage = image
+								settleTask?.cancel()
+
+								if Date().timeIntervalSince(heldSince) >= Self.sizeSettleLimit {
+									heldImage = nil
+									await self.updateFramebufferRequest(cgImage: image)
+								} else {
+									let continuation = stream.continuation
+
+									settleTask = Task {
+										try? await Task.sleep(for: Self.sizeSettleDelay)
+
+										if Task.isCancelled == false {
+											continuation.yield(.sizeSettled)
+										}
+									}
+								}
+							}
+						case .sizeSettled:
+							if let image = heldImage {
+								heldImage = nil
+								await self.updateFramebufferRequest(cgImage: image)
+							}
 						case .cursor(let cursor):
 							await self.updateCursor(cursor: cursor)
 						case .cursorPosition(let pos):
 							await self.updateCursorPosition(cursorPosition: pos)
 						}
 					}
+
+					settleTask?.cancel()
 
 					self.framebuffer.stopFramebufferUpdate()
 
@@ -280,11 +344,11 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.updateBufferTask?.cancel()
 	}
 
-	private func sendCursorUpdate(connections: [VNCConnection], cursor: VNCCursor) async {
+	private func sendToConnections(_ connections: [VNCConnection], _ action: @escaping (VNCConnection) async -> Void) async {
 		await withTaskGroup(of: Void.self) { group in
 			connections.forEach { connection in
 				group.addTask {
-					await connection.sendCursorUpdate(cursor: cursor)
+					await action(connection)
 				}
 			}
 
@@ -292,33 +356,28 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
-	private func sendCursorPositionUpdate(connections: [VNCConnection], cursorPosition: VNCPoint) async {
-		await withTaskGroup(of: Void.self) { group in
-			connections.forEach { connection in
-				group.addTask {
-					try? await connection.sendCursorPosition(cursorPosition: cursorPosition)
-				}
-			}
+	private func sendCursorUpdate(connections: [VNCConnection], cursor: VNCCursor) async {
+		await self.sendToConnections(connections) { connection in
+			await connection.sendCursorUpdate(cursor: cursor)
+		}
+	}
 
-			await group.waitForAll()
+	private func sendCursorPositionUpdate(connections: [VNCConnection], cursorPosition: VNCPoint) async {
+		await self.sendToConnections(connections) { connection in
+			await connection.sendCursorPosition(cursorPosition: cursorPosition)
 		}
 	}
 
 	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
 		var cursorPosition: VNCPoint? = nil
+		let viewSize = self.framebuffer.viewSize
 
 		if let pos = self.framebuffer.cursorPosition {
 			cursorPosition = VNCPoint(pos)
 		}
 
-		await withTaskGroup(of: Void.self) { group in
-			connections.forEach { connection in
-				group.addTask {
-					await connection.sendFramebufferUpdate(tiles: tiles, size: self.framebuffer.viewSize, cursorPosition: cursorPosition, newSizePending: newSizePending)
-				}
-			}
-
-			await group.waitForAll()
+		await self.sendToConnections(connections) { connection in
+			await connection.sendFramebufferUpdate(tiles: tiles, size: viewSize, cursorPosition: cursorPosition, newSizePending: newSizePending)
 		}
 	}
 
@@ -340,11 +399,15 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			$0.sendFramebufferContinous
 		}
 
-		if changedTiles.tiles.isEmpty || connections.isEmpty {
-			return
-		}
+		#if DEBUG
+		self.logger.trace("updateFramebufferRequest: receive image: \(cgImage.width)x\(cgImage.height), connections: \(connections.count), changedTiles: \(changedTiles.tiles.count), newSize: \(changedTiles.newSize)")
+		#endif
 
-		await self.sendFrameBufferUpdate(connections: connections, tiles: changedTiles.tiles, newSizePending: changedTiles.newSize)
+		if connections.isEmpty == false {
+			if changedTiles.tiles.isEmpty == false || changedTiles.newSize {
+				await self.sendFrameBufferUpdate(connections: connections, tiles: changedTiles.tiles, newSizePending: changedTiles.newSize)
+			}
+		}
 	}
 
 	// MARK: - Port Availability

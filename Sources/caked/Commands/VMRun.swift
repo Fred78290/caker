@@ -194,10 +194,13 @@ struct VMRun: AsyncParsableCommand {
 			}
 
 			if display == .all || display == .vnc {
-				if let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort) {
-					logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
-				} else {
-					logger.info("Failed to start VNC server")
+				do {
+					let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: vncPort)
+
+					// The URLs carry the password: it must not reach the log
+					logger.info("VNC server started at \(vncURL.map { $0.removingPassword }.joined(separator: ", "))")
+				} catch {
+					logger.error("Failed to start VNC server: \(error)")
 				}
 
 			} else if display == .ui {

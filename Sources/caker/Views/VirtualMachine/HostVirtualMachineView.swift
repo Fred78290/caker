@@ -527,6 +527,14 @@ struct HostVirtualMachineView: View {
 
 			self.needsResize = false
 
+			// With a VNC view, the window is sized so that the view is exactly the framebuffer: the same size is then
+			// asked back to the server, and nothing changes any more. Not animated, an animation is a series of sizes.
+			if let vncView = self.document.vncView, vncView.window === window {
+				window.fitContent(of: vncView, to: size, animated: false)
+
+				return
+			}
+
 			let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
 			var frame = window.frame
 

@@ -375,23 +375,9 @@ extension VZVirtualMachineView {
 
 	public var showsHostCursor: Bool {
 		get {
-			/*guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
-				return false
-			}
-
-			guard let value = object_getIvar(self, field) as? Bool else {
-				return false
-			}*/
-
 			return Dynamic(self.framebufferView).showsCursor as Bool? ?? false
 		}
 		set {
-			/*guard let field = class_getInstanceVariable(type(of: self), "_showsHostCursor") else {
-				return
-			}
-
-			object_setIvar(self, field, newValue)*/
-
 			Dynamic(self.framebufferView).showsCursor = newValue
 		}
 	}
@@ -510,6 +496,8 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	private static let maxFrameRate: Double = 30.0
 	private let minInterval = 1.0 / maxFrameRate
 	private var lastFrameEmitTime: CFAbsoluteTime = 0
+	private var inDisplayReconfiguration = false
+	private var trailingFrame: DispatchWorkItem?
 
 	/// Pure observer tap for `caked record`'s local-window capture path (see `ActionRecorder.swift`
 	/// and `RecordHandler.swift`): called with the already-resolved values for every mouse/keyboard
@@ -849,6 +837,77 @@ extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	}
 }
 
+extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
+	public func displayDidBeginReconfiguration(_ display: VZGraphicsDisplay) {
+		// VZVirtualMachineView may privately conform to VZGraphicsDisplayObserver: forward to it when it does
+		let selector = #selector(VZGraphicsDisplayObserver.displayDidBeginReconfiguration(_:))
+
+		if let superclass = VNCVirtualMachineView.superclass(), let method = class_getInstanceMethod(superclass, selector) {
+			typealias Implementation = @convention(c) (AnyObject, Selector, VZGraphicsDisplay) -> Void
+
+			let implementation = unsafeBitCast(method_getImplementation(method), to: Implementation.self)
+
+			implementation(self, selector, display)
+		}
+
+		self.inDisplayReconfiguration = true
+	}
+
+	public func displayDidEndReconfiguration(_ display: VZGraphicsDisplay) {
+		self.logger.debug("displayDidEndReconfiguration: \(display.sizeInPixels)")
+
+		// VZVirtualMachineView may privately conform to VZGraphicsDisplayObserver: forward to it when it does
+		let selector = #selector(VZGraphicsDisplayObserver.displayDidEndReconfiguration(_:))
+
+		if let superclass = VNCVirtualMachineView.superclass(), let method = class_getInstanceMethod(superclass, selector) {
+			typealias Implementation = @convention(c) (AnyObject, Selector, VZGraphicsDisplay) -> Void
+
+			let implementation = unsafeBitCast(method_getImplementation(method), to: Implementation.self)
+
+			implementation(self, selector, display)
+		}
+
+		DispatchQueue.main.async { [weak self] in
+			guard let self else {
+				return
+			}
+
+			// Reset whatever follows: a guard that returns early must not leave every frame suppressed for good
+			self.inDisplayReconfiguration = false
+
+			// func _takeScreenshotWithCompletionHandler(_ completionHandler: @escaping (CGImage?) -> Void)
+			/*let screenshotSelector = NSSelectorFromString("_takeScreenshotWithCompletionHandler:")
+
+			 if display.responds(to: screenshotSelector), let method = class_getInstanceMethod(VZGraphicsDisplay.self, screenshotSelector) {
+			 typealias Implementation = @convention(c) (AnyObject, Selector, AnyObject) -> Void
+
+			 let implementation = unsafeBitCast(method_getImplementation(method), to: Implementation.self)
+			 let completionHandler: @convention(block) (CGImage?) -> Void = { [logger = self.logger] image in
+			 if let image {
+			 logger.debug("displayDidEndReconfiguration: private screenshot: \(image))")
+			 }
+			 }
+
+			 implementation(display, screenshotSelector, unsafeBitCast(completionHandler, to: AnyObject.self))
+			 }*/
+
+			self.continuation.withLock {
+				guard let continuation = $0 else {
+					return
+				}
+
+				guard let cgImage = self.cgImage else {
+					return
+				}
+
+				self.logger.trace("displayDidEndReconfiguration: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
+
+				continuation.yield(.frame(cgImage))
+			}
+		}
+	}
+}
+
 extension VNCVirtualMachineView: VNCFramebufferObserver {
 	func updateCursorPosition(with event: NSEvent) {
 		let cursorPosition = self.viewRelativePosition(of: event)
@@ -877,14 +936,43 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 	}
 
 	open func didUpdateFrame(_ framebufferView: NSView) {
-		// Throttle to maxFrameRate (default 30 fps)
-		let now = CFAbsoluteTimeGetCurrent()
-
-		if self.lastFrameEmitTime > 0 && (now - self.lastFrameEmitTime) < minInterval {
+		// Frames of a display being reconfigured are dropped: displayDidEndReconfiguration emits the final one
+		guard self.inDisplayReconfiguration == false else {
 			return
 		}
 
-		self.lastFrameEmitTime = now
+		// Throttle to maxFrameRate (default 30 fps). A frame dropped by the throttle is not lost: the last
+		// one of a burst is emitted once the interval is over, otherwise the picture stays on the one before it.
+		let elapsed = CFAbsoluteTimeGetCurrent() - self.lastFrameEmitTime
+
+		if self.lastFrameEmitTime > 0 && elapsed < minInterval {
+			if self.trailingFrame == nil {
+				let work = DispatchWorkItem { [weak self] in
+					self?.trailingFrame = nil
+					self?.emitFrame()
+				}
+
+				self.trailingFrame = work
+
+				DispatchQueue.main.asyncAfter(deadline: .now() + (minInterval - elapsed), execute: work)
+			}
+
+			return
+		}
+
+		self.trailingFrame?.cancel()
+		self.trailingFrame = nil
+
+		self.emitFrame()
+	}
+
+	/// Whatever size the surface has is emitted: the server settles size changes before announcing them.
+	private func emitFrame() {
+		guard self.inDisplayReconfiguration == false, self.surface() != nil else {
+			return
+		}
+
+		self.lastFrameEmitTime = CFAbsoluteTimeGetCurrent()
 
 		self.continuation.withLock {
 			guard let continuation = $0 else {
@@ -894,6 +982,8 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 			guard let cgImage = self.cgImage else {
 				return
 			}
+
+			self.logger.trace("emit frame: \(cgImage.width)x\(cgImage.height), view: \(self.bounds.size), display: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
 
 			continuation.yield(.frame(cgImage))
 		}

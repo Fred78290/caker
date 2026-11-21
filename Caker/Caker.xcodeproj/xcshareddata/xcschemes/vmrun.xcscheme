@@ -87,6 +87,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "gnome"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -107,15 +111,19 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--all"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ui"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--log-level=debug"
+            argument = "--ui"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--vnc"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--log-level=debug"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vnc-port=32000"
@@ -127,19 +135,19 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--screen-size=1920x1024"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "CAKED_VMNET_DHCP"
             value = "vmnet"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "CAKED_VMNET_NATIVE"
             value = "0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

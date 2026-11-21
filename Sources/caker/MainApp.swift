@@ -558,7 +558,7 @@ struct MainApp: App {
 		VirtualMachineWizard(connectionManager: self.appState.connectionManager)
 			.colorSchemeForColor()
 			.restorationState(.disabled)
-			.frame(size: CGSize(width: 730, height: 650))
+			.frame(size: CGSize(width: 730, height: 750 ))
 	}
 
 	func syncAppState() {
