@@ -376,13 +376,11 @@ extension VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate {
 	}
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
-		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
-			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
+		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
-			DispatchQueue.main.async {
-				self.screenSize = .init(framebuffer.cgSize)
-				self.framebufferSize = .init(framebuffer.cgSize)
-			}
+		DispatchQueue.main.async {
+			self.screenSize = .init(framebuffer.cgSize)
+			self.framebufferSize = .init(framebuffer.cgSize)
 		}
 	}
 

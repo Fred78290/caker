@@ -1868,14 +1868,12 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
 		#endif
 
-		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
-			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
+		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
-			DispatchQueue.main.async {
-				self.setDocumentSize(.init(framebuffer.cgSize))
+		DispatchQueue.main.async {
+			self.setDocumentSize(.init(framebuffer.cgSize))
 
-				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
-			}
+			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
 		}
 	}
 

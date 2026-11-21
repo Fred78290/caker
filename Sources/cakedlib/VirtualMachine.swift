@@ -1465,7 +1465,13 @@ extension VirtualMachine {
 			self.env.vzMachineView = vzMachineView
 			self.env.vncServer.delegate = self
 
-			try self.env.vncServer.start()
+			do {
+				try self.env.vncServer.start()
+			} catch {
+				// A server that did not start must not stay: the next call would return its URLs without starting it
+				self.env.vncServer = nil
+				throw error
+			}
 		}
 
 		return self.env.vncServer.urls

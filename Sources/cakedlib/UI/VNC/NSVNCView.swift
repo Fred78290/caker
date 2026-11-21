@@ -59,10 +59,9 @@ public struct DesktopSizeNegotiator: Sendable {
 			return nil
 		}
 
+		// Nothing is sent: a size that was not sent is not recorded as requested (the guest may leave this
+		// size later and the user ask for it again), and a request still waiting for its answer keeps waiting.
 		if target == framebuffer {
-			self.lastRequested = target
-			self.requestedAt = nil
-
 			return nil
 		}
 

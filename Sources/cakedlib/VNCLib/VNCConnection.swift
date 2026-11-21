@@ -1417,7 +1417,9 @@ extension VNCConnection {
 			do {
 				// Check if cursor shape updates are enabled
 				if self.encodings.enableCursorShapeUpdates {
-					try await self.sendCursorShapeUpdate(cursor: cursor)
+					try await self.gated {
+						try await self.sendCursorShapeUpdate(cursor: cursor)
+					}
 				}
 			} catch {
 				self.logger.error("send cursor update failed: \(error)")
@@ -1431,7 +1433,9 @@ extension VNCConnection {
 			do {
 				// Check if cursor position updates are enabled
 				if self.encodings.enableCursorPosUpdates {
-					try await self.sendCursorPositionUpdate(cursorPosition: cursorPosition)
+					try await self.gated {
+						try await self.sendCursorPositionUpdate(cursorPosition: cursorPosition)
+					}
 				}
 			} catch {
 				self.logger.error("send cursor update failed: \(error)")

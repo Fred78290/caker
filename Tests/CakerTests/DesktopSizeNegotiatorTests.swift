@@ -48,6 +48,29 @@ final class DesktopSizeNegotiatorTests: XCTestCase {
 		XCTAssertNotNil(negotiator.request(CGSize(width: 1200, height: 700), framebuffer: framebuffer, now: now.addingTimeInterval(DesktopSizeNegotiator.answerTimeout + 0.1)))
 	}
 
+	func testASizeThatWasNotSentIsNotRecordedAsRequested() {
+		var negotiator = DesktopSizeNegotiator()
+
+		// The target is the framebuffer: nothing is sent, so nothing is recorded...
+		XCTAssertNil(negotiator.request(CGSize(width: 1024, height: 768), framebuffer: CGSize(width: 1024, height: 768), now: now))
+		XCTAssertNil(negotiator.lastRequested)
+
+		// ...and when the guest later leaves that size, asking for it is possible
+		XCTAssertEqual(negotiator.request(CGSize(width: 1024, height: 768), framebuffer: CGSize(width: 800, height: 600), now: now), CGSize(width: 1024, height: 768))
+	}
+
+	func testARequestStillWaitingKeepsWaitingWhenTheTargetReturnsToTheFramebuffer() {
+		var negotiator = DesktopSizeNegotiator()
+		let framebuffer = CGSize(width: 1024, height: 768)
+
+		XCTAssertNotNil(negotiator.request(CGSize(width: 1100, height: 700), framebuffer: framebuffer, now: now))
+		XCTAssertNil(negotiator.request(framebuffer, framebuffer: framebuffer, now: now.addingTimeInterval(0.3)))
+
+		// Still one request waiting for its answer: no second one
+		XCTAssertNil(negotiator.request(CGSize(width: 1200, height: 700), framebuffer: framebuffer, now: now.addingTimeInterval(0.5)))
+		XCTAssertTrue(negotiator.isWaiting(now: now.addingTimeInterval(0.5)))
+	}
+
 	func testSizesAreNormalized() {
 		XCTAssertEqual(DesktopSizeNegotiator.normalized(CGSize(width: 1000.7, height: 600.2)), CGSize(width: 1000, height: 600))
 		XCTAssertNil(DesktopSizeNegotiator.normalized(.zero))
@@ -112,5 +135,11 @@ final class DesktopSizeNegotiatorTests: XCTestCase {
 		}
 
 		return requests
+	}
+
+	func testAPasswordIsRemovedFromAURLForTheLog() {
+		XCTAssertEqual(URL(string: "vnc://:secret@192.168.1.2:5900")!.removingPassword, "vnc://192.168.1.2:5900")
+		XCTAssertEqual(URL(string: "vnc://user:secret@192.168.1.2:5900")!.removingPassword, "vnc://user@192.168.1.2:5900")
+		XCTAssertEqual(URL(string: "vnc://192.168.1.2:5900")!.removingPassword, "vnc://192.168.1.2:5900")
 	}
 }

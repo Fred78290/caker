@@ -57,6 +57,17 @@ final class VNCResizeLoopbackTests: XCTestCase {
 		func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: RoyalVNCKit.VNCCursor) {}
 	}
 
+	private struct HandshakeFailed: Error {}
+
+	/// A handshake that does not complete is a regression of the server or of the client: it fails, it does not skip
+	private func requireReady(_ client: Client, file: StaticString = #filePath, line: UInt = #line) throws {
+		guard client.ready else {
+			XCTFail("the loopback VNC handshake did not complete", file: file, line: line)
+
+			throw HandshakeFailed()
+		}
+	}
+
 	private func pump(_ seconds: TimeInterval, until condition: () -> Bool = { false }) {
 		let end = Date().addingTimeInterval(seconds)
 
@@ -120,7 +131,7 @@ final class VNCResizeLoopbackTests: XCTestCase {
 			server.stop()
 		}
 
-		try XCTSkipUnless(client.ready, "no VNC connection over loopback in this environment")
+		try requireReady(client)
 
 		pump(0.5)
 
@@ -153,7 +164,7 @@ final class VNCResizeLoopbackTests: XCTestCase {
 			server.stop()
 		}
 
-		try XCTSkipUnless(client.ready, "no VNC connection over loopback in this environment")
+		try requireReady(client)
 
 		pump(0.5)
 
@@ -176,7 +187,7 @@ final class VNCResizeLoopbackTests: XCTestCase {
 			server.stop()
 		}
 
-		try XCTSkipUnless(client.ready, "no VNC connection over loopback in this environment")
+		try requireReady(client)
 
 		pump(0.5)
 
@@ -198,7 +209,7 @@ final class VNCResizeLoopbackTests: XCTestCase {
 			server.stop()
 		}
 
-		try XCTSkipUnless(client.ready, "no VNC connection over loopback in this environment")
+		try requireReady(client)
 
 		for size in [CGSize(width: 700, height: 500), CGSize(width: 900, height: 700), CGSize(width: 1000, height: 640)] {
 			connection.setDesktopSize(size)
@@ -225,7 +236,7 @@ final class VNCResizeLoopbackTests: XCTestCase {
 			server.stop()
 		}
 
-		try XCTSkipUnless(client.ready, "no VNC connection over loopback in this environment")
+		try requireReady(client)
 
 		pump(1)
 		XCTAssertTrue(isPainted(connection), "after connect")

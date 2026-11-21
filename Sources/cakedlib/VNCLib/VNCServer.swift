@@ -49,6 +49,23 @@ public protocol VNCFrameBufferProducer {
 	func stopFramebufferUpdate()
 }
 
+extension URL {
+	/// The URL as a string without the password, for logs
+	public var removingPassword: String {
+		guard self.password != nil, var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
+			return self.absoluteString
+		}
+
+		components.password = nil
+
+		if components.user?.isEmpty == true {
+			components.user = nil
+		}
+
+		return components.string ?? self.absoluteString
+	}
+}
+
 open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public weak var delegate: VNCServerDelegate?
 	public private(set) var port: UInt16
