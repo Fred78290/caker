@@ -506,7 +506,7 @@ extension URL {
 			}
 
 			let tempPath = home.appendingPathComponent(self.lastPathComponent.deletingPathExtension, isDirectory: false).appendingPathExtension(name)
-			Logger(self).warn("Socket path \(socketPath.path(percentEncoded: false)) is too long, using \(tempPath.path(percentEncoded: false))")
+			Logger(self).debug("Socket path \(socketPath.path(percentEncoded: false)) is too long, using \(tempPath.path(percentEncoded: false))")
 			return tempPath
 		} else {
 			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension).\(name)")!

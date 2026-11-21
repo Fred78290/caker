@@ -90,6 +90,7 @@ struct Root: ParsableCommand {
 			version: CI.version,
 			subcommands: [
 				Aliases.self,
+				Apps.self,
 				Build.self,
 				Provision.self,
 				Certificates.self,
@@ -197,6 +198,10 @@ struct Root: ParsableCommand {
 
 		#if USE_AUTHORIZATION_HELPER
 			configuration.subcommands.append(AuthorizationCommand.self)
+		#endif
+
+		#if DEBUG
+			configuration.subcommands.append(SeamlessDemo.self)
 		#endif
 
 		if try tryForkCommand() {

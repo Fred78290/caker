@@ -233,6 +233,28 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vzMachineWindow: NSWindow? = nil
 	var timer: Timer? = nil
 	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
+	/// Shows the guest's windows on the host while the VM runs (see `SeamlessWindowManager`).
+	var seamlessWindows: SeamlessWindowManager? = nil
+	/// Counts the start and stop requests, taken in the order they are made: the work runs later on the main actor,
+	/// and only the latest request may act, so a stale start or cleanup can't undo a newer one (a restart).
+	private let seamlessRequests = NSLock()
+	private var seamlessRequestCount = 0
+
+	func nextSeamlessRequest() -> Int {
+		self.seamlessRequests.lock()
+		defer { self.seamlessRequests.unlock() }
+
+		self.seamlessRequestCount += 1
+
+		return self.seamlessRequestCount
+	}
+
+	var latestSeamlessRequest: Int {
+		self.seamlessRequests.lock()
+		defer { self.seamlessRequests.unlock() }
+
+		return self.seamlessRequestCount
+	}
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
 	var mode: VirtualMachine.Mode
@@ -327,7 +349,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 
 		if mode == .normal {
-			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
+			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL, seamlessSocketURL: location.seamlessSocketURL)
 			let consoleURL = try config.consoleAttachment()
 
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
@@ -1145,6 +1167,16 @@ extension VirtualMachine {
 					} else if self.env.mode == .normal {
 						self.logger.error("VM \(self.location.name) disabled to install agent on ip: \(runningIP)")
 					}
+				} else if runningIP != nil, self.env.mode == .normal, config.agentServiceNeedsUpdate {
+					// The agent is installed but its service was registered with other flags (seamless windows turned on
+					// or off, mounts changed since): the flags are part of the guest's service unit, so register it again.
+					self.logger.info("VM \(self.location.name) agent service flags changed, updating the agent")
+
+					do {
+						try self.location.updateAgentService(config: config, runMode: runMode)
+					} catch {
+						self.logger.warn("VM \(self.location.name) failed to update the agent service: \(error)")
+					}
 				}
 
 				return runningIP
@@ -1328,6 +1360,7 @@ extension VirtualMachine {
 			self.logger.info("VM \(self.location.name) started")
 			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
+			self.startSeamlessWindows()
 
 			// Not started by StartHandler (record, provisioning, embedded in the app): nobody else tells the imds network.
 			VMLifecycleHooks.publish(.started(location: self.location, runMode: self.env.runMode))
@@ -1471,8 +1504,59 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 		self.logger.error(error)
 	}
 
+	/// Starts the server the guest compositor connects to. Any process that runs the VM can show the windows: Caker.app
+	/// and `vmrun --ui` have an application already, a `vmrun --vnc` makes an accessory one (`SeamlessWindowManager`,
+	/// `VMRun` runs its event loop). Only a VM run by the caked service doesn't: a client shows its windows through the tunnel.
+	func startSeamlessWindows() {
+		guard self.env.mode == .normal, self.config.supportsSeamlessWindows else { return }
+
+		// A VM run by the caked service has its windows shown by a client through the service's SeamlessTunnel
+		// (cakectl seamless), which listens on the socket itself: listening here would take it from the tunnel.
+		guard VMRunHandler.launchedFromService == false else {
+			self.logger.info("VM \(self.location.name): seamless windows are relayed by the service, see \"cakectl seamless\"")
+			return
+		}
+
+		let socketPath = self.location.seamlessSocketURL.path(percentEncoded: false)
+		let name = self.location.name
+		let request = self.env.nextSeamlessRequest()
+
+		Task { @MainActor in
+			// The decision is made here, on the main actor, where the previous manager's cleanup also runs: a start
+			// that is not the latest request any more (the VM stopped meanwhile) must not create a listener.
+			guard request == self.env.latestSeamlessRequest else { return }
+
+			// A manager of the previous run that is still there goes first (a restart: its stop has not run yet).
+			self.env.seamlessWindows?.stop()
+			self.env.seamlessWindows = nil
+
+			do {
+				let manager = SeamlessWindowManager(vmName: name, displayMode: self.env.display, socketPath: socketPath)
+
+				try manager.start()
+				self.env.seamlessWindows = manager
+				self.logger.info("VM \(name): seamless windows listening on \(socketPath)")
+			} catch {
+				self.logger.error("VM \(name): cannot start seamless windows: \(error)")
+			}
+		}
+	}
+
+	func stopSeamlessWindows() {
+		let request = self.env.nextSeamlessRequest()
+
+		Task { @MainActor in
+			// A start requested after this stop owns the manager now.
+			guard request == self.env.latestSeamlessRequest else { return }
+
+			self.env.seamlessWindows?.stop()
+			self.env.seamlessWindows = nil
+		}
+	}
+
 	func didChangedStateOnStop() {
 		if self.isRebooting == false {
+			self.stopSeamlessWindows()
 			self.cancelAgentInstallRetry()
 			self.env.signalStop()
 			self.didChangedState(true)
@@ -1598,10 +1682,14 @@ extension VirtualMachine {
 		}
 	}
 
-	public func restartFromUI() {
+	public func restartFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
-			self._stopVM { result in
-				self.startFromUI()
+			self._stopVM { error in
+				if let error {
+					completionHandler?(.failure(error))
+				} else {
+					self.startFromUI(completionHandler: completionHandler)
+				}
 			}
 		}
 	}

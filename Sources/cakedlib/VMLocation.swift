@@ -238,6 +238,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "svc")
 	}
 
+	public var seamlessSocketURL: URL {
+		return rootURL.resolvingSymlinksInPath().socketPath(name: "smls")
+	}
+
 	public var name: String {
 		rootURL.deletingPathExtension().lastPathComponent
 	}
@@ -584,7 +588,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	public func writeProvisionning() throws {
 		FileManager.default.createFile(atPath: self.provisionningURL.path(percentEncoded: false), contents: nil)
-		
+
 		try self.writePID()
 	}
 
@@ -984,25 +988,40 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public func installAgent(updateAgent: Bool, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) async throws -> Bool {
-		Logger(self).info("Installing agent on \(self.name)")
+		Logger(self).info("Installing agent on \(self.name), version=\(CAKEAGENT_VERSION)")
 
 		// A Windows guest has no shell like the others: PowerShell over its OpenSSH server (installed with the guest)
 		if config.isWindowsGuest {
 			return try await installWindowsAgent(config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
 		}
 
+		let home = try Home(runMode: runMode)
 		let imageSource = config.source
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii).base64EncodedString()
 		let serverKey: String = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii).base64EncodedString()
 		let serverPem = try String(contentsOf: certificates.serverCertURL, encoding: .ascii).base64EncodedString()
 		let sshPublicKeys = try getPublicSSHKeys(config: config, runMode: runMode).joined(separator: "\n")
+		// The flags are read once: the host keyboard layout in them can change while the agent is installed, and what is
+		// recorded as installed must be what the script registered.
+		let serviceFlags = config.agentServiceFlags
 		let ssh = try createSSH(host: runningIP, timeout: timeout)
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = String(
 			format: try loadBundledShellScript(named: "ssh-install-cakeagent", runMode: runMode),
-			config.configuredUser, CAKEAGENT_SNAPSHOT, "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, sshPublicKeys, caCert, serverPem, serverKey,
-			AppStoreGuestDNS.sshFragment(domain: ComposeDNS.domainSuffix, ip: BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"), port: "\(ComposeDNS.internalBindPort)"))
+			config.configuredUser,
+			CAKEAGENT_VERSION,
+			"\(VMLocation.defaultAgentListenPort)",
+			serviceFlags,
+			sshPublicKeys,
+			caCert,
+			serverPem,
+			serverKey,
+			AppStoreGuestDNS.sshFragment(
+				domain: ComposeDNS.domainSuffix,
+				ip: BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/"),
+				port: "\(ComposeDNS.internalBindPort)")
+		)
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
@@ -1013,6 +1032,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
 			try ssh.authenticate(
 				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
+		} else if let exists = try? home.sshPrivateKey.exists(), exists && (config.clearPassword == false || config.configuredPassword == nil) {
+			try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false))
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
@@ -1025,12 +1046,16 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			try tempFileURL.delete()
 		}
 
-		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee ~/install-agent.log'"
+		// The installer's own exit status is the command's: `| tee` would replace it with tee's (sh has no pipefail).
+		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh > ~/install-agent.log 2>&1; status=$?; cat ~/install-agent.log; exit $status'"
 		let result = try ssh.capture(cmd)
 
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
 			Logger(self).debug(result.output)
+
+			// The caller saves the config; this is what a later start compares with to know the service must be re-registered
+			config.agentInstalledFlags = serviceFlags
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 
@@ -1040,14 +1065,87 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
+	/// Registers the agent service of a Linux guest again with the flags the config asks for (`agentServiceFlags`: mounts,
+	/// seamless windows), through the agent itself over vsock: nothing depends on the guest's network being reachable from
+	/// the host, as SSH does, and the agent binary is already there. Stopping the service kills the agent that is running the
+	/// command, so the work is handed to a transient systemd unit (or a detached shell where there is no systemd) that
+	/// outlives it. Returns once the work is started, the service is back a few seconds later.
+	public func updateAgentService(config: CakeConfig, runMode: Utils.RunMode) throws {
+		let certs = "/etc/cakeagent/ssl"
+		let work = #"""
+			sleep 1
+			/usr/local/bin/cakeagent service stop || true
+			mkdir -p /etc/sysconfig
+			echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+			chmod 644 /etc/sysconfig/cakeagent
+			/usr/local/bin/cakeagent service install --listen="vsock://any:$2" --ca-cert=\#(certs)/ca.pem --tls-cert=\#(certs)/server.pem --tls-key=\#(certs)/server.key $1 || { echo "CakeAgent service reinstall reported an error"; exit 1; }
+			/usr/local/bin/cakeagent service start || exit 1
+			# Only a registration that worked is recorded: the host reads this back before it trusts the update
+			printf '%s' "$1" > /etc/cakeagent/service-flags
+			"""#
+		let launcher = #"""
+			cat > /run/cakeagent-reflag.sh <<'CAKEAGENT_EOS'
+			\#(work)
+			CAKEAGENT_EOS
+			if command -v systemd-run >/dev/null 2>&1; then
+				systemd-run --no-block --unit=cakeagent-reflag sh /run/cakeagent-reflag.sh "$1" "$2"
+			else
+				setsid sh /run/cakeagent-reflag.sh "$1" "$2" >/dev/null 2>&1 </dev/null &
+			fi
+			"""#
+
+		// One snapshot for the script and for the record (the host keyboard layout in the flags can change meanwhile)
+		let serviceFlags = config.agentServiceFlags
+
+		Logger(self).info("Updating the agent service of \(self.name), flags: \(serviceFlags.isEmpty ? "none" : serviceFlags)")
+
+		let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 30, runMode: runMode, retries: .upTo(10))
+
+		// The agent runs `/bin/sh -c "<command> <arguments joined by a space>"`: one properly quoted command line, with the
+		// script base64 encoded so that nothing in it can be taken apart by that join.
+		func quoted(_ value: String) -> String {
+			"'" + value.replacingOccurrences(of: "'", with: #"'\''"#) + "'"
+		}
+
+		let script = Data(launcher.utf8).base64EncodedString()
+		let reply = try client.run(command: "echo \(script) | base64 -d | sh -s -- \(quoted(serviceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))")
+
+		guard reply.exitCode == 0 else {
+			throw ServiceError(String(format: String(localized: "Agent service update failed on %@: %@"), self.name, reply.stderr.isEmpty ? "exit code \(reply.exitCode)" : String(decoding: reply.stderr, as: UTF8.self)))
+		}
+
+		// A zero exit only says the work was handed over. The guest writes `service-flags` once the service is registered
+		// and started again: wait for the agent to come back and read it, so a failed registration stays eligible for a retry.
+		let expected = serviceFlags
+		let deadline = Date().addingTimeInterval(60)
+
+		while Date() < deadline {
+			Thread.sleep(forTimeInterval: 2)
+
+			guard let probe = try? CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 10, runMode: runMode, retries: .upTo(1)),
+				let recorded = try? probe.run(command: "cat /etc/cakeagent/service-flags"), recorded.exitCode == 0
+			else {
+				continue
+			}
+
+			if String(decoding: recorded.stdout, as: UTF8.self) == expected {
+				// The caller saves the config; this is what a later start compares with
+				config.agentInstalledFlags = expected
+				return
+			}
+		}
+
+		throw ServiceError(String(format: String(localized: "Agent service update was not confirmed on %@: the service did not come back with the new flags"), self.name))
+	}
+
 	/// Installs the agent in a Windows guest, or replaces it when its service is already there (the installer's first boot
 	/// does the first install, this is what updates it, or installs it in a guest where it is missing). The executable and a
 	/// PowerShell script go over SSH to `C:\ProgramData\caker` and the script runs elevated: an administrator's SSH session
-	/// is. `installAgent` is true only when the agent runs with the snapshot this build asks for.
+	/// is. `installAgent` is true only when the agent runs with the version this build asks for.
 	private func installWindowsAgent(config: CakeConfig, runningIP: String, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let script = WindowsInstallResources.agentUpdatePowerShell(
-			snapshot: CAKEAGENT_SNAPSHOT, port: UInt16(VMLocation.defaultAgentListenPort),
+			version: CAKEAGENT_VERSION, port: UInt16(VMLocation.defaultAgentListenPort),
 			caCert: try String(contentsOf: certificates.caCertURL, encoding: .ascii),
 			serverCert: try String(contentsOf: certificates.serverCertURL, encoding: .ascii),
 			serverKey: try String(contentsOf: certificates.serverKeyURL, encoding: .ascii))
@@ -1092,7 +1190,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
-	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode, progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler) async throws {
+	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode, progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler)
+		async throws
+	{
 		Logger(self).info("Running post-boot commands on \(self.name)")
 
 		let imageSource = config.source

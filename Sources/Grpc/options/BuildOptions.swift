@@ -118,6 +118,9 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp(String(localized: "Enable nested virtualization if possible")))
 	public var nested: Bool = false
 
+	@Flag(help: ArgumentHelp(String(localized: "Show the windows of a Linux guest on the host (seamless windows)")))
+	public var seamless: Bool = false
+
 	@Flag(help: ArgumentHelp(String(localized: "Support autoinstall mecanism from iso image or IPSW installation")))
 	public var autoinstall: Bool = false
 
@@ -248,7 +251,8 @@ public struct BuildOptions: ParsableArguments {
 		consoleURL: ConsoleAttachment? = nil,
 		autoinstall: Bool = false,
 		bridgedNetwork: Bool = false,
-		dynamicPortForwarding: Bool = false
+		dynamicPortForwarding: Bool = false,
+		seamless: Bool = false
 	) {
 		self.identifier = identifier
 		self.name = name
@@ -266,6 +270,7 @@ public struct BuildOptions: ParsableArguments {
 		self.autostart = autostart
 		self.nested = nested
 		self.suspendable = suspendable
+		self.seamless = seamless
 		self.netIfnames = netIfnames
 		self.image = image
 		self.imageSource = imageSource
@@ -451,6 +456,8 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.dynamicPortForwarding = false
 		}
+
+		self.seamless = request.hasSeamless ? request.seamless : false
 
 		if request.hasSuspendable {
 			self.suspendable = request.suspendable

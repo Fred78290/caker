@@ -110,7 +110,7 @@ Original notes:
 ### Phase 3 — drivers, agent, scripts
 - Drivers: copy the amd64 folders (list from step 6), strip `.pdb`, keep the `viosock` INF's Winsock provider files.
 - Agent: nothing to change in `Utilities.cakeagentWindowsBinary`; check `cakeagent-windows-amd64.exe` with the vsock
-  listener (cakeagent PR #18) is in the snapshot `CAKEAGENT_SNAPSHOT` points at.
+  listener (cakeagent PR #18) is in the snapshot `CAKEAGENT_VERSION` points at.
 - `SetupComplete.cmd` has nothing architecture-specific; keep the `agent=<code>-running`/`vsock=` marker.
 
 ### Phase 4 — validation on the Intel Mac (the only part that needs it)

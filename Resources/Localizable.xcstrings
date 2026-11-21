@@ -210,6 +210,17 @@
         }
       }
     },
+    "'%@' is not a valid application identifier" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » n'est pas un identifiant d'application valide"
+          }
+        }
+      }
+    },
     "'%@' is not a valid project name: use lowercase letters, digits and hyphens" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -219,7 +230,8 @@
             "value" : "'%@' n'est pas un nom de projet valide : utilisez des minuscules, des chiffres et des tirets"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "'%@' is not a valid task id" : {
       "extractionState" : "manual",
@@ -228,6 +240,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "'%@' n'est pas un id d'opération valide"
+          }
+        }
+      }
+    },
+    "'%@' is not a valid user name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » n'est pas un nom d'utilisateur valide"
+          }
+        }
+      }
+    },
+    "'%@' matches several applications: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » correspond à plusieurs applications : %@"
           }
         }
       }
@@ -671,6 +705,28 @@
         }
       }
     },
+    "%d rectangles in one frame" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d rectangles dans une seule trame"
+          }
+        }
+      }
+    },
+    "%d unexpected trailing bytes" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d octets de fin inattendus"
+          }
+        }
+      }
+    },
     "%d/%d running" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -844,7 +900,8 @@
             "value" : "Une bibliothèque de modèles compose.yml pour ce que les développeurs installent le plus souvent (bases de données, piles web, un hôte Docker…). Elle est fournie avec Caker et `library sync` la met à jour depuis le dépôt GitHub dans le cake home."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "A project needs a non-empty 'name'." : {
       "comment" : "A validation error message when a project's `name` is empty.",
@@ -1031,7 +1088,8 @@
             "value" : "ajoutés"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Additional attached disk" : {
       "extractionState" : "manual",
@@ -1216,6 +1274,28 @@
         }
       }
     },
+    "Agent service update failed on %@: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La mise à jour du service d'agent a échoué sur %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "Agent service update was not confirmed on %@: the service did not come back with the new flags" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La mise à jour du service de l'agent n'a pas été confirmée sur %@ : le service n'est pas revenu avec les nouveaux paramètres"
+          }
+        }
+      }
+    },
     "agentReady" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1346,6 +1426,17 @@
         }
       }
     },
+    "An application is required" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une application est requise"
+          }
+        }
+      }
+    },
     "An error occurred" : {
       "localizations" : {
         "fr" : {
@@ -1429,6 +1520,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Application"
+          }
+        }
+      }
+    },
+    "Application, as listed by 'app list'" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application, comme listée par 'app list'"
+          }
+        }
+      }
+    },
+    "Application, or with --command a program and its arguments" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application, ou avec --command un programme et ses arguments"
+          }
+        }
+      }
+    },
+    "Applications" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applications"
           }
         }
       }
@@ -1554,6 +1677,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arguments"
+          }
+        }
+      }
+    },
+    "Arguments are only passed to a program started with --command" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les arguments ne sont transmis qu'à un programme démarré avec --command"
           }
         }
       }
@@ -2041,7 +2175,8 @@
             "value" : "Parcourir et cloner des modèles compose prêts à l'emploi"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Browse the compose template library" : {
       "localizations" : {
@@ -2669,6 +2804,17 @@
         }
       }
     },
+    "Cannot listen on %@ for VM %@: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'écouter sur %@ pour la VM %@ : %@"
+          }
+        }
+      }
+    },
     "Cannot relocate cake home while caked is active (%@). Stop the caked service, all virtual machines and all networks first." : {
       "comment" : "A message explaining that the cake home cannot be relocated while caked is active. The argument is a list of active blockers, separated by commas.",
       "isCommentAutoGenerated" : true,
@@ -2677,6 +2823,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de déplacer le dossier caked pendant que le caked est actif ( ). Arrêtez le service caked, toutes les machines virtuelles et tous les réseaux en premier."
+          }
+        }
+      }
+    },
+    "Cannot restrict %@ for VM %@: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de restreindre l'accès à %@ pour la VM %@ : %@"
+          }
+        }
+      }
+    },
+    "Cannot take the listener lock of VM %@: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de prendre le verrou d'écoute de la VM %@ : %@"
           }
         }
       }
@@ -3314,7 +3482,8 @@
             "value" : "Le modèle « %1$@ » de la bibliothèque compose déclare l'id « %2$@ » : il doit correspondre au nom de son fichier"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose library template '%@' defines no service" : {
       "extractionState" : "stale",
@@ -3325,7 +3494,8 @@
             "value" : "Le modèle de bibliothèque compose '%@' ne définit aucun service"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose library template '%@' has no '# library-%@:' line" : {
       "extractionState" : "stale",
@@ -3336,7 +3506,8 @@
             "value" : "Le modèle « %1$@ » de la bibliothèque compose n'a pas de ligne « # library-%2$@: »"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose library template '%@' has no name or category" : {
       "extractionState" : "stale",
@@ -3347,7 +3518,8 @@
             "value" : "Le modèle de bibliothèque compose '%@' n'a ni nom ni catégorie"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose library template '%@' is not a valid compose file: %@" : {
       "extractionState" : "stale",
@@ -3358,7 +3530,8 @@
             "value" : "Le modèle de bibliothèque compose '%@' n'est pas un fichier compose valide : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose library template id '%@' is not valid" : {
       "extractionState" : "stale",
@@ -3369,7 +3542,8 @@
             "value" : "L'id de modèle de bibliothèque compose '%@' n'est pas valide"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose library template id '%@' is used twice" : {
       "extractionState" : "stale",
@@ -3380,7 +3554,8 @@
             "value" : "L'id de modèle de bibliothèque compose '%@' est utilisé deux fois"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "compose name must not be empty" : {
       "extractionState" : "manual",
@@ -4036,7 +4211,8 @@
             "value" : "Créer un compose.yml à partir d'un modèle"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Create a compose.yml template" : {
       "extractionState" : "manual",
@@ -4045,6 +4221,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Créer un modèle compose.yml"
+          }
+        }
+      }
+    },
+    "Create a launcher for this application" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un lanceur pour cette application"
           }
         }
       }
@@ -4078,6 +4264,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "créer une VM linux en utilisant une image cloud"
+          }
+        }
+      }
+    },
+    "Create a macOS application that starts a guest application" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer une application macOS qui démarre une application de l'invité"
           }
         }
       }
@@ -4141,6 +4338,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Créer et démarrer les services"
+          }
+        }
+      }
+    },
+    "Create launcher…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un lanceur…"
           }
         }
       }
@@ -4337,6 +4545,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Messages de débogage VNC"
+          }
+        }
+      }
+    },
+    "decompression failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "échec de la décompression"
           }
         }
       }
@@ -4844,6 +5063,17 @@
         }
       }
     },
+    "Directory the application is created in (default ~/Applications)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dossier où l'application est créée (par défaut ~/Applications)"
+          }
+        }
+      }
+    },
     "Disable privileged operations for Caker" : {
       "comment" : "Command name for disabling privileged operations for Caker.",
       "isCommentAutoGenerated" : true,
@@ -5217,7 +5447,8 @@
             "value" : "Télécharge la bibliothèque publiée sur la branche main du dépôt Caker dans le cake home, où elle remplace la copie fournie avec cette version. Tant que les modèles n'y sont pas publiés, la copie fournie reste utilisée."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Drive a macOS or Linux VM's Setup Assistant unattended via PackerLite" : {
       "extractionState" : "manual",
@@ -5425,7 +5656,8 @@
             "value" : "Modifiez-le, puis lancez `compose up` pour démarrer vos services."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Edit this compose project" : {
       "comment" : "A button that opens a sheet for editing a compose project.",
@@ -5447,6 +5679,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modifier…"
+          }
+        }
+      }
+    },
+    "empty frame" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trame vide"
           }
         }
       }
@@ -5948,7 +6191,8 @@
             "value" : "Échec du téléchargement de la bibliothèque compose depuis GitHub"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Failed to download the compose library from GitHub (HTTP %d)" : {
       "extractionState" : "stale",
@@ -5959,7 +6203,8 @@
             "value" : "Échec du téléchargement de la bibliothèque compose depuis GitHub (HTTP %d)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Failed to duplicate virtual machine" : {
       "localizations" : {
@@ -6520,7 +6765,8 @@
             "value" : "Fichier à écrire, ou répertoire où écrire compose.yml"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Filter" : {
       "localizations" : {
@@ -6734,6 +6980,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "FQN"
+          }
+        }
+      }
+    },
+    "frame of %d bytes exceeds the limit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la trame de %d octets dépasse la limite"
           }
         }
       }
@@ -7318,7 +7575,8 @@
             "value" : "Id du modèle, tel que listé par `library list`"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Ignored when caked runs as root, since the resolver then binds the standard port 53 directly. Otherwise, a `pf` redirect (needs passwordless sudo configured for caked) makes port 53 on the gateway reach this port instead — resolvectl has no syntax for a non-standard port, so without that redirect this flag alone isn't enough for guests to actually reach the resolver." : {
       "extractionState" : "manual",
@@ -7690,105 +7948,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installer le démon caked en tant qu'agent launchctl"
-          }
-        }
-      }
-    },
-    "Authorization helper registration" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrement de l’assistant d’autorisation"
-          }
-        }
-      }
-    },
-    "Register the privileged helper" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrer l’assistant privilégié"
-          }
-        }
-      }
-    },
-    "Approval required in System Settings > General > Login Items & Extensions." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Approbation requise dans Réglages Système > Général > Éléments de connexion et extensions."
-          }
-        }
-      }
-    },
-    "Open Login Items" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir les éléments de connexion"
-          }
-        }
-      }
-    },
-    "Lets Caker run privileged operations, such as vmnet networks, without asking for sudo." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permet à Caker d’exécuter des opérations privilégiées, comme les réseaux vmnet, sans demander sudo."
-          }
-        }
-      }
-    },
-    "Open Caker at login" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir Caker à l’ouverture de session"
-          }
-        }
-      }
-    },
-    "Startup" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démarrage"
-          }
-        }
-      }
-    },
-    "Unable to change the login item" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de modifier l’élément d’ouverture de session"
-          }
-        }
-      }
-    },
-    "Unable to change the privileged helper registration" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de modifier l’enregistrement de l’assistant privilégié"
           }
         }
       }
@@ -8270,6 +8429,17 @@
         }
       }
     },
+    "invalid dimensions %u x %u" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dimensions invalides %u x %u"
+          }
+        }
+      }
+    },
     "Invalid file descriptor" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8539,6 +8709,17 @@
         }
       }
     },
+    "invalid UTF-8 string" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chaîne UTF-8 invalide"
+          }
+        }
+      }
+    },
     "invalid value" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8563,6 +8744,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Valeur '%1$@' invalide pour %2$@ : true ou false attendu"
+          }
+        }
+      }
+    },
+    "invalid value: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "valeur invalide : %@"
           }
         }
       }
@@ -8954,7 +9146,8 @@
             "value" : "Options de la bibliothèque"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Library updated: %d templates (%d added, %d updated, %d removed)" : {
       "localizations" : {
@@ -9031,6 +9224,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lister toutes les VM et objets mis en cache"
+          }
+        }
+      }
+    },
+    "List and start the applications of a Linux VM" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister et démarrer les applications d'une VM Linux"
           }
         }
       }
@@ -9145,6 +9349,17 @@
         }
       }
     },
+    "List the applications of a VM" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister les applications d'une VM"
+          }
+        }
+      }
+    },
     "List the available remotes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9171,7 +9386,8 @@
             "value" : "Lister les modèles de la bibliothèque"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Listen network %@ already exists at this location: %@" : {
       "extractionState" : "manual",
@@ -9232,7 +9448,8 @@
             "value" : "Liste les modèles, éventuellement ceux d'une catégorie ou correspondant à chaque mot recherché (dans l'id, le nom, le résumé, la catégorie ou les étiquettes)."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Loading Multipass VMs…" : {
       "comment" : "A loading message displayed when the list of Multipass VMs is being loaded.",
@@ -9421,6 +9638,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se connecter à un registre"
+          }
+        }
+      }
+    },
+    "Login user" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisateur de connexion"
           }
         }
       }
@@ -10223,7 +10451,8 @@
             "value" : "Nom du projet compose"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Name of the new template" : {
       "localizations" : {
@@ -11257,6 +11486,27 @@
         }
       }
     },
+    "No application" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune application"
+          }
+        }
+      }
+    },
+    "No application matches '%@' in this VM" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune application ne correspond à « %@ » dans cette VM"
+          }
+        }
+      }
+    },
     "No built-in provisioning template for %@ — provide one with --template" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11597,7 +11847,8 @@
             "value" : "Aucun modèle '%@' dans la bibliothèque compose. Disponibles : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "No template matches" : {
       "localizations" : {
@@ -11618,7 +11869,8 @@
             "value" : "Aucun modèle ne correspond."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "No umounts" : {
       "extractionState" : "manual",
@@ -11989,7 +12241,8 @@
             "value" : "Uniquement les modèles de cette catégorie"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Only UTM virtual machines using the Apple Virtualization backend can be imported" : {
       "extractionState" : "manual",
@@ -12442,7 +12695,8 @@
             "value" : "Écraser un fichier existant"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Packet too big" : {
       "extractionState" : "manual",
@@ -13093,6 +13347,17 @@
         }
       }
     },
+    "popup" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "popup"
+          }
+        }
+      }
+    },
     "Port" : {
       "localizations" : {
         "fr" : {
@@ -13394,7 +13659,8 @@
             "value" : "Afficher un modèle"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Prints the compose.yml of a template without writing anything, to read it before cloning it." : {
       "extractionState" : "stale",
@@ -13405,7 +13671,8 @@
             "value" : "Affiche le compose.yml d'un modèle sans rien écrire, pour le lire avant de le cloner."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Privileged operations disabled." : {
       "comment" : "Text displayed in a notification when the user has disabled the privileged operations.",
@@ -14083,6 +14350,16 @@
         }
       }
     },
+    "Read the applications of the VM again" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relire les applications de la VM"
+          }
+        }
+      }
+    },
     "Reading the Windows installation ISO" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -14322,6 +14599,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mode de récupération"
+          }
+        }
+      }
+    },
+    "rectangle outside of the buffer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "rectangle en dehors du tampon"
           }
         }
       }
@@ -14757,7 +15045,8 @@
             "value" : "supprimés"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Rename" : {
       "localizations" : {
@@ -14809,6 +15098,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Renommer la machine virtuelle"
+          }
+        }
+      }
+    },
+    "Replace an existing launcher" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remplacer un lanceur existant"
           }
         }
       }
@@ -15299,6 +15599,17 @@
         }
       }
     },
+    "Run a program of the guest instead of a desktop application" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exécuter un programme de l'invité au lieu d'une application de bureau"
+          }
+        }
+      }
+    },
     "Run a shell on a VM" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15604,6 +15915,60 @@
         }
       }
     },
+    "Seamless demo" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démo seamless"
+          }
+        }
+      }
+    },
+    "Seamless windows" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fenêtres intégrées"
+          }
+        }
+      }
+    },
+    "seamless: cannot restrict %@: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : impossible de restreindre l'accès à %@ : %@"
+          }
+        }
+      }
+    },
+    "seamless: cannot take the listener lock of %@: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : impossible de prendre le verrou d'écoute de %@ : %@"
+          }
+        }
+      }
+    },
+    "seamless: the windows of this VM are already shown by another process (%@)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : les fenêtres de cette VM sont déjà affichées par un autre processus (%@)"
+          }
+        }
+      }
+    },
     "Search" : {
       "localizations" : {
         "fr" : {
@@ -15621,6 +15986,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Secondes entre les analyses des VM taguées compose"
+          }
+        }
+      }
+    },
+    "Seconds to wait for the guest to answer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secondes d'attente de la réponse de l'invité"
           }
         }
       }
@@ -16306,6 +16682,37 @@
         }
       }
     },
+    "Show the guest's windows on this desktop, ending when the VM stops" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les fenêtres de l'invité sur ce bureau, jusqu'à l'arrêt de la VM"
+          }
+        }
+      }
+    },
+    "Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest, applies at the next start." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche les fenêtres de l’invité Linux sur votre bureau. Nécessite un cakeagent compatible dans l’invité, pris en compte au prochain démarrage."
+          }
+        }
+      }
+    },
+    "Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche les fenêtres de l'invité Linux sur votre bureau. Nécessite un cakeagent avec la prise en charge des fenêtres intégrées dans l'invité."
+          }
+        }
+      }
+    },
     "Show the main window." : {
       "localizations" : {
         "fr" : {
@@ -16339,6 +16746,30 @@
         }
       }
     },
+    "Show the windows of a Linux guest on the host (seamless windows)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les fenêtres d'un invité Linux sur l'hôte (fenêtres intégrées)"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Show the windows of a Linux VM's applications on this desktop" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche sur ce bureau les fenêtres des applications d'une VM Linux"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Show useful information about images" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16365,6 +16796,18 @@
           }
         }
       }
+    },
+    "Showing the windows of %@, press Ctrl-C to stop\n" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affichage des fenêtres de %@, appuyez sur Ctrl-C pour arrêter\n"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Shows all compose projects registered with caked and their service status." : {
       "extractionState" : "manual",
@@ -17035,6 +17478,27 @@
         }
       }
     },
+    "Start an application of a VM" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer une application d'une VM"
+          }
+        }
+      }
+    },
+    "Start an application of this VM" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer une application de cette VM"
+          }
+        }
+      }
+    },
     "Start an existing VM" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17193,6 +17657,17 @@
         }
       }
     },
+    "Start the VM first if it is stopped" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer d'abord la VM si elle est arrêtée"
+          }
+        }
+      }
+    },
     "Start this project's services" : {
       "localizations" : {
         "fr" : {
@@ -17209,6 +17684,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Démarrer la machine virtuelle"
+          }
+        }
+      }
+    },
+    "Started %@ (process %d)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ démarré (processus %d)"
           }
         }
       }
@@ -17643,6 +18129,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stockage"
+          }
+        }
+      }
+    },
+    "string of %d bytes exceeds the limit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la chaîne de %d octets dépasse la limite"
           }
         }
       }
@@ -18230,6 +18727,50 @@
         }
       }
     },
+    "The application is a desktop file ID (org.mozilla.firefox), its name, or the last word of its ID (firefox), as listed by 'app list'. With --command the arguments are a program and its arguments instead." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'application est l'identifiant d'un fichier desktop (org.mozilla.firefox), son nom, ou le dernier mot de son identifiant (firefox), comme listé par 'app list'. Avec --command, les arguments sont un programme et ses arguments."
+          }
+        }
+      }
+    },
+    "The application is a desktop file ID (org.mozilla.firefox), its name, or the last word of its ID (firefox), as listed by 'app list'. With --command the arguments are a program and its arguments instead. The process then shows the guest's windows, unless another process (Caker.app, cakectl sh/exec/seamless) already does." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'application est l'identifiant d'un fichier desktop (org.mozilla.firefox), son nom, ou le dernier mot de son identifiant (firefox), comme listé par 'app list'. Avec --command, les arguments sont un programme et ses arguments. Le processus affiche ensuite les fenêtres de l'invité, sauf si un autre processus (Caker.app, cakectl sh/exec/seamless) le fait déjà."
+          }
+        }
+      }
+    },
+    "The application is a small .app running 'cakectl app run': it starts the VM if needed, then the guest application, and its windows show on this desktop. Its icon is the application's icon in the guest, when it has one. Connection options (--connect, --disable-tls, --system) are kept in it, a password is not." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'application est un petit .app qui exécute 'cakectl app run' : il démarre la VM si besoin, puis l'application de l'invité, dont les fenêtres s'affichent sur ce bureau. Son icône est celle de l'application dans l'invité, si elle en a une. Les options de connexion (--connect, --disable-tls, --system) y sont conservées, pas le mot de passe."
+          }
+        }
+      }
+    },
+    "The application is a small .app running 'caked app run': it starts the VM if needed, then the guest application, and its windows show on this desktop through the process that runs the VM. Its icon is the application's icon in the guest, when it has one." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'application est une petite .app qui exécute 'caked app run' : elle démarre la VM si besoin, puis l'application de l'invité, et ses fenêtres s'affichent sur ce bureau par le processus qui exécute la VM. Son icône est celle de l'application dans l'invité, si elle en a une."
+          }
+        }
+      }
+    },
     "The caked background agent is not installed. Would you like to install it now to enable full functionality?" : {
       "comment" : "Alert message when the caked background agent is not installed.",
       "isCommentAutoGenerated" : true,
@@ -18273,7 +18814,8 @@
             "value" : "L'index de la bibliothèque compose n'est pas valide : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library index lists no template" : {
       "extractionState" : "stale",
@@ -18284,7 +18826,8 @@
             "value" : "L'index de la bibliothèque compose ne liste aucun modèle"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library is not published on GitHub yet: the copy bundled with this version is used" : {
       "extractionState" : "stale",
@@ -18295,7 +18838,8 @@
             "value" : "La bibliothèque compose n'est pas encore publiée sur GitHub : la copie fournie avec cette version est utilisée"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library is up to date (%d templates)." : {
       "extractionState" : "stale",
@@ -18306,7 +18850,8 @@
             "value" : "La bibliothèque compose est à jour (%d modèles)."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library template '%@' is listed on GitHub but missing there" : {
       "extractionState" : "stale",
@@ -18317,7 +18862,8 @@
             "value" : "Le modèle « %@ » de la bibliothèque compose est listé sur GitHub mais y est absent"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library template '%@' is not valid UTF-8 text" : {
       "extractionState" : "stale",
@@ -18328,7 +18874,8 @@
             "value" : "Le modèle « %@ » de la bibliothèque compose n'est pas un texte UTF-8 valide"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library uses format %d, this version understands up to %d: update Caker" : {
       "extractionState" : "stale",
@@ -18339,7 +18886,8 @@
             "value" : "La bibliothèque compose utilise le format %d, cette version comprend jusqu'au %d : mettez Caker à jour"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The compose library was updated (%d templates)." : {
       "extractionState" : "stale",
@@ -18350,7 +18898,8 @@
             "value" : "La bibliothèque compose a été mise à jour (%d modèles)."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The downloaded compose library is not valid: %@" : {
       "extractionState" : "stale",
@@ -18361,7 +18910,8 @@
             "value" : "La bibliothèque compose téléchargée n'est pas valide : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The frame segment size in WINDOWS_FRAME_SEGMENT_MIB is not valid: expected %d to %d MiB" : {
       "extractionState" : "stale",
@@ -18370,6 +18920,40 @@
           "stringUnit" : {
             "state" : "machine_translated",
             "value" : "La taille du segment de trame de WINDOWS_FRAME_SEGMENT_MIB n’est pas valide : valeur attendue entre %d et %d Mio"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "The guest compositor of this VM disconnected" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le compositeur de l'invité de cette VM s'est déconnecté"
+          }
+        }
+      }
+    },
+    "The guest does not read the seamless stream" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'invité ne lit pas le flux seamless"
+          }
+        }
+      }
+    },
+    "The guest's windows are relayed by caked over gRPC, so the VM can run under a caked on another host. The command runs until it is interrupted (Ctrl-C) or the service ends the stream." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fenêtres de l'invité sont relayées par caked via gRPC : la VM peut donc tourner sous un caked sur un autre hôte. La commande s'exécute jusqu'à son interruption (Ctrl-C) ou jusqu'à ce que le service termine le flux."
           }
         }
       },
@@ -18444,6 +19028,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La bibliothèque est à jour"
+          }
+        }
+      }
+    },
+    "The login user in guest used for shell, default is configured user" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'utilisateur de connexion dans guest utilisé pour le shell, par défaut c’est l’utilisateur configuré."
           }
         }
       }
@@ -18702,6 +19297,17 @@
         }
       }
     },
+    "The seamless socket path %@ of VM %@ is not a socket" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le chemin %@ du socket seamless de la VM %@ n'est pas un socket"
+          }
+        }
+      }
+    },
     "The service %@ is unreachable." : {
       "comment" : "A localized error message that indicates that the service is unreachable.",
       "isCommentAutoGenerated" : true,
@@ -18919,6 +19525,29 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "The windows of VM %@ are already shown by another process" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fenêtres de la VM %@ sont déjà affichées par un autre processus"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "The windows of VM %@ are shown by another process, waiting for it to let them go\n" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fenêtres de la VM %@ sont affichées par un autre processus, attente de leur libération\n"
+          }
+        }
+      }
     },
     "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
       "extractionState" : "stale",
@@ -19457,6 +20086,17 @@
         }
       }
     },
+    "truncated message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "message tronqué"
+          }
+        }
+      }
+    },
     "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate" : {
       "comment" : "A button that toggles locate mode on/off.",
       "isCommentAutoGenerated" : true,
@@ -19584,6 +20224,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de modifier l’élément d’ouverture de session"
+          }
+        }
+      }
+    },
+    "Unable to change the privileged helper registration" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de modifier l’enregistrement de l’assistant privilégié"
           }
         }
       }
@@ -19793,6 +20444,29 @@
             "value" : "Impossible de trouver le cake home pour stocker la bibliothèque compose"
           }
         }
+      },
+      "shouldTranslate" : false
+    },
+    "Unable to find the cakectl executable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de trouver l'exécutable cakectl"
+          }
+        }
+      }
+    },
+    "Unable to find the caked executable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de trouver l'exécutable caked"
+          }
+        }
       }
     },
     "Unable to find virtual machine: %@" : {
@@ -19909,6 +20583,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible d'initialiser le mapping de clavier : aucune donnée de mise en page du clavier"
+          }
+        }
+      }
+    },
+    "Unable to list the applications of the VM: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de lister les applications de la VM : %@"
           }
         }
       }
@@ -20063,6 +20748,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de démarrer l'enregistrement"
+          }
+        }
+      }
+    },
+    "Unable to start the application: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de démarrer l'application : %@"
+          }
+        }
+      }
+    },
+    "Unable to start VM %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de démarrer la VM %@"
           }
         }
       }
@@ -20253,17 +20960,6 @@
         }
       }
     },
-    "Unknown catalog image id '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Id d'image de catalogue inconnu ‘%@’. Exécutez ‘caked aliases’ ou ‘cakectl aliases’ pour voir les ids connus, ou indiquez une URL d'image explicite."
-          }
-        }
-      }
-    },
     "Unknown catalog image id '%@' in image '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20271,6 +20967,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Id d'image de catalogue inconnu ‘%1$@’ dans l'image ‘%2$@’. Exécutez ‘caked aliases’ ou ‘cakectl aliases’ pour voir les ids connus."
+          }
+        }
+      }
+    },
+    "Unknown catalog image id '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Id d'image de catalogue inconnu ‘%@’. Exécutez ‘caked aliases’ ou ‘cakectl aliases’ pour voir les ids connus, ou indiquez une URL d'image explicite."
           }
         }
       }
@@ -20319,6 +21026,17 @@
         }
       }
     },
+    "unknown compression %d" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "compression inconnue %d"
+          }
+        }
+      }
+    },
     "Unknown Keychain error" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20326,6 +21044,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erreur de trousseau d’accès inconnue"
+          }
+        }
+      }
+    },
+    "unknown message type 0x%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "type de message inconnu 0x%@"
           }
         }
       }
@@ -20356,6 +21085,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Option inconnue ‘%1$@’. Vouliez-vous dire «%2$@» ?"
+          }
+        }
+      }
+    },
+    "unknown pixel format %d" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "format de pixel inconnu %d"
           }
         }
       }
@@ -20775,7 +21515,8 @@
             "value" : "mis à jour"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Uploaded:" : {
       "localizations" : {
@@ -21034,6 +21775,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nom d'utilisateur"
+          }
+        }
+      }
+    },
+    "Uses the .desktop files of the guest and its cakeagent. The VM must be running; its windows are shown by the process that runs it." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilise les fichiers .desktop de l'invité et son cakeagent. La VM doit être démarrée ; ses fenêtres sont affichées par le processus qui l'exécute."
+          }
+        }
+      }
+    },
+    "Uses the .desktop files of the guest and its cakeagent. The windows of a started application are shown on this desktop when the VM has seamless windows enabled." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilise les fichiers .desktop de l'invité et son cakeagent. Les fenêtres d'une application démarrée s'affichent sur ce bureau quand la VM a les fenêtres intégrées activées."
           }
         }
       }
@@ -21447,6 +22210,18 @@
         }
       }
     },
+    "VM %@ does not have seamless windows enabled" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ n'a pas les fenêtres intégrées activées"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "VM %@ does not have VNC enabled" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21454,6 +22229,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM %@ n'a pas VNC activé"
+          }
+        }
+      }
+    },
+    "VM %@ is not a Linux VM" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ n'est pas une VM Linux"
           }
         }
       }
@@ -22606,7 +23392,8 @@
             "value" : "Mots à rechercher"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Write the definition to this file instead of editing it" : {
       "extractionState" : "manual",
@@ -22694,7 +23481,8 @@
             "value" : "Écrit le modèle en tant que compose.yml dans le répertoire courant (ou à --output). Modifiez-le, puis lancez `compose up`. Avec --name le projet est renommé, y compris les noms DNS compose que ses services utilisent pour se trouver."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "wrong known hosts" : {
       "extractionState" : "manual",

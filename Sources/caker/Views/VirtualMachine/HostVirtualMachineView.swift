@@ -100,6 +100,7 @@ struct HostVirtualMachineView: View {
 
 	@State var window: NSWindow? = nil
 	@State var displaySettings: Bool = false
+	@State var showApplications: Bool = false
 	@State var createTemplate: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
 	@State var displayFontPanel: Bool = false
@@ -255,6 +256,10 @@ struct HostVirtualMachineView: View {
 
 						agentButton
 
+						if canLaunchApplications {
+							applicationsButton
+						}
+
 						if canRecord {
 							recordButton
 
@@ -363,6 +368,24 @@ struct HostVirtualMachineView: View {
 			}
 			.help("Start virtual machine")
 			.disabled([VirtualMachineDocument.Status.starting, VirtualMachineDocument.Status.stopping, VirtualMachineDocument.Status.provisioning].contains(document.status))
+		}
+	}
+
+	/// A Linux VM whose windows come to this desktop, once its agent answers: that is what starts the applications.
+	private var canLaunchApplications: Bool {
+		document.virtualMachineConfig.os == .linux && document.virtualMachineConfig.seamless && document.status == .running && document.agent == .installed
+	}
+
+	@ViewBuilder
+	private var applicationsButton: some View {
+		Button("Applications", systemImage: "square.grid.2x2") {
+			showApplications.toggle()
+		}
+		.help("Start an application of this VM")
+		.popover(isPresented: $showApplications, arrowEdge: .bottom) {
+			GuestApplicationsView(document: document) {
+				showApplications = false
+			}
 		}
 	}
 

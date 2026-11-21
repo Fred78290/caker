@@ -215,6 +215,10 @@ struct CakedPasswordAuthServerInterceptor: Caked_ServiceServerInterceptorFactory
 		return self.interceptors()
 	}
 	
+	func makeSeamlessTunnelInterceptors() -> [ServerInterceptor<Caked_SeamlessStream, Caked_SeamlessStream>] {
+		return self.interceptors()
+	}
+	
 	func makeCheckReliabilityInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Reply>] {
 		return self.interceptors()
 	}

@@ -143,8 +143,9 @@ struct VMRun: AsyncParsableCommand {
 			}
 		}
 
+		let seamless = config.supportsSeamlessWindows && launchedFromService == false
 		let runMode = self.common.runMode
-		var promise = (display == .ui || display == .all) ? nil : Utilities.group.next().makePromise(of: Void.self)
+		var promise = (display == .ui || display == .all || seamless) ? nil : Utilities.group.next().makePromise(of: Void.self)
 		let semaphore = AsyncSemaphore(value: 0)
 		let handler = CakedLib.VMRunHandler(
 			serviceMode: mode,
@@ -208,6 +209,9 @@ struct VMRun: AsyncParsableCommand {
 
 		if display == .ui || display == .all {
 			MainApp.runUI(vm, params: handler, cancellation: cancellable)
+		} else if seamless {
+			NSApplication.shared.setActivationPolicy(.prohibited)
+			NSApplication.shared.run()
 		} else {
 			await semaphore.wait()
 

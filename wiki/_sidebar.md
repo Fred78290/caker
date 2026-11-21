@@ -12,6 +12,7 @@
 - [Compose](compose)
 - [.cakerenv Environments](cakerenv)
 - [IMDS](imds)
+- [Seamless windows](seamless-windows)
 - [Sandbox](sandbox)
 - [Cheat Sheet](cheat-sheet)
 - [Privacy policy](privacy-policy)

@@ -4,7 +4,7 @@ trap 'sync; sync' EXIT
 set -xe
 
 CONFIGURED_USER="%1$@"
-CAKEAGENT_SNAPSHOT="%2$@"
+CAKEAGENT_VERSION="%2$@"
 LISTEN_PORT="%3$@"
 LINUX_MOUNTS="%4$@"
 SSH_PUBLIC_KEYS='%5$@'
@@ -46,24 +46,35 @@ SERVER="${CERTS}/server.pem"
 KEY="${CERTS}/server.key"
 UPDATE=0
 
+# The service flags (mounts, seamless windows...) the installed service was registered with. They live in the unit, so a
+# same-version agent still has to be registered again when they change (seamless windows turned on after the VM was
+# built): without it the agent never runs the compositor nor installs its helper files.
+FLAGS_FILE="$(dirname "${CERTS}")/service-flags"
+FLAGS_CHANGED=1
+
+if test -f "${FLAGS_FILE}" && test "$(cat "${FLAGS_FILE}")" = "${LINUX_MOUNTS}"
+then
+	FLAGS_CHANGED=0
+fi
+
 mkdir -p /usr/local/bin ${SSHDIR}
 
 if test -f /usr/local/bin/cakeagent
 then
-	if test -n "$(/usr/local/bin/cakeagent version|grep "${CAKEAGENT_SNAPSHOT}")"
+	if test -n "$(/usr/local/bin/cakeagent version|grep -F "is: ${CAKEAGENT_VERSION},")" && test ${FLAGS_CHANGED} -eq 0
 	then
 		echo "CakeAgent already installed, skipping"
 		exit 0
 	else
 		echo "CakeAgent already installed, updating"
-		/usr/local/bin/cakeagent service stop
+		/usr/local/bin/cakeagent service stop || true
 		UPDATE=1
 	fi
 fi
 
 if test ! -f /tmp/cakeagent
 then
-	AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-${CAKEAGENT_SNAPSHOT}/cakeagent-${OSDISTRO}-${ARCH}"
+	AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/${CAKEAGENT_VERSION}/cakeagent-${OSDISTRO}-${ARCH}"
 
 	echo "Downloading CakeAgent from ${AGENT_URL}"
 
@@ -178,10 +189,46 @@ else
 
 fi
 
+# A seamless-windows guest shows X11 applications through Xwayland (the compositor starts it when one connects).
+# Best effort: without the package the guest simply has no X11 support, Wayland applications are not affected.
+case "${LINUX_MOUNTS}" in
+*--seamless*)
+	if ! command -v Xwayland >/dev/null 2>&1 && [ ! -x /usr/bin/Xwayland ]; then
+		if command -v apt-get >/dev/null 2>&1; then
+			DEBIAN_FRONTEND=noninteractive apt-get install -y xwayland || :
+		elif command -v dnf >/dev/null 2>&1; then
+			dnf install -y xorg-x11-server-Xwayland || :
+		elif command -v yum >/dev/null 2>&1; then
+			yum install -y xorg-x11-server-Xwayland || :
+		elif command -v zypper >/dev/null 2>&1; then
+			zypper --non-interactive --gpg-auto-import-keys install -y xwayland || :
+		elif command -v apk >/dev/null 2>&1; then
+			apk add --no-cache xwayland || :
+		elif command -v pacman >/dev/null 2>&1; then
+			pacman -S --noconfirm xorg-xwayland || :
+		fi
+
+		command -v Xwayland >/dev/null 2>&1 || [ -x /usr/bin/Xwayland ] || echo 'Xwayland could not be installed: X11 applications will not show up as seamless windows' >&2
+	fi
+	;;
+esac
+
 chmod 755 /usr/local/bin/cakeagent
 
-if [ $UPDATE -eq 1 ]; then
+if [ $UPDATE -eq 1 ] && [ $FLAGS_CHANGED -eq 0 ]; then
 	/usr/local/bin/cakeagent service start
+elif [ $UPDATE -eq 1 ]; then
+	# Registered again with the new flags. Mounts may already be in place, which is not a reason to fail.
+	mkdir -p /etc/sysconfig
+	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+	chmod 644 /etc/sysconfig/cakeagent
+	/usr/local/bin/cakeagent service install \
+		--listen="vsock://any:${LISTEN_PORT}" \
+		--ca-cert="${CA}" \
+		--tls-cert="${SERVER}" \
+		--tls-key="${KEY}" ${LINUX_MOUNTS} || { echo "CakeAgent service reinstall reported an error"; exit 1; }
+	# The previous flags stay recorded when this fails: the next start tries again
+	/usr/local/bin/cakeagent service start || exit 1
 else
 	mkdir -p /etc/sysconfig
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
@@ -190,8 +237,10 @@ else
 		--listen="vsock://any:${LISTEN_PORT}" \
 		--ca-cert="${CA}" \
 		--tls-cert="${SERVER}" \
-		--tls-key="${KEY}" ${LINUX_MOUNTS}
+		--tls-key="${KEY}" ${LINUX_MOUNTS} || exit 1
 fi
+
+printf '%%s' "${LINUX_MOUNTS}" > "${FLAGS_FILE}"
 
 if test "${OSDISTRO}" = "linux"; then
 	mount /mnt/shared 2>/dev/null || true

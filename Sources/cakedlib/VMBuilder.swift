@@ -211,6 +211,7 @@ public struct VMBuilder {
 				config.useCloudInit = (imageSource != .iso || autoinstall) && virtualizedOS == .linux
 				config.agent = (imageSource != .iso || autoinstall) && virtualizedOS == .linux
 				config.nested = options.nested
+				config.seamless = options.seamless && virtualizedOS == .linux
 				config.attachedDisks = attachedDisks
 				config.sshAuthorizedKey = options.sshAuthorizedKey
 				config.ecid = VZGenericMachineIdentifier().dataRepresentation
@@ -240,6 +241,11 @@ public struct VMBuilder {
 			config.suspendable = options.suspendable && virtualizedOS == .darwin
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 			config.source = imageSource
+
+			// Also for a configuration loaded from an image: the option is a request for this VM, not for the image.
+			if options.seamless && virtualizedOS == .linux {
+				config.seamless = true
+			}
 
 			try config.save()
 

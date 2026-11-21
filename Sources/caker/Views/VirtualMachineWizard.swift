@@ -914,6 +914,14 @@ struct VirtualMachineWizard: View {
 				if self.model.imageSource.isMacOS {
 					Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
 				}
+
+				// The cloud-init seed that installs the compositor is made when the VM is built, so this can't be changed later from here.
+				if self.model.imageSource.isMacOS == false && self.model.imageSource != .template && self.model.supportedPlatform != .windows {
+					Toggle("Seamless windows", isOn: $config.seamless).disabled(self.model.createVM)
+					Text("Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest.")
+						.font(.caption)
+						.foregroundStyle(.secondary)
+				}
 			}
 		}
 	}

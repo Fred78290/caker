@@ -6,7 +6,9 @@ import Multipart
 import Virtualization
 import Yams
 
-public let CAKEAGENT_SNAPSHOT = "e0dbef5c"
+/// The cakeagent release the guests run: the tag of its GitHub release, which is also the version the agent reports.
+/// cakeagent now tags `v<BASE_VERSION>.<commit count>` (like Caker); older releases are `SNAPSHOT-<sha>`.
+public let CAKEAGENT_VERSION = "v1.0.329"
 
 /// `Bundle.module` only exists in `swift build`/`swift test` builds; the Xcode projects compile `CakedLib` as a
 /// plain native target, so the lookup branches on the build system (same pattern as `VMImageCatalog.swift`).
@@ -1054,10 +1056,10 @@ class CloudInit {
 		let arch = Architecture.current().rawValue
 		let os = config.os.rawValue
 		let home: Home = try Home(runMode: self.runMode)
-		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
+		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_VERSION)-\(os)-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
-			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_VERSION)/cakeagent-\(os)-\(arch)") else {
 				throw CloudInitGenerateError("unable to get remote cakeagent")
 			}
 
@@ -1083,7 +1085,7 @@ class CloudInit {
 		let dnsIP = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
 		let guestDNS = AppStoreGuestDNS.cloudInitFragment(domain: ComposeDNS.domainSuffix, ip: dnsIP, port: "\(ComposeDNS.internalBindPort)")
 
-		return try String(format: loadCakeAgentScript(), "\(VMLocation.defaultAgentListenPort)", config.linuxMounts, caCert, serverKey, serverPem, guestDNS)
+		return try String(format: loadCakeAgentScript(), "\(VMLocation.defaultAgentListenPort)", config.agentServiceFlags, caCert, serverKey, serverPem, guestDNS)
 	}
 
 	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel
@@ -1488,6 +1490,9 @@ class CloudInit {
 		var seed: LazyDictionary = [:]
 
 		try? cdromURL.delete()
+
+		// The seed's install script registers the agent service with these flags on the first boot
+		config.agentInstalledFlags = config.agentServiceFlags
 
 		// create media
 		let media = try! ISOImageFileMedia(cdromURL, readOnly: false)

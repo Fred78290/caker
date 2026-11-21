@@ -286,6 +286,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let certLocation: CertificatesLocation
 	let gcd: GrandCentralDispatch
 	let vnc: VNCTunnel
+	let seamless: SeamlessTunnel
 	let shutdown = Mutex<Bool>(false)
 	let logger = Logger("CakedProvider")
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
@@ -317,6 +318,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		self.certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		self.gcd = .init(group: group, runMode: runMode)
 		self.vnc = .init(group: group, runMode: runMode)
+		self.seamless = .init(group: group, runMode: runMode)
 
 		if let password {
 			self.interceptors = CakedPasswordAuthServerInterceptor(expectedPassword: password)
@@ -328,6 +330,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		self.cancelRunningTasks()
 		self.gcd.stopGrandCentralDispatch()
 		self.vnc.stopVNCTunnel()
+		self.seamless.stopSeamlessTunnel()
 	}
 
 	private func cancelRunningTasks() {
@@ -793,6 +796,14 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 
 		try await self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
+	}
+
+	func seamlessTunnel(requestStream: GRPCAsyncRequestStream<Caked_SeamlessStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_SeamlessStream>, context: GRPCAsyncServerCallContext) async throws {
+		guard self.shutdown.withLock({ !$0 }) else {
+			throw ServiceError(String(localized: "Service is shutting down"))
+		}
+
+		try await self.seamless.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
 	}
 
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

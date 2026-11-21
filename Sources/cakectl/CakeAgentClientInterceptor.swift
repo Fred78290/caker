@@ -231,6 +231,13 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		self.interceptors()
 	}
 
+	func makeSeamlessTunnelInterceptors() -> [ClientInterceptor<Caked_SeamlessStream, Caked_SeamlessStream>] {
+		// Not the shared one: it restores the terminal and exits the process when a call fails or is cancelled. The
+		// terminal belongs to the shell running next to this stream, and what to do about the tunnel's end (wait
+		// for the owner, connect again, quit) is up to `SeamlessConnection`, which gets the status.
+		[]
+	}
+
 	func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
 		self.interceptors()
 	}

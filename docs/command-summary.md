@@ -202,6 +202,44 @@ caked record my-vm --output ./mon-template.packerlite.yaml
 
 **Voir la page dédiée [Provisioning & Recording](provisioning#provision-fr)** pour le détail complet : résolution de version/plateforme stockée par la VM, options, l'enregistrement vidéo de débogage automatique du provisioning, et pour `record` — pause/reprise, clics assistés par OCR (mode repérage), le repli des délais dans `timeout=`, le routage `pre_boot_command` pour Linux, et le format du fichier produit.
 
+### `exec` et `sh` : l'utilisateur dans l'invité
+
+`caked`/`cakectl` `exec` et `sh` s'exécutent dans l'invité **sous le compte configuré de la VM** (celui de `--user` à la construction, `admin` par défaut), **et non plus en root**. L'agent tourne en root dans l'invité Linux ; il démarre le shell ou la commande avec les uid, gid et groupes de ce compte, `HOME`, `USER`, `SHELL`, `XDG_RUNTIME_DIR` et la propriété du terminal. Pour une VM avec les [fenêtres seamless](https://github.com/Fred78290/cakeagent/wiki/seamless-windows), c'est aussi ce qui permet à un programme graphique lancé depuis ce shell de s'ouvrir sur l'hôte : le compositeur appartient à l'utilisateur, pas à root.
+
+L'option `--user <nom>` choisit un autre compte :
+
+```bash
+cakectl exec myvm -- id                  # sous le compte configuré de la VM (pas root)
+cakectl exec --user root myvm -- id      # explicitement root
+cakectl sh --user bob myvm               # shell de l'utilisateur bob
+cakectl exec myvm -- sudo apt update     # une commande qui exige root : sudo dans l'invité
+```
+
+- Pour obtenir root, passez `--user root` ou utilisez `sudo` dans l'invité : un script qui supposait root par défaut doit être adapté.
+- Si le compte n'existe pas dans l'invité, la commande échoue avec un message explicite au lieu de retomber sur root.
+- Un utilisateur autre que celui de la VM obtient, pour une VM seamless, son propre compositeur de fenêtres à la demande (ses fenêtres portent le préfixe `<utilisateur> :`).
+- Cela demande un cakeagent récent dans l'invité Linux (v1.0.310 ou plus). Les invités macOS (agent Swift) et Windows ignorent `--user` et gardent le compte de l'agent ; un agent ancien aussi.
+
+### `app` : démarrer les applications d'une VM Linux
+
+`cakectl app` (et `caked app list|run|create-launcher` en local) liste et démarre les applications (fichiers `.desktop`) d'une VM Linux démarrée, par le cakeagent de l'invité. Leurs fenêtres s'affichent sur le bureau du Mac quand la VM a les fenêtres intégrées activées (`--seamless`, voir [Fenêtres intégrées](seamless-windows)).
+
+```bash
+cakectl app list myvm                                # identifiant, nom et description de chaque application
+cakectl app run myvm firefox                         # identifiant (org.mozilla.firefox), nom ou dernier mot de l'identifiant
+cakectl app run myvm --command -- foot -e htop       # un programme de l'invité, avec ses arguments
+cakectl app create-launcher myvm firefox             # crée ~/Applications/Firefox (myvm).app
+```
+
+- `app run` affiche les fenêtres tant que la VM tourne, sauf si un autre processus (Caker.app, `cakectl sh`/`exec`/`seamless`) le fait déjà : l'application est alors simplement démarrée. `--start` démarre la VM si elle est arrêtée et `--wait <secondes>` attend que l'agent réponde.
+- Un nom qui correspond à plusieurs applications est refusé, avec la liste des candidates : donnez l'identifiant complet.
+- `create-launcher` crée une petite application macOS (Dock, Spotlight, Launchpad) qui exécute `cakectl app run` (ou `caked app run` pour `caked app create-launcher`) ; son icône est celle de l'application dans l'invité, si elle en a une. Les options de connexion (`--connect`, `--disable-tls`, `--system`) y sont conservées, jamais le mot de passe.
+- Les applications en terminal (`Terminal=true` : `htop`, `vim`) sont lancées dans l'émulateur de terminal de l'invité (`foot -e htop`) ; sans émulateur, l'application est démarrée telle quelle.
+- L'icône du lanceur est cherchée dans les thèmes d'icônes de l'invité (système, snap, Flatpak) : un PNG d'au moins 128 points, sinon le SVG ; une application sans icône donne l'icône générique.
+- `caked app run` accepte aussi `--start` et `--wait` ; le lanceur de `caked app create-launcher` exécute `caked` lui-même (sans service), celui de `cakectl` exécute `cakectl`.
+- Dans Caker.app, le bouton « Applications » de la barre d'outils de la fenêtre d'une VM Linux (fenêtres intégrées, agent actif) ouvre la liste avec l'icône de chaque application ; un bouton, à droite de la ligne survolée, crée un lanceur (pour une VM du service local, ou exécutée par l'application ; pas pour un service distant).
+- Les applications se démarrent sans argument ni fichier. Cela demande le cakeagent livré avec cette version (`seamless apps`/`launch`).
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -623,6 +661,44 @@ caked record my-vm --output ./my-template.packerlite.yaml
 ```
 
 **See the dedicated [Provisioning & Recording](provisioning#provision)** page for the full detail: resolving the VM's stored version/platform, options, the automatic provisioning debug video recording, and for `record` — pause/resume, OCR-assisted clicks (locate mode), folding wait gaps into `timeout=`, `pre_boot_command` routing for Linux, and the format of the produced file.
+
+### `exec` and `sh`: the user inside the guest
+
+`caked`/`cakectl` `exec` and `sh` run in the guest **as the VM's configured account** (the one from `--user` at build time, `admin` by default), **not as root any more**. The agent runs as root in a Linux guest; it starts the shell or command with that account's uid, gid and groups, `HOME`, `USER`, `SHELL`, `XDG_RUNTIME_DIR` and ownership of the terminal. For a VM with [seamless windows](https://github.com/Fred78290/cakeagent/wiki/seamless-windows) that is also what lets a graphical program started from that shell open on the host: the compositor belongs to the user, not to root.
+
+`--user <name>` picks another account:
+
+```bash
+cakectl exec myvm -- id                  # as the VM's configured account (not root)
+cakectl exec --user root myvm -- id      # explicitly root
+cakectl sh --user bob myvm               # bob's shell
+cakectl exec myvm -- sudo apt update     # a command that needs root: sudo inside the guest
+```
+
+- To get root pass `--user root` or use `sudo` in the guest: a script that assumed root by default needs adapting.
+- If the account does not exist in the guest the command fails with an explicit message instead of falling back to root.
+- For a seamless VM, a user other than the VM's own gets a window compositor of their own on demand (their windows are titled `<user>: `).
+- This needs a recent cakeagent in the Linux guest (v1.0.310 or later). macOS guests (the Swift agent) and Windows guests ignore `--user` and keep the agent's own account, and so does an older agent.
+
+### `app`: starting the applications of a Linux VM
+
+`cakectl app` (and `caked app list|run|create-launcher` locally) lists and starts the applications (`.desktop` files) of a running Linux VM through the guest's cakeagent. Their windows show on the Mac's desktop when the VM has seamless windows enabled (`--seamless`, see [Seamless windows](seamless-windows)).
+
+```bash
+cakectl app list myvm                                # id, name and description of each application
+cakectl app run myvm firefox                         # desktop ID (org.mozilla.firefox), name or last word of the ID
+cakectl app run myvm --command -- foot -e htop       # a program of the guest, with its arguments
+cakectl app create-launcher myvm firefox             # creates ~/Applications/Firefox (myvm).app
+```
+
+- `app run` shows the windows for as long as the VM runs, unless another process (Caker.app, `cakectl sh`/`exec`/`seamless`) already does: the application is then just started. `--start` starts the VM if it is stopped and `--wait <seconds>` waits for the agent to answer.
+- A name that matches several applications is refused, with the candidates listed: give the full ID.
+- `create-launcher` creates a small macOS application (Dock, Spotlight, Launchpad) that runs `cakectl app run` (`caked app run` for `caked app create-launcher`); its icon is the application's icon in the guest, when it has one. Connection options (`--connect`, `--disable-tls`, `--system`) are kept in it, never the password.
+- Terminal applications (`Terminal=true`: `htop`, `vim`) are started in the guest's terminal emulator (`foot -e htop`); with no emulator the application is started as it is.
+- The launcher's icon is looked up in the guest's icon themes (system, snap, Flatpak): a PNG of at least 128 points, else the SVG; an application with no icon gets the generic one.
+- `caked app run` also takes `--start` and `--wait`; the launcher of `caked app create-launcher` runs `caked` itself (no service needed), the one of `cakectl` runs `cakectl`.
+- In Caker.app, the "Applications" button in the toolbar of a Linux VM's window (seamless windows on, agent running) opens the list with each application's icon; a button at the right of the hovered row creates a launcher (for a VM of the local service, or one the app runs itself; not for a remote service).
+- Applications start without arguments or files. This needs the cakeagent shipped with this version (`seamless apps`/`launch`).
 
 ## Notes
 
