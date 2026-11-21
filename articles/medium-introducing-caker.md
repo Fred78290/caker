@@ -226,6 +226,17 @@ cakectl seamless my-vm        # just show the windows, until Ctrl-C
 ![A Linux terminal and file manager as native Mac windows](images/caker-app/23-seamless-windows.png)
 <!-- TODO screenshot: gnome-terminal and Nautilus of a Linux VM as native Mac windows, titles "[my-vm] ..." -->
 
+You don't have to know program names: the guest's installed applications can be listed and started from the host, and turned into launchers you can put in the Dock.
+
+```bash
+cakectl app list my-vm                           # the guest's .desktop applications
+cakectl app run my-vm firefox --start --wait 120 # boot the VM if needed, then start it
+cakectl app run my-vm --command -- foot -e htop  # or any plain guest program
+cakectl app create-launcher my-vm firefox        # ~/Applications/Firefox (my-vm).app
+```
+
+An application is named by its desktop id, its display name or the last word of its id; an ambiguous match is an error, not a guess. `create-launcher` writes a small `.app` that boots the VM, waits for the agent and runs the application, and it takes the application's icon from the guest's icon themes. Terminal programs (htop, vim) are run in the guest's terminal emulator. The desktop app has the same list as an **Applications** popover in the VM window, with a launcher button on each row. (`caked app …` does the same for a VM run by a local `caked`, without a service.)
+
 How it works: a headless Wayland compositor (`caker-seamlessd`, wlroots with software rendering) runs in the guest, and streams one pixel buffer per window, compressed with LZ4 and sent as damage rectangles, over **vsock**. Caker shows each in its own `NSWindow` and sends keyboard, mouse and scroll events back. No custom virtio device and no RDP is involved, and nothing needs installing in the guest because the compositor is embedded in the Caker agent.
 
 A few things worth knowing:
@@ -234,7 +245,9 @@ A few things worth knowing:
 - **Every guest user can have windows.** `cakectl exec --user bob my-vm foot` starts Bob's own compositor, and his windows are titled `[my-vm] bob: foot`. `exec` and `sh` run as the VM's configured user, not root, in any Linux VM: pass `--user root` when you need root.
 - **One owner at a time.** If the desktop app or another terminal already shows a VM's windows, a second `cakectl sh`/`exec` keeps its shell running and takes the windows over when the first lets go.
 - **The guest is not trusted.** Sizes, rectangles and strings from the guest are validated, the host caps the number of windows and the memory of frames in flight, and every title is prefixed with the VM's name so a guest window can't pass for a Mac app.
-- **Limits.** Linux guests only. Keys travel by position, so the guest keyboard layout has to match your Mac's (Caker sets it for you). There is no clipboard sharing or drag and drop yet, no XWayland (X11-only apps), no input methods, and no accelerated 3D, because Virtualization.framework gives Linux guests no GPU.
+- **Copy and paste works both ways**, for text, images and PDF (any MIME type the Mac can represent, up to 16 items and 32 MiB). Cmd+C and Cmd+V reach the guest as Ctrl+C/V, and private pasteboard items (password managers) are never sent. It needs agent v1.0.332 or later; v1.0.326 to v1.0.329 only carry text.
+- **X11-only applications work** (GIMP 2.10 is one) through XWayland, started in the guest on demand; the agent installs the package when it is missing.
+- **Limits.** Linux guests only. Keys travel by position, so the guest keyboard layout has to match your Mac's (Caker sets it for you). There is no drag and drop or file clipboard, no input methods, and no accelerated 3D, because Virtualization.framework gives Linux guests no GPU. The cursor an X11 client draws itself is not forwarded.
 
 ---
 

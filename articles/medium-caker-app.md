@@ -173,6 +173,31 @@ cakectl sh my-vm          # then type: gnome-terminal
 
 The command runs in the guest as the VM's own user, and its window shows up on your Mac. Keys travel by position, so the guest's keyboard layout is set to your Mac's.
 
+### Starting applications from a list, and Dock-ready launchers
+
+You do not have to remember program names. A running seamless Linux VM gets an **Applications** button in the VM window's toolbar. It opens a popover listing the guest's installed applications (the `.desktop` entries), with their own icons and a search field. Click a row and the application starts, its window opening on your Mac.
+
+![The Applications popover of a Linux VM](images/caker-app/25-applications-popover.png)
+<!-- TODO screenshot: the Applications popover of a seamless Linux VM, with a few rows showing icons, and the "create launcher" button visible on one row -->
+
+Each row also has a **create launcher** button (it appears when you point at the row). It writes `~/Applications/<name> (<vm>).app`, a small app you can double-click, put in the Dock or find with Spotlight. Opening it starts the VM if needed, waits for its agent, and runs the application. The launcher takes the application's icon from the guest, so Firefox looks like Firefox in your Dock. Terminal programs such as htop or vim, which have no window of their own, are run inside the guest's terminal emulator.
+
+The same thing from the command line:
+
+```bash
+cakectl app list my-vm                          # the guest's applications
+cakectl app run my-vm firefox --start --wait 120 # start the VM if needed, then the app
+cakectl app create-launcher my-vm firefox       # the .app in ~/Applications
+```
+
+An application can be named by its desktop id, its display name, or the last word of its id (`firefox`); an ambiguous name is an error rather than a guess.
+
+### Copy and paste, and X11 applications
+
+The clipboard works both ways. Text, images and PDF copied in the guest land on your Mac's pasteboard, and what you copy on the Mac is available to paste in the guest, so Cmd+C and Cmd+V behave as in any Mac app (Command is sent to the guest as Control). Images are the practical case: copy a screenshot on the Mac and paste it into GIMP running in the VM. Items such as password-manager entries that mark themselves as private are never sent to the guest. This needs a recent Caker agent in the guest (**Update agent**): text works from agent v1.0.326, and other types from v1.0.332.
+
+Applications that only speak X11 work too. GIMP 2.10, for instance, has no Wayland support, and its windows now show up like any other (an XWayland server is started in the guest on demand, and the agent installs the package when it is missing).
+
 ### Several users, and a VM somewhere else
 
 Each user of the guest can have windows: run `cakectl exec --user bob my-vm foot` and Bob's compositor is started and his windows appear, titled `[my-vm] bob: foot`. The windows of a VM that runs under a `caked` service, even on another Mac, reach the app through the same connection as everything else, so seamless windows work in all of the app's connection modes.
@@ -181,7 +206,7 @@ Only one process shows a VM's windows at a time. If Caker.app is showing them, a
 
 ### What it does not do yet
 
-No clipboard sharing and no drag and drop between the guest and your Mac, no X11-only applications (XWayland), no accelerated 3D (Virtualization.framework gives Linux guests no GPU), and no input methods for composing text. Seamless windows are for Linux guests only.
+No drag and drop and no file copy-paste between the guest and your Mac (only text, images and PDF go through the clipboard), no accelerated 3D (Virtualization.framework gives Linux guests no GPU), and no input methods for composing text. The pointer an X11 application draws itself is not forwarded, and X11 windows look softer on a Retina display. Seamless windows are for Linux guests only.
 
 ---
 
