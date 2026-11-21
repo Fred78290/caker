@@ -1224,6 +1224,8 @@ extension VNCConnection {
 			var sendSupportedMessages = false
 			var sendSupportedEncodings = false
 
+			self.logger.debug("sendFramebufferUpdateThrowing: \(tiles.count) tiles, size: \(size), cursorPosition: \(String(describing: cursorPosition)), newSizePending: \(newSizePending)")
+
 			if self.encodings.enableSupportedEncodings {
 				sendSupportedEncodings = true
 				self.encodings.enableSupportedEncodings = false
@@ -1280,7 +1282,7 @@ extension VNCConnection {
 		}
 	}
 
-	func sendCursorPosition(cursorPosition: VNCPoint) async throws {
+	func sendCursorPosition(cursorPosition: VNCPoint) async {
 		if isAuthenticated && self.connection.state == .ready {
 			do {
 				// Check if cursor position updates are enabled

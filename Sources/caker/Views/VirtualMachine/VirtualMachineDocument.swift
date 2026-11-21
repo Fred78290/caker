@@ -1647,7 +1647,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 // MARK: - VNC handling
 extension VirtualMachineDocument {
 	func setVncScreenSize(_ screenSize: ViewSize) {
-		if self.externalRunning && (self.status == .running || self.status == .provisioning) {
+		if self.externalRunning && self.status.isRunning {
 			#if DEBUG
 				self.logger.debug("setVncScreenSize: \(screenSize.description)")
 			#endif

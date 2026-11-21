@@ -4,10 +4,9 @@ import CakeAgentLib
 import Darwin
 import Foundation
 import Metal
+import NIOCore
 import Network
 import QuartzCore
-import CakeAgentLib
-import NIOCore
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
@@ -280,11 +279,11 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.updateBufferTask?.cancel()
 	}
 
-	private func sendCursorUpdate(connections: [VNCConnection], cursor: VNCCursor) async {
+	private func sendToConnections(_ connections: [VNCConnection], _ action: @escaping (VNCConnection) async -> Void) async {
 		await withTaskGroup(of: Void.self) { group in
 			connections.forEach { connection in
 				group.addTask {
-					await connection.sendCursorUpdate(cursor: cursor)
+					await action(connection)
 				}
 			}
 
@@ -292,33 +291,28 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
-	private func sendCursorPositionUpdate(connections: [VNCConnection], cursorPosition: VNCPoint) async {
-		await withTaskGroup(of: Void.self) { group in
-			connections.forEach { connection in
-				group.addTask {
-					try? await connection.sendCursorPosition(cursorPosition: cursorPosition)
-				}
-			}
+	private func sendCursorUpdate(connections: [VNCConnection], cursor: VNCCursor) async {
+		await self.sendToConnections(connections) { connection in
+			await connection.sendCursorUpdate(cursor: cursor)
+		}
+	}
 
-			await group.waitForAll()
+	private func sendCursorPositionUpdate(connections: [VNCConnection], cursorPosition: VNCPoint) async {
+		await self.sendToConnections(connections) { connection in
+			await connection.sendCursorPosition(cursorPosition: cursorPosition)
 		}
 	}
 
 	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
 		var cursorPosition: VNCPoint? = nil
+		let viewSize = self.framebuffer.viewSize
 
 		if let pos = self.framebuffer.cursorPosition {
 			cursorPosition = VNCPoint(pos)
 		}
 
-		await withTaskGroup(of: Void.self) { group in
-			connections.forEach { connection in
-				group.addTask {
-					await connection.sendFramebufferUpdate(tiles: tiles, size: self.framebuffer.viewSize, cursorPosition: cursorPosition, newSizePending: newSizePending)
-				}
-			}
-
-			await group.waitForAll()
+		await self.sendToConnections(connections) { connection in
+			await connection.sendFramebufferUpdate(tiles: tiles, size: viewSize, cursorPosition: cursorPosition, newSizePending: newSizePending)
 		}
 	}
 
@@ -340,11 +334,15 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			$0.sendFramebufferContinous
 		}
 
-		if changedTiles.tiles.isEmpty || connections.isEmpty {
-			return
-		}
+		#if DEBUG
+		self.logger.debug("updateFramebufferRequest: receive image: \(cgImage.width)x\(cgImage.height), connections: \(connections.count), changedTiles: \(changedTiles.tiles.count), newSize: \(changedTiles.newSize)")
+		#endif
 
-		await self.sendFrameBufferUpdate(connections: connections, tiles: changedTiles.tiles, newSizePending: changedTiles.newSize)
+		if connections.isEmpty == false {
+			if changedTiles.tiles.isEmpty == false || changedTiles.newSize {
+				await self.sendFrameBufferUpdate(connections: connections, tiles: changedTiles.tiles, newSizePending: changedTiles.newSize)
+			}
+		}
 	}
 
 	// MARK: - Port Availability
