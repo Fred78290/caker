@@ -35,14 +35,16 @@ public enum SeamlessProtocol {
 	public static let axisVersion: UInt16 = 2
 	/// First version with the clipboard (`clipboard` in both directions).
 	public static let clipboardVersion: UInt16 = 3
-	/// First version whose clipboard also carries images (format 1, a PNG file).
-	public static let clipboardImageVersion: UInt16 = 4
-	/// The most text a clipboard message carries, in bytes: a bigger selection is not shared.
+	/// First version whose clipboard is a list of MIME typed items (`clipboardItems`); the text message of version 3 is
+	/// only used with a guest on that version.
+	public static let clipboardItemsVersion: UInt16 = 4
+	/// The most text a version 3 clipboard message carries, in bytes: a bigger selection is not shared.
 	public static let maxClipboardBytes = 1024 * 1024
-	/// The most a clipboard image (a PNG file) may weigh, in bytes.
-	public static let maxClipboardImageBytes = 32 * 1024 * 1024
-	/// The eight bytes every PNG file starts with.
-	public static let pngSignature: [UInt8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+	/// The most items of a clipboard message, and the most data (all of them together) in bytes: what does not fit is left out.
+	public static let maxClipboardItems = 16
+	public static let maxClipboardTotalBytes = 32 * 1024 * 1024
+	/// The longest MIME type of a clipboard item, in bytes.
+	public static let maxMIMELength = 127
 	/// vsock port the guest compositor connects to.
 	public static let defaultVsockPort = 5100
 
@@ -192,10 +194,34 @@ public enum SeamlessGuestMessage: Equatable, Sendable {
 	case windowDestroy(id: UInt32)
 	/// CSS cursor name (`default`, `text`, `pointer`, `crosshair`, `ew-resize`, ...), as in `wp_cursor_shape`.
 	case cursor(id: UInt32, shape: String)
-	/// The text of the guest's selection. It sets the host's clipboard.
+	/// The text of the guest's selection (protocol 3). It sets the host's clipboard.
 	case clipboard(text: String)
-	/// The image (a PNG file) of the guest's selection, from protocol 4.
-	case clipboardImage(png: Data)
+	/// What the guest's selection holds, one item per MIME type (protocol 4). It sets the host's clipboard.
+	case clipboardItems([SeamlessClipboardItem])
+}
+
+/// One representation of a clipboard: a MIME type (`text/plain;charset=utf-8`, `image/png`, `text/html`...) and its bytes.
+public struct SeamlessClipboardItem: Equatable, Sendable {
+	public var mime: String
+	public var data: Data
+
+	public init(mime: String, data: Data) {
+		self.mime = mime
+		self.data = data
+	}
+
+	/// `type/subtype` in printable ASCII without spaces, 3 to `maxMIMELength` bytes: the X11 pseudo targets (`TARGETS`,
+	/// `UTF8_STRING`...) have no slash and are not MIME types.
+	public static func isValidMIME(_ mime: String) -> Bool {
+		let bytes = Array(mime.utf8)
+
+		guard bytes.count >= 3, bytes.count <= SeamlessProtocol.maxMIMELength else { return false }
+		guard bytes.allSatisfy({ $0 >= 0x21 && $0 <= 0x7E }) else { return false }
+
+		let slashes = bytes.enumerated().filter { $0.element == UInt8(ascii: "/") }
+
+		return slashes.count == 1 && slashes[0].offset != 0 && slashes[0].offset != bytes.count - 1
+	}
 }
 
 /// Host -> guest. Coordinates and sizes are logical (what Wayland calls surface coordinates), a buffer is
@@ -216,10 +242,10 @@ public enum SeamlessHostMessage: Equatable, Sendable {
 	case pointerAxis(id: UInt32, dx: Float, dy: Float, source: SeamlessAxisSource)
 	/// Linux evdev key code (`KEY_A` == 30), delivered to the focused window.
 	case key(code: UInt32, pressed: Bool)
-	/// The text of the host's clipboard. It becomes the selection of the guest.
+	/// The text of the host's clipboard (protocol 3). It becomes the selection of the guest.
 	case clipboard(text: String)
-	/// The image (a PNG file) of the host's clipboard, from protocol 4.
-	case clipboardImage(png: Data)
+	/// What the host's clipboard holds (protocol 4). It becomes the selection of the guest.
+	case clipboardItems([SeamlessClipboardItem])
 }
 
 // MARK: - Primitives
@@ -359,11 +385,11 @@ enum SeamlessLZ4 {
 
 public enum SeamlessCodec {
 	private enum GuestType: UInt8 {
-		case hello = 0x01, windowCreate, windowTitle, windowAppID, windowHints, windowFrame, windowDestroy, cursor, clipboard
+		case hello = 0x01, windowCreate, windowTitle, windowAppID, windowHints, windowFrame, windowDestroy, cursor, clipboard, clipboardItems
 	}
 
 	private enum HostType: UInt8 {
-		case helloAck = 0x81, output, windowResize, windowClose, windowFocus, pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, key, clipboard
+		case helloAck = 0x81, output, windowResize, windowClose, windowFocus, pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, key, clipboard, clipboardItems
 	}
 
 	private static let pixelFormatBGRA: UInt8 = 0
@@ -475,9 +501,9 @@ public enum SeamlessCodec {
 		case .clipboard(let text):
 			type = .clipboard
 			try Self.writeClipboard(text, &w)
-		case .clipboardImage(let png):
-			type = .clipboard
-			try Self.writeClipboardImage(png, &w)
+		case .clipboardItems(let items):
+			type = .clipboardItems
+			try Self.writeClipboardItems(items, &w)
 		}
 
 		return try wrap(type: type.rawValue, w)
@@ -538,22 +564,70 @@ public enum SeamlessCodec {
 		case .clipboard(let text):
 			type = .clipboard
 			try Self.writeClipboard(text, &w)
-		case .clipboardImage(let png):
-			type = .clipboard
-			try Self.writeClipboardImage(png, &w)
+		case .clipboardItems(let items):
+			type = .clipboardItems
+			try Self.writeClipboardItems(items, &w)
 		}
 
 		return try wrap(type: type.rawValue, w)
 	}
 
-	/// `u8 format (0: UTF-8 text, 1: PNG image) + u32 length + bytes`, the payload of both clipboard messages.
-	private static func writeClipboardImage(_ png: Data, _ w: inout SeamlessWriter) throws {
-		guard png.count <= SeamlessProtocol.maxClipboardImageBytes else { throw SeamlessProtocolError.invalidValue("clipboard image of \(png.count) bytes") }
-		guard png.starts(with: SeamlessProtocol.pngSignature) else { throw SeamlessProtocolError.invalidValue("clipboard image is not a PNG") }
+	/// Checks a list of clipboard items: at least one and at most `maxClipboardItems`, valid MIME types that are distinct (ignoring
+	/// case), data that is not empty, and `maxClipboardTotalBytes` at most for all of them together.
+	private static func validateClipboardItems(_ items: [SeamlessClipboardItem]) throws {
+		guard !items.isEmpty, items.count <= SeamlessProtocol.maxClipboardItems else { throw SeamlessProtocolError.invalidValue("clipboard of \(items.count) items") }
 
-		w.u8(1)
-		w.u32(UInt32(png.count))
-		w.data.append(contentsOf: png)
+		var seen = Set<String>()
+		var total = 0
+
+		for item in items {
+			guard SeamlessClipboardItem.isValidMIME(item.mime) else { throw SeamlessProtocolError.invalidValue("clipboard MIME type \(item.mime)") }
+			guard seen.insert(item.mime.lowercased()).inserted else { throw SeamlessProtocolError.invalidValue("clipboard MIME type \(item.mime) twice") }
+			guard !item.data.isEmpty else { throw SeamlessProtocolError.invalidValue("clipboard item \(item.mime) is empty") }
+
+			total += item.data.count
+
+			guard total <= SeamlessProtocol.maxClipboardTotalBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(total) bytes") }
+		}
+	}
+
+	/// `u16 count`, then per item `u16 MIME length + MIME type + u32 length + bytes`.
+	private static func writeClipboardItems(_ items: [SeamlessClipboardItem], _ w: inout SeamlessWriter) throws {
+		try validateClipboardItems(items)
+
+		w.u16(UInt16(items.count))
+
+		for item in items {
+			let mime = Array(item.mime.utf8)
+
+			w.u16(UInt16(mime.count))
+			w.data.append(contentsOf: mime)
+			w.u32(UInt32(item.data.count))
+			w.data.append(contentsOf: item.data)
+		}
+	}
+
+	private static func readClipboardItems(_ r: inout SeamlessReader) throws -> [SeamlessClipboardItem] {
+		let count = Int(try r.u16())
+
+		guard count > 0, count <= SeamlessProtocol.maxClipboardItems else { throw SeamlessProtocolError.invalidValue("clipboard of \(count) items") }
+
+		var items: [SeamlessClipboardItem] = []
+
+		for _ in 0..<count {
+			let mimeLength = Int(try r.u16())
+			let mime = String(decoding: try r.slice(mimeLength), as: UTF8.self)
+			let length = Int(try r.u32())
+
+			// The total is checked once the list is read, but a length that cannot fit is refused before it is taken.
+			guard length <= SeamlessProtocol.maxClipboardTotalBytes else { throw SeamlessProtocolError.invalidValue("clipboard item of \(length) bytes") }
+
+			items.append(SeamlessClipboardItem(mime: mime, data: Data(try r.slice(length))))
+		}
+
+		try validateClipboardItems(items)
+
+		return items
 	}
 
 	private static func writeClipboard(_ text: String, _ w: inout SeamlessWriter) throws {
@@ -566,36 +640,18 @@ public enum SeamlessCodec {
 		w.data.append(contentsOf: bytes)
 	}
 
-	/// What a clipboard message holds.
-	private enum ClipboardContent {
-		case text(String)
-		case png(Data)
-	}
-
-	private static func readClipboard(_ r: inout SeamlessReader) throws -> ClipboardContent {
+	/// The text of a version 3 clipboard message: `u8 format (0, UTF-8 text) + u32 length + bytes`.
+	private static func readClipboard(_ r: inout SeamlessReader) throws -> String {
 		let format = try r.u8()
 
-		switch format {
-		case 0:
-			let length = Int(try r.u32())
+		guard format == 0 else { throw SeamlessProtocolError.invalidValue("clipboard format \(format)") }
 
-			guard length <= SeamlessProtocol.maxClipboardBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(length) bytes") }
+		let length = Int(try r.u32())
 
-			// Text with a broken sequence is still text: it is not worth ending the session for.
-			return .text(String(decoding: try r.slice(length), as: UTF8.self))
-		case 1:
-			let length = Int(try r.u32())
+		guard length <= SeamlessProtocol.maxClipboardBytes else { throw SeamlessProtocolError.invalidValue("clipboard of \(length) bytes") }
 
-			guard length >= SeamlessProtocol.pngSignature.count, length <= SeamlessProtocol.maxClipboardImageBytes else { throw SeamlessProtocolError.invalidValue("clipboard image of \(length) bytes") }
-
-			let bytes = try r.slice(length)
-
-			guard bytes.starts(with: SeamlessProtocol.pngSignature) else { throw SeamlessProtocolError.invalidValue("clipboard image is not a PNG") }
-
-			return .png(Data(bytes))
-		default:
-			throw SeamlessProtocolError.invalidValue("clipboard format \(format)")
-		}
+		// Text with a broken sequence is still text: it is not worth ending the session for.
+		return String(decoding: try r.slice(length), as: UTF8.self)
 	}
 
 	// MARK: Decode
@@ -631,10 +687,9 @@ public enum SeamlessCodec {
 		case .cursor:
 			message = .cursor(id: try r.u32(), shape: try r.string())
 		case .clipboard:
-			switch try readClipboard(&r) {
-			case .text(let text): message = .clipboard(text: text)
-			case .png(let png): message = .clipboardImage(png: png)
-			}
+			message = .clipboard(text: try readClipboard(&r))
+		case .clipboardItems:
+			message = .clipboardItems(try readClipboardItems(&r))
 		}
 
 		try r.finish()
@@ -735,10 +790,9 @@ public enum SeamlessCodec {
 		case .key:
 			message = .key(code: try r.u32(), pressed: try r.u8() != 0)
 		case .clipboard:
-			switch try readClipboard(&r) {
-			case .text(let text): message = .clipboard(text: text)
-			case .png(let png): message = .clipboardImage(png: png)
-			}
+			message = .clipboard(text: try readClipboard(&r))
+		case .clipboardItems:
+			message = .clipboardItems(try readClipboardItems(&r))
 		}
 
 		try r.finish()

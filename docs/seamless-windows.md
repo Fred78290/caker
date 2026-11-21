@@ -70,7 +70,7 @@ Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par
 
 ## Limites
 
-- Le presse-papiers est partagé pour le **texte** et les **images PNG** (protocole 4, 32 Mio au plus ; fichiers non) ; pas de glisser-déposer, pas de méthode de saisie (IME), pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
+- Le presse-papiers est partagé pour tous les types **MIME** que le Mac sait représenter : texte, HTML, **images**, PDF… (protocole 4, 32 Mio au plus au total ; pas les fichiers) ; pas de glisser-déposer, pas de méthode de saisie (IME), pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
 - Une application démarre sans argument ni fichier.
 - Un invité Windows ou macOS ne l'a pas. L'installation de la VM App Store n'a pas été vérifiée.
 - Un redémarrage du service `caked` coupe le tunnel ; Caker.app se reconnecte toutes les 3 secondes.
@@ -143,7 +143,7 @@ An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through X
 
 ## Limits
 
-- The clipboard is shared for **text** and **PNG images** (protocol 4, 32 MiB at most; no files); no drag and drop, no input method (IME), no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
+- The clipboard is shared for every **MIME** type the Mac can represent: text, HTML, **images**, PDF... (protocol 4, 32 MiB at most in all; no files); no drag and drop, no input method (IME), no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
 - An application starts without arguments or files.
 - A Windows or macOS guest doesn't have it. The App Store build has not been checked.
 - Restarting the `caked` service drops the tunnel; Caker.app reconnects every 3 seconds.

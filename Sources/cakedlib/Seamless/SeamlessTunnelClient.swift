@@ -25,7 +25,7 @@ public final class SeamlessTunnelClient: @unchecked Sendable {
 	/// a manager that stops reading would make this grow without bound: past the budget the tunnel ends instead
 	/// (bytes can't be dropped from a framed stream), and the client connects again.
 	private var queuedBytes = 0
-	/// A clipboard image (32 MiB at most) is one message for the guest, so the queue holds one and some more.
+	/// A clipboard (32 MiB of data at most) is one message for the guest, so the queue holds one and some more.
 	private static let maxQueuedBytes = 48 * 1024 * 1024
 
 	public init() {}

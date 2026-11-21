@@ -1,6 +1,7 @@
 import AppKit
 import CakeAgentLib
 import Foundation
+import UniformTypeIdentifiers
 
 // MARK: - View
 
@@ -620,8 +621,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			windows[id]?.setCursor(shape)
 		case .clipboard(let text):
 			self.setHostClipboard(text)
-		case .clipboardImage(let png):
-			self.setHostClipboardImage(png)
+		case .clipboardItems(let items):
+			self.setHostClipboard(items)
 		}
 	}
 
@@ -647,38 +648,107 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		self.logger.debug("Seamless: the guest's clipboard (\(text.utf8.count) bytes) is now the host's")
 	}
 
-	/// Sets the host's clipboard to the guest's image (a PNG file), like `setHostClipboard` does for text.
-	private func setHostClipboardImage(_ png: Data) {
+	/// Sets the host's clipboard to what the guest's selection holds, like `setHostClipboard` does for text: every item whose
+	/// MIME type maps to a pasteboard type the host shares (text, images, PDF), the others are left out.
+	private func setHostClipboard(_ items: [SeamlessClipboardItem]) {
+		let entries = Self.pasteboardEntries(for: items)
+
+		guard !entries.isEmpty else { return }
+
 		let pasteboard = NSPasteboard.general
 
-		guard !png.isEmpty, pasteboard.data(forType: .png) != png else { return }
+		guard !entries.allSatisfy({ pasteboard.data(forType: $0.type) == $0.data }) else { return }
 
 		pasteboard.clearContents()
 
-		if !pasteboard.setData(png, forType: .png) {
-			self.logger.warn("Seamless: unable to set the clipboard of the host")
+		for entry in entries {
+			let done = entry.type == .string ? pasteboard.setString(String(decoding: entry.data, as: UTF8.self), forType: .string) : pasteboard.setData(entry.data, forType: entry.type)
+
+			if !done {
+				self.logger.warn("Seamless: unable to set \(entry.type.rawValue) on the clipboard of the host")
+			}
 		}
 
 		self.pasteboardChangeCount = pasteboard.changeCount
-		self.logger.debug("Seamless: the guest's clipboard image (\(png.count) bytes) is now the host's")
+		self.logger.debug("Seamless: the guest's clipboard (\(entries.map { "\($0.type.rawValue) \($0.data.count)" }.joined(separator: ", "))) is now the host's")
 	}
 
-	/// The image on a pasteboard as a PNG file: it is taken as it is when it is one, a TIFF (what most applications put
-	/// there) or any other image the system reads is converted. Nil when there is none or it is too big.
-	static func pngImage(of pasteboard: NSPasteboard) -> Data? {
-		var png = pasteboard.data(forType: .png)
+	/// A type the host shares in both directions: text, images and PDF. Not executables, archives, file references.
+	private static func isSharedType(_ type: UTType) -> Bool {
+		!type.isDynamic && (type.conforms(to: .text) || type.conforms(to: .image) || type.conforms(to: .pdf))
+	}
 
-		if png == nil, let data = pasteboard.data(forType: .tiff) ?? pasteboard.data(forType: NSPasteboard.PasteboardType("public.jpeg")) {
-			png = NSBitmapImageRep(data: data)?.representation(using: .png, properties: [:])
+	/// The MIME type of a pasteboard type, nil when it is not shared (or has no MIME type). Plain text is always UTF-8.
+	static func mimeType(forPasteboardType type: NSPasteboard.PasteboardType) -> String? {
+		if type == .string { return "text/plain;charset=utf-8" }
+		guard let uttype = UTType(type.rawValue), Self.isSharedType(uttype), let mime = uttype.preferredMIMEType?.lowercased(), SeamlessClipboardItem.isValidMIME(mime) else { return nil }
+
+		return mime
+	}
+
+	/// The pasteboard type for a MIME type (its parameters are ignored), nil when it is not shared.
+	static func pasteboardType(forMIME mime: String) -> NSPasteboard.PasteboardType? {
+		let base = mime.lowercased().split(separator: ";").first.map(String.init) ?? ""
+
+		if base == "text/plain" { return .string }
+		guard let uttype = UTType(mimeType: base), Self.isSharedType(uttype) else { return nil }
+
+		return NSPasteboard.PasteboardType(uttype.identifier)
+	}
+
+	/// What goes on the pasteboard for the items of the guest: one entry per pasteboard type, the first item of a type wins.
+	static func pasteboardEntries(for items: [SeamlessClipboardItem]) -> [(type: NSPasteboard.PasteboardType, data: Data)] {
+		var entries: [(type: NSPasteboard.PasteboardType, data: Data)] = []
+
+		for item in items where !item.data.isEmpty {
+			guard let type = Self.pasteboardType(forMIME: item.mime), !entries.contains(where: { $0.type == type }) else { continue }
+
+			entries.append((type, item.data))
 		}
 
-		guard let png, png.count <= SeamlessProtocol.maxClipboardImageBytes, png.starts(with: SeamlessProtocol.pngSignature) else { return nil }
-
-		return png
+		return entries
 	}
 
-	/// Sends the host's clipboard to the guest when it changed since it was last seen (either way): its text, else its
-	/// image when the guest takes images. Never what is marked private.
+	/// The items of a pasteboard: its text first, then every other type that has a shared MIME type, one item per MIME type
+	/// and within `maxClipboardItems` and `maxClipboardTotalBytes`. A TIFF (what most applications put there) is sent as a PNG,
+	/// what the guest takes, unless the pasteboard has one.
+	static func clipboardItems(from pasteboard: NSPasteboard) -> [SeamlessClipboardItem] {
+		var items: [SeamlessClipboardItem] = []
+		var seen = Set<String>()
+		var total = 0
+
+		func add(_ mime: String, _ data: Data) {
+			let base = mime.split(separator: ";").first.map(String.init) ?? mime
+
+			guard !data.isEmpty, items.count < SeamlessProtocol.maxClipboardItems, total + data.count <= SeamlessProtocol.maxClipboardTotalBytes, seen.insert(base).inserted else { return }
+
+			items.append(SeamlessClipboardItem(mime: mime, data: data))
+			total += data.count
+		}
+
+		if let text = pasteboard.string(forType: .string), !text.isEmpty {
+			add("text/plain;charset=utf-8", Data(text.utf8))
+		}
+
+		var tiff: Data?
+
+		for type in pasteboard.types ?? [] where type != .string {
+			if type == .tiff {
+				tiff = pasteboard.data(forType: .tiff)
+			} else if let mime = Self.mimeType(forPasteboardType: type), !seen.contains(mime), let data = pasteboard.data(forType: type) {
+				add(mime, data)
+			}
+		}
+
+		if !seen.contains("image/png"), let tiff, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+			add("image/png", png)
+		}
+
+		return items
+	}
+
+	/// Sends the host's clipboard to the guest when it changed since it was last seen (either way): every shared type of it
+	/// (only its text for a guest on protocol 3). Never what is marked private.
 	func syncClipboardToGuest() {
 		guard let session, session.negotiatedVersion >= SeamlessProtocol.clipboardVersion else { return }
 
@@ -692,16 +762,18 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		guard types.isDisjoint(with: Self.privatePasteboardTypes) else { return }
 
-		if let text = pasteboard.string(forType: .string), !text.isEmpty {
-			if text.utf8.count <= SeamlessProtocol.maxClipboardBytes {
-				self.send(.clipboard(text: text), via: session)
+		if session.negotiatedVersion >= SeamlessProtocol.clipboardItemsVersion {
+			let items = Self.clipboardItems(from: pasteboard)
+
+			if !items.isEmpty {
+				self.send(.clipboardItems(items), via: session)
 			}
 
 			return
 		}
 
-		if session.negotiatedVersion >= SeamlessProtocol.clipboardImageVersion, let png = Self.pngImage(of: pasteboard) {
-			self.send(.clipboardImage(png: png), via: session)
+		if let text = pasteboard.string(forType: .string), !text.isEmpty, text.utf8.count <= SeamlessProtocol.maxClipboardBytes {
+			self.send(.clipboard(text: text), via: session)
 		}
 	}
 

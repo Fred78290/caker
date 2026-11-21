@@ -49,8 +49,8 @@ public final class SeamlessSession: @unchecked Sendable {
 		if case .pointerAxis = message, negotiatedVersion < SeamlessProtocol.axisVersion { return }
 		// Likewise a guest older than the clipboard.
 		if case .clipboard = message, negotiatedVersion < SeamlessProtocol.clipboardVersion { return }
-		// And a guest older than the clipboard images.
-		if case .clipboardImage = message, negotiatedVersion < SeamlessProtocol.clipboardImageVersion { return }
+		// And a guest older than the clipboard items.
+		if case .clipboardItems = message, negotiatedVersion < SeamlessProtocol.clipboardItemsVersion { return }
 
 		guard let data = try? SeamlessCodec.encode(message) else { return }
 

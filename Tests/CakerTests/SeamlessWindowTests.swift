@@ -55,7 +55,7 @@ final class SeamlessWindowTests: XCTestCase {
 			.cursor(id: 7, shape: "text"),
 			.clipboard(text: "Texte copié ☕\nsur deux lignes"),
 			.clipboard(text: ""),
-			.clipboardImage(png: Data(SeamlessProtocol.pngSignature + [1, 2, 3])),
+			.clipboardItems([SeamlessClipboardItem(mime: "text/plain;charset=utf-8", data: Data("hé".utf8)), SeamlessClipboardItem(mime: "image/png", data: Data([0x89, 0x50, 0x4E, 0x47, 1, 2, 3]))]),
 		]
 
 		for message in messages {
@@ -79,7 +79,7 @@ final class SeamlessWindowTests: XCTestCase {
 			.pointerAxis(id: 1, dx: 0, dy: 0, source: .stop),
 			.key(code: 30, pressed: true),
 			.clipboard(text: "from the Mac"),
-			.clipboardImage(png: Data(SeamlessProtocol.pngSignature + [4, 5, 6])),
+			.clipboardItems([SeamlessClipboardItem(mime: "text/html", data: Data("<b>x</b>".utf8))]),
 		]
 
 		for message in messages {
@@ -457,30 +457,70 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertEqual(try readHost(fd, count: 1), [.clipboard(text: "from the Mac")])
 	}
 
-	/// A PNG file of `size` bytes: the signature, then filler (the codec checks the signature and the size, not the image).
-	private func pngFile(size: Int) -> Data {
-		Data(SeamlessProtocol.pngSignature + [UInt8](repeating: 7, count: size - SeamlessProtocol.pngSignature.count))
+	private func item(_ mime: String, _ size: Int) -> SeamlessClipboardItem {
+		SeamlessClipboardItem(mime: mime, data: Data(repeating: 7, count: size))
 	}
 
-	func testClipboardImageLimitsAndFormat() throws {
-		let png = pngFile(size: 64)
+	/// The payload of a clipboard items message, written by hand: what a guest sends.
+	private func itemsPayload(_ items: [(mime: String, size: Int)], count: Int? = nil) -> [UInt8] {
+		var payload: [UInt8] = []
 
-		// Both directions carry it, byte for byte.
-		XCTAssertEqual(try SeamlessCodec.decodeGuest(type: 0x09, payload: Array(try SeamlessCodec.encode(SeamlessGuestMessage.clipboardImage(png: png)).dropFirst(5))), .clipboardImage(png: png))
-		XCTAssertEqual(try SeamlessCodec.decodeHost(type: 0x8C, payload: Array(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: png)).dropFirst(5))), .clipboardImage(png: png))
+		withUnsafeBytes(of: UInt16(count ?? items.count).littleEndian) { payload.append(contentsOf: $0) }
 
-		// The largest image goes, one more byte does not, and what is not a PNG does not.
-		XCTAssertNoThrow(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: pngFile(size: SeamlessProtocol.maxClipboardImageBytes))))
-		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: pngFile(size: SeamlessProtocol.maxClipboardImageBytes + 1))))
-		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardImage(png: Data(repeating: 0, count: 64))))
+		for item in items {
+			withUnsafeBytes(of: UInt16(item.mime.utf8.count).littleEndian) { payload.append(contentsOf: $0) }
+			payload.append(contentsOf: Array(item.mime.utf8))
+			withUnsafeBytes(of: UInt32(item.size).littleEndian) { payload.append(contentsOf: $0) }
+			payload.append(contentsOf: [UInt8](repeating: 7, count: item.size))
+		}
 
-		// A guest that lies: a length over the limit, too short for a signature, a missing signature, bytes left over.
-		var oversize: [UInt8] = [1]
-		withUnsafeBytes(of: UInt32(SeamlessProtocol.maxClipboardImageBytes + 1).littleEndian) { oversize.append(contentsOf: $0) }
-		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: oversize))
-		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [1, 4, 0, 0, 0, 0x89, 0x50, 0x4E, 0x47]))
-		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [1, 8, 0, 0, 0] + [UInt8](repeating: 0, count: 8)))
-		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x09, payload: [1, 8, 0, 0, 0] + SeamlessProtocol.pngSignature + [0]))
+		return payload
+	}
+
+	func testClipboardItemsRoundTripAndLimits() throws {
+		let items = [item("text/plain;charset=utf-8", 5), item("image/png", 64), item("text/html", 12)]
+
+		// Both directions carry them, byte for byte, and the hand written layout is the one encoded.
+		let guest = try SeamlessCodec.encode(SeamlessGuestMessage.clipboardItems(items))
+
+		XCTAssertEqual(guest[4], 0x0A)
+		XCTAssertEqual(Array(guest.dropFirst(5)), itemsPayload([("text/plain;charset=utf-8", 5), ("image/png", 64), ("text/html", 12)]))
+		XCTAssertEqual(try SeamlessCodec.decodeGuest(type: 0x0A, payload: Array(guest.dropFirst(5))), .clipboardItems(items))
+
+		let host = try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems(items))
+
+		XCTAssertEqual(host[4], 0x8D)
+		XCTAssertEqual(try SeamlessCodec.decodeHost(type: 0x8D, payload: Array(host.dropFirst(5))), .clipboardItems(items))
+
+		// The most data goes, one byte more does not, and the limit is on all the items together.
+		XCTAssertNoThrow(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([item("a/b", SeamlessProtocol.maxClipboardTotalBytes)])))
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([item("a/b", SeamlessProtocol.maxClipboardTotalBytes + 1)])))
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([item("a/b", SeamlessProtocol.maxClipboardTotalBytes / 2 + 1), item("c/d", SeamlessProtocol.maxClipboardTotalBytes / 2 + 1)])))
+
+		// Not a list, too many items, a MIME type that is not one, twice the same type (any case), an empty item.
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([])))
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems((0...SeamlessProtocol.maxClipboardItems).map { item("x/\($0)", 1) })))
+
+		for mime in ["UTF8_STRING", "a/b/c", "text/", "/plain", "te xt/plain", "text/é", "a/"] {
+			XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([item(mime, 1)])), mime)
+		}
+
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([item("text/plain", 1), item("TEXT/Plain", 1)])))
+		XCTAssertThrowsError(try SeamlessCodec.encode(SeamlessHostMessage.clipboardItems([item("text/plain", 0)])))
+
+		// A guest that lies: a count that does not match, a total over the limit, bytes left over, a truncated item.
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: itemsPayload([("text/plain", 3)], count: 2)))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: itemsPayload([("text/plain", 3)], count: 0)))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: itemsPayload([("text/plain", 3)]) + [0]))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: Array(itemsPayload([("text/plain", 3)]).dropLast())))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: itemsPayload([("nomime", 3)])))
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: itemsPayload([("text/plain", 3), ("Text/PLAIN", 3)])))
+
+		var oversize = itemsPayload([("a/b", 0)])
+
+		oversize.removeLast(4)
+		withUnsafeBytes(of: UInt32(SeamlessProtocol.maxClipboardTotalBytes + 1).littleEndian) { oversize.append(contentsOf: $0) }
+		XCTAssertThrowsError(try SeamlessCodec.decodeGuest(type: 0x0A, payload: oversize))
 	}
 
 	/// A private pasteboard, so the test does not touch the user's clipboard.
@@ -494,53 +534,89 @@ final class SeamlessWindowTests: XCTestCase {
 	}
 
 	@MainActor
-	func testPasteboardImageIsSentAsAPNG() throws {
+	func testPasteboardBecomesItems() throws {
 		let pasteboard = scratchPasteboard()
 		defer { pasteboard.releaseGlobally() }
 
-		// Nothing, or something that is not an image: nothing to send.
-		XCTAssertNil(SeamlessWindowManager.pngImage(of: pasteboard))
-		pasteboard.setString("text", forType: .string)
-		XCTAssertNil(SeamlessWindowManager.pngImage(of: pasteboard))
+		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard), [])
 
-		// A TIFF, what most applications put on the pasteboard, is converted.
+		// Text first, as UTF-8, then what has a shared MIME type; one item per MIME type.
 		let bitmap = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 8, pixelsHigh: 8, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
 		let tiff = try XCTUnwrap(bitmap.representation(using: .tiff, properties: [:]))
 
-		pasteboard.clearContents()
+		pasteboard.declareTypes([.tiff, .html, .string, NSPasteboard.PasteboardType("public.utf16-external-plain-text")], owner: nil)
 		pasteboard.setData(tiff, forType: .tiff)
+		pasteboard.setString("<b>héllo</b>", forType: .html)
+		pasteboard.setString("héllo", forType: .string)
+		pasteboard.setString("héllo", forType: NSPasteboard.PasteboardType("public.utf16-external-plain-text"))
 
-		let converted = try XCTUnwrap(SeamlessWindowManager.pngImage(of: pasteboard))
+		let items = SeamlessWindowManager.clipboardItems(from: pasteboard)
 
-		XCTAssertTrue(converted.starts(with: SeamlessProtocol.pngSignature))
-		XCTAssertEqual(NSBitmapImageRep(data: converted)?.pixelsWide, 8)
+		XCTAssertEqual(items.first, SeamlessClipboardItem(mime: "text/plain;charset=utf-8", data: Data("héllo".utf8)))
+		XCTAssertEqual(items.filter { $0.mime.hasPrefix("text/plain") }.count, 1)
+		XCTAssertEqual(items.first { $0.mime == "text/html" }?.data, Data("<b>héllo</b>".utf8))
 
-		// A PNG is sent as it is.
-		let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+		// The TIFF goes as a PNG.
+		let png = try XCTUnwrap(items.first { $0.mime == "image/png" })
+
+		XCTAssertTrue(png.data.starts(with: [0x89, 0x50, 0x4E, 0x47]))
+		XCTAssertNil(items.first { $0.mime == "image/tiff" })
+		XCTAssertEqual(NSBitmapImageRep(data: png.data)?.pixelsWide, 8)
+
+		// A PNG on the pasteboard is sent as it is, and wins over the TIFF.
+		let realPNG = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
 
 		pasteboard.clearContents()
-		pasteboard.setData(png, forType: .png)
-		XCTAssertEqual(SeamlessWindowManager.pngImage(of: pasteboard), png)
+		pasteboard.declareTypes([.tiff, .png], owner: nil)
+		pasteboard.setData(tiff, forType: .tiff)
+		pasteboard.setData(realPNG, forType: .png)
+		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard).first { $0.mime == "image/png" }?.data, realPNG)
+
+		// What is not text, an image or a PDF is not shared: a file reference, an arbitrary type.
+		pasteboard.clearContents()
+		pasteboard.declareTypes([.fileURL, NSPasteboard.PasteboardType("com.example.private-thing")], owner: nil)
+		pasteboard.setString("file:///etc/passwd", forType: .fileURL)
+		pasteboard.setData(Data([1, 2, 3]), forType: NSPasteboard.PasteboardType("com.example.private-thing"))
+		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard), [])
 	}
 
-	func testClipboardImageOnlyGoesToAGuestThatHasIt() throws {
+	@MainActor
+	func testItemsBecomePasteboardEntries() throws {
+		let entries = SeamlessWindowManager.pasteboardEntries(for: [
+			item("text/plain;charset=utf-8", 3),
+			item("text/plain", 4),  // the same pasteboard type: the first wins
+			item("image/png", 5),
+			item("text/html", 6),
+			item("application/x-sh-unknown-thing", 7),  // no pasteboard type
+			item("application/zip", 8),  // not shared
+		])
+
+		XCTAssertEqual(entries.map(\.type), [.string, .png, .html])
+		XCTAssertEqual(entries.map(\.data.count), [3, 5, 6])
+		XCTAssertEqual(SeamlessWindowManager.mimeType(forPasteboardType: .string), "text/plain;charset=utf-8")
+		XCTAssertEqual(SeamlessWindowManager.mimeType(forPasteboardType: .png), "image/png")
+		XCTAssertNil(SeamlessWindowManager.mimeType(forPasteboardType: .fileURL))
+		XCTAssertEqual(SeamlessWindowManager.pasteboardType(forMIME: "TEXT/Plain;Charset=UTF-8"), .string)
+	}
+
+	func testClipboardItemsOnlyGoToAGuestThatHasThem() throws {
 		let (server, recorder, path) = try makeServer()
 		defer { server.stop() }
 
 		let fd = try connect(path)
 		defer { Darwin.close(fd) }
 
-		// Protocol 3 has the clipboard, not its images: the message would make that guest close the connection.
+		// Protocol 3 has the text clipboard, not the items: the message would make that guest close the connection.
 		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.clipboardVersion, name: "text-only")))
 		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.clipboardVersion, scale120: 240)])
 		XCTAssertTrue(wait { recorder.log == ["start text-only"] })
 
-		recorder.session?.send(.clipboardImage(png: pngFile(size: 64)))
+		recorder.session?.send(.clipboardItems([item("image/png", 64)]))
 		recorder.session?.send(.clipboard(text: "text goes"))
 		XCTAssertEqual(try readHost(fd, count: 1), [.clipboard(text: "text goes")])
 	}
 
-	func testClipboardImageReachesTheDelegateAndTheGuest() throws {
+	func testClipboardItemsReachTheDelegateAndTheGuest() throws {
 		let (server, recorder, path) = try makeServer()
 		defer { server.stop() }
 
@@ -551,15 +627,15 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
 		XCTAssertTrue(wait { recorder.log == ["start unit"] })
 
-		let fromGuest = pngFile(size: 4096)
+		let fromGuest = [item("text/plain;charset=utf-8", 10), item("image/png", 4096)]
 
-		write(fd, try SeamlessCodec.encode(SeamlessGuestMessage.clipboardImage(png: fromGuest)))
-		XCTAssertTrue(wait { recorder.received == [.clipboardImage(png: fromGuest)] })
+		write(fd, try SeamlessCodec.encode(SeamlessGuestMessage.clipboardItems(fromGuest)))
+		XCTAssertTrue(wait { recorder.received == [.clipboardItems(fromGuest)] })
 
-		let fromMac = pngFile(size: 8192)
+		let fromMac = [item("image/png", 8192), item("text/html", 20)]
 
-		recorder.session?.send(.clipboardImage(png: fromMac))
-		XCTAssertEqual(try readHost(fd, count: 1), [.clipboardImage(png: fromMac)])
+		recorder.session?.send(.clipboardItems(fromMac))
+		XCTAssertEqual(try readHost(fd, count: 1), [.clipboardItems(fromMac)])
 	}
 
 	func testGuestOnProtocolOneIsAcceptedWithoutScrolling() throws {

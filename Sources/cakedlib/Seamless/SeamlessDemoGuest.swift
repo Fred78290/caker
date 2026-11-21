@@ -255,8 +255,8 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 			record("key \(code) \(pressed)")
 		case .clipboard(let text):
 			record("clipboard \(text.utf8.count) bytes")
-		case .clipboardImage(let png):
-			record("clipboard image \(png.count) bytes")
+		case .clipboardItems(let items):
+			record("clipboard items \(items.map { "\($0.mime) \($0.data.count)" }.joined(separator: ", "))")
 		}
 	}
 
