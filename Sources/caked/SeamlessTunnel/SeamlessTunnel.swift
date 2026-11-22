@@ -25,10 +25,21 @@ final class SeamlessTunnel: @unchecked Sendable {
 	/// A clipboard (32 MiB of data at most) is one message for the guest, so the queue holds one and some more.
 	private static let maxQueuedBytes = 48 * 1024 * 1024
 
+	/// The same bound on the number of buffers waiting: many tiny buffers cost memory and scheduling far beyond their
+	/// byte count.
+	private static let maxQueuedEntries = 8192
+
 	/// The byte stream going to the guest: the guest connection gets what the client sends.
 	private final class Relay: @unchecked Sendable {
-		private let current = Mutex<AsyncStream<ByteBuffer>.Continuation?>(nil)
-		private let queued = Mutex<Int>(0)
+		/// The guest connection and what is queued for it change together, so they share one lock: the counts
+		/// always describe the stream they were admitted to.
+		private struct State {
+			var current: AsyncStream<ByteBuffer>.Continuation?
+			var queued = 0
+			var entries = 0
+		}
+
+		private let state = Mutex<State>(State())
 
 		/// Set when more than `maxQueuedBytes` are waiting for the guest.
 		let overflow: @Sendable () -> Void
@@ -40,39 +51,60 @@ final class SeamlessTunnel: @unchecked Sendable {
 		func newConnection() -> AsyncStream<ByteBuffer> {
 			let (stream, continuation) = AsyncStream.makeStream(of: ByteBuffer.self)
 
-			self.current.withLock {
-				$0?.finish()
-				$0 = continuation
+			self.state.withLock {
+				$0.current?.finish()
+				$0.current = continuation
+				$0.queued = 0
+				$0.entries = 0
 			}
-
-			self.queued.withLock { $0 = 0 }
 
 			return stream
 		}
 
+		/// What the client sends while no guest is connected is dropped, as it always was: the guest compositor speaks
+		/// first, and the client's protocol state belongs to the connection it will see. Only a buffer admitted to the
+		/// active stream counts as queued. An empty buffer carries nothing: it is ignored, so it can't be queued (and
+		/// never counted as delivered). Past either limit the session ends, nothing is dropped from the stream.
 		func forward(_ buffer: ByteBuffer) {
-			let total = self.queued.withLock { (value: inout Int) -> Int in
-				value += buffer.readableBytes
-				return value
-			}
-
-			if total > SeamlessTunnel.maxQueuedBytes {
-				self.overflow()
+			guard buffer.readableBytes > 0 else {
 				return
 			}
 
-			_ = self.current.withLock { $0?.yield(buffer) }
+			let overflowed = self.state.withLock { (state: inout State) -> Bool in
+				guard let current = state.current else {
+					return false
+				}
+
+				guard state.entries < SeamlessTunnel.maxQueuedEntries, state.queued + buffer.readableBytes <= SeamlessTunnel.maxQueuedBytes else {
+					return true
+				}
+
+				state.queued += buffer.readableBytes
+				state.entries += 1
+				current.yield(buffer)
+
+				return false
+			}
+
+			if overflowed {
+				self.overflow()
+			}
 		}
 
-		/// The guest took `count` bytes.
+		/// The guest took one buffer of `count` bytes.
 		func delivered(_ count: Int) {
-			self.queued.withLock { $0 = max(0, $0 - count) }
+			self.state.withLock {
+				$0.queued = max(0, $0.queued - count)
+				$0.entries = max(0, $0.entries - 1)
+			}
 		}
 
 		func finish() {
-			self.current.withLock {
-				$0?.finish()
-				$0 = nil
+			self.state.withLock {
+				$0.current?.finish()
+				$0.current = nil
+				$0.queued = 0
+				$0.entries = 0
 			}
 		}
 	}
@@ -371,6 +403,8 @@ final class SeamlessTunnel: @unchecked Sendable {
 						// A second guest connection (the compositor restarted): the client's protocol state is the
 						// first one's, so the tunnel ends here and the client connects again.
 						guard accepted == false else {
+							// This connection is never pumped, so nothing else would close it.
+							connection.channel.close(promise: nil)
 							guestEnded()
 							break
 						}
