@@ -15,7 +15,7 @@
 
 			{ "id": "centos10-iso", "label": "CentOS Stream 10", "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/aarch64/iso/CentOS-Stream-10-latest-aarch64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "debian1370", "label": "Debian 13.7.0", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.7.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian1380", "label": "Debian 13.8.0", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.8.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "openSUSE161-iso", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
@@ -52,7 +52,7 @@
 			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.aarch64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "almalinux10", "label": "AlmaLinux 10", "url": "https://repo.almalinux.org/almalinux/10/cloud/aarch64/images/AlmaLinux-10-GenericCloud-latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261025T234555Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261115T234600Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "rocky10", "label": "Rocky 10", "url": "https://dl.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "rocky9", "label": "Rocky 9", "url": "https://dl.rockylinux.org/pub/rocky/9/images/aarch64/Rocky-9-GenericCloud-Base.latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
@@ -70,7 +70,7 @@
 			{ "id": "ubuntu2404Desktop", "label": "Ubuntu 24.04.4 LTS – Desktop", "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2404Server", "label": "Ubuntu 24.04.4 LTS – Server", "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-live-server-amd64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "debian1370", "label": "Debian 13.7.0", "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.7.0-amd64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian1380", "label": "Debian 13.8.0", "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.8.0-amd64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "fedora44Desktop", "label": "Fedora 44 – Workstation", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-Live-44-1.7.x86_64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "fedora44Server", "label": "Fedora 44 – Server", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-dvd-x86_64-44-1.7.iso", "minCPU": 2, "minMemoryMiB": 2048 },
@@ -107,7 +107,7 @@
 			{ "id": "openSUSE160", "label": "OpenSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "almalinux10", "label": "AlmaLinux 10", "url": "https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261025T170057Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "gentoo", "label": "Gentoo", "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261115T170104Z.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "rocky10", "label": "Rocky 10", "url": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "rocky9", "label": "Rocky 9", "url": "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
