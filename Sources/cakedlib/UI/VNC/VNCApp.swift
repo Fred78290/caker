@@ -135,6 +135,7 @@ public class VNCConnectionAppState: Codable {
 	public var vncView: NSVNCView? = nil
 	public var vncStatus: VncStatus
 	public var screenSize: ViewSize
+	public var minScreenSize: ViewSize
 	/// Size of the framebuffer the server announced last, set by nothing but the server's resizes (unlike
 	/// `screenSize`, which also takes the size of the window): the window follows this one.
 	public var framebufferSize: ViewSize = ViewSize(width: 0, height: 0)
@@ -183,6 +184,7 @@ public class VNCConnectionAppState: Codable {
 		self.connection = nil
 		self.vncStatus = .disconnected
 		self.screenSize = screenSize
+		self.minScreenSize = config.display
 		self.config = config
 		self.vmStatus = vmStatus
 		self.tunnel = tunnel
@@ -535,12 +537,12 @@ public struct VNCApp: App {
 
 			VNCContentView(appState: self.appState, screenSize: appState.screenSize)
 				.frame(
-					minWidth: allowClientResize ? nil : CGFloat(appState.screenSize.width),
+					minWidth: allowClientResize ? CGFloat(appState.minScreenSize.width) : CGFloat(appState.screenSize.width),
 					idealWidth: CGFloat(appState.screenSize.width),
-					maxWidth: allowClientResize ? .infinity : CGFloat(appState.screenSize.width),
-					minHeight: allowClientResize ? nil : CGFloat(appState.screenSize.height),
+					maxWidth: allowClientResize ? CGFloat(VNCConnection.maximumDesktopSize.width) : CGFloat(appState.screenSize.width),
+					minHeight: allowClientResize ? CGFloat(appState.minScreenSize.height) : CGFloat(appState.screenSize.height),
 					idealHeight: CGFloat(appState.screenSize.height),
-					maxHeight: allowClientResize ? .infinity : CGFloat(appState.screenSize.height)
+					maxHeight: allowClientResize ? CGFloat(VNCConnection.maximumDesktopSize.height) : CGFloat(appState.screenSize.height)
 				)
 				.presentedWindowToolbarStyle(.unifiedCompact)
 				.windowMinimizeBehavior(self.appState.provisionning ? .disabled : .enabled)
