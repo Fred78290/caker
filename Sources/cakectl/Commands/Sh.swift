@@ -49,10 +49,14 @@ struct Sh: GrpcParsableCommand {
 		return try? input.getState()
 	}
 
-	static func exit(_ code: Int32, restoring terminal: termios?) -> Never {
+	static func restoreTerminal(_ terminal: termios?) {
 		if var terminal {
 			try? FileHandle.standardInput.restoreState(&terminal)
 		}
+	}
+
+	static func exit(_ code: Int32, restoring terminal: termios?) -> Never {
+		Self.restoreTerminal(terminal)
 
 		Foundation.exit(code)
 	}
@@ -123,6 +127,8 @@ struct Sh: GrpcParsableCommand {
 				self.release()
 
 				if status.code == .alreadyExists && self.waitsForOwner == false {
+					// terminate() ends the process without returning to run(): give the terminal back first.
+					Sh.restoreTerminal(self.terminal)
 					NSApplication.shared.terminate(nil)
 
 					return
@@ -153,6 +159,7 @@ struct Sh: GrpcParsableCommand {
 				Sh.exit(1, restoring: self.terminal)
 			}
 
+			Sh.restoreTerminal(self.terminal)
 			NSApplication.shared.terminate(nil)
 		}
 
