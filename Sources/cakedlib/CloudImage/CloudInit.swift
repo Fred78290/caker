@@ -1072,12 +1072,12 @@ class CloudInit {
 
 	/// Load order, as for `VMImages.json`: a `<CAKE_HOME>/cloudinit-install-cakeagent.sh` override, if present, else the
 	/// bundled resource (`Bundle.main` first, for the flat `.app` layout, then the CakedLib resource bundle).
-	/// The result is a `String(format:)` template, see `installCakeAgentScript(config:caCert:serverKey:serverPem:)`.
+	/// The result is a `String(format:)` template, see `installCakeAgentScript(config:serviceFlags:caCert:serverKey:serverPem:)`.
 	private func loadCakeAgentScript() throws -> String {
 		try loadBundledShellScript(named: "cloudinit-install-cakeagent", runMode: self.runMode)
 	}
 
-	private func installCakeAgentScript(config: CakeConfig, caCert: String? = nil, serverKey: String? = nil, serverPem: String? = nil) throws -> String {
+	private func installCakeAgentScript(config: CakeConfig, serviceFlags: String, caCert: String? = nil, serverKey: String? = nil, serverPem: String? = nil) throws -> String {
 		let caCert = caCert ?? ""
 		let serverKey = serverKey ?? ""
 		let serverPem = serverPem ?? ""
@@ -1085,7 +1085,7 @@ class CloudInit {
 		let dnsIP = BridgeAttachement.defaultNetworkGateway.stringBefore(before: "/")
 		let guestDNS = AppStoreGuestDNS.cloudInitFragment(domain: ComposeDNS.domainSuffix, ip: dnsIP, port: "\(ComposeDNS.internalBindPort)")
 
-		return try String(format: loadCakeAgentScript(), "\(VMLocation.defaultAgentListenPort)", config.agentServiceFlags, caCert, serverKey, serverPem, guestDNS)
+		return try String(format: loadCakeAgentScript(), "\(VMLocation.defaultAgentListenPort)", serviceFlags, caCert, serverKey, serverPem, guestDNS)
 	}
 
 	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel
@@ -1136,12 +1136,12 @@ class CloudInit {
 		}
 	}
 
-	private func buildVendorData(config: CakeConfig, runMode: Utils.RunMode) throws -> CloudConfigData {
+	private func buildVendorData(config: CakeConfig, serviceFlags: String, runMode: Utils.RunMode) throws -> CloudConfigData {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
-		let installCakeagent = try installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
+		let installCakeagent = try installCakeAgentScript(config: config, serviceFlags: serviceFlags, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
 		let merge: [Merging] = [
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
@@ -1261,7 +1261,7 @@ class CloudInit {
 		return String(scripts.joined(by: "\n")).data(using: .ascii)!
 	}
 
-	private func createKickStartData(config: CakeConfig) throws -> Data {
+	private func createKickStartData(config: CakeConfig, serviceFlags: String) throws -> Data {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii)
 		let serverKey = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii)
@@ -1335,6 +1335,7 @@ class CloudInit {
 		// The script decodes these as gzip+base64, unlike the raw PEM written by the Kickstart heredocs below.
 		let installAgentScript = try self.installCakeAgentScript(
 			config: config,
+			serviceFlags: serviceFlags,
 			caCert: try Compression.compressEncoded(contentOf: certificates.caCertURL),
 			serverKey: try Compression.compressEncoded(contentOf: certificates.serverKeyURL),
 			serverPem: try Compression.compressEncoded(contentOf: certificates.serverCertURL))
@@ -1368,12 +1369,12 @@ class CloudInit {
 		return String(scripts.joined(by: "\n")).data(using: .ascii)!
 	}
 
-	private func createAutoInstallData(config: CakeConfig) throws -> Data {
+	private func createAutoInstallData(config: CakeConfig, serviceFlags: String) throws -> Data {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
-		let installCakeagent = try installCakeAgentScript(config: config, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
+		let installCakeagent = try installCakeAgentScript(config: config, serviceFlags: serviceFlags, caCert: caCert, serverKey: serverKey, serverPem: serverPem).base64EncodedString()
 		var runCommand = [
 			"/usr/local/bin/install-cakeagent.sh"
 		]
@@ -1421,9 +1422,9 @@ class CloudInit {
 		return try autoInstall.toCloudInit()
 	}
 
-	private func createUserData(config: CakeConfig) throws -> Data {
+	private func createUserData(config: CakeConfig, serviceFlags: String) throws -> Data {
 		if let userData = self.userData {
-			return try buildVendorData(config: config, runMode: self.runMode).toCloudInit(userData)
+			return try buildVendorData(config: config, serviceFlags: serviceFlags, runMode: self.runMode).toCloudInit(userData)
 		} else {
 			guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 				throw CloudInitGenerateError("unable to encode userdata")
@@ -1433,10 +1434,10 @@ class CloudInit {
 		}
 	}
 
-	private func createVendorData(config: CakeConfig) throws -> Data {
+	private func createVendorData(config: CakeConfig, serviceFlags: String) throws -> Data {
 		guard let vendorData = self.vendorData else {
 			if self.userData == nil {
-				return try buildVendorData(config: config, runMode: self.runMode).toCloudInit()
+				return try buildVendorData(config: config, serviceFlags: serviceFlags, runMode: self.runMode).toCloudInit()
 			} else {
 				guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 					throw CloudInitGenerateError("unable to encode userdata")
@@ -1492,7 +1493,10 @@ class CloudInit {
 		try? cdromURL.delete()
 
 		// The seed's install script registers the agent service with these flags on the first boot
-		config.agentInstalledFlags = config.agentServiceFlags
+		// Snapshot once: the same flags are recorded and baked into every generated registration command
+		let serviceFlags = config.agentServiceFlags
+
+		config.agentInstalledFlags = serviceFlags
 
 		// create media
 		let media = try! ISOImageFileMedia(cdromURL, readOnly: false)
@@ -1518,19 +1522,19 @@ class CloudInit {
 				seed["/server.key"] = try createSeed(writer: writer, path: "server.key", configUrl: certificates.serverKeyURL)
 				seed["/server.pem"] = try createSeed(writer: writer, path: "server.pem", configUrl: certificates.serverCertURL)
 				seed["/ca.pem"] = try createSeed(writer: writer, path: "ca.pem", configUrl: certificates.caCertURL)
-				seed["/install-cakeagent.sh"] = try createSeed(writer: writer, path: "install-cakeagent.sh", configData: installCakeAgentScript(config: config).data(using: .utf8)!)
+				seed["/install-cakeagent.sh"] = try createSeed(writer: writer, path: "install-cakeagent.sh", configData: installCakeAgentScript(config: config, serviceFlags: serviceFlags).data(using: .utf8)!)
 			}
 
 			if self.platform == .ubuntu {
-				seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createAutoInstallData(config: config))
+				seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createAutoInstallData(config: config, serviceFlags: serviceFlags))
 			} else if self.platform == .fedora || self.platform == .redhat || self.platform == .centos {
-				seed["/ks.cfg"] = try createSeed(config: config, writer: writer, path: "ks.cfg", configData: self.createKickStartData(config: config))
+				seed["/ks.cfg"] = try createSeed(config: config, writer: writer, path: "ks.cfg", configData: self.createKickStartData(config: config, serviceFlags: serviceFlags))
 			} else if self.platform == .debian {
 				seed["/preseed.cfg"] = try createSeed(config: config, writer: writer, path: "preseed.cfg", configData: self.createPreseedData(config: config))
 			}
 		} else {
-			seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config))
-			seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
+			seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config, serviceFlags: serviceFlags))
+			seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config, serviceFlags: serviceFlags))
 			seed["/network-config"] = try createSeed(config: config, writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
 		}
 
