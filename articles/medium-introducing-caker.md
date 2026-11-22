@@ -224,7 +224,6 @@ cakectl seamless my-vm        # just show the windows, until Ctrl-C
 ```
 
 ![A Linux terminal and file manager as native Mac windows](images/caker-app/23-seamless-windows.png)
-<!-- TODO screenshot: gnome-terminal and Nautilus of a Linux VM as native Mac windows, titles "[my-vm] ..." -->
 
 You don't have to know program names: the guest's installed applications can be listed and started from the host, and turned into launchers you can put in the Dock.
 

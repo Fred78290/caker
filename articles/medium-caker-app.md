@@ -151,7 +151,7 @@ The **Settings** button opens a sheet with the same sections as the wizard: CPU 
 
 A Linux VM does not have to live inside a display window. With **Seamless windows**, each window of a Linux application opens as its own native Mac window, next to your Mac's apps, with a title prefixed by the VM's name (`[my-vm] Terminal`). You can resize it, move it between Spaces, and type and scroll in it (mouse wheel and trackpad both work).
 
-> 📸 **Screenshot 23 — Seamless windows.** *A Linux terminal (gnome-terminal or foot) and Files (Nautilus) as native Mac windows next to a Finder window, titles showing "[my-vm] ...". Start them with `cakectl exec my-vm foot` and `cakectl exec my-vm nautilus`.*
+![Seamless windows](images/caker-app/23-seamless-windows.png)
 
 Under the hood, a small Wayland compositor runs in the guest and sends every window's pixels to the Mac over the VM's vsock channel, then forwards your keyboard and mouse back. There is nothing to install in the guest: the compositor is built into Caker's guest agent.
 
@@ -160,7 +160,7 @@ Under the hood, a small Wayland compositor runs in the guest and sends every win
 - In the creation wizard, switch on **Seamless windows** in the **Options** step (Linux images only).
 - For an existing VM, first make sure it runs a recent Caker agent (use **Update agent** in the VM window): an older agent ignores the seamless flags. Then switch it on in the VM's **Settings** sheet. The agent service in the guest is updated the next time you start the VM.
 
-> 📸 **Screenshot 24 — Seamless settings toggle.** *The VM settings sheet (or the wizard Options step) of a Linux VM with the "Seamless windows" toggle on.*
+![Seamless settings toggle](images/caker-app/24-seamless-settings-toggle.png)
 
 Then start applications from the terminal tab of the VM window, or with `cakectl`:
 
@@ -175,7 +175,7 @@ The command runs in the guest as the VM's own user, and its window shows up on y
 
 You do not have to remember program names. A running seamless Linux VM gets an **Applications** button in the VM window's toolbar. It opens a popover listing the guest's installed applications (the `.desktop` entries), with their own icons and a search field. Click a row and the application starts, its window opening on your Mac.
 
-> 📸 **Screenshot 25 — Applications popover.** *The Applications toolbar popover of a running seamless Linux VM, a few rows with their icons, the search field filled in and the "create launcher" button visible on the row under the pointer.*
+![Applications popover](images/caker-app/25-applications-popover.png)
 
 Each row also has a **create launcher** button (it appears when you point at the row). It writes `~/Applications/<name> (<vm>).app`, a small app you can double-click, put in the Dock or find with Spotlight. Opening it starts the VM if needed, waits for its agent, and runs the application. The launcher takes the application's icon from the guest, so Firefox looks like Firefox in your Dock. Terminal programs such as htop or vim, which have no window of their own, are run inside the guest's terminal emulator.
 
