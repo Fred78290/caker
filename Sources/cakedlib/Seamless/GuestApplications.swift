@@ -220,13 +220,20 @@ public enum GuestApplications {
 		for component in path.split(separator: "/") {
 			let parts = component.split(separator: "x", maxSplits: 1)
 
-			guard parts.count == 2, let side = Int(parts[0]) else {
+			guard parts.count == 2, let side = Int(parts[0]), side > 0 else {
 				continue
 			}
 
 			let scale = parts[1].split(separator: "@").dropFirst().first.flatMap { Int($0) } ?? 1
 
-			return side * scale
+			// The path comes from the guest: a zero/negative scale or a product that overflows isn't a size.
+			let (pixels, overflow) = side.multipliedReportingOverflow(by: scale)
+
+			guard scale > 0, overflow == false else {
+				continue
+			}
+
+			return pixels
 		}
 
 		return 0
