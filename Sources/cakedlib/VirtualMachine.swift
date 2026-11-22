@@ -1637,8 +1637,9 @@ extension VirtualMachine {
 			if let window = vzMachineView.window {
 				// Never animated: the intermediate sizes of an animation each reconfigure the guest display
 				// and are each announced to the VNC clients.
-				logger.info("Resize vm window so that the view is \(width)x\(height). \(file):\(line)")
-
+				#if TRACE
+					logger.debug("Resize vm window so that the view is \(width)x\(height). \(file):\(line)")
+				#endif
 				window.fitContent(of: vzMachineView, to: newSize, animated: false)
 			} else {
 				let bounds = vzMachineView.bounds
