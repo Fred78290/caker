@@ -123,6 +123,8 @@ struct Sh: GrpcParsableCommand {
 
 			// Retrying can change these: someone else shows the windows (until they let go), or the guest
 			// compositor went away or restarted (the client's protocol state belongs to one guest connection).
+			// Both also look like this when the VM itself stopped, and retrying would then never end: the VM's
+			// running state tells them apart, so it is asked before every retry.
 			if let status = error as? GRPCStatus, status.code == .alreadyExists || status.code == .unavailable {
 				self.release()
 
@@ -134,33 +136,72 @@ struct Sh: GrpcParsableCommand {
 					return
 				}
 
-				if status.code == .alreadyExists && self.announceWaiting && self.waitingAnnounced == false {
-					self.waitingAnnounced = true
-					fputs(String(format: String(localized: "The windows of VM %@ are shown by another process, waiting for it to let them go\n"), self.name), stderr)
-				}
-
-				DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-					MainActor.assumeIsolated {
-						do {
-							try self.connect()
-						} catch {
-							fputs("Error: \(error.reason)\n", stderr)
-							Sh.exit(1, restoring: self.terminal)
-						}
-					}
-				}
+				self.retryIfRunning(alreadyOwned: status.code == .alreadyExists)
 
 				return
 			}
 
 			// terminate() ends the process without returning to run(): report the failure here.
 			if let error {
-				fputs("Error: \(error.reason)\n", stderr)
+				fputs(String(format: String(localized: "Error: %@\n"), error.reason), stderr)
 				Sh.exit(1, restoring: self.terminal)
 			}
 
 			Sh.restoreTerminal(self.terminal)
 			NSApplication.shared.terminate(nil)
+		}
+
+		/// The status call blocks, so it runs off the main thread. A VM that is no longer running ends the connection, as the
+		/// last window closing would; one that is (a compositor restart, another owner) is retried in 2 seconds. When the status
+		/// can't be read (the service is gone) the connection ends with that error instead of retrying forever.
+		private func retryIfRunning(alreadyOwned: Bool) {
+			let name = self.name
+			let client = self.client
+
+			DispatchQueue.global(qos: .utility).async {
+				let outcome = Result<Bool, Error> {
+					let status = try client.info(name: name, includeConfig: false).vms.status.infos.status
+
+					return status == .running || status == .agentReady || status == .provisioning
+				}
+
+				DispatchQueue.main.async {
+					MainActor.assumeIsolated {
+						guard self.stopped == false else { return }
+
+						switch outcome {
+						case .failure(let error):
+							fputs(String(format: String(localized: "Error: %@\n"), error.reason), stderr)
+							Sh.exit(1, restoring: self.terminal)
+						case .success(false):
+							Sh.restoreTerminal(self.terminal)
+							NSApplication.shared.terminate(nil)
+						case .success(true):
+							self.scheduleReconnect(alreadyOwned: alreadyOwned)
+						}
+					}
+				}
+			}
+		}
+
+		private func scheduleReconnect(alreadyOwned: Bool) {
+			if alreadyOwned && self.announceWaiting && self.waitingAnnounced == false {
+				self.waitingAnnounced = true
+				fputs(String(format: String(localized: "The windows of VM %@ are shown by another process, waiting for it to let them go\n"), self.name), stderr)
+			}
+
+			DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+				MainActor.assumeIsolated {
+					guard self.stopped == false else { return }
+
+					do {
+						try self.connect()
+					} catch {
+						fputs(String(format: String(localized: "Error: %@\n"), error.reason), stderr)
+						Sh.exit(1, restoring: self.terminal)
+					}
+				}
+			}
 		}
 
 		private func release() {
