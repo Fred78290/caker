@@ -11,9 +11,15 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	}
 
 	private let socketPath: String
+	/// Guards the state below. It is never held across a blocking system call, so `stop()` can always get it.
 	private let lock = NSLock()
+	/// Serializes whole messages on the wire. A writer blocked in `write` holds this, not `lock`.
+	private let writeLock = NSLock()
 	private var fd: Int32 = -1
+	private var activeWrites = 0  // guarded by lock
+	private var closePending = false  // guarded by lock
 	private var running = false
+	private var readerOwnsDescriptor = false  // guarded by lock
 	private var scale120: UInt32 = 120
 	private var width: UInt32 = 480  // logical
 	private var height: UInt32 = 320
@@ -89,17 +95,18 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 		} catch {
 			// The reader is not started: nothing else would close the descriptor.
 			lock.lock()
-			let descriptor = fd
-			fd = -1
 			running = false
 			lock.unlock()
 
-			if descriptor >= 0 {
-				Darwin.close(descriptor)
-			}
+			closeDescriptor()
 
 			throw error
 		}
+
+		// From here the reader owns the descriptor and closes it when it exits.
+		lock.lock()
+		readerOwnsDescriptor = true
+		lock.unlock()
 
 		let reader = Thread { [self] in self.readLoop() }
 
@@ -108,14 +115,41 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	}
 
 	public func stop() {
+		// Only `lock` is taken: a writer blocked in `write` holds `writeLock`, never `lock`, and the descriptor stays
+		// open until that writer leaves (see `closeDescriptor`), so the shutdown wakes it instead of waiting for it.
 		lock.lock()
+
 		let wasRunning = running
+		let ownedByReader = readerOwnsDescriptor
+
 		running = false
-		let descriptor = fd
+
+		if wasRunning && fd >= 0 {
+			Darwin.shutdown(fd, SHUT_RDWR)
+		}
+
 		lock.unlock()
 
-		if wasRunning && descriptor >= 0 {
-			Darwin.shutdown(descriptor, SHUT_RDWR)
+		if wasRunning && !ownedByReader {
+			// Connected but never started: no reader will close it.
+			closeDescriptor()
+		}
+	}
+
+	/// Closes the descriptor once no write can use it: a number closed under a writer could be reused by another
+	/// socket and the writer's bytes would go to it. With a writer in flight, the last one to leave closes it.
+	private func closeDescriptor() {
+		lock.lock()
+		defer { lock.unlock() }
+
+		guard fd >= 0 else { return }
+
+		if activeWrites > 0 {
+			Darwin.shutdown(fd, SHUT_RDWR)
+			closePending = true
+		} else {
+			Darwin.close(fd)
+			fd = -1
 		}
 	}
 
@@ -128,16 +162,37 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	private func send(_ message: SeamlessGuestMessage) throws {
 		let data = try SeamlessCodec.encode(message)
 
-		lock.lock()
-		defer { lock.unlock() }
+		writeLock.lock()
+		defer { writeLock.unlock() }
 
-		guard fd >= 0 else { return }
+		lock.lock()
+		let descriptor = fd >= 0 && !closePending ? fd : -1
+
+		if descriptor >= 0 {
+			activeWrites += 1
+		}
+
+		lock.unlock()
+
+		guard descriptor >= 0 else { return }
+
+		defer {
+			lock.lock()
+			activeWrites -= 1
+
+			if activeWrites == 0 && closePending && fd >= 0 {
+				Darwin.close(fd)
+				fd = -1
+			}
+
+			lock.unlock()
+		}
 
 		try data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
 			var sent = 0
 
 			while sent < raw.count {
-				let n = Darwin.write(fd, raw.baseAddress! + sent, raw.count - sent)
+				let n = Darwin.write(descriptor, raw.baseAddress! + sent, raw.count - sent)
 
 				if n < 0 {
 					if errno == EINTR { continue }
@@ -155,20 +210,19 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 		var decoder = SeamlessFrameDecoder()
 		let chunk = UnsafeMutableRawBufferPointer.allocate(byteCount: 64 * 1024, alignment: 16)
 
+		// The reader owns the descriptor's close; it is read once, as nothing else changes it before then.
+		lock.lock()
+		let descriptor = fd
+		lock.unlock()
+
 		defer {
 			chunk.deallocate()
 			stop()
-
-			lock.lock()
-			if fd >= 0 {
-				Darwin.close(fd)
-				fd = -1
-			}
-			lock.unlock()
+			closeDescriptor()
 		}
 
 		while isRunning {
-			let n = Darwin.read(fd, chunk.baseAddress!, chunk.count)
+			let n = Darwin.read(descriptor, chunk.baseAddress!, chunk.count)
 
 			if n < 0 && errno == EINTR { continue }
 			if n <= 0 { return }
@@ -262,15 +316,6 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 
 	// MARK: Drawing
 
-	private func pixelSize() -> (Int, Int) {
-		lock.lock()
-		defer { lock.unlock() }
-
-		let k = Double(scale120) / 120.0
-
-		return (max(Int((Double(width) * k).rounded()), 1), max(Int((Double(height) * k).rounded()), 1))
-	}
-
 	private func openWindow() {
 		try? send(.windowCreate(SeamlessWindowInfo(id: windowID, title: String(localized: "Seamless demo"), appID: "com.aldunelabs.caker.demo")))
 		try? send(.windowHints(id: windowID, hints: SeamlessSizeHints(minWidth: 160, minHeight: 120)))
@@ -289,8 +334,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	private func animate() {
 		while isRunning {
 			Thread.sleep(forTimeInterval: frameInterval)
-			step += 1
-			try? sendFrame(full: false)
+			try? sendFrame(full: false, advance: true)
 		}
 	}
 
@@ -334,30 +378,50 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	/// computed for the old size must not go out after the one for the new size.
 	private let frameLock = NSLock()
 	private var lastDotRect: (x: Int, y: Int, w: Int, h: Int)?
+	private var lastFrameSize: (w: Int, h: Int)?  // guarded by frameLock
 
-	private func sendFrame(full: Bool) throws {
+	/// `advance` is true only for animation ticks: `step` is read and advanced under `frameLock`, so a full frame
+	/// triggered by a resize shows the current position without moving the animation.
+	private func sendFrame(full: Bool, advance: Bool = false) throws {
 		frameLock.lock()
 		defer { frameLock.unlock() }
 
-		let (w, h) = pixelSize()
+		if advance {
+			step += 1
+		}
+
+		// The scale is captured once: the pixel size, the box, the dot and the radius of this frame all derive from
+		// the same snapshot, so a scale change arriving meanwhile can't give a frame that mixes two scales.
+		lock.lock()
+		let k = Double(scale120) / 120.0
+		let w = max(Int((Double(width) * k).rounded()), 1)
+		let h = max(Int((Double(height) * k).rounded()), 1)
+		let pointerSnapshot = pointer
+		lock.unlock()
+
 		let size = max(min(w, h) / 5, 8)
 		let span = max(w - size, 1)
 		let t = step % (2 * span)
 		let boxX = t < span ? t : 2 * span - t
 		let boxY = (h - size) / 2
 		let box = SeamlessRect(x: UInt32(boxX), y: UInt32(boxY), width: UInt32(size), height: UInt32(size))
+		let dot = pointerSnapshot.map { (Int(Double($0.x) * k), Int(Double($0.y) * k)) }
 
 		lock.lock()
-		let k = Double(scale120) / 120.0
-		let dot = pointer.map { (Int(Double($0.x) * k), Int(Double($0.y) * k)) }
 		let previous = lastBox
 		lastBox = box
 		lock.unlock()
 
+		// Damage rects are relative to the previous buffer: when the pixel size changes the surface has to receive
+		// the whole image again.
+		let sizeChanged = lastFrameSize.map { $0.w != w || $0.h != h } ?? true
+
+		lastFrameSize = (w, h)
+
 		let radius = max(Int(6 * k), 3)
 		var rects: [(x: Int, y: Int, w: Int, h: Int)] = []
 
-		if full || previous == nil {
+		if full || previous == nil || sizeChanged {
 			rects = [(0, 0, w, h)]
 		} else if let previous = previous {
 			// Damage: the box where it was and where it is, plus the pointer dot's area.
