@@ -224,6 +224,10 @@ Before you start:
   - Terminal needs Screen Recording permission (System Settings > Privacy & Security >
     Screen & System Audio Recording). Without it, captures show only the wallpaper.
   - Set Caker up for each shot (VMs running, the right window open) before you press a key.
+  - The seamless Linux windows shots (23 to 26) need a running Linux VM with "Seamless windows" on
+    and a cakeagent v1.0.332 or later (use "Update agent" in the VM window): start the
+    applications first, then take them with --only 23,24,25,26. Shots 23 and 26 are best taken
+    with the region choice (r), to include a Finder window or the Mac app next to the guest windows.
 
 EOF
 
