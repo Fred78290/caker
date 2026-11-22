@@ -201,7 +201,7 @@ Each user of the guest can have windows: run `cakectl exec --user bob my-vm foot
 
 Only one process shows a VM's windows at a time. If Caker.app is showing them, a `cakectl exec` in a terminal waits and shows them as soon as the app lets go, instead of failing. It only waits while its command is running: if the command ends first, it exits without taking the windows over. To keep a listener that takes them over whenever they are free, run `cakectl seamless my-vm`.
 
-> 📸 **Screenshot 26 — GIMP with a pasted image.** *GIMP 2.10 (an X11-only application) of a Linux VM as a Mac window, with an image copied on the Mac pasted into it, next to the Mac app the image came from.*
+![GIMP with a pasted image](images/caker-app/26-gimp-with-a-pasted-image.png)
 
 ### What it does not do yet
 
