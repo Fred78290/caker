@@ -147,8 +147,7 @@ struct Sh: GrpcParsableCommand {
 				Sh.exit(1, restoring: self.terminal)
 			}
 
-			Sh.restoreTerminal(self.terminal)
-			NSApplication.shared.terminate(nil)
+			Sh.exit(0, restoring: self.terminal)
 		}
 
 		/// The status call blocks, so it runs off the main thread. A VM that is no longer running ends the connection, as the
