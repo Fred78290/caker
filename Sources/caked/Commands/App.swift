@@ -132,7 +132,10 @@ struct Apps: ParsableCommand {
 			let started: String
 
 			if self.asCommand {
-				pid = try Apps.retrying(wait: wait) { try GuestApplications.launch(program: self.application, user: guest.user, run: guest.run) }
+				// The agent's launch has no deduplication, and a lost reply doesn't say whether the program started: it is
+				// never retried. Wait for the agent with a read-only call instead, then launch once.
+				_ = try Apps.retrying(wait: wait) { try GuestApplications.list(user: guest.user, run: guest.run) }
+				pid = try GuestApplications.launch(program: self.application, user: guest.user, run: guest.run)
 				started = self.application[0]
 			} else {
 				let applications = try Apps.retrying(wait: wait) { try GuestApplications.list(user: guest.user, run: guest.run) }
