@@ -404,7 +404,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			return
 		}
 
-
 		do {
 			let group = Utilities.group.next()
 			var forwardedPorts: [TunnelAttachement] = self.config.forwardedPorts
@@ -1593,7 +1592,10 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 
 // MARK: - Screen sizing
 extension VirtualMachine {
-	func setScreenSize(width: Int, height: Int, file: String = #file, line: Int = #line) {
+	func setScreenSize(
+		width: Int, height: Int
+			//, file: String = #file, line: Int = #line
+	) {
 		guard width != 0 && height != 0 else {
 			self.logger.info("Try resizing screen to zero size, but nothing to do.")
 			return
@@ -1604,13 +1606,17 @@ extension VirtualMachine {
 			let newSize = CGSize(width: width, height: height)
 
 			guard let vzMachineView = self.env.vzMachineView else {
-				logger.info("Will resize all displays to \(width)x\(height). \(file):\(line)")
+				#if TRACE
+					logger.debug("Will resize all displays to \(width)x\(height). \(file):\(line)")
+				#endif
 
 				if #available(macOS 14.0, *) {
 					self.virtualMachine.graphicsDevices.forEach { device in
 						device.displays.forEach { display in
 							if newSize != display.sizeInPixels {
-								logger.info("Resizing display from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
+								#if TRACE
+									logger.debug("Resizing display from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
+								#endif
 								try? display.reconfigure(sizeInPixels: newSize)
 							}
 						}
@@ -1624,7 +1630,9 @@ extension VirtualMachine {
 				return
 			}
 
-			logger.info("Will resize screen to \(width)x\(height). \(file):\(line)")
+			#if TRACE
+				logger.debug("Will resize screen to \(width)x\(height). \(file):\(line)")
+			#endif
 
 			if let window = vzMachineView.window {
 				// Never animated: the intermediate sizes of an animation each reconfigure the guest display
@@ -1635,7 +1643,9 @@ extension VirtualMachine {
 			} else {
 				let bounds = vzMachineView.bounds
 
-				logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+				#if TRACE
+					logger.debug("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+				#endif
 
 				vzMachineView.frame = CGRect(origin: .zero, size: newSize)
 			}

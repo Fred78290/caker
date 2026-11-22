@@ -854,7 +854,9 @@ extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
 	}
 
 	public func displayDidEndReconfiguration(_ display: VZGraphicsDisplay) {
-		self.logger.debug("displayDidEndReconfiguration: \(display.sizeInPixels)")
+		#if TRACE
+			self.logger.debug("displayDidEndReconfiguration: \(display.sizeInPixels)")
+		#endif
 
 		// VZVirtualMachineView may privately conform to VZGraphicsDisplayObserver: forward to it when it does
 		let selector = #selector(VZGraphicsDisplayObserver.displayDidEndReconfiguration(_:))
@@ -900,7 +902,9 @@ extension VNCVirtualMachineView: VZGraphicsDisplayObserver {
 					return
 				}
 
-				self.logger.trace("displayDidEndReconfiguration: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
+				#if TRACE
+					self.logger.trace("displayDidEndReconfiguration: emitting image with size \(cgImage.width)x\(cgImage.height), graphicsDisplay: \(String(describing: self.graphicsDisplay?.sizeInPixels))")
+				#endif
 
 				continuation.yield(.frame(cgImage))
 			}

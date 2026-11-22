@@ -1380,7 +1380,7 @@ extension VNCConnection {
 				}
 			}
 
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("sendFramebufferUpdateThrowing: \(tiles.count) tiles, size: \(size), announce: \(String(describing: sizeAnnounce)), cursorPosition: \(String(describing: cursorPosition))")
 			#endif
 

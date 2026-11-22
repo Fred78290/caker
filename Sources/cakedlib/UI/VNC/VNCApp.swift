@@ -464,7 +464,7 @@ struct VNCContentView: View {
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("handleStartLiveResizeNotification: \(notification)")
 			#endif
 
@@ -474,7 +474,7 @@ struct VNCContentView: View {
 
 	func handleDidResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("handleDidResizeNotification: \(notification)")
 			#endif
 

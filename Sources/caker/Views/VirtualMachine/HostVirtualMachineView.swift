@@ -607,7 +607,7 @@ struct HostVirtualMachineView: View {
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("handleStartLiveResizeNotification: \(notification)")
 			#endif
 
@@ -617,7 +617,7 @@ struct HostVirtualMachineView: View {
 
 	func handleDidResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("handleDidResizeNotification: \(notification)")
 			#endif
 
