@@ -119,6 +119,29 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertThrowsError(try SeamlessCodec.encode(.windowTitle(id: 1, title: String(repeating: "a", count: SeamlessProtocol.maxStringLength + 1))))
 	}
 
+	func testEncodeEnforcesTheAggregatePixelLimitOfTheDecoder() throws {
+		// Each rectangle fits the buffer and the per-rectangle limit, but three of them exceed twice `maxRectPixels`, which the decoder refuses.
+		let width: UInt32 = 6000
+		let height: UInt32 = 6666
+		let pixels = Data(count: Int(width) * Int(height) * SeamlessProtocol.bytesPerPixel)  // One copy-on-write buffer shared by every rectangle.
+		let rect = SeamlessFrameRect(rect: SeamlessRect(x: 0, y: 0, width: width, height: height), pixels: pixels)
+
+		XCTAssertLessThanOrEqual(Int(width) * Int(height), SeamlessProtocol.maxRectPixels)
+		XCTAssertGreaterThan(Int(width) * Int(height) * 3, SeamlessProtocol.maxRectPixels * 2)
+
+		XCTAssertThrowsError(try SeamlessCodec.encode(.windowFrame(SeamlessFrame(windowID: 1, width: width, height: height, rects: [rect, rect, rect])), compress: false)) {
+			XCTAssertEqual($0 as? SeamlessProtocolError, .invalidDimensions(width, height))
+		}
+
+		// Two of them stay within both limits and still round-trip through the decoder (compressed: raw they would exceed `maxFrameLength`).
+		let ok = try SeamlessCodec.encode(.windowFrame(SeamlessFrame(windowID: 1, width: width, height: height, rects: [rect, rect])))
+		let (type, payload) = splitFrame(ok)
+
+		guard case .windowFrame(let decoded) = try SeamlessCodec.decodeGuest(type: type, payload: payload) else { return XCTFail("not a frame") }
+
+		XCTAssertEqual(decoded.rects.count, 2)
+	}
+
 	func testDecoderSplitsAStreamFedByteByByte() throws {
 		let a = try SeamlessCodec.encode(.hello(version: 1, name: "a"))
 		let b = try SeamlessCodec.encode(.windowDestroy(id: 5))

@@ -465,11 +465,20 @@ public enum SeamlessCodec {
 			w.u8(pixelFormatBGRA)
 			w.u16(UInt16(frame.rects.count))
 
+			var totalPixels = 0
+
 			for item in frame.rects {
 				let r = item.rect
 
 				guard r.width > 0, r.height > 0, UInt64(r.x) + UInt64(r.width) <= UInt64(frame.width), UInt64(r.y) + UInt64(r.height) <= UInt64(frame.height) else {
 					throw SeamlessProtocolError.rectOutOfBounds
+				}
+
+				// Same aggregate limit as the decoder: never produce a frame the peer would refuse.
+				totalPixels += Int(r.width) * Int(r.height)
+
+				guard totalPixels <= SeamlessProtocol.maxRectPixels * 2 else {
+					throw SeamlessProtocolError.invalidDimensions(r.width, r.height)
 				}
 
 				guard item.pixels.count == Int(r.width) * Int(r.height) * SeamlessProtocol.bytesPerPixel else {
@@ -613,15 +622,17 @@ public enum SeamlessCodec {
 		guard count > 0, count <= SeamlessProtocol.maxClipboardItems else { throw SeamlessProtocolError.invalidValue("clipboard of \(count) items") }
 
 		var items: [SeamlessClipboardItem] = []
+		var remaining = SeamlessProtocol.maxClipboardTotalBytes
 
 		for _ in 0..<count {
 			let mimeLength = Int(try r.u16())
 			let mime = String(decoding: try r.slice(mimeLength), as: UTF8.self)
 			let length = Int(try r.u32())
 
-			// The total is checked once the list is read, but a length that cannot fit is refused before it is taken.
-			guard length <= SeamlessProtocol.maxClipboardTotalBytes else { throw SeamlessProtocolError.invalidValue("clipboard item of \(length) bytes") }
+			// A length that does not fit in what is left of the total budget is refused before it is sliced or copied.
+			guard length <= remaining else { throw SeamlessProtocolError.invalidValue("clipboard item of \(length) bytes") }
 
+			remaining -= length
 			items.append(SeamlessClipboardItem(mime: mime, data: Data(try r.slice(length))))
 		}
 
