@@ -230,8 +230,15 @@ struct Sh: GrpcParsableCommand {
 			// ends the process instead, which kills the other one.
 			let shellTask = Task {
 				do {
-					Self.exit(try await client.shell(name: name, shellUser: self.shell.shellUser, callOptions: callOptions), restoring: terminal)
+					let code = try await client.shell(name: name, shellUser: self.shell.shellUser, callOptions: callOptions)
+
+					// Cancelled because the seamless setup failed: the caller reports that error.
+					guard Task.isCancelled == false else { return }
+
+					Self.exit(code, restoring: terminal)
 				} catch {
+					guard Task.isCancelled == false else { return }
+
 					fputs("Error: \(error)\n", stderr)
 					Self.exit(1, restoring: terminal)
 				}
@@ -239,8 +246,17 @@ struct Sh: GrpcParsableCommand {
 
 			// Returns once the seamless windows are closed
 			// ArgumentParser runs the command on the main thread
-			try MainActor.assumeIsolated {
-				try Self.seamless(name, client: client, terminal: terminal)
+			do {
+				try MainActor.assumeIsolated {
+					try Self.seamless(name, client: client, terminal: terminal)
+				}
+			} catch {
+				// The shell is already running with the terminal in raw mode: stop it and give the
+				// terminal back before the error propagates, or the shell would keep the terminal.
+				shellTask.cancel()
+				Self.restoreTerminal(terminal)
+
+				throw error
 			}
 
 			shellTask.cancel()
