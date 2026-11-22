@@ -97,9 +97,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "debian1370",
-        "label": "Debian 13.7.0",
-        "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.7.0-arm64-DVD-1.iso",
+        "id": "debian1380",
+        "label": "Debian 13.8.0",
+        "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.8.0-arm64-DVD-1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -278,7 +278,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "gentoo",
         "label": "Gentoo",
-        "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261025T234555Z.qcow2",
+        "url": "https://distfiles.gentoo.org/releases/arm64/autobuilds/current-di-arm64-cloudinit/di-arm64-cloudinit-20261115T234600Z.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -357,9 +357,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "debian1370",
-        "label": "Debian 13.7.0",
-        "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.7.0-amd64-DVD-1.iso",
+        "id": "debian1380",
+        "label": "Debian 13.8.0",
+        "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.8.0-amd64-DVD-1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -543,7 +543,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "gentoo",
         "label": "Gentoo",
-        "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261025T170057Z.qcow2",
+        "url": "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-di-amd64-cloudinit/di-amd64-cloudinit-20261115T170104Z.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },

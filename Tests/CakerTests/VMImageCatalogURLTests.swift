@@ -32,10 +32,31 @@ final class VMImageCatalogURLTests: XCTestCase {
 	}
 
 	func testAllISOAndCloudImageURLsAreReachable() async throws {
+		// Some cloud images (Gentoo) are republished under a new dated name, so what is built is the URL their
+		// manifest names (`latestImageSources`), not the one pinned in VMImages.json. Resolve them first, so
+		// the test follows what a build downloads and also reads the real manifests.
+		VMImageCatalog.resetLatestImages()
+		defer { VMImageCatalog.resetLatestImages() }
+
+		await VMImageCatalog.refreshLatestImages()
+
 		let catalog = VMImageCatalog.shared
+		// Only the manifest of this host's architecture is read (the other one isn't offered here), so the
+		// pinned URL of the other architecture's manifest-resolved images is a fallback nothing uses, and it
+		// goes stale by design: it is not checked.
+		#if arch(arm64)
+			let otherArch = "amd64"
+		#else
+			let otherArch = "arm64"
+		#endif
+		let resolvedIDs = Set(VMImageCatalog.latestImageSources.map(\.id))
+		func unresolved(_ archCatalog: VMImageArchCatalog, arch: String) -> [VMImageEntry] {
+			archCatalog.iso + archCatalog.cloud.filter { arch != otherArch || resolvedIDs.contains($0.id) == false }
+		}
+
 		// Check both architecture nodes, not just `current` — `.shared.availableISOImages`/etc. only
 		// expose whichever arch this test happens to run on.
-		let entries = catalog.arm64.iso + catalog.arm64.cloud + catalog.amd64.iso + catalog.amd64.cloud
+		let entries = unresolved(catalog.arm64, arch: "arm64") + unresolved(catalog.amd64, arch: "amd64")
 
 		XCTAssertFalse(entries.isEmpty)
 
