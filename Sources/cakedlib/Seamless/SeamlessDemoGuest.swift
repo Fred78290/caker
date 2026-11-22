@@ -45,7 +45,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 	public func connect() throws {
 		let descriptor = socket(AF_UNIX, SOCK_STREAM, 0)
 
-		guard descriptor >= 0 else { throw ServiceError("demo guest: socket failed") }
+		guard descriptor >= 0 else { throw ServiceError(String(localized: "demo guest: socket failed")) }
 
 		var address = sockaddr_un()
 		address.sun_family = sa_family_t(AF_UNIX)
@@ -54,7 +54,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 
 		guard path.count <= MemoryLayout.size(ofValue: address.sun_path) else {
 			Darwin.close(descriptor)
-			throw ServiceError("demo guest: socket path too long")
+			throw ServiceError(String(localized: "demo guest: socket path too long"))
 		}
 
 		withUnsafeMutableBytes(of: &address.sun_path) { dst in
@@ -70,7 +70,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 		guard result == 0 else {
 			let reason = String(cString: strerror(errno))
 			Darwin.close(descriptor)
-			throw ServiceError("demo guest: cannot connect to \(socketPath): \(reason)")
+			throw ServiceError(String(format: String(localized: "demo guest: cannot connect to %@: %@"), socketPath, reason))
 		}
 
 		var one: Int32 = 1
@@ -141,7 +141,7 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 
 				if n < 0 {
 					if errno == EINTR { continue }
-					throw ServiceError("demo guest: write failed")
+					throw ServiceError(String(localized: "demo guest: write failed"))
 				}
 
 				sent += n

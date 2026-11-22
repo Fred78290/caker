@@ -220,7 +220,7 @@ public final class SeamlessServer: @unchecked Sendable {
 
 		guard listener >= 0 else {
 			Self.releaseListenerLock(lockFD)
-			throw ServiceError("seamless: socket() failed: \(String(cString: strerror(errno)))")
+			throw ServiceError(String(format: String(localized: "seamless: socket() failed: %@"), String(cString: strerror(errno))))
 		}
 
 		var address = sockaddr_un()
@@ -232,7 +232,7 @@ public final class SeamlessServer: @unchecked Sendable {
 		guard pathBytes.count <= capacity else {
 			Darwin.close(listener)
 			Self.releaseListenerLock(lockFD)
-			throw ServiceError("seamless: socket path is too long: \(socketPath)")
+			throw ServiceError(String(format: String(localized: "seamless: socket path is too long: %@"), socketPath))
 		}
 
 		withUnsafeMutableBytes(of: &address.sun_path) { dst in
@@ -251,7 +251,7 @@ public final class SeamlessServer: @unchecked Sendable {
 			let reason = String(cString: strerror(errno))
 			Darwin.close(listener)
 			Self.releaseListenerLock(lockFD)
-			throw ServiceError("seamless: cannot bind \(socketPath): \(reason)")
+			throw ServiceError(String(format: String(localized: "seamless: cannot bind %@: %@"), socketPath, reason))
 		}
 
 		// The guest controls what is shown on the desktop, so only this user may connect. Nothing accepts before
@@ -269,7 +269,7 @@ public final class SeamlessServer: @unchecked Sendable {
 			Darwin.close(listener)
 			unlink(socketPath)
 			Self.releaseListenerLock(lockFD)
-			throw ServiceError("seamless: listen failed: \(reason)")
+			throw ServiceError(String(format: String(localized: "seamless: listen failed: %@"), reason))
 		}
 
 		_ = fcntl(listener, F_SETFL, fcntl(listener, F_GETFL) | O_NONBLOCK)

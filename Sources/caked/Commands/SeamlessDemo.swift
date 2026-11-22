@@ -53,7 +53,7 @@ struct SeamlessDemo: ParsableCommand {
 
 			try manager.start()
 
-			print("Seamless channel listening on \(path)")
+			print(String(format: String(localized: "Seamless channel listening on %@"), path))
 
 			if withGuest {
 				try guest.connect()

@@ -5921,6 +5921,16 @@
         }
       }
     },
+    "Error: %@\n" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur : %@\n"
+          }
+        }
+      }
+    },
     "error socket" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5972,6 +5982,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exécuter une commande dans une VM"
+          }
+        }
+      }
+    },
+    "exit code %d" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "code de sortie %d"
           }
         }
       }
@@ -23701,6 +23721,96 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "erreur zlib"
+          }
+        }
+      }
+    },
+    "demo guest: socket failed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "invité de démonstration : échec de la création du socket"
+          }
+        }
+      }
+    },
+    "demo guest: socket path too long" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "invité de démonstration : chemin du socket trop long"
+          }
+        }
+      }
+    },
+    "demo guest: cannot connect to %@: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "invité de démonstration : connexion impossible à %@ : %@"
+          }
+        }
+      }
+    },
+    "demo guest: write failed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "invité de démonstration : échec de l'écriture"
+          }
+        }
+      }
+    },
+    "seamless: socket() failed: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : échec de socket() : %@"
+          }
+        }
+      }
+    },
+    "seamless: socket path is too long: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : chemin du socket trop long : %@"
+          }
+        }
+      }
+    },
+    "seamless: cannot bind %@: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : impossible de lier %@ : %@"
+          }
+        }
+      }
+    },
+    "seamless: listen failed: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seamless : échec de listen : %@"
+          }
+        }
+      }
+    },
+    "Seamless channel listening on %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canal seamless à l'écoute sur %@"
           }
         }
       }

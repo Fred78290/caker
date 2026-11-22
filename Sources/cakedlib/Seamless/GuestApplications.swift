@@ -338,7 +338,7 @@ public enum GuestApplications {
 	private static func reason(_ reply: Caked_RunReply) -> String {
 		let message = String(decoding: reply.stderr, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
 
-		return message.isEmpty ? "exit code \(reply.exitCode)" : message
+		return message.isEmpty ? String(format: String(localized: "exit code %d"), Int(reply.exitCode)) : message
 	}
 }
 
