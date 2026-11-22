@@ -266,6 +266,32 @@ struct Apps: ParsableCommand {
 				arguments.append("--system")
 			}
 
+			// Certificate paths (not their contents), absolute since the launcher runs from another directory. The
+			// default location's certificates are found again by `cakectl` itself, so they are left out.
+			let defaults = try? ClientCertificatesLocation.getCertificats(runMode: self.options.runMode)
+
+			if self.options.insecure == false {
+				let certificates: [(option: String, path: String?, standard: URL?)] = [
+					("--ca-cert", self.options.caCert, defaults?.caCertURL),
+					("--tls-cert", self.options.tlsCert, defaults?.clientCertURL),
+					("--tls-key", self.options.tlsKey, defaults?.clientKeyURL),
+				]
+
+				for certificate in certificates {
+					guard let path = certificate.path, path.isEmpty == false else {
+						continue
+					}
+
+					let url = URL(fileURLWithPath: NSString(string: path).expandingTildeInPath).standardizedFileURL
+
+					if let standard = certificate.standard, standard.standardizedFileURL.path == url.path {
+						continue
+					}
+
+					arguments.append("\(certificate.option)=\(url.path(percentEncoded: false))")
+				}
+			}
+
 			return arguments
 		}
 	}
