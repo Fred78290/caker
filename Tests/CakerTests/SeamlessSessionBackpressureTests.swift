@@ -78,4 +78,33 @@ final class SeamlessSessionBackpressureTests: XCTestCase {
 		session.close()
 		session.closeDescriptorForTesting()
 	}
+
+	func testControlByteBudgetBlocksUntilReleased() {
+		let budget = SeamlessServer.ByteBudget(limit: 100)
+
+		budget.acquire(60)
+		XCTAssertEqual(budget.inUse, 60)
+
+		let acquired = DispatchSemaphore(value: 0)
+
+		DispatchQueue.global().async {
+			budget.acquire(60)
+			acquired.signal()
+		}
+
+		XCTAssertEqual(acquired.wait(timeout: .now() + 0.3), .timedOut, "60 + 60 exceeds the budget, the reader must wait")
+
+		budget.release(60)
+		XCTAssertEqual(acquired.wait(timeout: .now() + 2), .success)
+		XCTAssertEqual(budget.inUse, 60)
+	}
+
+	func testControlByteBudgetAdmitsAnOversizedRequestWhenIdle() {
+		let budget = SeamlessServer.ByteBudget(limit: 10)
+
+		budget.acquire(50)
+		XCTAssertEqual(budget.inUse, 50)
+		budget.release(50)
+		XCTAssertEqual(budget.inUse, 0)
+	}
 }
