@@ -55,7 +55,7 @@ cakectl app run myvm firefox                  # démarre Firefox, ses fenêtres 
 cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (myvm).app
 ```
 
-- Dans Caker.app, le bouton **Applications** de la barre d'outils de la fenêtre d'une VM seamless ouvre la liste (recherche, icône de chaque application lue dans l'invité) ; un clic démarre l'application et le bouton à droite de la ligne crée un lanceur.
+- Dans Caker.app, le bouton **Applications** de la barre d'outils de la fenêtre d'une VM seamless ouvre la liste (recherche, icône de chaque application lue dans l'invité) ; un clic démarre l'application et le bouton à droite de la ligne crée un lanceur. Ce bouton n'existe que pour une VM du service local ou une VM que l'application exécute elle-même, pas pour une VM d'un service distant.
 - Un **lanceur** est une petite application macOS (Dock, Spotlight, Launchpad) qui démarre la VM si besoin puis l'application ; son icône est celle de l'application dans l'invité (thèmes d'icônes du système, de snap et de Flatpak). Il n'est pas signé.
 - Les applications en terminal (`htop`, `vim`) sont lancées dans l'émulateur de terminal de l'invité.
 - Le détail des options est dans [`app`](command-summary).
@@ -66,7 +66,7 @@ Ce qui est copié dans l'invité (texte, HTML, images et PDF) passe dans le pres
 
 ## Applications X11
 
-Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par XWayland : le compositeur de l'invité sert un affichage X et lance `Xwayland` à la première connexion d'un client X11. Il faut le programme `Xwayland` dans l'invité (les scripts d'installation de l'agent installent le paquet quand les fenêtres seamless sont activées) et un cakeagent v1.0.329 ou plus. Le curseur dessiné par un client X11 n'est pas transmis, et sur un écran Retina les fenêtres X11 sont plus floues (elles ignorent l'échelle).
+Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par XWayland : le compositeur de l'invité sert un affichage X et lance `Xwayland` à la première connexion d'un client X11. Il faut le programme `Xwayland` dans l'invité (les scripts d'installation de l'agent installent le paquet quand les fenêtres seamless sont activées ; quand seamless est activé sur une VM existante, le démarrage suivant l'installe avant de réenregistrer l'agent, et échoue avec un message explicite, seamless restant désactivé, si l'invité ne peut pas l'installer : installez `xwayland` à la main et redémarrez la VM) et un cakeagent v1.0.329 ou plus. Le curseur dessiné par un client X11 n'est pas transmis, et sur un écran Retina les fenêtres X11 sont plus floues (elles ignorent l'échelle).
 
 ## Limites
 
@@ -128,7 +128,7 @@ cakectl app run myvm firefox                  # starts Firefox, its windows show
 cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (myvm).app
 ```
 
-- In Caker.app, the **Applications** button in the toolbar of a seamless VM's window opens the list (search, each application's icon read from the guest); a click starts the application and the button at the right of the row creates a launcher.
+- In Caker.app, the **Applications** button in the toolbar of a seamless VM's window opens the list (search, each application's icon read from the guest); a click starts the application and the button at the right of the row creates a launcher. That button is only available for a VM of the local service or one the app runs itself, not for a VM of a remote service.
 - A **launcher** is a small macOS application (Dock, Spotlight, Launchpad) that starts the VM if needed and then the application; its icon is the application's icon in the guest (system, snap and Flatpak icon themes). It is not code-signed.
 - Terminal applications (`htop`, `vim`) are started in the guest's terminal emulator.
 - The options are detailed under [`app`](command-summary).
@@ -139,7 +139,7 @@ What is copied in the guest (text, HTML, images and PDF) goes to the Mac's clipb
 
 ## X11 applications
 
-An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through XWayland: the guest's compositor serves an X display and runs `Xwayland` when the first X11 client connects. The guest needs the `Xwayland` program (the agent's install scripts install the package when seamless windows are on) and cakeagent v1.0.329 or later. The cursor an X11 client draws is not forwarded, and on a Retina display X11 windows look softer (they ignore the scale).
+An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through XWayland: the guest's compositor serves an X display and runs `Xwayland` when the first X11 client connects. The guest needs the `Xwayland` program (the agent's install scripts install the package when seamless windows are on; when seamless is turned on for an existing VM, the next start installs it before re-registering the agent, and fails with an explicit message, leaving seamless off, if the guest can't install it: install `xwayland` by hand and start the VM again) and cakeagent v1.0.329 or later. The cursor an X11 client draws is not forwarded, and on a Retina display X11 windows look softer (they ignore the scale).
 
 ## Limits
 

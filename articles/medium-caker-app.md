@@ -177,7 +177,7 @@ You do not have to remember program names. A running seamless Linux VM gets an *
 
 ![Applications popover](images/caker-app/25-applications-popover.png)
 
-Each row also has a **create launcher** button (it appears when you point at the row). It writes `~/Applications/<name> (<vm>).app`, a small app you can double-click, put in the Dock or find with Spotlight. Opening it starts the VM if needed, waits for its agent, and runs the application. The launcher takes the application's icon from the guest, so Firefox looks like Firefox in your Dock. Terminal programs such as htop or vim, which have no window of their own, are run inside the guest's terminal emulator.
+Each row also has a **create launcher** button (it appears when you point at the row). It is available for VMs run by the local service or by the app itself, not for VMs on a remote Mac (the app does not pass a remote server's address on to a launcher). It writes `~/Applications/<name> (<vm>).app`, a small app you can double-click, put in the Dock or find with Spotlight. Opening it starts the VM if needed, waits for its agent, and runs the application. The launcher takes the application's icon from the guest, so Firefox looks like Firefox in your Dock. Terminal programs such as htop or vim, which have no window of their own, are run inside the guest's terminal emulator.
 
 The same thing from the command line:
 

@@ -49,7 +49,7 @@ cakectl app run myvm firefox                  # démarre Firefox, ses fenêtres 
 cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (myvm).app
 ```
 
-- Dans Caker.app, le bouton **Applications** de la barre d'outils de la fenêtre d'une VM seamless ouvre la liste (recherche, icône de chaque application lue dans l'invité) ; un clic démarre l'application et le bouton à droite de la ligne crée un lanceur.
+- Dans Caker.app, le bouton **Applications** de la barre d'outils de la fenêtre d'une VM seamless ouvre la liste (recherche, icône de chaque application lue dans l'invité) ; un clic démarre l'application et le bouton à droite de la ligne crée un lanceur. Ce bouton n'existe que pour une VM du service local ou une VM que l'application exécute elle-même, pas pour une VM d'un service distant.
 - Un **lanceur** est une petite application macOS (Dock, Spotlight, Launchpad) qui démarre la VM si besoin puis l'application ; son icône est celle de l'application dans l'invité (thèmes d'icônes du système, de snap et de Flatpak). Il n'est pas signé.
 - Les applications en terminal (`htop`, `vim`) sont lancées dans l'émulateur de terminal de l'invité.
 - Le détail des options est dans [`app`](command-summary).
@@ -122,7 +122,7 @@ cakectl app run myvm firefox                  # starts Firefox, its windows show
 cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (myvm).app
 ```
 
-- In Caker.app, the **Applications** button in the toolbar of a seamless VM's window opens the list (search, each application's icon read from the guest); a click starts the application and the button at the right of the row creates a launcher.
+- In Caker.app, the **Applications** button in the toolbar of a seamless VM's window opens the list (search, each application's icon read from the guest); a click starts the application and the button at the right of the row creates a launcher. That button is only available for a VM of the local service or one the app runs itself, not for a VM of a remote service.
 - A **launcher** is a small macOS application (Dock, Spotlight, Launchpad) that starts the VM if needed and then the application; its icon is the application's icon in the guest (system, snap and Flatpak icon themes). It is not code-signed.
 - Terminal applications (`htop`, `vim`) are started in the guest's terminal emulator.
 - The options are detailed under [`app`](command-summary).
