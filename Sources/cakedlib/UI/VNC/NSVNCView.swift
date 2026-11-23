@@ -21,6 +21,9 @@ public struct DesktopSizeNegotiator: Sendable {
 
 	public private(set) var lastRequested: CGSize?
 	public private(set) var requestedAt: Date?
+	/// The framebuffer size the last negotiation ended with (what the server answered, possibly a clamped size). While the
+	/// framebuffer stays there, asking again for `lastRequested` is pointless; once it leaves, the suppression is over.
+	public private(set) var lastResult: CGSize?
 
 	public init() {
 	}
@@ -48,15 +51,36 @@ public struct DesktopSizeNegotiator: Sendable {
 		return now.timeIntervalSince(requestedAt) < Self.answerTimeout
 	}
 
-	/// The framebuffer changed size: the request, if any, has been answered.
-	public mutating func framebufferDidChange() {
+	/// The framebuffer changed size to `size`: the request, if any, has been answered. The answer is remembered, so that
+	/// asking for the same size again stays suppressed while the framebuffer remains there (a clamped answer included),
+	/// and is allowed again as soon as the framebuffer moves away from it.
+	public mutating func framebufferDidChange(to size: CGSize) {
+		let wasWaiting = self.requestedAt != nil
+
 		self.requestedAt = nil
+
+		guard self.lastRequested != nil else {
+			return
+		}
+
+		if wasWaiting || self.lastResult == nil {
+			self.lastResult = size
+		} else if size != self.lastResult {
+			self.lastRequested = nil
+			self.lastResult = nil
+		}
 	}
 
 	/// The size to send to the server for a view that wants `target`, or nil when nothing must be sent.
 	public mutating func request(_ target: CGSize, framebuffer: CGSize, now: Date) -> CGSize? {
 		guard let target = Self.normalized(target) else {
 			return nil
+		}
+
+		// The framebuffer left the size the last negotiation ended with: that negotiation is over
+		if let lastResult = self.lastResult, lastResult != framebuffer {
+			self.lastRequested = nil
+			self.lastResult = nil
 		}
 
 		// Nothing is sent: a size that was not sent is not recorded as requested (the guest may leave this
@@ -70,6 +94,7 @@ public struct DesktopSizeNegotiator: Sendable {
 		}
 
 		self.lastRequested = target
+		self.lastResult = nil
 		self.requestedAt = now
 
 		return target
@@ -384,8 +409,10 @@ extension NSVNCView {
 		self.didResizeFramebuffer = true
 		self.stopWaitVNCReconfiguration()
 
+		let size = framebuffer.cgSize
+
 		DispatchQueue.main.async { [weak self] in
-			self?.negotiator.framebufferDidChange()
+			self?.negotiator.framebufferDidChange(to: size)
 		}
 	}
 
@@ -794,8 +821,9 @@ extension NSVNCView {
 			self.logger.debug("Ask desktop size \(size), framebuffer is \(framebuffer.cgSize)")
 
 			connection.setDesktopSize(size)
-		} else if self.negotiator.isWaiting(now: now), DesktopSizeNegotiator.normalized(target) != framebuffer.cgSize {
-			// A request is waiting for its answer: the latest size is asked as soon as it came
+		} else if self.negotiator.isWaiting(now: now) {
+			// A request is waiting for its answer: keep the latest target, even when it equals the current framebuffer
+			// (the answer will move the framebuffer away from it), and evaluate it again once the answer came or expired
 			self.scheduleDesktopSize(after: 0.25)
 		}
 	}
