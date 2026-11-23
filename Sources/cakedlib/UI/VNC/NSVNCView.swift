@@ -137,6 +137,12 @@ public class NSVNCView: NSView {
 		return self.liveViewResize
 	}
 
+	/// True while a local desktop size request is scheduled or waits for its answer: the view still has a newer size
+	/// in mind than the framebuffer, so a size announced by the server must not drag the window back to an older one.
+	public var hasPendingDesktopSize: Bool {
+		return self.desktopSizeWork != nil || self.negotiator.isWaiting(now: Date())
+	}
+
 	private var framebufferSize: CGSize {
 		guard let connection = self.connection else {
 			return .zero

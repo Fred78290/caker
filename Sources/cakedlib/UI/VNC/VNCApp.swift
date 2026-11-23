@@ -434,16 +434,10 @@ struct VNCContentView: View {
 					handleDidResizeNotification(notification)
 				}.onReceive(NSWindow.willCloseNotification) { notification in
 					handleWillCloseNotification(notification)
-				}.onChange(of: appState.framebufferSize) { _, size in
+				}.onChange(of: appState.framebufferSize) { _, _ in
 					// The guest display changed on its own (its window was resized, the guest changed mode): the window
 					// follows, like Caker's does. A size asked by this window is already the window's: nothing moves.
-					guard self.appState.allowClientResize, self.liveResizeWindow == false, size.width > 0, size.height > 0, let window = self.window, window.styleMask.contains(.fullScreen) == false else {
-						return
-					}
-
-					DispatchQueue.main.async {
-						self.setContentSize(size.cgSize, window: window, animated: false)
-					}
+					self.followFramebufferSize(attempt: 0)
 				}.onGeometryChange(for: CGRect.self) { proxy in
 					proxy.frame(in: .global)
 				} action: { newValue in
@@ -451,6 +445,33 @@ struct VNCContentView: View {
 						self.setScreenSize(ViewSize(newValue.size))
 					}
 				}
+		}
+	}
+
+	/// Sizes the window to the framebuffer the server announced, unless this window has a newer size of its own still
+	/// being negotiated: that one is the latest intent, and the negotiator keeps asking for it. In that case the check is
+	/// repeated a little later, always against the framebuffer size *then* (not the one that triggered the first check),
+	/// so that the answer to the local request (possibly a clamped size) is still followed once nothing is pending.
+	func followFramebufferSize(attempt: Int) {
+		DispatchQueue.main.async {
+			let size = self.appState.framebufferSize
+
+			guard self.appState.allowClientResize, self.liveResizeWindow == false, size.width > 0, size.height > 0, let window = self.window, window.styleMask.contains(.fullScreen) == false else {
+				return
+			}
+
+			if let vncView = self.appState.vncView, vncView.hasPendingDesktopSize {
+				// Bounded: a request that is never answered expires in the negotiator, so this ends by itself
+				if attempt < 20 {
+					DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+						self.followFramebufferSize(attempt: attempt + 1)
+					}
+				}
+
+				return
+			}
+
+			self.setContentSize(size.cgSize, window: window, animated: false)
 		}
 	}
 
