@@ -1143,6 +1143,10 @@ extension VirtualMachineDocument {
 			}
 		} else if let virtualMachine = self.virtualMachine {
 			self.isRestarting = true
+			// The restart never goes through `setStateAsStopped()` (the file watcher ignores the PID removal while
+			// restarting), so invalidate any agent installation of the run being replaced here, or it could
+			// overwrite the agent state of the next run.
+			self.agentInstallToken = nil
 
 			virtualMachine.restartFromUI { result in
 				DispatchQueue.main.async {
