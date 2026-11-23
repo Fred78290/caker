@@ -479,7 +479,7 @@ struct Networks: ParsableCommand {
 
 				let socketURL = try self.options.vmnetEndpoint(runMode: self.common.runMode)
 
-				if FileManager.default.fileExists(atPath: socketURL.socket.path(percentEncoded: false)) {
+				if socketURL.pidFile.isCakedRunning() {
 					throw ValidationError(String(localized: "Network already running"))
 				}
 
@@ -492,7 +492,7 @@ struct Networks: ParsableCommand {
 					throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
 				}
 
-				if FileManager.default.fileExists(atPath: socketURL.socket.path(percentEncoded: false)) {
+				if socketURL.pidFile.isCakedRunning() {
 					throw ValidationError(String(localized: "Network already running"))
 				}
 
