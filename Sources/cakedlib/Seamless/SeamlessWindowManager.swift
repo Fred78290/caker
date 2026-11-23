@@ -681,13 +681,15 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		guard !text.isEmpty, pasteboard.string(forType: .string) != text else { return }
 
-		pasteboard.clearContents()
+		// The generation returned by the ownership claim, not a re-read after the write: if the write fails and the user
+		// copies something else meanwhile, that later change must still count as new.
+		let generation = pasteboard.clearContents()
 
 		if !pasteboard.setString(text, forType: .string) {
 			self.logger.warn("Seamless: unable to set the clipboard of the host")
 		}
 
-		self.pasteboardChangeCount = pasteboard.changeCount
+		self.pasteboardChangeCount = generation
 		self.logger.debug("Seamless: the guest's clipboard (\(text.utf8.count) bytes) is now the host's")
 	}
 
@@ -702,7 +704,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		guard !entries.allSatisfy({ pasteboard.data(forType: $0.type) == $0.data }) else { return }
 
-		pasteboard.clearContents()
+		let generation = pasteboard.clearContents()
 
 		for entry in entries {
 			let done = entry.type == .string ? pasteboard.setString(String(decoding: entry.data, as: UTF8.self), forType: .string) : pasteboard.setData(entry.data, forType: entry.type)
@@ -712,7 +714,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			}
 		}
 
-		self.pasteboardChangeCount = pasteboard.changeCount
+		self.pasteboardChangeCount = generation
 		self.logger.debug("Seamless: the guest's clipboard (\(entries.map { "\($0.type.rawValue) \($0.data.count)" }.joined(separator: ", "))) is now the host's")
 	}
 
