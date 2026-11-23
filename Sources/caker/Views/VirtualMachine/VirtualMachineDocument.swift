@@ -393,15 +393,12 @@ extension UTType {
 
 			self.updateSeamlessTunnel()
 
+			// Before the `sharedLoaded` guard on purpose: documents are created while `AppState.init()` loads the
+			// VMs, i.e. before `AppState.shared` is assigned, and monitoring doesn't depend on AppState.
+			self.reconcileAgentMonitoring()
+
 			guard AppState.sharedLoaded else {
 				return
-			}
-
-			// Start agent monitoring when VM is running
-			if self.status == .running {
-				startAgentMonitoring()
-			} else if self.status == .stopped || self.status == .deleted {
-				stopAgentMonitoring()
 			}
 
 			if let vm = self.virtualMachine {
@@ -512,6 +509,12 @@ extension UTType {
 		// live) catches the write as a real event moments later.
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.status = .init(location.status)
+
+		// Property observers don't run for assignments made inside the type's own initializer, so the
+		// `status` didSet never saw this first value: a VM already running when the document is created
+		// (the PID file existed before the monitor started, so no "added" event will follow either)
+		// would never get its agent monitored.
+		self.reconcileAgentMonitoring()
 	}
 
 	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
@@ -2029,6 +2032,16 @@ extension VirtualMachineDocument {
 		}
 
 		return false
+	}
+
+	/// Starts agent monitoring while the VM runs, stops it once it is stopped or deleted. Both calls are
+	/// idempotent (`startAgentMonitoring()` no-ops when a task already exists).
+	func reconcileAgentMonitoring() {
+		if self.status == .running {
+			self.startAgentMonitoring()
+		} else if self.status == .stopped || self.status == .deleted {
+			self.stopAgentMonitoring()
+		}
 	}
 
 	func startAgentMonitoring() {
