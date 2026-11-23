@@ -588,6 +588,15 @@ public final class CakeAgentConnection: Sendable {
 							}
 						}
 					} catch {
+						// `group.cancelAll()` once the agent is done: a suspended `next()` throws `CancellationError`, but one
+						// reached between two messages throws `GRPCStatus(.cancelled)` instead. Neither is a failure of the relay.
+						if agentDone.isSet && (error is CancellationError || (error as? GRPCStatus)?.code == .cancelled) {
+							#if DEBUG
+							self.logger.debug("Client input forwarding stopped after agent completion")
+							#endif
+							return
+						}
+
 						if error is CancellationError == false {
 							self.logger.error("Error forward task from client to agent: \(error)")
 						}
