@@ -37,6 +37,9 @@ struct InfosHandler: CakedCommand {
 						$0.status = reply.caked
 
 					}
+
+					// The version this caked installs, so a client compares the guest's agent against it, not against its own.
+					$0.status.infos.installerAgentVersion = CAKEAGENT_VERSION
 				}
 			}
 		} catch {

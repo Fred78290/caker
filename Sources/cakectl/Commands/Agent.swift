@@ -25,7 +25,10 @@ struct Agent: ParsableCommand {
 			throw ServiceError(reply.reason)
 		}
 
-		return AgentVersionReply(name: name, running: VMInformations(reply.infos).status == .running, version: reply.infos.agentVersion)
+		// Compare against what the connected caked installs; a caked that predates the field leaves it empty.
+		let expected = reply.infos.installerAgentVersion.isEmpty ? CAKEAGENT_VERSION : reply.infos.installerAgentVersion
+
+		return AgentVersionReply(name: name, running: VMInformations(reply.infos).status == .running, version: reply.infos.agentVersion, expected: expected)
 	}
 
 	/// Asks the connected caked to install the agent, and fails the command when it could not.

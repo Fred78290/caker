@@ -1005,6 +1005,8 @@ message Caked {
           string                   agentVersion   = 18;
           optional ScreenSize      screenSize     = 19;
           optional int32           numOfProcesses = 20;
+          // Agent version the answering caked installs; empty from a caked that predates it.
+          string                   installerAgentVersion = 21;
         }
 
         optional InfoReply     infos   = 1;
