@@ -2189,7 +2189,9 @@ extension VirtualMachine {
 				// The agent may be the very thing being repaired: look the IP up in the DHCP/ARP tables first and only ask the agent if that fails.
 				let location = self.location
 				let config = self.config
-				let ipFuture: EventLoopFuture<String?> = Utilities.group.next().submit {
+				// waitIPWithLease blocks (polling), so it runs on the blocking thread pool, never on an event loop; the result is delivered back on one.
+				let loop = Utilities.group.next()
+				let ipFuture: EventLoopFuture<String?> = NIOThreadPool.singleton.runIfActive(eventLoop: loop) {
 					try? location.waitIPWithLease(config: config, wait: 10, runMode: runMode)
 				}.flatMapWithEventLoop { leaseIP, eventLoop in
 					if let leaseIP {

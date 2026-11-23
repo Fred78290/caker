@@ -18,36 +18,39 @@ public struct AgentVersionReply: Codable, Sendable {
 	public let running: Bool
 	/// The version of the agent running in the guest, `nil` when it is not installed, not started yet or not answering.
 	public let version: String?
-	/// The version this build installs (`CAKEAGENT_VERSION`).
-	public let expected: String
+	/// The version the caked that installs the agent would install, `nil` when it did not say (a caked that predates the field).
+	public let expected: String?
 	/// The guest runs exactly the agent this build installs. Stored, not computed, so `--json` carries it.
 	public let upToDate: Bool
 
-	public init(name: String, running: Bool, version: String?, expected: String = CAKEAGENT_VERSION) {
+	public init(name: String, running: Bool, version: String?, expected: String? = CAKEAGENT_VERSION) {
+		let expected = expected?.isEmpty == true ? nil : expected
 		let version = version?.isEmpty == true ? nil : version
 
 		self.name = name
 		self.running = running
 		self.version = version
 		self.expected = expected
-		self.upToDate = version != nil && version == expected
+		self.upToDate = version != nil && expected != nil && version == expected
 	}
 
 	/// One line for people; `--format json` renders the struct itself.
 	public var summary: String {
+		let installs = self.expected ?? String(localized: "an unknown version")
+
 		guard self.running else {
-			return String(format: String(localized: "VM %@ is not running, its agent cannot be queried (this build installs %@)"), self.name, self.expected)
+			return String(format: String(localized: "VM %@ is not running, its agent cannot be queried (this build installs %@)"), self.name, installs)
 		}
 
 		guard let version = self.version else {
-			return String(format: String(localized: "VM %@: the agent is not installed or not answering (this build installs %@)"), self.name, self.expected)
+			return String(format: String(localized: "VM %@: the agent is not installed or not answering (this build installs %@)"), self.name, installs)
 		}
 
 		if self.upToDate {
 			return String(format: String(localized: "VM %@: agent %@ is up to date"), self.name, version)
 		}
 
-		return String(format: String(localized: "VM %@: agent %@ is installed, this build installs %@: run 'agent update'"), self.name, version, self.expected)
+		return String(format: String(localized: "VM %@: agent %@ is installed, this build installs %@: run 'agent update'"), self.name, version, installs)
 	}
 }
 
@@ -87,7 +90,7 @@ public struct AgentHandler {
 
 	/// The result of an `agent update` that found the agent current.
 	public static func upToDate(_ reply: AgentVersionReply) -> AgentInstallReply {
-		AgentInstallReply(name: reply.name, installed: false, skipped: true, reason: String(format: String(localized: "Agent %@ is already up to date on %@"), reply.version ?? reply.expected, reply.name))
+		AgentInstallReply(name: reply.name, installed: false, skipped: true, reason: String(format: String(localized: "Agent %@ is already up to date on %@"), reply.version ?? reply.expected ?? "", reply.name))
 	}
 
 	/// Asks the agent of a VM of this host (through its own vsock socket, no service needed) which version it runs.
