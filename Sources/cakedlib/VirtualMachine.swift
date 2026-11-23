@@ -1496,8 +1496,10 @@ extension VirtualMachine {
 			do {
 				try self.env.vncServer.start()
 			} catch {
-				// A server that did not start must not stay: the next call would return its URLs without starting it
-				self.env.vncServer = nil
+				// A server that did not start must not stay: the next call would return its URLs without starting it.
+				// Stop it first (not just drop it): `start()` already ran `willStart`, which created the offscreen
+				// window, and only `stop()` reaches `didStop` to dispose of it. `stopVncServer()` clears the reference.
+				self.env.stopVncServer()
 				throw error
 			}
 		}
