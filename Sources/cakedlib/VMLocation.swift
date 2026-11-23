@@ -1209,7 +1209,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		}
 
 		let script = Data(launcher.utf8).base64EncodedString()
-		let reply = try client.run(command: "echo \(script) | base64 -d | sh -s -- \(quoted(serviceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))")
+		// The launcher can install a package (Xwayland) before it hands the work over, so it gets a generous deadline, but not an
+		// unlimited one: an agent that never answers must not hold the VM start forever.
+		let reply = try client.run(
+			command: "echo \(script) | base64 -d | sh -s -- \(quoted(serviceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))",
+			callOptions: CallOptions(timeLimit: .timeout(.seconds(300))))
 
 		guard reply.exitCode == 0 else {
 			let details = reply.stderr.isEmpty ? String(format: String(localized: "exit code %d"), Int(reply.exitCode)) : String(decoding: reply.stderr, as: UTF8.self)
@@ -1225,8 +1229,17 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		while Date() < deadline {
 			Thread.sleep(forTimeInterval: 2)
 
-			guard let probe = try? CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 10, runMode: runMode, retries: .upTo(1)),
-				let recorded = try? probe.run(command: "cat /etc/cakeagent/service-flags"), recorded.exitCode == 0
+			// Each probe is capped by what is left of the 60 seconds, so a hung agent can't stretch the wait past it
+			let remaining = deadline.timeIntervalSinceNow
+
+			guard remaining >= 1 else {
+				break
+			}
+
+			let probeTimeout = min(10, Int(remaining))
+
+			guard let probe = try? CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: probeTimeout, runMode: runMode, retries: .upTo(1)),
+				let recorded = try? probe.run(command: "cat /etc/cakeagent/service-flags", callOptions: CallOptions(timeLimit: .timeout(.seconds(Int64(probeTimeout))))), recorded.exitCode == 0
 			else {
 				continue
 			}
