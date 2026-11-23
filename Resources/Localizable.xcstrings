@@ -219,7 +219,8 @@
             "value" : "« %@ » n'est pas un identifiant d'application valide"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "'%@' is not a valid project name: use lowercase letters, digits and hyphens" : {
       "extractionState" : "stale",
@@ -253,7 +254,8 @@
             "value" : "« %@ » n'est pas un nom d'utilisateur valide"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "'%@' matches several applications: %@" : {
       "extractionState" : "stale",
@@ -264,7 +266,8 @@
             "value" : "« %@ » correspond à plusieurs applications : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "\"%@\" is not a valid domain." : {
       "comment" : "A warning message displayed when the user enters an invalid domain name in the \"ComposeDNS domain\" field. The argument is the value the user entered.",
@@ -714,7 +717,8 @@
             "value" : "%d rectangles dans une seule trame"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%d unexpected trailing bytes" : {
       "extractionState" : "stale",
@@ -725,7 +729,8 @@
             "value" : "%d octets de fin inattendus"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%d/%d running" : {
       "extractionState" : "manual",
@@ -1294,7 +1299,8 @@
             "value" : "La mise à jour du service de l'agent n'a pas été confirmée sur %@ : le service n'est pas revenu avec les nouveaux paramètres"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "agentReady" : {
       "extractionState" : "manual",
@@ -1426,6 +1432,17 @@
         }
       }
     },
+    "Allows seamless mode if the VM supports it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorise le mode fenêtres intégrées si la VM le prend en charge"
+          }
+        }
+      }
+    },
     "An application is required" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1435,7 +1452,8 @@
             "value" : "Une application est requise"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "An error occurred" : {
       "localizations" : {
@@ -1533,7 +1551,8 @@
             "value" : "Application, comme listée par 'app list'"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Application, or with --command a program and its arguments" : {
       "extractionState" : "stale",
@@ -1544,7 +1563,8 @@
             "value" : "Application, ou avec --command un programme et ses arguments"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Applications" : {
       "localizations" : {
@@ -1690,7 +1710,8 @@
             "value" : "Les arguments ne sont transmis qu'à un programme démarré avec --command"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Arrêter" : {
       "comment" : "A button that stops the scanning process.",
@@ -2813,7 +2834,8 @@
             "value" : "Impossible d'écouter sur %@ pour la VM %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Cannot relocate cake home while caked is active (%@). Stop the caked service, all virtual machines and all networks first." : {
       "comment" : "A message explaining that the cake home cannot be relocated while caked is active. The argument is a list of active blockers, separated by commas.",
@@ -2836,7 +2858,8 @@
             "value" : "Impossible de restreindre l'accès à %@ pour la VM %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Cannot take the listener lock of VM %@: %@" : {
       "extractionState" : "stale",
@@ -2847,7 +2870,8 @@
             "value" : "Impossible de prendre le verrou d'écoute de la VM %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Catalog image alias/id to build from, in place of --image" : {
       "extractionState" : "manual",
@@ -4277,7 +4301,8 @@
             "value" : "Créer une application macOS qui démarre une application de l'invité"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Create a new virtual machine" : {
       "localizations" : {
@@ -4351,7 +4376,8 @@
             "value" : "Créer un lanceur…"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Create named shared or host network" : {
       "extractionState" : "manual",
@@ -4558,7 +4584,8 @@
             "value" : "échec de la décompression"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "default" : {
       "localizations" : {
@@ -4889,7 +4916,8 @@
             "value" : "invité de démonstration : connexion impossible à %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "demo guest: socket failed" : {
       "extractionState" : "stale",
@@ -4900,7 +4928,8 @@
             "value" : "invité de démonstration : échec de la création du socket"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "demo guest: socket path too long" : {
       "extractionState" : "stale",
@@ -4911,7 +4940,8 @@
             "value" : "invité de démonstration : chemin du socket trop long"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "demo guest: write failed" : {
       "extractionState" : "stale",
@@ -4922,7 +4952,8 @@
             "value" : "invité de démonstration : échec de l'écriture"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Description:" : {
       "localizations" : {
@@ -5116,7 +5147,8 @@
             "value" : "Dossier où l'application est créée (par défaut ~/Applications)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Disable privileged operations for Caker" : {
       "comment" : "Command name for disabling privileged operations for Caker.",
@@ -5438,6 +5470,17 @@
         }
       }
     },
+    "Don't start the in-process demo guest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne pas démarrer l'invité de démonstration intégré au processus"
+          }
+        }
+      }
+    },
     "Don't use TLS" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5736,7 +5779,8 @@
             "value" : "trame vide"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Emulate sandbox" : {
       "extractionState" : "manual",
@@ -5985,7 +6029,8 @@
             "value" : "Erreur : %@\n"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Established" : {
       "extractionState" : "manual",
@@ -6040,7 +6085,8 @@
             "value" : "code de sortie %d"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "exitCode:%@, reason: %@ infos: %@" : {
       "extractionState" : "manual",
@@ -7059,7 +7105,8 @@
             "value" : "la trame de %d octets dépasse la limite"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Fred78290 / Aldune Labs" : {
       "comment" : "The name of the developer of Caker.",
@@ -8504,7 +8551,8 @@
             "value" : "dimensions invalides %u x %u"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Invalid file descriptor" : {
       "extractionState" : "manual",
@@ -8784,7 +8832,8 @@
             "value" : "chaîne UTF-8 invalide"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "invalid value" : {
       "extractionState" : "manual",
@@ -8823,7 +8872,8 @@
             "value" : "valeur invalide : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Invalid VMware VM" : {
       "comment" : "Error message displayed when the selected VMware VM is not a valid VMware VM.",
@@ -9303,7 +9353,8 @@
             "value" : "Lister et démarrer les applications d'une VM Linux"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "List available settings keys. This outputs the whole list of currently available settings keys, or just <arg>, if provided and a valid key." : {
       "extractionState" : "manual",
@@ -9424,7 +9475,8 @@
             "value" : "Lister les applications d'une VM"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "List the available remotes" : {
       "extractionState" : "manual",
@@ -10612,6 +10664,17 @@
         }
       }
     },
+    "Needs the cakeagent with seamless windows support in the guest, installed with --seamless. Takes effect when the VM starts." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nécessite un cakeagent avec la prise en charge des fenêtres intégrées dans l'invité, installé avec --seamless. Prend effet au démarrage de la VM."
+          }
+        }
+      }
+    },
     "Nested virtualization" : {
       "localizations" : {
         "fr" : {
@@ -11571,7 +11634,8 @@
             "value" : "Aucune application ne correspond à « %@ » dans cette VM"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "No built-in provisioning template for %@ — provide one with --template" : {
       "extractionState" : "manual",
@@ -12369,6 +12433,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir la machine virtuelle"
+          }
+        }
+      }
+    },
+    "Opens the host side of the seamless windows protocol on a unix socket and, unless --no-guest is given, connects an in-process demo guest that draws an animated window. With --no-guest, point a real guest compositor (through a connect://vsock:5100/<socket> socket device) at the printed socket." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvre le côté hôte du protocole des fenêtres intégrées sur un socket Unix et, sauf si --no-guest est précisé, connecte un invité de démonstration intégré au processus qui dessine une fenêtre animée. Avec --no-guest, pointez un vrai compositeur invité (via un périphérique socket connect://vsock:5100/<socket>) vers le socket affiché."
           }
         }
       }
@@ -13422,7 +13497,8 @@
             "value" : "popup"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Port" : {
       "localizations" : {
@@ -14678,7 +14754,8 @@
             "value" : "rectangle en dehors du tampon"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Referenced by" : {
       "localizations" : {
@@ -15177,7 +15254,8 @@
             "value" : "Remplacer un lanceur existant"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Report Issue" : {
       "localizations" : {
@@ -15674,7 +15752,8 @@
             "value" : "Exécuter un programme de l'invité au lieu d'une application de bureau"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Run a shell on a VM" : {
       "extractionState" : "manual",
@@ -15990,7 +16069,8 @@
             "value" : "Canal seamless à l'écoute sur %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Seamless demo" : {
       "extractionState" : "stale",
@@ -16001,7 +16081,8 @@
             "value" : "Démo seamless"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Seamless windows" : {
       "localizations" : {
@@ -16022,7 +16103,8 @@
             "value" : "seamless : impossible de lier %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "seamless: cannot restrict %@: %@" : {
       "extractionState" : "stale",
@@ -16033,7 +16115,8 @@
             "value" : "seamless : impossible de restreindre l'accès à %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "seamless: cannot take the listener lock of %@: %@" : {
       "extractionState" : "stale",
@@ -16044,7 +16127,8 @@
             "value" : "seamless : impossible de prendre le verrou d'écoute de %@ : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "seamless: listen failed: %@" : {
       "extractionState" : "stale",
@@ -16055,7 +16139,8 @@
             "value" : "seamless : échec de listen : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "seamless: socket path is too long: %@" : {
       "extractionState" : "stale",
@@ -16066,7 +16151,8 @@
             "value" : "seamless : chemin du socket trop long : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "seamless: socket() failed: %@" : {
       "extractionState" : "stale",
@@ -16077,7 +16163,8 @@
             "value" : "seamless : échec de socket() : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "seamless: the windows of this VM are already shown by another process (%@)" : {
       "extractionState" : "stale",
@@ -16088,7 +16175,8 @@
             "value" : "seamless : les fenêtres de cette VM sont déjà affichées par un autre processus (%@)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Search" : {
       "localizations" : {
@@ -16120,7 +16208,8 @@
             "value" : "Secondes d'attente de la réponse de l'invité"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "secure" : {
       "extractionState" : "manual",
@@ -16752,6 +16841,17 @@
         }
       }
     },
+    "Show a fake guest's windows through the seamless windows channel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les fenêtres d'un faux invité via le canal des fenêtres intégrées"
+          }
+        }
+      }
+    },
     "Show Caker" : {
       "localizations" : {
         "fr" : {
@@ -16803,6 +16903,17 @@
         }
       }
     },
+    "Show the guest's windows on the host, like WSLg (Linux guests)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les fenêtres de l'invité sur l'hôte, comme WSLg (invités Linux)"
+          }
+        }
+      }
+    },
     "Show the guest's windows on this desktop, ending when the VM stops" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16812,7 +16923,8 @@
             "value" : "Afficher les fenêtres de l'invité sur ce bureau, jusqu'à l'arrêt de la VM"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest, applies at the next start." : {
       "localizations" : {
@@ -17041,17 +17153,6 @@
         }
       }
     },
-    "Socket port %d is reserved for seamless windows and is already used by another socket mapping. Remove that socket or turn off seamless windows." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le port de socket %d est réservé aux fenêtres seamless et déjà utilisé par un autre mappage de socket. Supprimez cette socket ou désactivez les fenêtres seamless."
-          }
-        }
-      }
-    },
     "socket disconnect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17207,6 +17308,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le chemin du socket doit être dans le container d’application et doit être inférieur à 103 caractères pour être utilisable avec la commande caked"
+          }
+        }
+      }
+    },
+    "Socket port %d is reserved for seamless windows and is already used by another socket mapping. Remove that socket or turn off seamless windows." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le port de socket %d est réservé aux fenêtres seamless et déjà utilisé par un autre mappage de socket. Supprimez cette socket ou désactivez les fenêtres seamless."
           }
         }
       }
@@ -17619,7 +17731,8 @@
             "value" : "Démarrer une application d'une VM"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Start an application of this VM" : {
       "localizations" : {
@@ -17798,7 +17911,8 @@
             "value" : "Démarrer d'abord la VM si elle est arrêtée"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Start this project's services" : {
       "localizations" : {
@@ -17829,7 +17943,8 @@
             "value" : "%@ démarré (processus %d)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "starting" : {
       "extractionState" : "manual",
@@ -18274,7 +18389,8 @@
             "value" : "la chaîne de %d octets dépasse la limite"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Subcommands" : {
       "extractionState" : "manual",
@@ -18868,7 +18984,8 @@
             "value" : "L'application est l'identifiant d'un fichier desktop (org.mozilla.firefox), son nom, ou le dernier mot de son identifiant (firefox), comme listé par 'app list'. Avec --command, les arguments sont un programme et ses arguments."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The application is a desktop file ID (org.mozilla.firefox), its name, or the last word of its ID (firefox), as listed by 'app list'. With --command the arguments are a program and its arguments instead. The process then shows the guest's windows, unless another process (Caker.app, cakectl sh/exec/seamless) already does." : {
       "extractionState" : "stale",
@@ -18879,7 +18996,8 @@
             "value" : "L'application est l'identifiant d'un fichier desktop (org.mozilla.firefox), son nom, ou le dernier mot de son identifiant (firefox), comme listé par 'app list'. Avec --command, les arguments sont un programme et ses arguments. Le processus affiche ensuite les fenêtres de l'invité, sauf si un autre processus (Caker.app, cakectl sh/exec/seamless) le fait déjà."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The application is a small .app running 'cakectl app run': it starts the VM if needed, then the guest application, and its windows show on this desktop. Its icon is the application's icon in the guest, when it has one. Connection options (--connect, --disable-tls, --system) are kept in it, a password is not." : {
       "extractionState" : "stale",
@@ -18890,7 +19008,8 @@
             "value" : "L'application est un petit .app qui exécute 'cakectl app run' : il démarre la VM si besoin, puis l'application de l'invité, dont les fenêtres s'affichent sur ce bureau. Son icône est celle de l'application dans l'invité, si elle en a une. Les options de connexion (--connect, --disable-tls, --system) y sont conservées, pas le mot de passe."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The application is a small .app running 'caked app run': it starts the VM if needed, then the guest application, and its windows show on this desktop through the process that runs the VM. Its icon is the application's icon in the guest, when it has one." : {
       "extractionState" : "stale",
@@ -18901,7 +19020,8 @@
             "value" : "L'application est une petite .app qui exécute 'caked app run' : elle démarre la VM si besoin, puis l'application de l'invité, et ses fenêtres s'affichent sur ce bureau par le processus qui exécute la VM. Son icône est celle de l'application dans l'invité, si elle en a une."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The caked background agent is not installed. Would you like to install it now to enable full functionality?" : {
       "comment" : "Alert message when the caked background agent is not installed.",
@@ -19066,7 +19186,8 @@
             "value" : "Le compositeur de l'invité de cette VM s'est déconnecté"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The guest does not read the seamless stream" : {
       "extractionState" : "stale",
@@ -19077,7 +19198,8 @@
             "value" : "L'invité ne lit pas le flux seamless"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The guest's windows are relayed by caked over gRPC, so the VM can run under a caked on another host. The command runs until it is interrupted (Ctrl-C) or the service ends the stream." : {
       "extractionState" : "stale",
@@ -19160,6 +19282,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La bibliothèque est à jour"
+          }
+        }
+      }
+    },
+    "The login user in guest used for exec, default is configured user" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'utilisateur de connexion dans guest utilisé pour la commande, par défaut c’est l’utilisateur configuré."
           }
         }
       }
@@ -19438,7 +19571,8 @@
             "value" : "Le chemin %@ du socket seamless de la VM %@ n'est pas un socket"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The service %@ is unreachable." : {
       "comment" : "A localized error message that indicates that the service is unreachable.",
@@ -19679,7 +19813,8 @@
             "value" : "Les fenêtres de la VM %@ sont affichées par un autre processus, attente de leur libération\n"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The Windows product key in WINDOWS_KEY is not valid: expected XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" : {
       "extractionState" : "stale",
@@ -20227,7 +20362,8 @@
             "value" : "message tronqué"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate" : {
       "comment" : "A button that toggles locate mode on/off.",
@@ -20588,7 +20724,8 @@
             "value" : "Impossible de trouver l'exécutable cakectl"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unable to find the caked executable" : {
       "extractionState" : "stale",
@@ -20599,7 +20736,8 @@
             "value" : "Impossible de trouver l'exécutable caked"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unable to find virtual machine: %@" : {
       "localizations" : {
@@ -20728,7 +20866,8 @@
             "value" : "Impossible de lister les applications de la VM : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unable to load compose projects" : {
       "comment" : "A title for an alert that can't load compose projects.",
@@ -20893,7 +21032,8 @@
             "value" : "Impossible de démarrer l'application : %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unable to start VM %@" : {
       "extractionState" : "stale",
@@ -20904,7 +21044,8 @@
             "value" : "Impossible de démarrer la VM %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unable to start vnc client, error occurred: %@" : {
       "extractionState" : "manual",
@@ -20924,6 +21065,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de démarrer le client VNC, URL VNC invalide reçue du serveur : %@"
+          }
+        }
+      }
+    },
+    "Unable to write the agent install script" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'écrire le script d'installation de l'agent"
           }
         }
       }
@@ -21059,6 +21211,17 @@
         }
       }
     },
+    "Unix socket to listen on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Socket Unix sur laquelle écouter"
+          }
+        }
+      }
+    },
     "Unix sockets you attach to a VM must resolve inside the app's own container" : {
       "comment" : "A limitation listed on the sandbox limitations splash screen.",
       "localizations" : {
@@ -21167,7 +21330,8 @@
             "value" : "compression inconnue %d"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unknown Keychain error" : {
       "extractionState" : "manual",
@@ -21189,7 +21353,8 @@
             "value" : "type de message inconnu 0x%@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unknown option '%@'" : {
       "extractionState" : "manual",
@@ -21230,7 +21395,8 @@
             "value" : "format de pixel inconnu %d"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Unknown service" : {
       "extractionState" : "manual",
@@ -21920,7 +22086,8 @@
             "value" : "Utilise les fichiers .desktop de l'invité et son cakeagent. La VM doit être démarrée ; ses fenêtres sont affichées par le processus qui l'exécute."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Uses the .desktop files of the guest and its cakeagent. The windows of a started application are shown on this desktop when the VM has seamless windows enabled." : {
       "extractionState" : "stale",
@@ -21931,7 +22098,8 @@
             "value" : "Utilise les fichiers .desktop de l'invité et son cakeagent. Les fenêtres d'une application démarrée s'affichent sur ce bureau quand la VM a les fenêtres intégrées activées."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Using cached %@ file..." : {
       "extractionState" : "manual",
@@ -22374,7 +22542,8 @@
             "value" : "La VM %@ n'est pas une VM Linux"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "VM %@ is not running" : {
       "extractionState" : "manual",
