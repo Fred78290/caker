@@ -838,11 +838,21 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		self.clipboardTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
 			MainActor.assumeIsolated {
-				guard let self, NSApplication.shared.isActive, NSApplication.shared.keyWindow != nil else { return }
+				// Only the manager that owns the key window syncs: every VM has its own manager and timer, and the
+				// pasteboard change would otherwise be sent to all the guests at once. Moving to another window of
+				// this manager keeps working, since the check is on any of its windows.
+				guard let self, NSApplication.shared.isActive, self.ownsKeyWindow else { return }
 
 				self.syncClipboardToGuest()
 			}
 		}
+	}
+
+	/// Whether the application's key window is one of the guest windows of this manager.
+	private var ownsKeyWindow: Bool {
+		guard let keyWindow = NSApplication.shared.keyWindow else { return false }
+
+		return self.windows.values.contains { $0.window === keyWindow }
 	}
 
 	private func stopClipboardTimer() {
