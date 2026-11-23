@@ -18,14 +18,16 @@ final class SeamlessIntegrationTests: XCTestCase {
 			ifname: false, cpuCountMin: 2, memorySize: 4096 * MoB, memorySizeMin: 512 * MoB, screenSize: .init(width: 1024, height: 768))
 	}
 
-	private func makeConfig(os: VirtualizedOS = .linux, seamless: Bool, user: String = "admin") throws -> CakeConfig {
+	private func makeConfig(os: VirtualizedOS = .linux, seamless: Bool?, user: String = "admin") throws -> CakeConfig {
 		let dir = FileManager.default.temporaryDirectory.appendingPathComponent("seamless-\(UUID().uuidString.prefix(6))")
 
 		try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
 		let config = Self.config(at: dir, os: os, user: user)
 
-		config.seamless = seamless
+		if let seamless {
+			config.seamless = seamless
+		}
 
 		return config
 	}
@@ -44,15 +46,22 @@ final class SeamlessIntegrationTests: XCTestCase {
 	// MARK: - Config and socket device
 
 	func testSeamlessIsOffByDefaultAndPersists() throws {
-		let config = try makeConfig(seamless: false)
+		// The constructor leaves it off, and nothing else enables it.
+		let config = try makeConfig(seamless: nil)
 
 		XCTAssertFalse(config.seamless)
 		XCTAssertFalse(config.supportsSeamlessWindows)
 
-		config.seamless = true
+		// Each value survives a save and a reload from disk.
+		for value in [true, false] {
+			config.seamless = value
+			try config.save()
 
-		XCTAssertTrue(config.seamless)
-		XCTAssertTrue(config.supportsSeamlessWindows)
+			let reloaded = try CakeConfig(location: config.locationURL)
+
+			XCTAssertEqual(reloaded.seamless, value)
+			XCTAssertEqual(reloaded.supportsSeamlessWindows, value)
+		}
 	}
 
 	func testOnlyLinuxGuestsSupportSeamlessWindows() throws {
