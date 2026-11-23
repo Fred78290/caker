@@ -337,6 +337,7 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 		view.show(surface.makeImage())
 
 		let size = logicalSize(width: surface.width, height: surface.height)
+		let answeredRequest = consumeRequest(matching: size)
 
 		if !hasContent {
 			hasContent = true
@@ -347,14 +348,40 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 			if info.kind == .toplevel {
 				window.makeKeyAndOrderFront(nil)
 			}
-		} else if !window.inLiveResize, view.bounds.size != size {
-			// The guest picked another size (an app resizing itself): follow it, keeping the top-left corner.
+		} else if !window.inLiveResize, !answeredRequest, view.bounds.size != size {
+			// A size nobody asked for: the guest picked it (an app resizing itself, or clamping a request to its limits).
+			// Follow it, keeping the top-left corner. Whatever was still outstanding is obsolete, and the guest already
+			// has this size, so it isn't sent back.
 			let top = window.frame.maxY
 			let left = window.frame.minX
+
+			requestedSizes.removeAll()
+			followingGuestSize = true
+			defer { followingGuestSize = false }
 
 			window.setContentSize(size)
 			window.setFrameTopLeftPoint(NSPoint(x: left, y: top))
 		}
+	}
+
+	/// The sizes asked of the guest (oldest first) that it hasn't answered yet. A frame of one of them is the answer to
+	/// a host resize, possibly an intermediate one of a drag that has ended since: it must not move the window back.
+	private var requestedSizes: [NSSize] = []
+	private static let maxOutstandingRequests = 64
+	/// Set while the window is resized to follow the guest, so that resize isn't sent back as a request.
+	private var followingGuestSize = false
+
+	/// Whether `size` answers a request sent to the guest. It drops that request and the older ones (the guest answers in
+	/// order, so those were superseded or ignored). Sizes are compared within a point, the guest's pixel size and the
+	/// host's points convert back and forth with rounding.
+	private func consumeRequest(matching size: NSSize) -> Bool {
+		guard let index = requestedSizes.firstIndex(where: { abs($0.width - size.width) <= 1 && abs($0.height - size.height) <= 1 }) else {
+			return false
+		}
+
+		requestedSizes.removeFirst(index + 1)
+
+		return true
 	}
 
 	/// Popups open at their offset from the parent's content, toplevels cascade.
@@ -397,11 +424,18 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 	}
 
 	func windowDidResize(_ notification: Notification) {
-		guard hasContent else { return }
+		guard hasContent, !followingGuestSize else { return }
 
-		let size = view.bounds.size
+		let width = max(view.bounds.size.width.rounded(), 1)
+		let height = max(view.bounds.size.height.rounded(), 1)
 
-		sendToGuest(.windowResize(id: info.id, width: UInt32(max(size.width.rounded(), 1)), height: UInt32(max(size.height.rounded(), 1))))
+		requestedSizes.append(NSSize(width: width, height: height))
+
+		if requestedSizes.count > Self.maxOutstandingRequests {
+			requestedSizes.removeFirst(requestedSizes.count - Self.maxOutstandingRequests)
+		}
+
+		sendToGuest(.windowResize(id: info.id, width: UInt32(width), height: UInt32(height)))
 	}
 
 	func windowDidBecomeKey(_ notification: Notification) {
