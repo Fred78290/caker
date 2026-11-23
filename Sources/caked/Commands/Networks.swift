@@ -441,7 +441,7 @@ struct Networks: ParsableCommand {
 			let networkConfig = try home.sharedNetworks()
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: self.name, runMode: self.common.runMode)
 
-			if FileManager.default.fileExists(atPath: socketURL.socket.path(percentEncoded: false)) {
+			if socketURL.pidFile.isCakedRunning() {
 				throw ValidationError(String(localized: "Unable to delete running network \(self.name)"))
 			}
 
