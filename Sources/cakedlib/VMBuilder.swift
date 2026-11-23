@@ -241,11 +241,9 @@ public struct VMBuilder {
 			config.suspendable = options.suspendable && virtualizedOS == .darwin
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 			config.source = imageSource
-
-			// Also for a configuration loaded from an image: the option is a request for this VM, not for the image.
-			if options.seamless && virtualizedOS == .linux {
-				config.seamless = true
-			}
+			// Resolved after every configuration branch (new, loaded from an image or an existing config): the build option
+			// decides for this VM, true or false, but only a Linux guest (not Windows, which also reports .linux) can have it.
+			config.seamless = options.seamless && config.os == .linux && config.isWindowsGuest == false
 
 			try config.save()
 
