@@ -315,7 +315,13 @@ final class SeamlessWindowTests: XCTestCase {
 		private let lock = NSLock()
 		private var storage: [String] = []
 		private var messages: [SeamlessGuestMessage] = []
-		private(set) var session: SeamlessSession?
+		private var storedSession: SeamlessSession?
+
+		var session: SeamlessSession? {
+			lock.lock()
+			defer { lock.unlock() }
+			return storedSession
+		}
 
 		var log: [String] {
 			lock.lock()
@@ -331,7 +337,7 @@ final class SeamlessWindowTests: XCTestCase {
 
 		func seamlessServer(_ server: SeamlessServer, sessionDidStart session: SeamlessSession, guestName: String) {
 			lock.lock()
-			self.session = session
+			self.storedSession = session
 			storage.append("start \(guestName)")
 			lock.unlock()
 		}
@@ -393,7 +399,8 @@ final class SeamlessWindowTests: XCTestCase {
 		data.withUnsafeBytes { _ = Darwin.write(fd, $0.baseAddress!, $0.count) }
 	}
 
-	/// Reads host messages until `count` were decoded or the peer closed.
+	/// Reads host messages until `count` were decoded or the peer closed (a read that returns 0).
+	/// A read error other than EINTR, a timeout included, is thrown: it is not a closure.
 	private func readHost(_ fd: Int32, count: Int) throws -> [SeamlessHostMessage] {
 		var decoder = SeamlessFrameDecoder()
 		var out: [SeamlessHostMessage] = []
@@ -405,7 +412,13 @@ final class SeamlessWindowTests: XCTestCase {
 		while out.count < count {
 			let n = Darwin.read(fd, &buffer, buffer.count)
 
-			if n <= 0 { break }
+			if n < 0 {
+				if errno == EINTR { continue }
+
+				throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+			}
+
+			if n == 0 { break }
 
 			decoder.append(Data(buffer[0..<n]))
 
@@ -421,8 +434,8 @@ final class SeamlessWindowTests: XCTestCase {
 		let (server, recorder, path) = try makeServer()
 		defer { server.stop() }
 
-		let fd = try connect(path)
-		defer { Darwin.close(fd) }
+		var fd = try connect(path)
+		defer { if fd >= 0 { Darwin.close(fd) } }
 
 		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "unit")))
 		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
@@ -443,6 +456,7 @@ final class SeamlessWindowTests: XCTestCase {
 
 		// The guest going away ends the session.
 		Darwin.close(fd)
+		fd = -1  // The descriptor number may be reused: the deferred close must not touch it.
 		XCTAssertTrue(wait { recorder.log.last == "end" })
 	}
 
@@ -804,10 +818,9 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertTrue(wait { recorder.log == ["start tunnel"] })
 
 		// A manager that listens on no socket has nothing to remove or unlock when it stops.
+		// The peer stays open: the session must end because the server closed it, not because the peer went away (the deferred close releases it).
 		server.stop()
 
-		Darwin.close(pair[0])
-		pair[0] = -1
 		XCTAssertTrue(wait { recorder.log.last == "end" })
 	}
 
