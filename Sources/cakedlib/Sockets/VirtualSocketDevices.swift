@@ -1,10 +1,10 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import NIOCore
 import NIOPosix
 import Semaphore
 import Virtualization
-import CakeAgentLib
 
 extension Error {
 	var isLoggable: Bool {
@@ -223,7 +223,9 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 			}
 		}
 
-		Logger(self).warn("Closed socket connection on port:\(port) via fd:\(fd) is not found, already closed?")
+		#if DEBUG
+			Logger(self).trace("Closed socket connection on port:\(port) via fd:\(fd) is not found, already closed?")
+		#endif
 	}
 
 	// The guest initiates the connection to the host, the host must listen for the connection on the port
