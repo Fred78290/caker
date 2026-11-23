@@ -1033,7 +1033,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			try ssh.authenticate(
 				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
 		} else if let exists = try? home.sshPrivateKey.exists(), exists && (config.clearPassword == false || config.configuredPassword == nil) {
-			try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false))
+			// This key is only tried opportunistically (the VM never selected it): when the guest rejects it, fall back to the password
+			do {
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false))
+			} catch {
+				Logger(self).debug("SSH key authentication rejected on \(self.name), falling back to password: \(error)")
+
+				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+			}
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
