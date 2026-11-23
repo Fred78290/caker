@@ -222,13 +222,23 @@ elif [ $UPDATE -eq 1 ]; then
 	mkdir -p /etc/sysconfig
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
 	chmod 644 /etc/sysconfig/cakeagent
+	# cakeagent's Linux "service install" uninstalls the existing registration itself, registers the new flags and starts the
+	# service. The macOS one refuses ("service is already installed") while the launch daemon's plist exists, so that one is
+	# removed first with the supported "service remove" (it can report an error when the daemon is already unloaded by the
+	# stop above, the plist is removed anyway and the install below says if it is not).
+	if test "${OSDISTRO}" = "darwin"; then
+		/usr/local/bin/cakeagent service remove || true
+	fi
 	/usr/local/bin/cakeagent service install \
 		--listen="vsock://any:${LISTEN_PORT}" \
 		--ca-cert="${CA}" \
 		--tls-cert="${SERVER}" \
 		--tls-key="${KEY}" ${LINUX_MOUNTS} || { echo "CakeAgent service reinstall reported an error"; exit 1; }
-	# The previous flags stay recorded when this fails: the next start tries again
-	/usr/local/bin/cakeagent service start || exit 1
+	# The previous flags stay recorded when this fails: the next start tries again.
+	# The macOS install already loads the daemon, loading it again would fail.
+	if test "${OSDISTRO}" != "darwin"; then
+		/usr/local/bin/cakeagent service start || exit 1
+	fi
 else
 	mkdir -p /etc/sysconfig
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
