@@ -185,7 +185,7 @@ struct GuestApplicationsView: View {
 				ProgressView()
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 			} else if self.filtered.isEmpty {
-				Text(self.loaded ? "No application" : "")
+				Text(self.loaded ? String(localized: "No application") : "")
 					.foregroundStyle(.secondary)
 					.frame(maxWidth: .infinity, maxHeight: .infinity)
 			} else {
