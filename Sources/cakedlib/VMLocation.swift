@@ -1088,16 +1088,71 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let certs = "/etc/cakeagent/ssl"
 		let work = #"""
 			sleep 1
-			/usr/local/bin/cakeagent service stop || true
+			bin=/usr/local/bin/cakeagent
+			certs=\#(certs)
+			flags=$1
+			port=$2
+			backup=$(mktemp -d /run/cakeagent-reflag.XXXXXX) || exit 1
+
+			register() {
+				# $1 is deliberately unquoted: it is a list of flags
+				$bin service install --listen="vsock://any:$port" --ca-cert=$certs/ca.pem --tls-cert=$certs/server.pem --tls-key=$certs/server.key $1
+			}
+
+			# What is in place now, kept so that a failed update can put it back
+			oldflags=$(cat /etc/cakeagent/service-flags 2>/dev/null || true)
+			had_sysconfig=0
+			if [ -f /etc/sysconfig/cakeagent ]; then
+				cp -p /etc/sysconfig/cakeagent "$backup/sysconfig" && had_sysconfig=1
+			fi
+			[ -f /etc/systemd/system/cakeagent.service ] && cp -p /etc/systemd/system/cakeagent.service "$backup/systemd"
+			[ -f /etc/init.d/cakeagent ] && cp -p /etc/init.d/cakeagent "$backup/initd"
+
+			rollback() {
+				echo "$1: restoring the previous CakeAgent service"
+				$bin service stop >/dev/null 2>&1 || true
+				if [ "$had_sysconfig" = 1 ]; then
+					cp -p "$backup/sysconfig" /etc/sysconfig/cakeagent
+				else
+					rm -f /etc/sysconfig/cakeagent
+				fi
+				[ -f "$backup/systemd" ] && cp -p "$backup/systemd" /etc/systemd/system/cakeagent.service
+				[ -f "$backup/initd" ] && cp -p "$backup/initd" /etc/init.d/cakeagent
+				command -v systemctl >/dev/null 2>&1 && systemctl daemon-reload >/dev/null 2>&1
+				if ! $bin service start; then
+					# The files did not bring it back (another registration layout): register it again with the previous flags
+					register "$oldflags" && $bin service start || echo "CakeAgent previous service could not be restarted"
+				fi
+				rm -rf "$backup"
+				exit 1
+			}
+
+			$bin service stop || true
 			mkdir -p /etc/sysconfig
-			echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+			echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent || rollback "CakeAgent service configuration failed"
 			chmod 644 /etc/sysconfig/cakeagent
-			/usr/local/bin/cakeagent service install --listen="vsock://any:$2" --ca-cert=\#(certs)/ca.pem --tls-cert=\#(certs)/server.pem --tls-key=\#(certs)/server.key $1 || { echo "CakeAgent service reinstall reported an error"; exit 1; }
-			/usr/local/bin/cakeagent service start || exit 1
+			register "$flags" || rollback "CakeAgent service reinstall reported an error"
+			$bin service start || rollback "CakeAgent service did not start"
+			rm -rf "$backup"
 			# Only a registration that worked is recorded: the host reads this back before it trusts the update
-			printf '%s' "$1" > /etc/cakeagent/service-flags
+			mkdir -p /etc/cakeagent
+			printf '%s' "$flags" > /etc/cakeagent/service-flags
+			"""#
+		// Checked before anything is touched, and in the command itself (not the detached script) so a bad request is reported
+		// to the caller at once instead of leaving the service stopped
+		let validation = #"""
+			case "$2" in ''|*[!0-9]*) echo "Invalid agent port"; exit 1;; esac
+			if [ -n "$(printf '%s' "$1" | tr -d 'A-Za-z0-9 _=,:/.@+%-')" ]; then
+				echo "Invalid agent service flags"
+				exit 1
+			fi
+			[ -x /usr/local/bin/cakeagent ] || { echo "CakeAgent is not installed"; exit 1; }
+			for f in ca.pem server.pem server.key; do
+				[ -r \#(certs)/$f ] || { echo "CakeAgent certificate $f is missing"; exit 1; }
+			done
 			"""#
 		let launcher = #"""
+			\#(validation)
 			cat > /run/cakeagent-reflag.sh <<'CAKEAGENT_EOS'
 			\#(work)
 			CAKEAGENT_EOS
