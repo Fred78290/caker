@@ -546,6 +546,11 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		switch message {
 		case .pointerMotion, .pointerAxis:
 			break
+		case .clipboard(let text):
+			// The clipboard may hold secrets: never print it.
+			logger.trace("Seamless -> guest: clipboard (\(text.utf8.count) bytes)")
+		case .clipboardItems(let items):
+			logger.trace("Seamless -> guest: clipboard (\(items.count) items, \(items.reduce(0) { $0 + $1.data.count }) bytes)")
 		default:
 			logger.trace("Seamless -> guest: \(message)")
 		}
@@ -598,6 +603,11 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		case .windowFrame(let frame):
 			// Pixels: never print them.
 			logger.trace("Seamless <- guest: frame for window \(frame.windowID)")
+		case .clipboard(let text):
+			// The clipboard may hold secrets: never print it.
+			logger.trace("Seamless <- guest: clipboard (\(text.utf8.count) bytes)")
+		case .clipboardItems(let items):
+			logger.trace("Seamless <- guest: clipboard (\(items.count) items, \(items.reduce(0) { $0 + $1.data.count }) bytes)")
 		default:
 			logger.trace("Seamless <- guest: \(message)")
 		}
