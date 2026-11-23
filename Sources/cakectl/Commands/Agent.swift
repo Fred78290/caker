@@ -28,7 +28,10 @@ struct Agent: ParsableCommand {
 		// Compare against what the connected caked installs; a caked that predates the field leaves it empty: unknown, never assumed.
 		let expected: String? = reply.infos.installerAgentVersion.isEmpty ? nil : reply.infos.installerAgentVersion
 
-		return AgentVersionReply(name: name, running: VMInformations(reply.infos).status == .running, version: reply.infos.agentVersion, expected: expected)
+		let status = VMInformations(reply.infos).status
+		let running = status == .running || status == .provisioning
+
+		return AgentVersionReply(name: name, running: running, version: reply.infos.agentVersion, expected: expected)
 	}
 
 	/// Asks the connected caked to install the agent, and fails the command when it could not.
