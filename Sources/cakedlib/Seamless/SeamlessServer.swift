@@ -254,6 +254,9 @@ public final class SeamlessServer: @unchecked Sendable {
 	private let delegateQueue: DispatchQueue
 	private weak var delegate: SeamlessServerDelegate?
 	private let lock = NSLock()
+	/// Serializes `start()` and `stop()`: the listener is published under `lock` only at the end of `start()`, so a `stop()`
+	/// running in between would find nothing to tear down and leave a live listener, the socket file and the lock behind.
+	private let lifecycleLock = NSLock()
 	private var listenSource: DispatchSourceRead?
 	private var current: SeamlessSession?
 	private var listenerLock: Int32 = -1
@@ -347,6 +350,9 @@ public final class SeamlessServer: @unchecked Sendable {
 	}
 
 	public func start() throws {
+		lifecycleLock.lock()
+		defer { lifecycleLock.unlock() }
+
 		let lockFD: Int32
 
 		switch Self.tryAcquireListenerLock(for: socketPath) {
@@ -440,6 +446,9 @@ public final class SeamlessServer: @unchecked Sendable {
 	}
 
 	public func stop() {
+		lifecycleLock.lock()
+		defer { lifecycleLock.unlock() }
+
 		lock.lock()
 		let source = listenSource
 		let session = current
