@@ -19,8 +19,10 @@ import GRPCLib
 /// connects again, and gives up only on an answer that retrying can't change.
 @MainActor
 final class SeamlessTunnelSession {
-	/// Statuses retrying can't change: the VM is gone, seamless is off for it, or another process shows its windows.
-	private static let permanentFailures: Set<GRPCStatus.Code> = [.notFound, .failedPrecondition, .alreadyExists, .unimplemented, .unauthenticated, .permissionDenied]
+	/// Statuses retrying can't change: the VM is gone or seamless is off for it, the service can't do it, or we aren't allowed.
+	/// `.alreadyExists` (another stream still owns the guest's listener) is deliberately absent: it clears once that listener
+	/// is cleaned up, e.g. when the stream this session just replaced is torn down, so it is retried with `retryDelay`.
+	private static let permanentFailures: Set<GRPCStatus.Code> = [.notFound, .failedPrecondition, .unimplemented, .unauthenticated, .permissionDenied]
 	private static let retryDelay: Duration = .seconds(3)
 
 	private let vmName: String
