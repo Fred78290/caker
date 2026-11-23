@@ -478,6 +478,7 @@ public final class CakeAgentConnection: Sendable {
 		let interceptor = CakeAgentClientInterceptorFactory(responseStream: responseStream)
 		let client = try createClient(interceptors: interceptor)
 		var exitCodeSent = false
+		let agentFailure = ManagedAtomicLazyReference<CakeAgentClientInterceptorFactory.AtomicError>()
 		
 		func finish() async {
 			#if DEBUG
@@ -517,8 +518,15 @@ public final class CakeAgentConnection: Sendable {
 			// The agent's side of the call is over whether or not it sent an exit code (a rejected request, a lost
 			// connection): the relay ends with it. Without this the agent-to-client loop waits for a response that
 			// never comes, and the call stays open for as long as the client keeps its input open.
-			streamShell.status.whenComplete { _ in
-				continuation.finish()
+			// A non-OK status without an exit code (e.g. `permissionDenied`) must reach the client and the daemon's own
+			// status, not be turned into a plain "Canceled". `cancelled` is what our own teardown produces, so it isn't kept.
+			streamShell.status.whenComplete { result in
+				if case .success(let status) = result, status.isOk == false, status.code != .cancelled, exitCodeSent == false {
+					_ = agentFailure.storeIfNilThenLoad(.init(error: status))
+					continuation.finish(throwing: status)
+				} else {
+					continuation.finish()
+				}
 			}
 
 			defer {
@@ -627,7 +635,7 @@ public final class CakeAgentConnection: Sendable {
 							try? await responseStream.send(.with {
 								$0.established = .with {
 									$0.success = false
-									$0.reason = error.localizedDescription
+									$0.reason = (error as? GRPCStatus).map { $0.message ?? $0.description } ?? error.reason
 								}
 							})
 						}
@@ -674,6 +682,12 @@ public final class CakeAgentConnection: Sendable {
 
 			await finish()
 			throw error
+		}
+
+		// The client already got the reason through `established`; keep the agent's status for the daemon too.
+		// Outside the `do` so the catch above doesn't send a second `established` message.
+		if let failure = agentFailure.load()?.error as? GRPCStatus {
+			throw failure
 		}
 	}
 
