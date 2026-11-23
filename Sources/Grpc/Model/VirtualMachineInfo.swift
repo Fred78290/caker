@@ -245,6 +245,10 @@ public struct VMInformations: Sendable, Codable {
 				reply.uptime = uptime
 			}
 
+			if let agentVersion = self.agentVersion {
+				reply.agentVersion = agentVersion
+			}
+
 			if let memory = self.memory {
 				reply.memory = Caked.MemoryInfo.with {
 					if let total = memory.total {
