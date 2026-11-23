@@ -17041,6 +17041,17 @@
         }
       }
     },
+    "Socket port %d is reserved for seamless windows and is already used by another socket mapping. Remove that socket or turn off seamless windows." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le port de socket %d est réservé aux fenêtres seamless et déjà utilisé par un autre mappage de socket. Supprimez cette socket ou désactivez les fenêtres seamless."
+          }
+        }
+      }
+    },
     "socket disconnect" : {
       "extractionState" : "manual",
       "localizations" : {

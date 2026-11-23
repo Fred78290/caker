@@ -82,6 +82,27 @@ final class SeamlessIntegrationTests: XCTestCase {
 		XCTAssertFalse(sockets.contains { $0.port == SeamlessProtocol.defaultVsockPort })
 	}
 
+	func testCustomSocketOnTheSeamlessPortIsRejectedNotReplaced() throws {
+		let location = { (config: CakeConfig) in VMLocation(rootURL: config.locationURL) }
+		let port = SeamlessProtocol.defaultVsockPort
+
+		// With seamless on, a custom mapping on the reserved port is an error naming the port.
+		let config = try makeConfig(seamless: true)
+		config.sockets = [SocketDevice(mode: .tcp, port: port, bind: "127.0.0.1")]
+
+		XCTAssertThrowsError(try config.socketDeviceAttachments(agentURL: config.locationURL.appendingPathComponent("agent.sock"), seamlessSocketURL: location(config).seamlessSocketURL)) { error in
+			XCTAssertTrue("\(error)".contains("\(port)"), "\(error)")
+		}
+
+		// With seamless off, the same custom mapping is left alone.
+		let off = try makeConfig(seamless: false)
+		off.sockets = [SocketDevice(mode: .tcp, port: port, bind: "127.0.0.1")]
+
+		let sockets = try off.socketDeviceAttachments(agentURL: off.locationURL.appendingPathComponent("agent.sock"), seamlessSocketURL: location(off).seamlessSocketURL)
+
+		XCTAssertEqual(sockets.filter { $0.port == port }.map(\.mode), [.tcp])
+	}
+
 	func testLongVMPathFallsBackToAShortSocketPath() throws {
 		let base = FileManager.default.temporaryDirectory.appendingPathComponent(String(repeating: "long-directory-name-", count: 6))
 		let dir = base.appendingPathComponent("vm.vm")

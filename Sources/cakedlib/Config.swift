@@ -1145,6 +1145,13 @@ extension VirtualMachineConfiguration {
 			if Bundle.fileAccessRestricted && Utilities.isSandboxedPath(path, runMode: .current) == false {
 				Logger(self).warn(".fileAccessRestricted is enabled, skipping seamless windows socket: \(seamless.description)")
 			} else {
+				// A vsock port carries a single mapping: `VirtioSocketDevices` keys its sockets (and registers the guest
+				// listener) by port, so a custom socket on the same port would be silently replaced by this one, and its
+				// host-initiated (bind/tcp/udp) mode can't share a port with the guest-initiated seamless channel anyway.
+				if sockets.contains(where: { $0.port == seamless.port }) {
+					throw ServiceError(String(format: String(localized: "Socket port %d is reserved for seamless windows and is already used by another socket mapping. Remove that socket or turn off seamless windows."), seamless.port))
+				}
+
 				sockets.append(seamless)
 			}
 		}
