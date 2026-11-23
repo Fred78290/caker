@@ -204,6 +204,7 @@ struct Client: ParsableCommand {
 			commandName: "cakectl",
 			version: CI.version,
 			subcommands: [
+				Agent.self,
 				Aliases.self,
 				Apps.self,
 				Build.self,
