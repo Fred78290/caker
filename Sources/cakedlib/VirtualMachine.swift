@@ -222,6 +222,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let configuration: VZVirtualMachineConfiguration
 	let networks: [NetworkAttachement]
 	let sigcaught: [Int32: DispatchSourceSignal]
+	/// The socket devices this environment's virtual machine was configured with (empty unless `mode == .normal`).
+	let socketDevices: [SocketDevice]
 	let screenSize: CGSize
 	var semaphore = AsyncSemaphore(value: 0)
 	var vmrunService: VMRunServiceServerProtocol! = nil
@@ -281,7 +283,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		display: VMRunHandler.DisplayMode,
 		screenSize: CGSize,
 		mode: VirtualMachine.Mode,
-		runMode: Utils.RunMode
+		runMode: Utils.RunMode,
+		sigcaught inheritedSignals: [Int32: DispatchSourceSignal]? = nil
 	) throws {
 		let suspendable = config.suspendable && config.os == .darwin
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
@@ -294,6 +297,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
 
 		var sigcaught: [Int32: DispatchSourceSignal] = [:]
+		var socketDevices: [SocketDevice] = []
 		var devices: [VZStorageDeviceConfiguration] = [
 			try config.rootDiskAttachment(rootDiskURL: location.diskURL)
 		]
@@ -352,6 +356,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL, seamlessSocketURL: location.seamlessSocketURL)
 			let consoleURL = try config.consoleAttachment()
 
+			socketDevices = socketDeviceAttachments
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
 		} else if config.isWindowsGuest {
 			// Windows binds its virtio-vsock driver (installed with the other virtio drivers) when the device is
@@ -359,7 +364,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			configuration.socketDevices.append(VZVirtioSocketDeviceConfiguration())
 		}
 
-		if mode != .provisioning && location.template == false && runMode != .app {
+		if let inheritedSignals {
+			// A recreated environment keeps the signal sources the running process already set up: a source that is
+			// created and never activated crashes libdispatch when it is released.
+			sigcaught = inheritedSignals
+		} else if mode != .provisioning && location.template == false && runMode != .app {
 			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
 				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
 			}
@@ -378,6 +387,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.communicationDevices = communicationDevices
 		self.networks = networks
 		self.sigcaught = sigcaught
+		self.socketDevices = socketDevices
 		self.screenSize = screenSize
 		self.display = display
 		self.mode = mode
@@ -385,6 +395,23 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
 		}
+	}
+
+	/// Takes over the state of the environment a recreated one replaces: what the running process still refers to
+	/// (the run service and its semaphore, the machine view, the VNC server, the seamless windows manager).
+	func adoptState(from old: VirtualMachineEnvironment) {
+		self.semaphore = old.semaphore
+		self.vmrunService = old.vmrunService
+		self.vncServer = old.vncServer
+		self.vzMachineView = old.vzMachineView
+		self.vzMachineWindow = old.vzMachineWindow
+		self.timer = old.timer
+		self.provisioningVideoRecorder = old.provisioningVideoRecorder
+		self.seamlessWindows = old.seamlessWindows
+		self.requestStopFromUIPending = old.requestStopFromUIPending
+		self.seamlessRequests.lock()
+		self.seamlessRequestCount = old.latestSeamlessRequest
+		self.seamlessRequests.unlock()
 	}
 
 	func closedByRemote(socket: SocketDevice) {
@@ -1683,8 +1710,69 @@ extension VirtualMachine {
 // MARK: - UI actions
 extension VirtualMachine {
 
+	/// Runs `body` on the main actor, which owns `VirtualMachineEnvironment.init` and the machine view.
+	private static func onMainActor<T>(_ body: @MainActor () throws -> T) rethrows -> T {
+		if Thread.isMainThread {
+			return try MainActor.assumeIsolated(body)
+		}
+
+		return try DispatchQueue.main.sync {
+			try MainActor.assumeIsolated(body)
+		}
+	}
+
+	/// The socket devices (agent, user sockets, seamless windows) are fixed when the `VZVirtualMachine` is created, so
+	/// a restart that follows a configuration change (seamless turned on, a socket added) has to build a new virtual
+	/// machine and its communication devices. When nothing changed the existing ones are reused.
+	private func recreateIfSocketConfigurationChanged() throws {
+		let env = self.env
+
+		guard env.mode == .normal, self.virtualMachine.state == .stopped else {
+			return
+		}
+
+		let current = try self.config.socketDeviceAttachments(agentURL: self.location.agentURL, seamlessSocketURL: self.location.seamlessSocketURL)
+
+		guard current != env.socketDevices else {
+			return
+		}
+
+		self.logger.info("VM \(self.location.name) socket configuration changed, recreating the virtual machine")
+
+		let (newEnv, newMachine) = try Self.onMainActor {
+			let newEnv = try VirtualMachineEnvironment(
+				location: self.location,
+				config: self.config,
+				display: env.display,
+				screenSize: env.screenSize,
+				mode: env.mode,
+				runMode: env.runMode,
+				sigcaught: env.sigcaught)
+			let newMachine = VZVirtualMachine(configuration: newEnv.configuration, queue: self.vmQueue)
+
+			newMachine.delegate = self
+			newEnv.adoptState(from: env)
+
+			// The machine view (and the VNC server, which renders it) shows whichever machine it is given.
+			newEnv.vzMachineView?.virtualMachine = newMachine
+
+			return (newEnv, newMachine)
+		}
+
+		self.env = newEnv
+		self.virtualMachine = newMachine
+	}
+
 	public func startFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
+			do {
+				try self.recreateIfSocketConfigurationChanged()
+			} catch {
+				self.logger.error("VM \(self.location.name) failed to apply its configuration: \(error)")
+				completionHandler?(.failure(error))
+				return
+			}
+
 			self.virtualMachine.start(options: self.startOptions) { error in
 				let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
 
