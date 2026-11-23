@@ -461,7 +461,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 			} catch {
 				// Reject vsock connection if the connection to unix socket failed
-				Logger(self).error("Failed to connect the socket device on \(socket.description), \(error)")
+				Logger(self).trace("Failed to connect the socket device on \(socket.description), \(error)")
 				return false
 			}
 		} else if socket.mode == .fd {
