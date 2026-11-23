@@ -89,6 +89,7 @@ struct Root: ParsableCommand {
 			discussion: discussion(),
 			version: CI.version,
 			subcommands: [
+				Agent.self,
 				Aliases.self,
 				Apps.self,
 				Build.self,

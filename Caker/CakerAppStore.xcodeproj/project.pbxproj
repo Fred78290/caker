@@ -460,6 +460,7 @@
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA4A2F2307839DC005EEA30 /* ComposeDNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */; };
+		E35971AF25C967D75787BC71 /* AgentHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D519E026105393EB9DDA8DC1 /* AgentHandlerTests.swift */; };
 		9BA60F0A30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
 		9BA60F0B30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
 		9BA60F0C30962A83001C8C3E /* cloudinit-install-cakeagent.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */; };
@@ -522,6 +523,7 @@
 		9BBF7BB92F3E0F6200F37D2C /* VNCInfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7BB82F3E0F6100F37D2C /* VNCInfosHandler.swift */; };
 		9BBF7CAF2F3F1B8E00F37D2C /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CAE2F3F1B8600F37D2C /* ScreenSizeHandler.swift */; };
 		9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */; };
+		0F38C05929D5F18C66C58AA6 /* AgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5D9298B7CA3989F0F004E5 /* AgentHandler.swift */; };
 		9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */; };
 		9BBF92F630A9B31B0054FF7E /* prometheus-grafana-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F430A9B31B0054FF7E /* prometheus-grafana-alpine.yml */; };
 		9BBF92F730A9B31B0054FF7E /* lemp-alpine.yml in Resources */ = {isa = PBXBuildFile; fileRef = 9BBF92F230A9B31B0054FF7E /* lemp-alpine.yml */; };
@@ -918,7 +920,9 @@
 		9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */; };
 		9BFA90E22FD092E9007619A5 /* TeeStandardIOWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA90E12FD092E9007619A5 /* TeeStandardIOWrapper.swift */; };
 		9BFB8908303F558C007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8907303F558C007AFA2A /* Aliases.swift */; };
+		76A4A436B819923C33D2AE7F /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 598D120A31ABE2FBAD00CB40 /* Agent.swift */; };
 		9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8909303F55A3007AFA2A /* Aliases.swift */; };
+		18D40D09C2ECB249E4273E9A /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72B57FD7F43FA8211B53921D /* Agent.swift */; };
 		9BFB890B303F55B8007AFA2A /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		9BFD5B1B305733A800517B3E /* TaskEntryRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */; };
 		9BFD5B1F305734CF00517B3E /* Relocate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1E305734CF00517B3E /* Relocate.swift */; };
@@ -1767,6 +1771,7 @@
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSTests.swift; sourceTree = "<group>"; };
+		D519E026105393EB9DDA8DC1 /* AgentHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentHandlerTests.swift; sourceTree = "<group>"; };
 		9BA60F0930962A83001C8C3E /* cloudinit-install-cakeagent.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "cloudinit-install-cakeagent.sh"; sourceTree = "<group>"; };
 		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
 		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
@@ -1840,6 +1845,7 @@
 		9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BBF7CB22F3F28F400F37D2C /* VNCInfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInfosHandler.swift; sourceTree = "<group>"; };
 		9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		CC5D9298B7CA3989F0F004E5 /* AgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentHandler.swift; sourceTree = "<group>"; };
 		9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BBF92F030A9B31B0054FF7E /* alpine-dev.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "alpine-dev.yml"; sourceTree = "<group>"; };
 		9BBF92F130A9B31B0054FF7E /* docker-host-alpine.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "docker-host-alpine.yml"; sourceTree = "<group>"; };
@@ -2055,7 +2061,9 @@
 		9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCakerView.swift; sourceTree = "<group>"; };
 		9BFA90E12FD092E9007619A5 /* TeeStandardIOWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeStandardIOWrapper.swift; sourceTree = "<group>"; };
 		9BFB8907303F558C007AFA2A /* Aliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aliases.swift; sourceTree = "<group>"; };
+		598D120A31ABE2FBAD00CB40 /* Agent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Agent.swift; sourceTree = "<group>"; };
 		9BFB8909303F55A3007AFA2A /* Aliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aliases.swift; sourceTree = "<group>"; };
+		72B57FD7F43FA8211B53921D /* Agent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Agent.swift; sourceTree = "<group>"; };
 		9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEntryRepresentation.swift; sourceTree = "<group>"; };
 		9BFD5B1E305734CF00517B3E /* Relocate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relocate.swift; sourceTree = "<group>"; };
 		9BFD5B20305734F000517B3E /* Tasks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tasks.swift; sourceTree = "<group>"; };
@@ -2575,6 +2583,7 @@
 				D777B8DF669779B5A4A93A72 /* CakerEnvTests.swift */,
 				9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */,
 				9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */,
+				D519E026105393EB9DDA8DC1 /* AgentHandlerTests.swift */,
 				9BDD14C4306A7E3E0091E8DC /* ComposeProjectStatusTests.swift */,
 				9BDD14C5306A7E3E0091E8DC /* ComposeTest.swift */,
 				9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */,
@@ -2759,6 +2768,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8907303F558C007AFA2A /* Aliases.swift */,
+				598D120A31ABE2FBAD00CB40 /* Agent.swift */,
 				A64E262C8A2162F612F7B9EF /* App.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B1835172FAE4FB200D150FD /* Certificate.swift */,
@@ -3264,6 +3274,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFB8909303F55A3007AFA2A /* Aliases.swift */,
+				72B57FD7F43FA8211B53921D /* Agent.swift */,
 				04F9F7BA416B21F6FBEFFC93 /* App.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9B612F482FEC32030045F79F /* CakeHome.swift */,
@@ -3400,6 +3411,7 @@
 				9B9711C12DFF32A0005B161B /* ImportHandler.swift */,
 				9BEBC71D2DF440720092B196 /* InfosHandler.swift */,
 				9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */,
+				CC5D9298B7CA3989F0F004E5 /* AgentHandler.swift */,
 				9BEBC71E2DF440720092B196 /* LaunchHandler.swift */,
 				9BEBC71F2DF440720092B196 /* ListHandler.swift */,
 				9BEBC7202DF440720092B196 /* LoginHandler.swift */,
@@ -4623,6 +4635,7 @@
 				9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */,
 				9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */,
 				9BFB8908303F558C007AFA2A /* Aliases.swift in Sources */,
+				76A4A436B819923C33D2AE7F /* Agent.swift in Sources */,
 				D4AB924864E575FD83B874D4 /* App.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
@@ -4705,6 +4718,7 @@
 				9BDD14D6306A7E3E0091E8DC /* BuildOptionsTests.swift in Sources */,
 				9BDD14D7306A7E3E0091E8DC /* CachedImageKindTests.swift in Sources */,
 				9BA4A2F2307839DC005EEA30 /* ComposeDNSTests.swift in Sources */,
+				E35971AF25C967D75787BC71 /* AgentHandlerTests.swift in Sources */,
 				3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */,
 				9AC1EA3DEA5CA70E93E5CA4D /* CakerEnvTests.swift in Sources */,
 				C510D27CC0FA17DEAF6B4A53 /* CakedKeyConfigTests.swift in Sources */,
@@ -4734,6 +4748,7 @@
 				9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */,
 				9B081CBC2FC88D160029B259 /* Convert.swift in Sources */,
 				9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */,
+				18D40D09C2ECB249E4273E9A /* Agent.swift in Sources */,
 				DC3D735B24B35139FEEE891A /* App.swift in Sources */,
 				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
@@ -4919,6 +4934,7 @@
 				9B9DCB372F6EB09900E07852 /* VNCFramebufferView.swift in Sources */,
 				9B9DCB382F6EB09900E07852 /* KeyboardModifiers.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
+				0F38C05929D5F18C66C58AA6 /* AgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
 				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,

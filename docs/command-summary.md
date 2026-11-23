@@ -240,6 +240,24 @@ cakectl app create-launcher myvm firefox             # crée ~/Applications/Fire
 - Dans Caker.app, le bouton « Applications » de la barre d'outils de la fenêtre d'une VM Linux (fenêtres intégrées, agent actif) ouvre la liste avec l'icône de chaque application ; un bouton, à droite de la ligne survolée, crée un lanceur (pour une VM du service local, ou exécutée par l'application ; pas pour un service distant).
 - Les applications se démarrent sans argument ni fichier. Cela demande le cakeagent livré avec cette version (`seamless apps`/`launch`).
 
+### `agent` : afficher, installer et mettre à jour le cakeagent d'une VM
+
+`caked agent` et `cakectl agent` gèrent le cakeagent d'une VM démarrée depuis la ligne de commande, sans passer par le bouton « Install agent » / « Update agent » de Caker.app. `caked` agit sur les VM de cet hôte, `cakectl` sur celles du `caked` auquel il se connecte (mêmes appels `Info` et `InstallAgent` que l'application).
+
+```bash
+cakectl agent version myvm      # version de l'agent dans l'invité, comparée à celle que cette version installe
+cakectl agent install myvm      # installe toujours l'agent (via SSH), même s'il est déjà là
+cakectl agent update myvm       # n'installe que si la version de l'invité diffère
+cakectl agent update --force myvm
+caked agent update myvm --ssh-timeout 60
+```
+
+- La VM doit être démarrée : `install` et `update` passent par SSH, `version` interroge l'agent lui-même. Pour une VM arrêtée, `version` le dit au lieu d'échouer.
+- `version` affiche `agent <version> is up to date`, ou la version installée à côté de celle de cette version quand `update` est nécessaire ; avec `--json`, la sortie contient `version`, `expected` et `upToDate`. Une version vide veut dire que l'agent n'est pas installé ou ne répond pas.
+- `install` et `update` terminent avec un code de sortie non nul si l'installation échoue (VM arrêtée, SSH injoignable…). `update` ne fait rien et réussit quand l'agent est déjà à la bonne version ; `--force` réinstalle quand même.
+- `--ssh-timeout <secondes>` (30 par défaut) est le temps pendant lequel l'hôte attend le serveur SSH de l'invité. Pour `cakectl`, `--timeout` reste le délai de connexion à `caked`.
+- L'installation redémarre le service de l'agent dans l'invité : attendez quelques secondes avant d'interroger `version` de nouveau.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -699,6 +717,24 @@ cakectl app create-launcher myvm firefox             # creates ~/Applications/Fi
 - `caked app run` also takes `--start` and `--wait`; the launcher of `caked app create-launcher` runs `caked` itself (no service needed), the one of `cakectl` runs `cakectl`.
 - In Caker.app, the "Applications" button in the toolbar of a Linux VM's window (seamless windows on, agent running) opens the list with each application's icon; a button at the right of the hovered row creates a launcher (for a VM of the local service, or one the app runs itself; not for a remote service).
 - Applications start without arguments or files. This needs the cakeagent shipped with this version (`seamless apps`/`launch`).
+
+### `agent`: show, install and update a VM's cakeagent
+
+`caked agent` and `cakectl agent` manage the cakeagent of a running VM from the command line, without Caker.app's "Install agent" / "Update agent" button. `caked` acts on the VMs of this host, `cakectl` on those of the `caked` it connects to (the same `Info` and `InstallAgent` calls the app makes).
+
+```bash
+cakectl agent version myvm      # the agent version in the guest, next to the one this build installs
+cakectl agent install myvm      # always installs the agent (over SSH), even if it is already there
+cakectl agent update myvm       # installs only when the guest runs another version
+cakectl agent update --force myvm
+caked agent update myvm --ssh-timeout 60
+```
+
+- The VM must be running: `install` and `update` go through SSH, `version` asks the agent itself. For a stopped VM, `version` says so instead of failing.
+- `version` prints `agent <version> is up to date`, or the installed version next to this build's when `update` is needed; with `--json` the output carries `version`, `expected` and `upToDate`. An empty version means the agent is not installed or not answering.
+- `install` and `update` exit non-zero when the installation fails (VM stopped, SSH unreachable…). `update` does nothing and succeeds when the agent already has the right version; `--force` reinstalls anyway.
+- `--ssh-timeout <seconds>` (30 by default) is how long the host waits for the guest's SSH server. For `cakectl`, `--timeout` stays the connection timeout to `caked`.
+- Installing restarts the agent's service in the guest: wait a few seconds before running `version` again.
 
 ## Notes
 

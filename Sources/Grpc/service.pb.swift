@@ -4131,6 +4131,12 @@ public nonisolated struct Caked_Caked: Sendable {
           /// Clears the value of `numOfProcesses`. Subsequent reads from it will return its default value.
           public mutating func clearNumOfProcesses() {_uniqueStorage()._numOfProcesses = nil}
 
+          /// Agent version the answering caked installs; empty from a caked that predates it.
+          public var installerAgentVersion: String {
+            get {_storage._installerAgentVersion}
+            set {_uniqueStorage()._installerAgentVersion = newValue}
+          }
+
           public var unknownFields = SwiftProtobuf.UnknownStorage()
 
           public nonisolated struct DiskInfo: Sendable {
@@ -13033,7 +13039,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftPr
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.protoMessageName + ".InfoReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}agentVersion\0\u{1}screenSize\0\u{1}numOfProcesses\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}agentVersion\0\u{1}screenSize\0\u{1}numOfProcesses\0\u{1}installerAgentVersion\0")
 
   fileprivate class _StorageClass {
     var _version: String? = nil
@@ -13056,6 +13062,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoRepl
     var _agentVersion: String = String()
     var _screenSize: Caked_Caked.ScreenSize? = nil
     var _numOfProcesses: Int32? = nil
+    var _installerAgentVersion: String = String()
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -13086,6 +13093,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoRepl
       _agentVersion = source._agentVersion
       _screenSize = source._screenSize
       _numOfProcesses = source._numOfProcesses
+      _installerAgentVersion = source._installerAgentVersion
     }
   }
 
@@ -13124,6 +13132,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoRepl
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._agentVersion) }()
         case 19: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
         case 20: try { try decoder.decodeSingularInt32Field(value: &_storage._numOfProcesses) }()
+        case 21: try { try decoder.decodeSingularStringField(value: &_storage._installerAgentVersion) }()
         default: break
         }
       }
@@ -13196,6 +13205,9 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoRepl
       try { if let v = _storage._numOfProcesses {
         try visitor.visitSingularInt32Field(value: v, fieldNumber: 20)
       } }()
+      if !_storage._installerAgentVersion.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._installerAgentVersion, fieldNumber: 21)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -13225,6 +13237,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoRepl
         if _storage._agentVersion != rhs_storage._agentVersion {return false}
         if _storage._screenSize != rhs_storage._screenSize {return false}
         if _storage._numOfProcesses != rhs_storage._numOfProcesses {return false}
+        if _storage._installerAgentVersion != rhs_storage._installerAgentVersion {return false}
         return true
       }
       if !storagesAreEqual {return false}
