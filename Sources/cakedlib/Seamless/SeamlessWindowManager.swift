@@ -842,9 +842,14 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		let pasteboard = NSPasteboard.general
 
-		guard pasteboard.changeCount != self.pasteboardChangeCount else { return }
+		// NSPasteboard has no snapshot: every read gives what its current owner holds. Another application can take it over between
+		// the private-type check and the payload reads, and its content (a password manager's...) was never checked. The change
+		// count is captured once, and whatever was read is dropped when it moved: the next sync sees the new count and starts over.
+		let changeCount = pasteboard.changeCount
 
-		self.pasteboardChangeCount = pasteboard.changeCount
+		guard changeCount != self.pasteboardChangeCount else { return }
+
+		self.pasteboardChangeCount = changeCount
 
 		let types = Set((pasteboard.types ?? []).map(\.rawValue))
 
@@ -853,14 +858,14 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		if session.negotiatedVersion >= SeamlessProtocol.clipboardItemsVersion {
 			let items = Self.clipboardItems(from: pasteboard)
 
-			if !items.isEmpty {
+			if !items.isEmpty, pasteboard.changeCount == changeCount {
 				self.send(.clipboardItems(items), via: session)
 			}
 
 			return
 		}
 
-		if let text = pasteboard.string(forType: .string), !text.isEmpty, text.utf8.count <= SeamlessProtocol.maxClipboardBytes {
+		if let text = pasteboard.string(forType: .string), !text.isEmpty, text.utf8.count <= SeamlessProtocol.maxClipboardBytes, pasteboard.changeCount == changeCount {
 			self.send(.clipboard(text: text), via: session)
 		}
 	}
