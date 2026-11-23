@@ -309,7 +309,7 @@ private struct GuestApplicationRow: View {
 	@State private var icon: NSImage?
 
 	private var initial: String {
-		String(self.application.name.first.map { Character($0.uppercased()) } ?? "?")
+		self.application.name.first.map { $0.uppercased() } ?? "?"
 	}
 
 	var body: some View {
