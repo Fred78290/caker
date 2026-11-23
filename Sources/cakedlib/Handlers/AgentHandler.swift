@@ -92,13 +92,22 @@ public struct AgentHandler {
 
 	/// Asks the agent of a VM of this host (through its own vsock socket, no service needed) which version it runs.
 	public static func version(name: String, runMode: Utils.RunMode, timeout: Int64 = 3) -> AgentVersionReply {
+		let location: VMLocation
+
 		do {
-			let location = try StorageLocation(runMode: runMode).find(name)
+			location = try StorageLocation(runMode: runMode).find(name)
+		} catch {
+			Logger("AgentHandler").debug("Unable to query the agent of \(name): \(error.reason)")
 
-			guard case .running = location.status else {
-				return AgentVersionReply(name: location.name, running: false, version: nil)
-			}
+			return AgentVersionReply(name: name, running: false, version: nil)
+		}
 
+		guard case .running = location.status else {
+			return AgentVersionReply(name: location.name, running: false, version: nil)
+		}
+
+		// The VM is running: whatever fails from here on means the agent can't be reached, not that the VM is stopped.
+		do {
 			let helper = try CakeAgentHelper.createCakeAgentHelper(location: location, connectionTimeout: timeout, retries: .upTo(1), runMode: runMode)
 			let version = try? helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(timeout)))).agentVersion
 
@@ -106,7 +115,7 @@ public struct AgentHandler {
 		} catch {
 			Logger("AgentHandler").debug("Unable to query the agent of \(name): \(error.reason)")
 
-			return AgentVersionReply(name: name, running: false, version: nil)
+			return AgentVersionReply(name: location.name, running: true, version: nil)
 		}
 	}
 
