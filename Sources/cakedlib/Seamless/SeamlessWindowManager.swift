@@ -518,8 +518,21 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	}
 
 	public func stop() {
+		// Retire the session first, synchronously: callbacks already queued for it (frames, window creations, its end
+		// notification) compare against `self.session` and are dropped, so they can't reopen windows after the close.
+		// The disconnect is reported here, once; the delegate's end callback then finds no matching session and stays
+		// silent. A later start makes a fresh session.
+		let hadSession = self.session != nil
+
+		self.session = nil
+		self.stopClipboardTimer()
 		server.stop()
 		closeAllWindows()
+
+		if hadSession {
+			self.logger.info("Seamless: guest compositor disconnected")
+			self.onSessionChange?(false)
+		}
 	}
 
 	private func closeAllWindows() {
