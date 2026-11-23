@@ -487,6 +487,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	private var applicationInited = false
 	private var pasteboardChangeCount = NSPasteboard.general.changeCount
 	private var clipboardTimer: Timer?
+	/// The keyboard layout the guest was last told (`nil`: none yet, so the next sync sends it, even an empty one).
+	private var sentKeyboardLayout: String?
 
 	/// A process that runs the VM without a UI (`vmrun --vnc`, what a background start uses) shows the guest's windows
 	/// too: it has no application of its own, so the manager makes it an accessory one (no Dock icon, no menu bar),
@@ -605,6 +607,9 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 			self.session = session
 			self.guestName = guestName
+			// A new guest connection knows nothing of what the previous one was told.
+			self.sentKeyboardLayout = nil
+			self.syncKeyboardLayoutToGuest()
 			self.startClipboardTimer()
 			self.logger.info("Seamless: guest compositor \(guestName) connected")
 			self.onSessionChange?(true)
@@ -665,7 +670,10 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			let controller = SeamlessWindowController(
 				info: info, parent: parent, titlePrefix: titlePrefix, scale120: server.outputScale120,
 				send: { [weak self, weak owner = self.session] in self?.send($0, via: owner) })
-			controller.onFocus = { [weak self] in self?.syncClipboardToGuest() }
+			controller.onFocus = { [weak self] in
+				self?.syncKeyboardLayoutToGuest()
+				self?.syncClipboardToGuest()
+			}
 			windows[info.id] = controller
 
 			// Nothing is shown yet: the first valid frame sizes, places and shows the window (and activates the app
@@ -835,6 +843,27 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		return items
 	}
 
+	/// Tells the guest the layout of the keyboard of this Mac (the one that shows the windows, whichever Mac runs the VM), when it
+	/// differs from what the guest was last told. Keys are sent by physical position, so without it a French keyboard typing
+	/// into a guest that was installed from a US Mac produces US characters. A layout with no plain XKB equivalent is sent as
+	/// empty, which puts the guest back on the layout its compositor was installed with (`--seamless-layout`).
+	func syncKeyboardLayoutToGuest() {
+		guard let session, session.negotiatedVersion >= SeamlessProtocol.keyboardLayoutVersion else { return }
+
+		let layout = SeamlessKeyboardLayout.hostXkbLayout() ?? ""
+
+		guard layout != self.sentKeyboardLayout else { return }
+
+		// Nothing to undo when the guest was never told anything and this Mac has no plain layout either.
+		guard !(layout.isEmpty && self.sentKeyboardLayout == nil) else {
+			self.sentKeyboardLayout = layout
+			return
+		}
+
+		self.sentKeyboardLayout = layout
+		self.send(.keyboardLayout(layout), via: session)
+	}
+
 	/// Sends the host's clipboard to the guest when it changed since it was last seen (either way): every shared type of it
 	/// (only its text for a guest on protocol 3). Never what is marked private.
 	func syncClipboardToGuest() {
@@ -882,6 +911,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 				// this manager keeps working, since the check is on any of its windows.
 				guard let self, NSApplication.shared.isActive, self.ownsKeyWindow else { return }
 
+				self.syncKeyboardLayoutToGuest()
 				self.syncClipboardToGuest()
 			}
 		}

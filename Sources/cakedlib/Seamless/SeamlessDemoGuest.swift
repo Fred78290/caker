@@ -311,6 +311,8 @@ public final class SeamlessDemoGuest: @unchecked Sendable {
 			record("clipboard \(text.utf8.count) bytes")
 		case .clipboardItems(let items):
 			record("clipboard items \(items.map { "\($0.mime) \($0.data.count)" }.joined(separator: ", "))")
+		case .keyboardLayout(let layout):
+			record("keyboard layout \(layout.isEmpty ? "(default)" : layout)")
 		}
 	}
 

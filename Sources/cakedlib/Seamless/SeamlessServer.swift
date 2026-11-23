@@ -68,6 +68,8 @@ public final class SeamlessSession: @unchecked Sendable {
 		if case .clipboard = message, negotiatedVersion < SeamlessProtocol.clipboardVersion { return }
 		// And a guest older than the clipboard items.
 		if case .clipboardItems = message, negotiatedVersion < SeamlessProtocol.clipboardItemsVersion { return }
+		// And a guest older than the keyboard layout message.
+		if case .keyboardLayout = message, negotiatedVersion < SeamlessProtocol.keyboardLayoutVersion { return }
 
 		guard let data = try? SeamlessCodec.encode(message) else { return }
 

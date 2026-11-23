@@ -33,7 +33,7 @@ connect://vsock:5100/<path to the seamless socket>
 
 The guest compositor connects to vsock port `5100` (`SeamlessProtocol.defaultVsockPort`), the bridge in `VirtualSocketDevices.swift` forwards it to the socket `SeamlessServer` listens on.
 
-## Protocol (version 3)
+## Protocol (version 5)
 
 Frame: `u32 length` (type byte + payload) + `u8 type` + payload, little endian, strings `u16 length` + UTF-8. Types `0x01...0x7F` guest to host, `0x81...0xFF` host to guest. First message must be `hello`; the host answers `helloAck` with the output scale (`120` == 1x, fractional-scale units).
 
@@ -117,6 +117,12 @@ Any MIME type, both ways (protocol 4; protocol 3 had text only and is still spok
 - The compositor also accepts selection requests (copy and paste between guest applications did not work before either), handles the primary selection (guest only) and offers `wlr-data-control`, so `wl-copy`/`wl-paste` work without a focused surface.
 - **Verified**: the compositor against a test host speaking the protocol (`wl-copy`/`wl-paste` both directions, 900 KB host to guest, a 1.1 MB copy dropped), and guest to Mac through the real hub, a running `caked` and `pbpaste` (text with accents). **Checked by the maintainer in a real Caker session**: copy and paste of text works (Cmd+C / Cmd+V between the Mac and a guest window, with the released cakeagent v1.0.326). Not checked one by one: the timer versus the window-becoming-key trigger, other guest applications, a second guest user. Unit-tested: codec limits and formats, version gating, delivery through the server; the hub's routing and validation.
 
+## Keyboard layout (protocol 5)
+
+Keys travel by physical position (evdev codes), so what they type is decided by the guest's XKB layout. Until protocol 5 that was the layout the agent was installed with: `CakeConfig.agentServiceFlags` writes `--seamless-layout=<layout of the Mac that generated the flags>`, so a French user on a remote Mac (`cakectl seamless`, Caker.app on another host) typing into a guest installed from a US Mac got US characters (the key labelled Q sits where a US keyboard has A, and the guest answered `a`).
+
+`keyboardLayout` (`0x8E`, host to guest): one string, an XKB layout name (`SeamlessProtocol.isValidKeyboardLayout`: lowercase letters, digits and underscores, starting with a letter, 32 bytes at most, or empty), checked by the host's codec, the hub and the compositor's parser. It is sent by the process that shows the windows (`SeamlessWindowManager.syncKeyboardLayoutToGuest()`, so the Mac of the viewer, whichever Mac runs the VM) when the guest connects, whenever a window becomes key and on the 0.5 s timer while the application is active (the layout is `SeamlessKeyboardLayout.hostXkbLayout()`), and only when it differs from what the guest was last told. A layout with no plain XKB equivalent (Dvorak...) is sent as empty, which puts the compositor back on the layout it was installed with (`--seamless-layout`), and nothing is sent at all when this Mac has none and the guest was never told one. The compositor compiles a new keymap at once; the hub gives it to every compositor and to one that attaches later. `--seamless-layout` stays the starting layout, and what a host on protocol 4 gets. Needs a cakeagent with protocol 5: `CAKEAGENT_VERSION` must be bumped once it is released.
+
 ## X11 applications (XWayland)
 
 An application that only speaks X11 (GIMP 2.10 is GTK2) failed with "Cannot open display": the guest compositor had no X server. It now serves an X display through wlroots' XWayland support (cakeagent#35, released in `v1.0.329`, protocol unchanged): wlroots listens on a free display at start and runs `Xwayland` when the first X11 client connects, X11 windows are announced like xdg ones (managed windows are toplevels at the X origin, override-redirect menus and tooltips are popups of a window of the same process), and the compositor writes its display name to `$XDG_RUNTIME_DIR/<socket>.display`, from which the agent exports `DISPLAY` and the `wayland,x11` toolkit fallbacks. The guest needs the `Xwayland` program: `ssh-install-cakeagent.sh` and `cloudinit-install-cakeagent.sh` install it best effort when `--seamless` is among the service flags (apt, dnf, yum, zypper, apk, pacman). **Checked on a real Ubuntu arm64 guest**: `xclock` and GIMP 2.10.36 show as `[vm] …` windows. Not done: the cursor an X11 client draws, Retina sharpness (X11 clients ignore the scale), the pin is `CAKEAGENT_VERSION` = `v1.0.332`.
@@ -124,7 +130,7 @@ An application that only speaks X11 (GIMP 2.10 is GTK2) failed with "Cannot open
 ## Not done yet / known gaps
 
 - Clipboard files, lazy fetching of big types (everything offered is read at once, within the limits), drag and drop (message ids are free, nothing is reserved), client-drawn cursor images.
-- Input methods / IME and character-level text input: `text-input` is advertised and ignored, keys go by physical position, so the guest keyboard layout must match the host's. Cmd shortcuts handled by the host menu (Cmd+Q, Cmd+W, Cmd+H...) are not forwarded; the others are, as Control (see Clipboard).
+- Input methods / IME and character-level text input: `text-input` is advertised and ignored, keys go by physical position, and the guest keyboard layout is the one the viewer's Mac sends (protocol 5; a layout with no plain XKB equivalent stays on the installed one). Cmd shortcuts handled by the host menu (Cmd+Q, Cmd+W, Cmd+H...) are not forwarded; the others are, as Control (see Clipboard).
 - Launching with arguments or files (`%U`, `%F`) is not supported: `cakeagent seamless launch --desktop` starts the application bare. Not done: a launcher for a VM of a remote service, grouping by `Categories`.
 - Host-driven output scale changes when a window moves between displays (`output` exists, nothing sends it on a screen change).
 - Rendering: each frame snapshots the whole buffer into a `CGImage`. Replace with an `IOSurface` ring and per-damage updates, and coalesce to the display refresh.

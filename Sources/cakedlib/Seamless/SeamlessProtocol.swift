@@ -27,7 +27,7 @@ public enum SeamlessAxisSource: UInt8, Sendable {
 }
 
 public enum SeamlessProtocol {
-	public static let version: UInt16 = 4
+	public static let version: UInt16 = 5
 	/// The oldest guest version the host still talks to: it answers with the guest's version and leaves out what that version lacks
 	/// (version 1 has no scroll wheel, `pointerAxis` is never sent to it).
 	public static let minimumVersion: UInt16 = 1
@@ -38,6 +38,11 @@ public enum SeamlessProtocol {
 	/// First version whose clipboard is a list of MIME typed items (`clipboardItems`); the text message of version 3 is
 	/// only used with a guest on that version.
 	public static let clipboardItemsVersion: UInt16 = 4
+	/// First version with `keyboardLayout`: the host tells the guest which XKB layout its keyboard has, so the keys sent by
+	/// position come out right whichever Mac shows the windows.
+	public static let keyboardLayoutVersion: UInt16 = 5
+	/// The longest XKB layout name of `keyboardLayout`, in bytes.
+	public static let maxKeyboardLayoutLength = 32
 	/// The most text a version 3 clipboard message carries, in bytes: a bigger selection is not shared.
 	public static let maxClipboardBytes = 1024 * 1024
 	/// The most items of a clipboard message, and the most data (all of them together) in bytes: what does not fit is left out.
@@ -55,6 +60,19 @@ public enum SeamlessProtocol {
 	/// Largest rectangle (and buffer), in pixels.
 	public static let maxRectPixels = 40_000_000
 	public static let bytesPerPixel = 4
+
+	/// An XKB layout name the protocol accepts: lowercase letters, digits and underscores, starting with a letter (`us`, `fr`,
+	/// `latam`), at most `maxKeyboardLayoutLength` bytes. Empty means the compositor's own default. It ends up in the
+	/// environment of an XKB keymap compilation in the guest, so nothing else gets through.
+	public static func isValidKeyboardLayout(_ layout: String) -> Bool {
+		let bytes = Array(layout.utf8)
+
+		guard bytes.count <= maxKeyboardLayoutLength else { return false }
+		guard let first = bytes.first else { return true }
+		guard first >= UInt8(ascii: "a"), first <= UInt8(ascii: "z") else { return false }
+
+		return bytes.allSatisfy { ($0 >= UInt8(ascii: "a") && $0 <= UInt8(ascii: "z")) || ($0 >= UInt8(ascii: "0") && $0 <= UInt8(ascii: "9")) || $0 == UInt8(ascii: "_") }
+	}
 
 	/// BTN_LEFT / BTN_RIGHT / BTN_MIDDLE, the codes Wayland compositors expect.
 	public static let buttonLeft: UInt32 = 0x110
@@ -246,6 +264,9 @@ public enum SeamlessHostMessage: Equatable, Sendable {
 	case clipboard(text: String)
 	/// What the host's clipboard holds (protocol 4). It becomes the selection of the guest.
 	case clipboardItems([SeamlessClipboardItem])
+	/// The XKB layout of the keyboard of the Mac that shows the windows (protocol 5), `us`, `fr`... Keys travel by position, the
+	/// guest turns them into characters with this layout. Empty: back to the layout the compositor was started with.
+	case keyboardLayout(String)
 }
 
 // MARK: - Primitives
@@ -389,7 +410,7 @@ public enum SeamlessCodec {
 	}
 
 	private enum HostType: UInt8 {
-		case helloAck = 0x81, output, windowResize, windowClose, windowFocus, pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, key, clipboard, clipboardItems
+		case helloAck = 0x81, output, windowResize, windowClose, windowFocus, pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, key, clipboard, clipboardItems, keyboardLayout
 	}
 
 	private static let pixelFormatBGRA: UInt8 = 0
@@ -576,6 +597,12 @@ public enum SeamlessCodec {
 		case .clipboardItems(let items):
 			type = .clipboardItems
 			try Self.writeClipboardItems(items, &w)
+		case .keyboardLayout(let layout):
+			type = .keyboardLayout
+
+			guard SeamlessProtocol.isValidKeyboardLayout(layout) else { throw SeamlessProtocolError.invalidValue("keyboard layout \(layout)") }
+
+			try w.string(layout)
 		}
 
 		return try wrap(type: type.rawValue, w)
@@ -804,6 +831,12 @@ public enum SeamlessCodec {
 			message = .clipboard(text: try readClipboard(&r))
 		case .clipboardItems:
 			message = .clipboardItems(try readClipboardItems(&r))
+		case .keyboardLayout:
+			let layout = try r.string()
+
+			guard SeamlessProtocol.isValidKeyboardLayout(layout) else { throw SeamlessProtocolError.invalidValue("keyboard layout \(layout)") }
+
+			message = .keyboardLayout(layout)
 		}
 
 		try r.finish()

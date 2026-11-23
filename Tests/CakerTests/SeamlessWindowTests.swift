@@ -80,11 +80,33 @@ final class SeamlessWindowTests: XCTestCase {
 			.key(code: 30, pressed: true),
 			.clipboard(text: "from the Mac"),
 			.clipboardItems([SeamlessClipboardItem(mime: "text/html", data: Data("<b>x</b>".utf8))]),
+			.keyboardLayout("fr"),
+			.keyboardLayout(""),
 		]
 
 		for message in messages {
 			XCTAssertEqual(try roundTrip(message), message)
 		}
+	}
+
+	func testKeyboardLayoutNamesAreCheckedOnBothSides() throws {
+		for good in ["", "us", "fr", "latam", "ca", "layout_2", String(repeating: "a", count: SeamlessProtocol.maxKeyboardLayoutLength)] {
+			XCTAssertTrue(SeamlessProtocol.isValidKeyboardLayout(good), good)
+		}
+
+		for bad in ["FR", "1us", "us,fr", "fr(oss)", "../x", "us fr", "é", "a-b", String(repeating: "a", count: SeamlessProtocol.maxKeyboardLayoutLength + 1)] {
+			XCTAssertFalse(SeamlessProtocol.isValidKeyboardLayout(bad), bad)
+			XCTAssertThrowsError(try SeamlessCodec.encode(.keyboardLayout(bad)))
+
+			// A peer that sends one anyway is refused by the decoder: the type 0x8E, then the string.
+			var payload = [UInt8(truncatingIfNeeded: bad.utf8.count), UInt8(truncatingIfNeeded: bad.utf8.count >> 8)]
+
+			payload.append(contentsOf: Array(bad.utf8))
+			XCTAssertThrowsError(try SeamlessCodec.decodeHost(type: 0x8E, payload: payload), bad)
+		}
+
+		// Trailing bytes are refused too.
+		XCTAssertThrowsError(try SeamlessCodec.decodeHost(type: 0x8E, payload: [2, 0, 0x66, 0x72, 0]))
 	}
 
 	func testFrameRoundTripRawAndCompressed() throws {
@@ -692,6 +714,38 @@ final class SeamlessWindowTests: XCTestCase {
 
 		recorder.session?.send(.clipboardItems(fromMac))
 		XCTAssertEqual(try readHost(fd, count: 1), [.clipboardItems(fromMac)])
+	}
+
+	func testKeyboardLayoutIsNotSentToAGuestBeforeProtocolFive() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: 4, name: "old")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: 4, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start old"] })
+
+		// A protocol 4 guest would close the connection on a message it does not know: it is dropped, the next one goes through.
+		recorder.session?.send(.keyboardLayout("fr"))
+		recorder.session?.send(.key(code: 30, pressed: true))
+		XCTAssertEqual(try readHost(fd, count: 1), [.key(code: 30, pressed: true)])
+	}
+
+	func testGuestOnProtocolFiveGetsTheKeyboardLayout() throws {
+		let (server, recorder, path) = try makeServer()
+		defer { server.stop() }
+
+		let fd = try connect(path)
+		defer { Darwin.close(fd) }
+
+		write(fd, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "new")))
+		XCTAssertEqual(try readHost(fd, count: 1), [.helloAck(version: SeamlessProtocol.version, scale120: 240)])
+		XCTAssertTrue(wait { recorder.log == ["start new"] })
+
+		recorder.session?.send(.keyboardLayout("fr"))
+		XCTAssertEqual(try readHost(fd, count: 1), [.keyboardLayout("fr")])
 	}
 
 	func testGuestOnProtocolOneIsAcceptedWithoutScrolling() throws {
