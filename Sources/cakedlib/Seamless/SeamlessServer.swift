@@ -18,7 +18,24 @@ public final class SeamlessSession: @unchecked Sendable {
 	private var closed = false
 	private var activeWrites = 0
 	private var closePending = false
+	private var superseded = false
 	private var protocolVersion = SeamlessProtocol.version
+
+	/// Encoded messages waiting for the writer. A guest that stops reading must not make the host buffer without bound.
+	private struct Pending {
+		var data: Data
+		/// The window of a pointer motion: only that kind of message may be replaced by a newer one.
+		var motionWindow: UInt32?
+	}
+
+	private var pending: [Pending] = []
+	/// Bytes of `pending` plus the message being written, until it is written.
+	private var pendingBytes = 0
+	private var draining = false
+
+	/// Room for the biggest clipboard (32 MiB) plus ordinary input queued behind it.
+	static let maxPendingBytes = SeamlessProtocol.maxClipboardTotalBytes + 8 * 1024 * 1024
+	static let maxPendingMessages = 4096
 
 	init(fd: Int32) {
 		self.fd = fd
@@ -54,8 +71,71 @@ public final class SeamlessSession: @unchecked Sendable {
 
 		guard let data = try? SeamlessCodec.encode(message) else { return }
 
-		self.writeQueue.async { [self] in
-			self.writeAll(data)
+		var motionWindow: UInt32?
+
+		if case .pointerMotion(let id, _, _) = message { motionWindow = id }
+
+		lock.lock()
+
+		guard !closed else {
+			lock.unlock()
+			return
+		}
+
+		// A motion queued right behind another motion of the same window supersedes it: nothing sits between them, so the
+		// order of keys and buttons is untouched. Anything else is never dropped or reordered.
+		if let motionWindow, let last = pending.indices.last, pending[last].motionWindow == motionWindow {
+			pendingBytes += data.count - pending[last].data.count
+			pending[last].data = data
+			lock.unlock()
+			return
+		}
+
+		guard pending.count < Self.maxPendingMessages, pendingBytes + data.count <= Self.maxPendingBytes else {
+			// Sustained backpressure: the guest is not reading. Dropping a key release or a button transition would leave
+			// input stuck down in the guest, so the connection goes instead.
+			lock.unlock()
+			self.close()
+			return
+		}
+
+		pending.append(Pending(data: data, motionWindow: motionWindow))
+		pendingBytes += data.count
+
+		let startDrain = !draining
+
+		draining = true
+		lock.unlock()
+
+		if startDrain {
+			self.writeQueue.async { [self] in
+				self.drain()
+			}
+		}
+	}
+
+	private func drain() {
+		while true {
+			lock.lock()
+
+			guard !closed, !pending.isEmpty else {
+				// Closed: what is queued will never be sent.
+				pending.removeAll()
+				pendingBytes = 0
+				draining = false
+				lock.unlock()
+				return
+			}
+
+			let next = pending.removeFirst()
+
+			lock.unlock()
+
+			writeAll(next.data)
+
+			lock.lock()
+			pendingBytes = max(0, pendingBytes - next.data.count)
+			lock.unlock()
 		}
 	}
 
@@ -119,6 +199,27 @@ public final class SeamlessSession: @unchecked Sendable {
 		Darwin.shutdown(fd, SHUT_RDWR)
 	}
 
+	/// Replaced by a newer connection, or the server stopped: its delegate callbacks must no longer start anything.
+	fileprivate func markSuperseded() {
+		lock.lock()
+		superseded = true
+		lock.unlock()
+	}
+
+	fileprivate var isSuperseded: Bool {
+		lock.lock()
+		defer { lock.unlock() }
+		return superseded
+	}
+
+	var pendingMessageCountForTesting: Int {
+		lock.lock()
+		defer { lock.unlock() }
+		return pending.count
+	}
+
+	func closeDescriptorForTesting() { closeDescriptor() }
+
 	fileprivate func closeDescriptor() {
 		lock.lock()
 		defer { lock.unlock() }
@@ -168,6 +269,47 @@ public final class SeamlessServer: @unchecked Sendable {
 	/// The same for every other message (titles, hints, cursors...): small, but a flood of them would otherwise
 	/// pile up on the main queue. Messages stay in order, the reader just waits.
 	private static let maxControlMessagesInFlight = 256
+
+	/// Bytes of decoded control payloads (clipboard images included) waiting for the delegate: the message count alone
+	/// would let 256 clipboards of 32 MiB pile up. Room for the biggest clipboard plus ordinary messages behind it.
+	static let maxControlBytesInFlight = SeamlessProtocol.maxClipboardTotalBytes + 8 * 1024 * 1024
+
+	/// A byte budget the reader takes from before handing a payload to the delegate and the delegate gives back when done.
+	/// Taking is in arrival order (the reader is the only taker), so messages are never reordered.
+	final class ByteBudget: @unchecked Sendable {
+		private let condition = NSCondition()
+		private let limit: Int
+		private var used = 0
+
+		init(limit: Int) {
+			self.limit = limit
+		}
+
+		var inUse: Int {
+			condition.lock()
+			defer { condition.unlock() }
+			return used
+		}
+
+		/// Waits until `bytes` fit. A request bigger than the whole budget is admitted once nothing else is held, so it can't wait forever.
+		func acquire(_ bytes: Int) {
+			condition.lock()
+			defer { condition.unlock() }
+
+			while used > 0 && used + bytes > limit {
+				condition.wait()
+			}
+
+			used += bytes
+		}
+
+		func release(_ bytes: Int) {
+			condition.lock()
+			used = max(0, used - bytes)
+			condition.broadcast()
+			condition.unlock()
+		}
+	}
 
 	/// The outcome of taking the right to listen on a seamless socket.
 	public enum ListenerLockResult {
@@ -309,6 +451,7 @@ public final class SeamlessServer: @unchecked Sendable {
 		lock.unlock()
 
 		source?.cancel()
+		session?.markSuperseded()
 		session?.close()
 
 		// Only the owner removes the socket: without the lock it belongs to someone else.
@@ -393,6 +536,8 @@ public final class SeamlessServer: @unchecked Sendable {
 		current = session
 		lock.unlock()
 
+		// Marked before the new reader exists: a start callback of the old session still queued must not run after the new one's.
+		previous?.markSuperseded()
 		previous?.close()
 
 		let thread = Thread { [weak self] in
@@ -403,11 +548,18 @@ public final class SeamlessServer: @unchecked Sendable {
 		thread.start()
 	}
 
+	/// Whether `sessionDidStart` reached the delegate; only touched on the delegate queue, where start and end are delivered in order.
+	private final class StartState: @unchecked Sendable {
+		var delivered = false
+	}
+
 	private func read(_ session: SeamlessSession) {
+		let startState = StartState()
 		var decoder = SeamlessFrameDecoder()
 		var helloDone = false
 		let inFlight = DispatchSemaphore(value: Self.maxFramesInFlight)
 		let controlInFlight = DispatchSemaphore(value: Self.maxControlMessagesInFlight)
+		let controlBytes = ByteBudget(limit: Self.maxControlBytesInFlight)
 		let chunk = UnsafeMutableRawBufferPointer.allocate(byteCount: 256 * 1024, alignment: 16)
 
 		defer {
@@ -424,7 +576,8 @@ public final class SeamlessServer: @unchecked Sendable {
 
 			if helloDone {
 				delegateQueue.async { [weak self] in
-					guard let self, let delegate = self.delegate else { return }
+					// A start that was dropped (session replaced) has no end either.
+					guard startState.delivered, let self, let delegate = self.delegate else { return }
 					delegate.seamlessServer(self, sessionDidEnd: session)
 				}
 			}
@@ -460,6 +613,12 @@ public final class SeamlessServer: @unchecked Sendable {
 						session.send(.helloAck(version: version, scale120: outputScale120))
 						delegateQueue.async { [weak self] in
 							guard let self, let delegate = self.delegate else { return }
+
+							// Replaced (or the server stopped) between the hello and this delivery: a start now would
+							// install a dead session over the newer one the delegate may already have.
+							guard !session.isSuperseded else { return }
+
+							startState.delivered = true
 							delegate.seamlessServer(self, sessionDidStart: session, guestName: name)
 						}
 						continue
@@ -474,11 +633,23 @@ public final class SeamlessServer: @unchecked Sendable {
 					if case .windowFrame = message { isFrame = true }
 
 					let slots = isFrame ? inFlight : controlInFlight
+					// Frames are bounded by their own small slot count; everything else also reserves its payload bytes.
+					let reserved = isFrame ? 0 : payload.count + 64
 
 					slots.wait()
 
+					if reserved > 0 {
+						controlBytes.acquire(reserved)
+					}
+
 					delegateQueue.async { [weak self] in
-						defer { slots.signal() }
+						defer {
+							if reserved > 0 {
+								controlBytes.release(reserved)
+							}
+
+							slots.signal()
+						}
 
 						guard let self, let delegate = self.delegate else { return }
 						delegate.seamlessServer(self, session: session, didReceive: message)

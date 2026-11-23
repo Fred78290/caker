@@ -744,6 +744,39 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertEqual(try readHost(first, count: 1), [])
 	}
 
+	func testReplacedSessionStartIsNotDeliveredAfterTheNewOnes() throws {
+		let path = "/tmp/seamless-\(UUID().uuidString.prefix(8)).sock"
+		let recorder = Recorder()
+		let queue = DispatchQueue(label: "test.seamless.delegate.blocked")
+		let server = SeamlessServer(socketPath: path, delegate: recorder, delegateQueue: queue)
+
+		try server.start()
+		defer { server.stop() }
+
+		// Hold the delegate queue so both start callbacks are queued before either is delivered.
+		let gate = DispatchSemaphore(value: 0)
+		queue.async { gate.wait() }
+
+		let first = try connect(path)
+		defer { Darwin.close(first) }
+		write(first, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "one")))
+		_ = try readHost(first, count: 1)
+
+		let second = try connect(path)
+		defer { Darwin.close(second) }
+		write(second, try SeamlessCodec.encode(.hello(version: SeamlessProtocol.version, name: "two")))
+		_ = try readHost(second, count: 1)
+
+		// The replaced connection was closed.
+		XCTAssertEqual(try readHost(first, count: 1), [])
+		gate.signal()
+
+		XCTAssertTrue(wait { recorder.log == ["start two"] })
+		// Nothing for the replaced session comes later: neither a start nor an end.
+		Thread.sleep(forTimeInterval: 0.2)
+		XCTAssertEqual(recorder.log, ["start two"])
+	}
+
 	func testSocketIsPrivateToTheUser() throws {
 		let (server, _, path) = try makeServer()
 		defer { server.stop() }
