@@ -1006,7 +1006,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		// recorded as installed must be what the script registered.
 		let serviceFlags = config.agentServiceFlags
 		let ssh = try createSSH(host: runningIP, timeout: timeout)
-		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
+		// One file per invocation: a fixed name let two concurrent installs overwrite each other's script, so one could upload
+		// and run the other's flags/VM, and record the wrong `agentInstalledFlags`.
+		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent-\(UUID().uuidString).sh")
 		let install_agent = String(
 			format: try loadBundledShellScript(named: "ssh-install-cakeagent", runMode: runMode),
 			config.configuredUser,
@@ -1023,7 +1025,17 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				port: "\(ComposeDNS.internalBindPort)")
 		)
 
-		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
+		// The script embeds the agent's TLS private key: create it private (0600) from the start, never world-readable
+		guard FileManager.default.createFile(atPath: tempFileURL.path(percentEncoded: false), contents: Data(install_agent.utf8), attributes: [.posixPermissions: 0o600]) else {
+			throw ServiceError(String(localized: "Unable to write the agent install script"))
+		}
+
+		defer {
+			// Kept for inspection at debug level (or below), like before
+			if Logger.Level() < .debug {
+				try? tempFileURL.delete()
+			}
+		}
 
 		let agentBinary = try await Utilities.cakeagentBinary(os: config.os, runMode: runMode)
 
@@ -1047,11 +1059,6 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		_ = try ssh.sendFile(localURL: agentBinary, remotePath: "/tmp/cakeagent", permissions: .init(rawValue: 0o755))
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
-
-		if Logger.Level() < .debug {
-			Logger(self).info("Deleting temporary file: \(tempFileURL.path)")
-			try tempFileURL.delete()
-		}
 
 		// The installer's own exit status is the command's: `| tee` would replace it with tee's (sh has no pipefail).
 		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh > ~/install-agent.log 2>&1; status=$?; cat ~/install-agent.log; exit $status'"
