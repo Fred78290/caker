@@ -66,6 +66,11 @@ class InteractiveShell {
 	private var activeOperation: UUID?
 
 	private func cancelledShell() {
+		// Cancelling clears `self.task` at once, so startShell() may start a replacement while the cancelled run is still
+		// suspended in the handler. Revoke the cancelled run's ownership first: otherwise its cleanup would still match
+		// `activeOperation` and wipe the replacement's task and terminal view.
+		self.activeOperation = nil
+
 		if let shellStream {
 			shellStream.closeShell()
 		}
