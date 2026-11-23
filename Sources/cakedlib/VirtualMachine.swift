@@ -958,6 +958,19 @@ extension VirtualMachine {
 		self.virtualMachine.stop { error in
 			if let error = error {
 				self.logger.error("VM \(self.location.name) failed to stop, \(error)")
+
+				// The framework doesn't promise the VM is down when `stop` fails (e.g. it was not in a stoppable
+				// state): only tear down when it has really ended (`.stopped`, or `.error` which is a stop with
+				// an error). Otherwise it is still live, so keep its services, timer, PID file and UI state and
+				// only report the failure, so the caller can retry.
+				switch self.virtualMachine.state {
+				case .stopped, .error:
+					break
+				default:
+					self.logger.warn("VM \(self.location.name) is still \(self.virtualMachine.state.description) after the failed stop, keeping it")
+					completionHandler?(error)
+					return
+				}
 			} else {
 				self.logger.info("VM \(self.location.name) stopped")
 
