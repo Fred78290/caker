@@ -25,7 +25,20 @@ final class SeamlessSurfaceView: NSView {
 	private var heldCommandKeys = Set<UInt16>()
 	private var commandActsAsControl = false
 	private var commandAloneKey: UInt16?
+	/// Whether the guest currently sees the left Control key down. The physical left Control key (59) and the Control
+	/// synthesized for Command share that one evdev key, so it is down while either holds it and released only once both let go.
+	private var leftControlDown = false
 	private static let evdevLeftControl: UInt32 = 29
+	private static let physicalLeftControl: UInt16 = 59
+
+	private func syncLeftControl() {
+		let wanted = heldModifiers.contains(Self.physicalLeftControl) || commandActsAsControl
+
+		guard wanted != leftControlDown else { return }
+
+		leftControlDown = wanted
+		onKey?(Self.evdevLeftControl, wanted)
+	}
 
 	override var isFlipped: Bool { true }
 	override var acceptsFirstResponder: Bool { true }
@@ -132,9 +145,9 @@ final class SeamlessSurfaceView: NSView {
 			// Command + key: the guest sees Control + key, unless a Control key is already down.
 			commandAloneKey = nil
 
-			if !commandActsAsControl && !heldModifiers.contains(59) && !heldModifiers.contains(62) {
+			if !commandActsAsControl && !heldModifiers.contains(62) {
 				commandActsAsControl = true
-				onKey?(Self.evdevLeftControl, true)
+				syncLeftControl()
 			}
 		}
 
@@ -156,7 +169,7 @@ final class SeamlessSurfaceView: NSView {
 			if heldCommandKeys.isEmpty {
 				if commandActsAsControl {
 					commandActsAsControl = false
-					onKey?(Self.evdevLeftControl, false)
+					syncLeftControl()
 				} else if let alone = commandAloneKey, let superCode = SeamlessKeyMap.evdev(forMacKeyCode: alone) {
 					// Pressed and released with nothing between: the Super key, as it would have been before.
 					onKey?(superCode, true)
@@ -184,7 +197,16 @@ final class SeamlessSurfaceView: NSView {
 		}
 
 		// The flags are the combined state of both keys of a pair, so track each physical key by toggling.
-		if event.keyCode == 57 {
+		if event.keyCode == Self.physicalLeftControl {
+			// Shares its evdev key with the Control synthesized for Command: only report the combined state.
+			if heldModifiers.contains(event.keyCode) {
+				heldModifiers.remove(event.keyCode)
+			} else {
+				heldModifiers.insert(event.keyCode)
+			}
+
+			syncLeftControl()
+		} else if event.keyCode == 57 {
 			// Caps lock only reports a change: send a full press.
 			onKey?(code, true)
 			onKey?(code, false)
@@ -200,13 +222,11 @@ final class SeamlessSurfaceView: NSView {
 	/// Releases what is still held, otherwise the guest sees a stuck key or modifier: a release that happens in
 	/// another application never reaches this view, and the compositor would give the pressed keys to the next window.
 	func releaseHeldKeys() {
-		if commandActsAsControl {
-			onKey?(Self.evdevLeftControl, false)
-		}
-
 		commandActsAsControl = false
 		commandAloneKey = nil
 		heldCommandKeys.removeAll()
+		heldModifiers.remove(Self.physicalLeftControl)
+		syncLeftControl()
 
 		for keyCode in heldModifiers {
 			if let code = SeamlessKeyMap.evdev(forMacKeyCode: keyCode) { onKey?(code, false) }
