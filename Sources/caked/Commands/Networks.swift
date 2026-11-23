@@ -307,7 +307,7 @@ struct Networks: ParsableCommand {
 
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
-			if FileManager.default.fileExists(atPath: socketURL.socket.path(percentEncoded: false)) == false {
+			if FileManager.default.fileExists(atPath: socketURL.pidFile.path(percentEncoded: false)) == false {
 				throw ValidationError(String(localized: "Network \(self.name) is not running"))
 			}
 		}
