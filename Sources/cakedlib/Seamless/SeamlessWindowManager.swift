@@ -679,7 +679,12 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	private func setHostClipboard(_ text: String) {
 		let pasteboard = NSPasteboard.general
 
-		guard !text.isEmpty, pasteboard.string(forType: .string) != text else { return }
+		guard !text.isEmpty else { return }
+
+		// Skip only when the host holds exactly this text and nothing else: other representations (stale HTML...) must go.
+		if Set(pasteboard.types ?? []) == [.string], pasteboard.string(forType: .string) == text {
+			return
+		}
 
 		// The generation returned by the ownership claim, not a re-read after the write: if the write fails and the user
 		// copies something else meanwhile, that later change must still count as new.
@@ -702,7 +707,11 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 		let pasteboard = NSPasteboard.general
 
-		guard !entries.allSatisfy({ pasteboard.data(forType: $0.type) == $0.data }) else { return }
+		// Skip only when the host's types are exactly the guest's and every one carries the same data: a representation the
+		// guest doesn't offer (stale HTML next to a plain text selection) must not survive.
+		let sameTypes = Set(pasteboard.types ?? []) == Set(entries.map(\.type))
+
+		guard !(sameTypes && entries.allSatisfy({ pasteboard.data(forType: $0.type) == $0.data })) else { return }
 
 		let generation = pasteboard.clearContents()
 
