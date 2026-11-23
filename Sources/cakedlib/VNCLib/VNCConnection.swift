@@ -108,6 +108,9 @@ final class VNCConnection: @unchecked Sendable {
 	private struct DesktopState {
 		var announcedSize: VNCSize? = nil
 		var requestedSize: VNCSize? = nil
+		/// Incremented by every resize request, so a timeout only expires the request that armed it,
+		/// not a newer one for the same dimensions.
+		var requestGeneration: UInt64 = 0
 	}
 
 	private let desktopState = Mutex<DesktopState>(.init())
@@ -1106,7 +1109,12 @@ extension VNCConnection {
 			return
 		}
 
-		self.desktopState.withLock { $0.requestedSize = requested }
+		let generation = self.desktopState.withLock { state -> UInt64 in
+			state.requestGeneration &+= 1
+			state.requestedSize = requested
+
+			return state.requestGeneration
+		}
 
 		screens[0].width = requested.width
 		screens[0].height = requested.height
@@ -1118,13 +1126,13 @@ extension VNCConnection {
 		Task { [weak self] in
 			try? await Task.sleep(for: .seconds(1.5))
 
-			await self?.expireResizeRequest(requested)
+			await self?.expireResizeRequest(requested, generation: generation)
 		}
 	}
 
-	private func expireResizeRequest(_ requested: VNCSize) async {
+	private func expireResizeRequest(_ requested: VNCSize, generation: UInt64) async {
 		let expired = self.desktopState.withLock { state -> Bool in
-			guard state.requestedSize == requested else {
+			guard state.requestGeneration == generation, state.requestedSize == requested else {
 				return false
 			}
 
