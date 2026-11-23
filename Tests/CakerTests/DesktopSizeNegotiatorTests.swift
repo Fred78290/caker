@@ -21,9 +21,33 @@ final class DesktopSizeNegotiatorTests: XCTestCase {
 		XCTAssertEqual(negotiator.request(target, framebuffer: framebuffer, now: now), target)
 
 		// The server answers with another size (it clamped): asking again would start the loop
-		negotiator.framebufferDidChange()
+		negotiator.framebufferDidChange(to: CGSize(width: 1280, height: 700))
 
 		XCTAssertNil(negotiator.request(target, framebuffer: CGSize(width: 1280, height: 700), now: now.addingTimeInterval(5)))
+	}
+
+	func testASizeCanBeAskedAgainOnceTheFramebufferLeftTheNegotiatedResult() {
+		var negotiator = DesktopSizeNegotiator()
+		let target = CGSize(width: 1280, height: 720)
+
+		XCTAssertEqual(negotiator.request(target, framebuffer: CGSize(width: 1024, height: 768), now: now), target)
+		negotiator.framebufferDidChange(to: target)
+
+		// The guest moves the framebuffer away, the user then wants the earlier size back
+		negotiator.framebufferDidChange(to: CGSize(width: 800, height: 600))
+
+		XCTAssertEqual(negotiator.request(target, framebuffer: CGSize(width: 800, height: 600), now: now.addingTimeInterval(5)), target)
+	}
+
+	func testASizeCanBeAskedAgainWhenTheFramebufferMovedWithoutNotice() {
+		var negotiator = DesktopSizeNegotiator()
+		let target = CGSize(width: 1280, height: 720)
+
+		XCTAssertEqual(negotiator.request(target, framebuffer: CGSize(width: 1024, height: 768), now: now), target)
+		negotiator.framebufferDidChange(to: CGSize(width: 1280, height: 700))
+
+		XCTAssertNil(negotiator.request(target, framebuffer: CGSize(width: 1280, height: 700), now: now.addingTimeInterval(5)))
+		XCTAssertEqual(negotiator.request(target, framebuffer: CGSize(width: 640, height: 480), now: now.addingTimeInterval(6)), target)
 	}
 
 	func testOnlyOneRequestWaitsForItsAnswer() {
@@ -34,7 +58,7 @@ final class DesktopSizeNegotiatorTests: XCTestCase {
 		XCTAssertNil(negotiator.request(CGSize(width: 1200, height: 700), framebuffer: framebuffer, now: now.addingTimeInterval(0.5)))
 		XCTAssertTrue(negotiator.isWaiting(now: now.addingTimeInterval(0.5)))
 
-		negotiator.framebufferDidChange()
+		negotiator.framebufferDidChange(to: CGSize(width: 1100, height: 700))
 
 		XCTAssertEqual(negotiator.request(CGSize(width: 1200, height: 700), framebuffer: CGSize(width: 1100, height: 700), now: now.addingTimeInterval(0.6)), CGSize(width: 1200, height: 700))
 	}
@@ -69,6 +93,24 @@ final class DesktopSizeNegotiatorTests: XCTestCase {
 		// Still one request waiting for its answer: no second one
 		XCTAssertNil(negotiator.request(CGSize(width: 1200, height: 700), framebuffer: framebuffer, now: now.addingTimeInterval(0.5)))
 		XCTAssertTrue(negotiator.isWaiting(now: now.addingTimeInterval(0.5)))
+	}
+
+	func testATargetEqualToTheFramebufferWhileWaitingIsAskedOnceTheAnswerMovedTheFramebuffer() {
+		var negotiator = DesktopSizeNegotiator()
+		let framebuffer = CGSize(width: 1024, height: 768)
+		let answer = CGSize(width: 1100, height: 700)
+
+		XCTAssertEqual(negotiator.request(answer, framebuffer: framebuffer, now: now), answer)
+
+		// The user brings the view back to the framebuffer's size while the request waits: nothing is sent, the request keeps waiting
+		XCTAssertNil(negotiator.request(framebuffer, framebuffer: framebuffer, now: now.addingTimeInterval(0.3)))
+		XCTAssertTrue(negotiator.isWaiting(now: now.addingTimeInterval(0.3)))
+
+		// The answer arrives: the retained target differs from the new framebuffer and is asked
+		negotiator.framebufferDidChange(to: answer)
+
+		XCTAssertFalse(negotiator.isWaiting(now: now.addingTimeInterval(0.4)))
+		XCTAssertEqual(negotiator.request(framebuffer, framebuffer: answer, now: now.addingTimeInterval(0.4)), framebuffer)
 	}
 
 	func testSizesAreNormalized() {
@@ -122,7 +164,7 @@ final class DesktopSizeNegotiatorTests: XCTestCase {
 
 				if answer != framebuffer {
 					framebuffer = answer
-					negotiator.framebufferDidChange()
+					negotiator.framebufferDidChange(to: framebuffer)
 
 					// The window follows the framebuffer. It is sized by the delta of the view (NSWindow.fitContent),
 					// so whatever the window adds around the view, the view becomes exactly the framebuffer
