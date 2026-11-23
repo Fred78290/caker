@@ -1212,7 +1212,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let reply = try client.run(command: "echo \(script) | base64 -d | sh -s -- \(quoted(serviceFlags)) \(quoted("\(VMLocation.defaultAgentListenPort)"))")
 
 		guard reply.exitCode == 0 else {
-			throw ServiceError(String(format: String(localized: "Agent service update failed on %@: %@"), self.name, reply.stderr.isEmpty ? "exit code \(reply.exitCode)" : String(decoding: reply.stderr, as: UTF8.self)))
+			let details = reply.stderr.isEmpty ? String(format: String(localized: "exit code %d"), Int(reply.exitCode)) : String(decoding: reply.stderr, as: UTF8.self)
+
+			throw ServiceError(String(format: String(localized: "Agent service update failed on %@: %@"), self.name, details))
 		}
 
 		// A zero exit only says the work was handed over. The guest writes `service-flags` once the service is registered
