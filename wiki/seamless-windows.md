@@ -60,7 +60,7 @@ Ce qui est copié dans l'invité (texte, images, PDF et tout type MIME que le Ma
 
 ## Applications X11
 
-Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par XWayland : le compositeur de l'invité sert un affichage X et lance `Xwayland` à la première connexion d'un client X11. Il faut le programme `Xwayland` dans l'invité (les scripts d'installation de l'agent installent le paquet quand les fenêtres seamless sont activées) et un cakeagent v1.0.329 ou plus. Le curseur dessiné par un client X11 n'est pas transmis, et sur un écran Retina les fenêtres X11 sont plus floues (elles ignorent l'échelle).
+Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par XWayland : le compositeur de l'invité sert un affichage X et lance `Xwayland` à la première connexion d'un client X11. Il faut le programme `Xwayland` dans l'invité (les scripts d'installation de l'agent installent le paquet quand les fenêtres seamless sont activées ; quand seamless est activé sur une VM existante, le démarrage suivant l'installe avant de réenregistrer l'agent, et échoue avec un message explicite, seamless restant désactivé, si l'invité ne peut pas l'installer : installez `xwayland` à la main et redémarrez la VM) et un cakeagent v1.0.329 ou plus. Le curseur dessiné par un client X11 n'est pas transmis, et sur un écran Retina les fenêtres X11 sont plus floues (elles ignorent l'échelle).
 
 ## Limites
 
@@ -133,7 +133,7 @@ What is copied in the guest (text, images, PDF and any MIME type the Mac can rep
 
 ## X11 applications
 
-An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through XWayland: the guest's compositor serves an X display and runs `Xwayland` when the first X11 client connects. The guest needs the `Xwayland` program (the agent's install scripts install the package when seamless windows are on) and cakeagent v1.0.329 or later. The cursor an X11 client draws is not forwarded, and on a Retina display X11 windows look softer (they ignore the scale).
+An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through XWayland: the guest's compositor serves an X display and runs `Xwayland` when the first X11 client connects. The guest needs the `Xwayland` program (the agent's install scripts install the package when seamless windows are on; when seamless is turned on for an existing VM, the next start installs it before re-registering the agent, and fails with an explicit message, leaving seamless off, if the guest can't install it: install `xwayland` by hand and start the VM again) and cakeagent v1.0.329 or later. The cursor an X11 client draws is not forwarded, and on a Retina display X11 windows look softer (they ignore the scale).
 
 ## Limits
 

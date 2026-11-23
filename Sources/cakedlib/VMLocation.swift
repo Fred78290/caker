@@ -1151,8 +1151,40 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				[ -r \#(certs)/$f ] || { echo "CakeAgent certificate $f is missing"; exit 1; }
 			done
 			"""#
+		// What the SSH installer (`ssh-install-cakeagent.sh`) sets up when seamless windows are a service flag: X11 applications
+		// show through Xwayland. Kept in step with that script, but not best effort here: this runs in the command itself, before
+		// anything is touched, so a guest where the package can't be installed reports it at once and is never registered with
+		// `--seamless` (and so never recorded as updated), instead of looking enabled while X11 applications can't show.
+		let prerequisites = #"""
+			case "$1" in
+			*--seamless*)
+				# The script arrives on this shell's standard input: nothing run below may read it
+				if ! command -v Xwayland >/dev/null 2>&1 && [ ! -x /usr/bin/Xwayland ]; then
+					if command -v apt-get >/dev/null 2>&1; then
+						DEBIAN_FRONTEND=noninteractive apt-get install -y xwayland </dev/null >&2
+					elif command -v dnf >/dev/null 2>&1; then
+						dnf install -y xorg-x11-server-Xwayland </dev/null >&2
+					elif command -v yum >/dev/null 2>&1; then
+						yum install -y xorg-x11-server-Xwayland </dev/null >&2
+					elif command -v zypper >/dev/null 2>&1; then
+						zypper --non-interactive --gpg-auto-import-keys install -y xwayland </dev/null >&2
+					elif command -v apk >/dev/null 2>&1; then
+						apk add --no-cache xwayland </dev/null >&2
+					elif command -v pacman >/dev/null 2>&1; then
+						pacman -S --noconfirm xorg-xwayland </dev/null >&2
+					fi
+
+					if ! command -v Xwayland >/dev/null 2>&1 && [ ! -x /usr/bin/Xwayland ]; then
+						echo "Xwayland is not installed and could not be installed: install the Xwayland package in the guest (apt install xwayland, dnf install xorg-x11-server-Xwayland, ...) and start the VM again" >&2
+						exit 1
+					fi
+				fi
+				;;
+			esac
+			"""#
 		let launcher = #"""
 			\#(validation)
+			\#(prerequisites)
 			cat > /run/cakeagent-reflag.sh <<'CAKEAGENT_EOS'
 			\#(work)
 			CAKEAGENT_EOS
