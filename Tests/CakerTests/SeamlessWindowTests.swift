@@ -270,6 +270,25 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertThrowsError(try surface.apply(SeamlessFrame(windowID: 1, width: 0, height: 4, rects: [])))
 	}
 
+	func testSurfaceRefusesEmptyRectsButAcceptsAnEmptyRectList() throws {
+		let surface = SeamlessSurface()
+
+		try surface.apply(SeamlessFrame(windowID: 1, width: 4, height: 4, rects: [frameRect(0, 0, 4, 4, [1, 1, 1, 255])]))
+
+		// Same rule as the decoder: a rectangle needs a width and a height, and a refused frame must not resize the surface.
+		for rect in [frameRect(0, 0, 0, 2, [2, 2, 2, 255]), frameRect(0, 0, 2, 0, [2, 2, 2, 255])] {
+			XCTAssertThrowsError(try surface.apply(SeamlessFrame(windowID: 1, width: 8, height: 8, rects: [rect]))) {
+				XCTAssertEqual($0 as? SeamlessProtocolError, SeamlessProtocolError.rectOutOfBounds)
+			}
+			XCTAssertEqual(surface.width, 4)
+			XCTAssertEqual(surface.pixel(x: 0, y: 0), [1, 1, 1, 255])
+		}
+
+		// No rectangle at all is a valid frame (a pure resize).
+		try surface.apply(SeamlessFrame(windowID: 1, width: 8, height: 8, rects: []))
+		XCTAssertEqual(surface.width, 8)
+	}
+
 	// MARK: - Key map
 
 	func testKeyMapIsInjectiveAndKnowsTheCommonKeys() {

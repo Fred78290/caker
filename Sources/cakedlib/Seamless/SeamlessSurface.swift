@@ -27,7 +27,9 @@ public final class SeamlessSurface {
 		for item in frame.rects {
 			let r = item.rect
 
-			guard UInt64(r.x) + UInt64(r.width) <= UInt64(newWidth), UInt64(r.y) + UInt64(r.height) <= UInt64(newHeight),
+			// Same rules as `SeamlessCodec.decodeFrame`: an empty rectangle is invalid (an empty rectangle *list* is fine).
+			guard r.width > 0, r.height > 0,
+				UInt64(r.x) + UInt64(r.width) <= UInt64(newWidth), UInt64(r.y) + UInt64(r.height) <= UInt64(newHeight),
 				item.pixels.count == Int(r.width) * Int(r.height) * SeamlessProtocol.bytesPerPixel
 			else {
 				throw SeamlessProtocolError.rectOutOfBounds
