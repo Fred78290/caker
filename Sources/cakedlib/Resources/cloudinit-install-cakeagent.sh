@@ -62,6 +62,30 @@ if [ -f /etc/selinux/config ]; then
 	fi
 fi
 
+# A seamless-windows guest shows X11 applications through Xwayland (the compositor starts it when one connects).
+# Best effort: without the package the guest simply has no X11 support, Wayland applications are not affected.
+case "${LINUX_MOUNTS}" in
+*--seamless*)
+	if ! command -v Xwayland >/dev/null 2>&1 && [ ! -x /usr/bin/Xwayland ]; then
+		if command -v apt-get >/dev/null 2>&1; then
+			DEBIAN_FRONTEND=noninteractive apt-get install -y xwayland || :
+		elif command -v dnf >/dev/null 2>&1; then
+			dnf install -y xorg-x11-server-Xwayland || :
+		elif command -v yum >/dev/null 2>&1; then
+			yum install -y xorg-x11-server-Xwayland || :
+		elif command -v zypper >/dev/null 2>&1; then
+			zypper --non-interactive --gpg-auto-import-keys install -y xwayland || :
+		elif command -v apk >/dev/null 2>&1; then
+			apk add --no-cache xwayland || :
+		elif command -v pacman >/dev/null 2>&1; then
+			pacman -S --noconfirm xorg-xwayland || :
+		fi
+
+		command -v Xwayland >/dev/null 2>&1 || [ -x /usr/bin/Xwayland ] || echo 'Xwayland could not be installed: X11 applications will not show up as seamless windows' >&2
+	fi
+	;;
+esac
+
 # On openSUSE, Write file to /etc/cakeagent/ssl/server.key fails if the parent directory does not exist.
 if [ -n "${CACERT}" ] && [ -n "${SERVERKEY}" ] && [ -n "${SERVERPEM}" ] && [ ! -f /etc/cakeagent/ssl/server.key ]; then
 	mkdir -p /etc/cakeagent/ssl
@@ -85,7 +109,9 @@ if [ -n "$CIDATA" ]; then
 	echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
 	chmod 644 /etc/sysconfig/cakeagent
 	chmod +x /usr/local/bin/cakeagent
-	/usr/local/bin/cakeagent service install --listen=vsock://any:${LISTEN_PORT} --ca-cert=${CA_CERT_PATH} --tls-cert=${TLS_CERT_PATH} --tls-key=${TLS_KEY_PATH} ${LINUX_MOUNTS}
+	/usr/local/bin/cakeagent service install --listen=vsock://any:${LISTEN_PORT} --ca-cert=${CA_CERT_PATH} --tls-cert=${TLS_CERT_PATH} --tls-key=${TLS_KEY_PATH} ${LINUX_MOUNTS} || exit 1
+	# Recorded so that a later install over SSH knows the service flags it was registered with (see ssh-install-cakeagent.sh)
+	printf '%%s' "${LINUX_MOUNTS}" > /etc/cakeagent/service-flags
 else
 	echo "CIDATA not found"
 	exit 1

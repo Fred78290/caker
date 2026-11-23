@@ -27,6 +27,8 @@ service Service {
   rpc VncInfos (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
   // VncTunnel establishes a bidirectional streaming tunnel for VNC traffic to a virtual machine's display. Clients can send VNC input events and receive VNC screen updates through this stream.
   rpc VncTunnel(stream Caked.VncStream) returns (stream Caked.VncStream);
+  // SeamlessTunnel carries the seamless windows channel of a Linux guest (the VM is named by the CAKEAGENT_VMNAME header). The service listens for the guest compositor and relays its byte stream, which the client feeds to its window manager, and back. It lets a client on another host show the guest's windows.
+  rpc SeamlessTunnel(stream Caked.SeamlessStream) returns (stream Caked.SeamlessStream);
 	// Launch creates and starts a new virtual machine.
   rpc Launch (Caked.VMRequest.LaunchRequest) returns (stream Caked.Reply.VirtualMachineReply.LaunchStreamReply);
 	// List returns all virtual machines or images.
@@ -222,6 +224,10 @@ message Caked {
   }
 
   message VncStream {
+    bytes stream = 1;
+  }
+
+  message SeamlessStream {
     bytes stream = 1;
   }
 
@@ -459,6 +465,8 @@ message Caked {
   // Windows guests: the frame segment (MiB) of the display driver, which bounds the display size; absent when it is the stock driver's 16
     optional uint32 windowsFrameSegmentMiB = 48;
     optional string imdsMacAddress = 49;
+  // Linux guests: show the guest's windows on the host (seamless windows)
+    bool seamless = 50;
   }
 
   message ScreenSize {
@@ -533,6 +541,7 @@ message Caked {
       optional string                   provisionVars         = 34;
       optional string                   macosVersion          = 35;
       optional string                   imageId               = 36;
+      optional bool                     seamless              = 37;
     }
 
     message BuildRequest {
@@ -629,6 +638,7 @@ message Caked {
       optional ScreenSize screenSize            = 17;
       optional string     user                  = 18;
       optional string     password              = 19;
+      optional bool       seamless              = 20;
     }
 
     message WaitIPRequest {

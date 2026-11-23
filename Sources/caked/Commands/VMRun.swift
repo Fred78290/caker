@@ -143,8 +143,9 @@ struct VMRun: AsyncParsableCommand {
 			}
 		}
 
+		let seamless = config.supportsSeamlessWindows && launchedFromService == false
 		let runMode = self.common.runMode
-		var promise = (display == .ui || display == .all) ? nil : Utilities.group.next().makePromise(of: Void.self)
+		var promise = (display == .ui || display == .all || seamless) ? nil : Utilities.group.next().makePromise(of: Void.self)
 		let semaphore = AsyncSemaphore(value: 0)
 		let handler = CakedLib.VMRunHandler(
 			serviceMode: mode,
@@ -193,10 +194,13 @@ struct VMRun: AsyncParsableCommand {
 			}
 
 			if display == .all || display == .vnc {
-				if let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort) {
-					logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
-				} else {
-					logger.info("Failed to start VNC server")
+				do {
+					let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: vncPort)
+
+					// The URLs carry the password: it must not reach the log
+					logger.info("VNC server started at \(vncURL.map { $0.removingPassword }.joined(separator: ", "))")
+				} catch {
+					logger.error("Failed to start VNC server: \(error)")
 				}
 
 			} else if display == .ui {
@@ -208,6 +212,9 @@ struct VMRun: AsyncParsableCommand {
 
 		if display == .ui || display == .all {
 			MainApp.runUI(vm, params: handler, cancellation: cancellable)
+		} else if seamless {
+			NSApplication.shared.setActivationPolicy(.prohibited)
+			NSApplication.shared.run()
 		} else {
 			await semaphore.wait()
 

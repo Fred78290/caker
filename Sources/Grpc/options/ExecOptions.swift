@@ -10,6 +10,9 @@ public struct ExecOptions: ParsableArguments {
 	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	public var waitIPTimeout = 180
 
+	@Option(name: [.customLong("user")], help: ArgumentHelp(String(localized: "Login user"), discussion: String(localized: "The login user in guest used for exec, default is configured user")))
+	public var shellUser: String? = nil
+
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	public var name: String
 

@@ -16,7 +16,7 @@ pushd dist > /dev/null
 zip -r ../webui.zip .
 popd > /dev/null
 
-cp "${PROJECT_ROOT}/webui/webui.zip" "${PROJECT_ROOT}/dist/Caker.app/Contents/PlugIns/caked.bundle/Contents/Resources/webui.zip"
+cp "${PROJECT_ROOT}/webui/webui.zip" "${PROJECT_ROOT}/dist/Caker.app/Contents/PlugIns/caked.app/Contents/Resources/webui.zip"
 
 popd > /dev/null
 

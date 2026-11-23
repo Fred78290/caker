@@ -100,6 +100,7 @@ struct HostVirtualMachineView: View {
 
 	@State var window: NSWindow? = nil
 	@State var displaySettings: Bool = false
+	@State var showApplications: Bool = false
 	@State var createTemplate: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
 	@State var displayFontPanel: Bool = false
@@ -255,6 +256,10 @@ struct HostVirtualMachineView: View {
 
 						agentButton
 
+						if canLaunchApplications {
+							applicationsButton
+						}
+
 						if canRecord {
 							recordButton
 
@@ -363,6 +368,24 @@ struct HostVirtualMachineView: View {
 			}
 			.help("Start virtual machine")
 			.disabled([VirtualMachineDocument.Status.starting, VirtualMachineDocument.Status.stopping, VirtualMachineDocument.Status.provisioning].contains(document.status))
+		}
+	}
+
+	/// A Linux VM whose windows come to this desktop, once its agent answers: that is what starts the applications.
+	private var canLaunchApplications: Bool {
+		document.virtualMachineConfig.os == .linux && document.virtualMachineConfig.seamless && document.status == .running && document.agent == .installed
+	}
+
+	@ViewBuilder
+	private var applicationsButton: some View {
+		Button("Applications", systemImage: "square.grid.2x2") {
+			showApplications.toggle()
+		}
+		.help("Start an application of this VM")
+		.popover(isPresented: $showApplications, arrowEdge: .bottom) {
+			GuestApplicationsView(document: document) {
+				showApplications = false
+			}
 		}
 	}
 
@@ -504,6 +527,14 @@ struct HostVirtualMachineView: View {
 
 			self.needsResize = false
 
+			// With a VNC view, the window is sized so that the view is exactly the framebuffer: the same size is then
+			// asked back to the server, and nothing changes any more. Not animated, an animation is a series of sizes.
+			if let vncView = self.document.vncView, vncView.window === window {
+				window.fitContent(of: vncView, to: size, animated: false)
+
+				return
+			}
+
 			let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
 			var frame = window.frame
 
@@ -576,7 +607,7 @@ struct HostVirtualMachineView: View {
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("handleStartLiveResizeNotification: \(notification)")
 			#endif
 
@@ -586,7 +617,7 @@ struct HostVirtualMachineView: View {
 
 	func handleDidResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			#if DEBUG
+			#if TRACE
 				self.logger.debug("handleDidResizeNotification: \(notification)")
 			#endif
 

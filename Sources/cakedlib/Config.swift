@@ -262,6 +262,31 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.config["windowsFrameSegmentMiB"] as? Int }
 	}
 
+	/// Linux guests: show the guest's windows on the host (SeamlessWindowManager), through a vsock channel the guest
+	/// compositor (caker-seamlessd, run by the cakeagent) connects to.
+	public var seamless: Bool {
+		set { self.config["seamless"] = newValue }
+		get { self.config["seamless"] as? Bool ?? false }
+	}
+
+	/// The `agentServiceFlags` the guest's agent service was last registered with: by the cloud-init seed written at
+	/// build time, or by the last agent install over SSH. nil for a VM created before this was recorded.
+	public var agentInstalledFlags: String? {
+		set { self.cake["agentInstalledFlags"] = newValue }
+		get { self.cake["agentInstalledFlags"] as? String }
+	}
+
+	/// An installed agent whose service flags (mounts, seamless windows) no longer match what the config asks for, e.g.
+	/// after `caked configure --seamless true`: the flags live in the guest's service unit, so it has to be re-registered.
+	/// A VM with no record counts as registered without flags. A Windows guest has no such flags.
+	public var agentServiceNeedsUpdate: Bool {
+		guard self.agent, self.isWindowsGuest == false else {
+			return false
+		}
+
+		return (self.agentInstalledFlags ?? String.empty) != self.agentServiceFlags
+	}
+
 	public var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
 		get {
@@ -648,6 +673,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.provisioned = config.provisioned
 		// A source without one (a config from an older caked/caker, or never loaded from disk) gets one here, so that the
 		self.imdsMacAddress = config.imdsMacAddress ?? VZMACAddress.randomLocallyAdministered().string
+		self.seamless = config.seamless
 	}
 
 	public func update(_ from: CakeConfig) {
@@ -804,6 +830,38 @@ extension VirtualMachineConfiguration {
 		}
 
 		return self.firstLaunch
+	}
+
+	/// The guest account the seamless windows belong to (the VM's user), nil when seamless windows are off. It is what
+	/// the agent's compositor runs for, and what shells and commands are run as (`ExecuteRequest`'s `user`), so that
+	/// the applications they start find the compositor. Only a plain user name is accepted: the service flags land
+	/// unquoted in a shell script.
+	public var seamlessUser: String? {
+		guard self.supportsSeamlessWindows, self.configuredUser.isEmpty == false, self.configuredUser.range(of: "^[a-z_][a-z0-9_.-]*$", options: .regularExpression) != nil else {
+			return nil
+		}
+
+		return self.configuredUser
+	}
+
+	/// Extra flags of `cakeagent service install`: the mounts, and the seamless windows compositor when the guest
+	/// shows its windows on the host (it runs as the VM's user, with the host's keyboard layout).
+	public var agentServiceFlags: String {
+		var flags = [self.linuxMounts].filter { $0.isEmpty == false }
+
+		if self.supportsSeamlessWindows {
+			flags.append("--seamless")
+
+			if let user = self.seamlessUser {
+				flags.append("--seamless-user=\(user)")
+			}
+
+			if let layout = SeamlessKeyboardLayout.hostXkbLayout() {
+				flags.append("--seamless-layout=\(layout)")
+			}
+		}
+
+		return flags.joined(separator: " ")
 	}
 
 	public var linuxMounts: String {
@@ -1050,7 +1108,12 @@ extension VirtualMachineConfiguration {
 		}.directorySharingAttachments(os: self.os)
 	}
 
-	public func socketDeviceAttachments(agentURL: URL) throws -> [SocketDevice] {
+	/// Whether this guest can show its windows on the host: a Linux guest that asked for it.
+	public var supportsSeamlessWindows: Bool {
+		self.seamless && self.os == .linux && self.isWindowsGuest == false
+	}
+
+	public func socketDeviceAttachments(agentURL: URL, seamlessSocketURL: URL) throws -> [SocketDevice] {
 		let vsock = agentURL.absoluteURL.path(percentEncoded: false)
 		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: VMLocation.defaultAgentListenPort, bind: vsock)]
 
@@ -1073,6 +1136,25 @@ extension VirtualMachineConfiguration {
 
 				return socket
 			})
+
+		// The guest compositor connects to the host's seamless windows server through this socket device.
+		if self.supportsSeamlessWindows {
+			let path = seamlessSocketURL.path(percentEncoded: false)
+			let seamless = SocketDevice(mode: .connect, port: SeamlessProtocol.defaultVsockPort, bind: path)
+
+			if Bundle.fileAccessRestricted && Utilities.isSandboxedPath(path, runMode: .current) == false {
+				Logger(self).warn(".fileAccessRestricted is enabled, skipping seamless windows socket: \(seamless.description)")
+			} else {
+				// A vsock port carries a single mapping: `VirtioSocketDevices` keys its sockets (and registers the guest
+				// listener) by port, so a custom socket on the same port would be silently replaced by this one, and its
+				// host-initiated (bind/tcp/udp) mode can't share a port with the guest-initiated seamless channel anyway.
+				if sockets.contains(where: { $0.port == seamless.port }) {
+					throw ServiceError(String(format: String(localized: "Socket port %d is reserved for seamless windows and is already used by another socket mapping. Remove that socket or turn off seamless windows."), seamless.port))
+				}
+
+				sockets.append(seamless)
+			}
+		}
 
 		return sockets
 	}

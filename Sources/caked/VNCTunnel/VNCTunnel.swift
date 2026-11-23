@@ -182,10 +182,10 @@ final class VNCTunnel {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
-		guard let vmName = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			self.logger.error("no CAKEAGENT_VMNAME header")
+		guard let vmName = context.request.headers.first(name: CakedServiceClient.META_CAKEAGENT_VMNAME) else {
+			self.logger.error("no \(CakedServiceClient.META_CAKEAGENT_VMNAME) header")
 
-			throw ServiceError(String(localized: "no CAKEAGENT_VMNAME header"))
+			throw ServiceError(String(localized: "no \(CakedServiceClient.META_CAKEAGENT_VMNAME) header"))
 		}
 
 		let tunnel = Tunneling(requestStream: requestStream, responseStream: responseStream, group: group, vmName: vmName, runMode: runMode)

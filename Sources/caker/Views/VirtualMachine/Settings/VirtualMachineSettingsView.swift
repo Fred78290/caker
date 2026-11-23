@@ -313,6 +313,13 @@ struct VirtualMachineSettingsView: View {
 				if config.os == .darwin {
 					Toggle("Suspendable", isOn: $config.suspendable)
 				}
+
+				if config.os == .linux && config.isWindowsGuest == false {
+					Toggle("Seamless windows", isOn: $config.seamless)
+					Text("Show the Linux guest's windows on your desktop. Needs a cakeagent with seamless windows support in the guest, applies at the next start.")
+						.font(.caption)
+						.foregroundStyle(.secondary)
+				}
 			}
 		}
 	}

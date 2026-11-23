@@ -146,11 +146,11 @@ public struct ShellHandler {
 		case eof(Bool)
 	}
 
-	public static func shell(vmURL: URL, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> any ShellHandlerProtocol {
+	public static func shell(vmURL: URL, shellUser: String?, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> any ShellHandlerProtocol {
 		if vmURL.isFileURL {
-			return try ShellCakeAgent(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
+			return try ShellCakeAgent(vmURL: vmURL, shellUser: shellUser, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
 		} else {
-			return try ShellCaked(vmURL: vmURL, connectionTimeout: connectionTimeout, runMode: runMode).shell(terminalSize: terminalSize)
+			return try ShellCaked(vmURL: vmURL, shellUser: shellUser, connectionTimeout: connectionTimeout, runMode: runMode).shell(terminalSize: terminalSize)
 		}
 	}
 
@@ -163,12 +163,13 @@ public struct ShellHandler {
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 		private var terminalSize: TerminalSize
+		private let shellUser: String?
 
 		func makeAsyncIterator() -> AsyncThrowingStream<ShellHandler.ExecuteResponse, any Error>.Iterator {
 			self.stream.stream.makeAsyncIterator()
 		}
 
-		init(vmURL: URL, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
+		init(vmURL: URL, shellUser: String?, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
 			if vmURL.isFileURL {
 				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL.hiddenPasswordURL.absoluteString)"))
 			}
@@ -177,6 +178,7 @@ public struct ShellHandler {
 			self.runMode = runMode
 			self.serviceClient = try ServiceHandler.createCakedServiceClient(vmURL: vmURL, connectionTimeout: connectionTimeout, runMode: runMode)
 			self.terminalSize = TerminalSize(rows: 24, cols: 80)
+			self.shellUser = shellUser
 		}
 
 		public func shell(terminalSize: TerminalSize) throws -> Self {
@@ -211,7 +213,7 @@ public struct ShellHandler {
 				}
 			}
 		}
-		
+
 		func sendDatas(data: ArraySlice<UInt8>) {
 			let shellStream: CakedExecuteStream? = self.cakedShellStream.withLock { $0 }
 
@@ -294,9 +296,26 @@ public struct ShellHandler {
 					self.logger.debug("Start shell, VM: \(self.name)")
 
 					try self.cakedShellStream.withLock {
-						$0 = try self.serviceClient.shell(name: self.name, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
+						let shellStream = try self.serviceClient.shell(name: self.name, shellUser: self.shellUser, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
 							continuation.yield(ExecuteResponse(response))
 						}
+
+						// Finish the stream when the gRPC call terminates (daemon restarted, connection lost, ...)
+						// otherwise consumers wait forever on a dead stream and never reconnect.
+						shellStream.status.whenComplete { result in
+							switch result {
+							case .success(let status):
+								if status.isOk {
+									continuation.finish()
+								} else {
+									continuation.finish(throwing: status)
+								}
+							case .failure(let error):
+								continuation.finish(throwing: error)
+							}
+						}
+
+						$0 = shellStream
 
 						self.logger.debug("Shell started, VM: \(self.name)")
 					}
@@ -320,15 +339,17 @@ public struct ShellHandler {
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 		private var terminalSize: TerminalSize
+		private let shellUser: String?
 
 		func makeAsyncIterator() -> AsyncThrowingStream<ShellHandler.ExecuteResponse, any Error>.Iterator {
 			self.stream.stream.makeAsyncIterator()
 		}
 		
-		init(vmURL: URL, runMode: Utils.RunMode) throws {
+		init(vmURL: URL, shellUser: String?, runMode: Utils.RunMode) throws {
 			self.runMode = runMode
 			self.location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
 			self.terminalSize = TerminalSize(rows: 24, cols: 80)
+			self.shellUser = shellUser
 		}
 
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64) throws -> Self {
@@ -465,6 +486,8 @@ public struct ShellHandler {
 				do {
 					_ = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
+					let shellUser = try self.shellUser ?? self.location.config().configuredUser
+
 					self.cakedShellStream.withLock {
 						self.logger.debug("Start shell, VM: \(self.location.name)")
 
@@ -472,8 +495,23 @@ public struct ShellHandler {
 							continuation.yield(ExecuteResponse(response))
 						}
 
+						// Finish the stream when the gRPC call terminates (agent updated/restarted, connection lost, ...)
+						// otherwise consumers wait forever on a dead stream and never reconnect.
+						shellStream.status.whenComplete { result in
+							switch result {
+							case .success(let status):
+								if status.isOk {
+									continuation.finish()
+								} else {
+									continuation.finish(throwing: status)
+								}
+							case .failure(let error):
+								continuation.finish(throwing: error)
+							}
+						}
+
 						shellStream.sendTerminalSize(rows: self.terminalSize.rows, cols: self.terminalSize.cols)
-						shellStream.sendShell()
+						shellStream.sendShell(user: shellUser)
 
 						$0 = shellStream
 					}

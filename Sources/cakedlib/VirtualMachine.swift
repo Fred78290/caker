@@ -222,6 +222,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let configuration: VZVirtualMachineConfiguration
 	let networks: [NetworkAttachement]
 	let sigcaught: [Int32: DispatchSourceSignal]
+	/// The socket devices this environment's virtual machine was configured with (empty unless `mode == .normal`).
+	let socketDevices: [SocketDevice]
 	let screenSize: CGSize
 	var semaphore = AsyncSemaphore(value: 0)
 	var vmrunService: VMRunServiceServerProtocol! = nil
@@ -233,6 +235,28 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vzMachineWindow: NSWindow? = nil
 	var timer: Timer? = nil
 	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
+	/// Shows the guest's windows on the host while the VM runs (see `SeamlessWindowManager`).
+	var seamlessWindows: SeamlessWindowManager? = nil
+	/// Counts the start and stop requests, taken in the order they are made: the work runs later on the main actor,
+	/// and only the latest request may act, so a stale start or cleanup can't undo a newer one (a restart).
+	private let seamlessRequests = NSLock()
+	private var seamlessRequestCount = 0
+
+	func nextSeamlessRequest() -> Int {
+		self.seamlessRequests.lock()
+		defer { self.seamlessRequests.unlock() }
+
+		self.seamlessRequestCount += 1
+
+		return self.seamlessRequestCount
+	}
+
+	var latestSeamlessRequest: Int {
+		self.seamlessRequests.lock()
+		defer { self.seamlessRequests.unlock() }
+
+		return self.seamlessRequestCount
+	}
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
 	var mode: VirtualMachine.Mode
@@ -259,7 +283,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		display: VMRunHandler.DisplayMode,
 		screenSize: CGSize,
 		mode: VirtualMachine.Mode,
-		runMode: Utils.RunMode
+		runMode: Utils.RunMode,
+		sigcaught inheritedSignals: [Int32: DispatchSourceSignal]? = nil
 	) throws {
 		let suspendable = config.suspendable && config.os == .darwin
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
@@ -272,6 +297,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
 
 		var sigcaught: [Int32: DispatchSourceSignal] = [:]
+		var socketDevices: [SocketDevice] = []
 		var devices: [VZStorageDeviceConfiguration] = [
 			try config.rootDiskAttachment(rootDiskURL: location.diskURL)
 		]
@@ -327,9 +353,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 
 		if mode == .normal {
-			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
+			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL, seamlessSocketURL: location.seamlessSocketURL)
 			let consoleURL = try config.consoleAttachment()
 
+			socketDevices = socketDeviceAttachments
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
 		} else if config.isWindowsGuest {
 			// Windows binds its virtio-vsock driver (installed with the other virtio drivers) when the device is
@@ -337,7 +364,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			configuration.socketDevices.append(VZVirtioSocketDeviceConfiguration())
 		}
 
-		if mode != .provisioning && location.template == false && runMode != .app {
+		if let inheritedSignals {
+			// A recreated environment keeps the signal sources the running process already set up: a source that is
+			// created and never activated crashes libdispatch when it is released.
+			sigcaught = inheritedSignals
+		} else if mode != .provisioning && location.template == false && runMode != .app {
 			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
 				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
 			}
@@ -356,6 +387,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.communicationDevices = communicationDevices
 		self.networks = networks
 		self.sigcaught = sigcaught
+		self.socketDevices = socketDevices
 		self.screenSize = screenSize
 		self.display = display
 		self.mode = mode
@@ -363,6 +395,23 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
 		}
+	}
+
+	/// Takes over the state of the environment a recreated one replaces: what the running process still refers to
+	/// (the run service and its semaphore, the machine view, the VNC server, the seamless windows manager).
+	func adoptState(from old: VirtualMachineEnvironment) {
+		self.semaphore = old.semaphore
+		self.vmrunService = old.vmrunService
+		self.vncServer = old.vncServer
+		self.vzMachineView = old.vzMachineView
+		self.vzMachineWindow = old.vzMachineWindow
+		self.timer = old.timer
+		self.provisioningVideoRecorder = old.provisioningVideoRecorder
+		self.seamlessWindows = old.seamlessWindows
+		self.requestStopFromUIPending = old.requestStopFromUIPending
+		self.seamlessRequests.lock()
+		self.seamlessRequestCount = old.latestSeamlessRequest
+		self.seamlessRequests.unlock()
 	}
 
 	func closedByRemote(socket: SocketDevice) {
@@ -381,7 +430,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		guard self.mode == .normal && portForwardingStarted == false else {
 			return
 		}
-
 
 		do {
 			let group = Utilities.group.next()
@@ -910,6 +958,19 @@ extension VirtualMachine {
 		self.virtualMachine.stop { error in
 			if let error = error {
 				self.logger.error("VM \(self.location.name) failed to stop, \(error)")
+
+				// The framework doesn't promise the VM is down when `stop` fails (e.g. it was not in a stoppable
+				// state): only tear down when it has really ended (`.stopped`, or `.error` which is a stop with
+				// an error). Otherwise it is still live, so keep its services, timer, PID file and UI state and
+				// only report the failure, so the caller can retry.
+				switch self.virtualMachine.state {
+				case .stopped, .error:
+					break
+				default:
+					self.logger.warn("VM \(self.location.name) is still \(self.virtualMachine.state.description) after the failed stop, keeping it")
+					completionHandler?(error)
+					return
+				}
 			} else {
 				self.logger.info("VM \(self.location.name) stopped")
 
@@ -1145,6 +1206,18 @@ extension VirtualMachine {
 					} else if self.env.mode == .normal {
 						self.logger.error("VM \(self.location.name) disabled to install agent on ip: \(runningIP)")
 					}
+				} else if self.env.mode == .normal, config.agent, config.agentServiceNeedsUpdate {
+					// The agent is installed but its service was registered with other flags (seamless windows turned on
+					// or off, mounts changed since): the flags are part of the guest's service unit, so register it again.
+					// This goes through the agent over vsock, not SSH, so it doesn't need the guest's IP (the SSH install
+					// above still does).
+					self.logger.info("VM \(self.location.name) agent service flags changed, updating the agent")
+
+					do {
+						try self.location.updateAgentService(config: config, runMode: runMode)
+					} catch {
+						self.logger.warn("VM \(self.location.name) failed to update the agent service: \(error)")
+					}
 				}
 
 				return runningIP
@@ -1328,6 +1401,7 @@ extension VirtualMachine {
 			self.logger.info("VM \(self.location.name) started")
 			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
+			self.startSeamlessWindows()
 
 			// Not started by StartHandler (record, provisioning, embedded in the app): nobody else tells the imds network.
 			VMLifecycleHooks.publish(.started(location: self.location, runMode: self.env.runMode))
@@ -1432,7 +1506,15 @@ extension VirtualMachine {
 			self.env.vzMachineView = vzMachineView
 			self.env.vncServer.delegate = self
 
-			try self.env.vncServer.start()
+			do {
+				try self.env.vncServer.start()
+			} catch {
+				// A server that did not start must not stay: the next call would return its URLs without starting it.
+				// Stop it first (not just drop it): `start()` already ran `willStart`, which created the offscreen
+				// window, and only `stop()` reaches `didStop` to dispose of it. `stopVncServer()` clears the reference.
+				self.env.stopVncServer()
+				throw error
+			}
 		}
 
 		return self.env.vncServer.urls
@@ -1471,8 +1553,59 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 		self.logger.error(error)
 	}
 
+	/// Starts the server the guest compositor connects to. Any process that runs the VM can show the windows: Caker.app
+	/// and `vmrun --ui` have an application already, a `vmrun --vnc` makes an accessory one (`SeamlessWindowManager`,
+	/// `VMRun` runs its event loop). Only a VM run by the caked service doesn't: a client shows its windows through the tunnel.
+	func startSeamlessWindows() {
+		guard self.env.mode == .normal, self.config.supportsSeamlessWindows else { return }
+
+		// A VM run by the caked service has its windows shown by a client through the service's SeamlessTunnel
+		// (cakectl seamless), which listens on the socket itself: listening here would take it from the tunnel.
+		guard VMRunHandler.launchedFromService == false else {
+			self.logger.info("VM \(self.location.name): seamless windows are relayed by the service, see \"cakectl seamless\"")
+			return
+		}
+
+		let socketPath = self.location.seamlessSocketURL.path(percentEncoded: false)
+		let name = self.location.name
+		let request = self.env.nextSeamlessRequest()
+
+		Task { @MainActor in
+			// The decision is made here, on the main actor, where the previous manager's cleanup also runs: a start
+			// that is not the latest request any more (the VM stopped meanwhile) must not create a listener.
+			guard request == self.env.latestSeamlessRequest else { return }
+
+			// A manager of the previous run that is still there goes first (a restart: its stop has not run yet).
+			self.env.seamlessWindows?.stop()
+			self.env.seamlessWindows = nil
+
+			do {
+				let manager = SeamlessWindowManager(vmName: name, displayMode: self.env.display, socketPath: socketPath)
+
+				try manager.start()
+				self.env.seamlessWindows = manager
+				self.logger.info("VM \(name): seamless windows listening on \(socketPath)")
+			} catch {
+				self.logger.error("VM \(name): cannot start seamless windows: \(error)")
+			}
+		}
+	}
+
+	func stopSeamlessWindows() {
+		let request = self.env.nextSeamlessRequest()
+
+		Task { @MainActor in
+			// A start requested after this stop owns the manager now.
+			guard request == self.env.latestSeamlessRequest else { return }
+
+			self.env.seamlessWindows?.stop()
+			self.env.seamlessWindows = nil
+		}
+	}
+
 	func didChangedStateOnStop() {
 		if self.isRebooting == false {
+			self.stopSeamlessWindows()
 			self.cancelAgentInstallRetry()
 			self.env.signalStop()
 			self.didChangedState(true)
@@ -1503,24 +1636,31 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 
 // MARK: - Screen sizing
 extension VirtualMachine {
-	func setScreenSize(width: Int, height: Int) {
+	func setScreenSize(
+		width: Int, height: Int
+			//, file: String = #file, line: Int = #line
+	) {
 		guard width != 0 && height != 0 else {
 			self.logger.info("Try resizing screen to zero size, but nothing to do.")
 			return
 		}
 
 		self.vmQueue.async {
-			let newSize = CGSize(width: width, height: height)
 			let logger = Logger(self)
-
-			logger.info("Will resize screen to \(width)x\(height)")
+			let newSize = CGSize(width: width, height: height)
 
 			guard let vzMachineView = self.env.vzMachineView else {
+				#if TRACE
+					logger.debug("Will resize all displays to \(width)x\(height). \(file):\(line)")
+				#endif
+
 				if #available(macOS 14.0, *) {
 					self.virtualMachine.graphicsDevices.forEach { device in
 						device.displays.forEach { display in
 							if newSize != display.sizeInPixels {
-								logger.info("Resizing display from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
+								#if TRACE
+									logger.debug("Resizing display from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
+								#endif
 								try? display.reconfigure(sizeInPixels: newSize)
 							}
 						}
@@ -1530,21 +1670,27 @@ extension VirtualMachine {
 				return
 			}
 
+			if newSize == vzMachineView.bounds.size {
+				return
+			}
+
+			#if TRACE
+				logger.debug("Will resize screen to \(width)x\(height). \(file):\(line)")
+			#endif
+
 			if let window = vzMachineView.window {
-				let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
-				var frame = window.frame
-
-				frame = window.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, CGFloat(width), CGFloat(height) + titleBarHeight))
-				frame.origin.y += window.frame.size.height
-				frame.origin.y -= frame.size.height
-
-				if frame != window.frame {
-					window.setFrame(frame, display: true, animate: true)
-				}
+				// Never animated: the intermediate sizes of an animation each reconfigure the guest display
+				// and are each announced to the VNC clients.
+				#if TRACE
+					logger.debug("Resize vm window so that the view is \(width)x\(height). \(file):\(line)")
+				#endif
+				window.fitContent(of: vzMachineView, to: newSize, animated: false)
 			} else {
 				let bounds = vzMachineView.bounds
 
-				logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+				#if TRACE
+					logger.debug("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+				#endif
 
 				vzMachineView.frame = CGRect(origin: .zero, size: newSize)
 			}
@@ -1579,8 +1725,69 @@ extension VirtualMachine {
 // MARK: - UI actions
 extension VirtualMachine {
 
+	/// Runs `body` on the main actor, which owns `VirtualMachineEnvironment.init` and the machine view.
+	private static func onMainActor<T>(_ body: @MainActor () throws -> T) rethrows -> T {
+		if Thread.isMainThread {
+			return try MainActor.assumeIsolated(body)
+		}
+
+		return try DispatchQueue.main.sync {
+			try MainActor.assumeIsolated(body)
+		}
+	}
+
+	/// The socket devices (agent, user sockets, seamless windows) are fixed when the `VZVirtualMachine` is created, so
+	/// a restart that follows a configuration change (seamless turned on, a socket added) has to build a new virtual
+	/// machine and its communication devices. When nothing changed the existing ones are reused.
+	private func recreateIfSocketConfigurationChanged() throws {
+		let env = self.env
+
+		guard env.mode == .normal, self.virtualMachine.state == .stopped else {
+			return
+		}
+
+		let current = try self.config.socketDeviceAttachments(agentURL: self.location.agentURL, seamlessSocketURL: self.location.seamlessSocketURL)
+
+		guard current != env.socketDevices else {
+			return
+		}
+
+		self.logger.info("VM \(self.location.name) socket configuration changed, recreating the virtual machine")
+
+		let (newEnv, newMachine) = try Self.onMainActor {
+			let newEnv = try VirtualMachineEnvironment(
+				location: self.location,
+				config: self.config,
+				display: env.display,
+				screenSize: env.screenSize,
+				mode: env.mode,
+				runMode: env.runMode,
+				sigcaught: env.sigcaught)
+			let newMachine = VZVirtualMachine(configuration: newEnv.configuration, queue: self.vmQueue)
+
+			newMachine.delegate = self
+			newEnv.adoptState(from: env)
+
+			// The machine view (and the VNC server, which renders it) shows whichever machine it is given.
+			newEnv.vzMachineView?.virtualMachine = newMachine
+
+			return (newEnv, newMachine)
+		}
+
+		self.env = newEnv
+		self.virtualMachine = newMachine
+	}
+
 	public func startFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
+			do {
+				try self.recreateIfSocketConfigurationChanged()
+			} catch {
+				self.logger.error("VM \(self.location.name) failed to apply its configuration: \(error)")
+				completionHandler?(.failure(error))
+				return
+			}
+
 			self.virtualMachine.start(options: self.startOptions) { error in
 				let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
 
@@ -1598,10 +1805,14 @@ extension VirtualMachine {
 		}
 	}
 
-	public func restartFromUI() {
+	public func restartFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
-			self._stopVM { result in
-				self.startFromUI()
+			self._stopVM { error in
+				if let error {
+					completionHandler?(.failure(error))
+				} else {
+					self.startFromUI(completionHandler: completionHandler)
+				}
 			}
 		}
 	}
@@ -2048,7 +2259,21 @@ extension VirtualMachine {
 		}
 
 		public func windowWillStartLiveResize(_ notification: Notification) {
-			self.logger.info("Window will start live resize")
+			guard let vzMachineView = self.env.vzMachineView, let window = vzMachineView.window else {
+				self.logger.info("Window will start live resize")
+				return
+			}
+
+			self.logger.info("Window will start live resize: \(window.frame.size.width)x\(window.frame.size.height)")
+		}
+
+		public func windowDidEndLiveResize(_ notification: Notification) {
+			guard let vzMachineView = self.env.vzMachineView, let window = vzMachineView.window else {
+				self.logger.info("Window did end live resize")
+				return
+			}
+
+			self.logger.info("Window did end live resize: \(window.frame.size.width)x\(window.frame.size.height)")
 		}
 	}
 #endif

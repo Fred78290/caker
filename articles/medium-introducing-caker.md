@@ -8,7 +8,7 @@
 
 If you develop on a Mac, you have probably needed a virtual machine at some point: a Linux box to test a deployment script, a clean macOS install to reproduce a bug, or a small cluster to try a database setup before it reaches staging. There are good tools for this already. Most of them handle one part of the job well, and you end up using one tool to download images, another to run them, and a set of shell scripts to configure the guests.
 
-**Caker** tries to cover the whole job in one toolchain. It is open source, written entirely in Swift, and built directly on Apple's **Virtualization.framework**. It installs a macOS guest from an IPSW and clicks through Setup Assistant for you, and it installs Windows 11 from an ISO with no clicks at all. It runs a two-VM MariaDB + phpMyAdmin stack from a `compose.yml`. Each VM gets port forwarding, shared folders, an EC2-style metadata service and name resolution, and you can drive all of it from a terminal, a native desktop app or a web browser.
+**Caker** tries to cover the whole job in one toolchain. It is open source, written entirely in Swift, and built directly on Apple's **Virtualization.framework**. It installs a macOS guest from an IPSW and clicks through Setup Assistant for you, and it installs Windows 11 from an ISO with no clicks at all. It runs a two-VM MariaDB + phpMyAdmin stack from a `compose.yml`. Each VM gets port forwarding, shared folders, an EC2-style metadata service and name resolution, and you can drive all of it from a terminal, a native desktop app or a web browser. A Linux guest can even show its applications as ordinary Mac windows.
 
 This article walks through what Caker is, how its pieces fit together, and the features you are most likely to use.
 
@@ -203,6 +203,53 @@ The limits are worth knowing:
 
 ---
 
+## Linux applications as Mac windows
+
+A Linux VM can show its applications on your Mac desktop, one native window each, the way WSLg does on Windows. Turn it on when you build the VM, or later with `configure`:
+
+```bash
+cakectl build my-vm --alias ubuntu2604 --seamless
+
+# or on an existing VM: update its agent first (an older agent ignores the
+# seamless flags), the agent service is then updated at the next start
+cakectl configure my-vm --seamless true
+```
+
+Then launch a GUI program in the guest and its window opens on your Mac, titled `[my-vm] …`:
+
+```bash
+cakectl exec my-vm gnome-terminal
+cakectl sh my-vm              # a shell in the guest; type "foot" or "nautilus"
+cakectl seamless my-vm        # just show the windows, until Ctrl-C
+```
+
+![A Linux terminal and file manager as native Mac windows](images/caker-app/23-seamless-windows.png)
+
+You don't have to know program names: the guest's installed applications can be listed and started from the host, and turned into launchers you can put in the Dock.
+
+```bash
+cakectl app list my-vm                           # the guest's .desktop applications
+cakectl app run my-vm firefox --start --wait 120 # boot the VM if needed, then start it
+cakectl app run my-vm --command -- foot -e htop  # or any plain guest program
+cakectl app create-launcher my-vm firefox        # ~/Applications/Firefox (my-vm).app
+```
+
+An application is named by its desktop id, its display name or the last word of its id; an ambiguous match is an error, not a guess. `create-launcher` writes a small `.app` that boots the VM, waits for the agent and runs the application, and it takes the application's icon from the guest's icon themes. Terminal programs (htop, vim) are run in the guest's terminal emulator. The desktop app has the same list as an **Applications** popover in the VM window, with a launcher button on each row (not available for a VM of a remote service). (`caked app …` does the same for a VM run by a local `caked`, without a service.)
+
+How it works: a headless Wayland compositor (`caker-seamlessd`, wlroots with software rendering) runs in the guest, and streams one pixel buffer per window, compressed with LZ4 and sent as damage rectangles, over **vsock**. Caker shows each in its own `NSWindow` and sends keyboard, mouse and scroll events back. No custom virtio device and no RDP is involved, and nothing needs installing in the guest because the compositor is embedded in the Caker agent.
+
+A few things worth knowing:
+
+- **It follows the VM wherever it runs.** The windows of a VM that runs under a `caked` service, possibly on another host, travel over gRPC, so `cakectl seamless` and the desktop app work against a remote daemon too.
+- **Every guest user can have windows.** `cakectl exec --user bob my-vm foot` starts Bob's own compositor, and his windows are titled `[my-vm] bob: foot`. `exec` and `sh` run as the VM's configured user, not root, in any Linux VM: pass `--user root` when you need root.
+- **One owner at a time.** If the desktop app or another terminal already shows a VM's windows, a second `cakectl sh`/`exec` keeps its shell running and takes the windows over when the first lets go.
+- **The guest is not trusted.** Sizes, rectangles and strings from the guest are validated, the host caps the number of windows and the memory of frames in flight, and every title is prefixed with the VM's name so a guest window can't pass for a Mac app.
+- **Copy and paste works both ways**, for text, images and PDF (any MIME type the Mac can represent, up to 16 items and 32 MiB). Cmd+C and Cmd+V reach the guest as Ctrl+C/V, and private pasteboard items (password managers) are never sent. It needs agent v1.0.332 or later; v1.0.326 to v1.0.329 only carry text.
+- **X11-only applications work** (GIMP 2.10 is one) through XWayland, started in the guest on demand; the agent installs the package when it is missing.
+- **Limits.** Linux guests only. Keys travel by position, so the guest keyboard layout has to match your Mac's (Caker sets it for you). There is no drag and drop or file clipboard, no input methods, and no accelerated 3D, because Virtualization.framework gives Linux guests no GPU. The cursor an X11 client draws itself is not forwarded.
+
+---
+
 ## Multi-VM stacks with Compose
 
 **Caker Compose** brings the Docker Compose workflow to virtual machines: you describe a stack in a `compose.yml`, in the Docker Compose format, and each service runs as a full VM.
@@ -287,6 +334,7 @@ If a whole stack is more than you need, a **`.cakerenv`** file at the root of a 
 - **An image cache browser** to create a VM from an image you have already downloaded, or to delete it.
 - **A task list** of builds and provisions in progress on the daemon, which you can cancel.
 - **Template recording** from the VM window's toolbar.
+- **Seamless windows**: a toggle to show a Linux guest's applications as native Mac windows.
 - **Automatic updates** with Sparkle (in the direct-download edition).
 
 ---

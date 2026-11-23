@@ -133,6 +133,7 @@ public typealias Caked_SetScreenSizeRequest = Caked.SetScreenSizeRequest
 public typealias Caked_InstallAgentRequest = Caked.InstallAgentRequest
 public typealias Caked_ImageSource = Caked.Configuration.ImageSource
 public typealias Caked_VncStream = Caked.VncStream
+public typealias Caked_SeamlessStream = Caked.SeamlessStream
 
 public typealias Caked_CertificateRequest = Caked.CertificateRequest
 public typealias Caked_CertificateRequestCommand = Caked_CertificateRequest.CertificateCommand
@@ -394,6 +395,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var hardwareModel: Data?
 	public var provisioned: Bool
 	public var imdsMacAddress: String?
+	public var seamless: Bool
 
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
@@ -447,6 +449,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.hardwareModel = from.hardwareModel
 		self.provisioned = from.provisioned
 		self.imdsMacAddress = from.imdsMacAddress
+		self.seamless = from.seamless
 	}
 
 	public init(_ from: Caked.Configuration) {
@@ -521,6 +524,8 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		if from.hasImdsMacAddress {
 			self.imdsMacAddress = from.imdsMacAddress
 		}
+
+		self.seamless = from.seamless
 	}
 }
 
@@ -612,6 +617,7 @@ extension Caked_CommonBuildRequest {
 		self.image = buildOptions.image
 		self.ifnames = buildOptions.netIfnames
 		self.suspendable = buildOptions.suspendable
+		self.seamless = buildOptions.seamless
 		self.screenSize = Caked_ScreenSize.with {
 			$0.width = Int32(buildOptions.screenSize.width)
 			$0.height = Int32(buildOptions.screenSize.height)
@@ -732,6 +738,10 @@ extension Caked_ConfigureRequest {
 
 		if let displayRefit = options.displayRefit {
 			self.displayRefit = displayRefit
+		}
+
+		if let seamless = options.seamless {
+			self.seamless = seamless
 		}
 
 		if let autostart = options.autostart {

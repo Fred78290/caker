@@ -1,0 +1,155 @@
+---
+layout: default
+title: Seamless windows
+nav_order: 15
+---
+
+<!-- markdownlint-disable MD033 MD024 -->
+
+<div class="lang-fr" style="display:none" markdown="1">
+
+# Fenêtres intégrées (seamless) pour les VM Linux
+
+Une VM Linux peut afficher ses fenêtres comme de vraies fenêtres macOS, à la manière de WSLg : un compositeur Wayland dans l'invité envoie une image par fenêtre (fenêtre principale ou menu contextuel) par **vsock**, et l'hôte les affiche chacune dans sa propre `NSWindow` en renvoyant le clavier et la souris. Il n'y a ni RDP ni périphérique virtio personnalisé. Le compositeur et l'agent côté invité sont dans [cakeagent](https://github.com/Fred78290/cakeagent/wiki/seamless-windows).
+
+Les fenêtres portent le préfixe `[<vm>]` dans leur titre (`[myvm] foot`), et `<utilisateur> :` après lui pour un compte autre que celui de la VM.
+
+## Prérequis
+
+- Une VM **Linux** (pas macOS, pas Windows) avec un cakeagent récent dans l'invité (**v1.0.326 ou plus** ; un agent plus ancien ignore l'option et n'affiche rien).
+- La VM tourne et son agent répond.
+
+## Activer
+
+```bash
+caked build --seamless ubuntu-vm            # dès la création : le seed cloud-init installe le compositeur
+cakectl launch --seamless ubuntu-vm
+cakectl configure ubuntu-vm --seamless true # plus tard : pris en compte au prochain démarrage, sans reconstruire
+```
+
+Dans Caker.app, c'est la case « Fenêtres intégrées » de l'assistant de création et des réglages de la VM. L'agent est réenregistré au démarrage suivant quand les options de son service ont changé (fenêtres intégrées, montages) : l'opération passe par l'agent lui-même, pas par SSH.
+
+## Afficher les fenêtres
+
+Un seul processus affiche les fenêtres d'une VM à la fois (un verrou sur le socket `smls` de la VM) :
+
+| VM exécutée par | Qui affiche les fenêtres |
+| --- | --- |
+| Caker.app (mode `app`) | Caker.app |
+| `caked start` / `caked vmrun` | le processus `vmrun`, sans icône dans le Dock |
+| un service `caked` (local ou distant) | un client : Caker.app, ou `cakectl seamless <vm>` (tunnel gRPC) |
+
+`cakectl sh`, `cakectl exec` et `cakectl app run` affichent eux-mêmes les fenêtres d'une VM seamless (`--seamless false` désactive l'affichage pour `sh`/`exec`). Quand un autre processus les affiche déjà, `sh`/`exec` continuent et reprennent les fenêtres dès que l'autre les lâche ; `app run` démarre simplement l'application.
+
+## Utilisateurs
+
+`exec` et `sh` s'exécutent sous le compte de la VM (voir [`exec` et `sh`](command-summary)), ce qui permet à un programme graphique lancé depuis ce shell de s'ouvrir sur l'hôte. Un autre compte (`--user`) obtient son propre compositeur à la demande.
+
+## Applications et lanceurs
+
+On peut démarrer les applications installées dans l'invité sans passer par un terminal :
+
+```bash
+cakectl app list myvm                         # applications (.desktop) de l'invité
+cakectl app run myvm firefox                  # démarre Firefox, ses fenêtres s'affichent sur le Mac
+cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (myvm).app
+```
+
+- Dans Caker.app, le bouton **Applications** de la barre d'outils de la fenêtre d'une VM seamless ouvre la liste (recherche, icône de chaque application lue dans l'invité) ; un clic démarre l'application et le bouton à droite de la ligne crée un lanceur. Ce bouton n'existe que pour une VM du service local ou une VM que l'application exécute elle-même, pas pour une VM d'un service distant.
+- Un **lanceur** est une petite application macOS (Dock, Spotlight, Launchpad) qui démarre la VM si besoin puis l'application ; son icône est celle de l'application dans l'invité (thèmes d'icônes du système, de snap et de Flatpak). Il n'est pas signé.
+- Les applications en terminal (`htop`, `vim`) sont lancées dans l'émulateur de terminal de l'invité.
+- Le détail des options est dans [`app`](command-summary).
+
+## Copier-coller
+
+Ce qui est copié dans l'invité (texte, HTML, images et PDF) passe dans le presse-papiers du Mac, et ce qui est copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout autre type (audio, vidéo, archives, fichiers…, même si le Mac sait le représenter), plus de 32 Mio au total (16 éléments au plus), et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.332 ou plus dans l'invité (protocole 4) ; un agent v1.0.326 à v1.0.329 ne partage que le texte (1 Mio au plus), un agent plus ancien n'a pas de presse-papiers.
+
+## Applications X11
+
+Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par XWayland : le compositeur de l'invité sert un affichage X et lance `Xwayland` à la première connexion d'un client X11. Il faut le programme `Xwayland` dans l'invité (les scripts d'installation de l'agent installent le paquet quand les fenêtres seamless sont activées ; quand seamless est activé sur une VM existante, le démarrage suivant l'installe avant de réenregistrer l'agent, et échoue avec un message explicite, seamless restant désactivé, si l'invité ne peut pas l'installer : installez `xwayland` à la main et redémarrez la VM) et un cakeagent v1.0.329 ou plus. Le curseur dessiné par un client X11 n'est pas transmis, et sur un écran Retina les fenêtres X11 sont plus floues (elles ignorent l'échelle).
+
+## Limites
+
+- Le presse-papiers ne partage que le texte, le HTML, les **images** et le PDF (types **MIME** `text/*`, `image/*`, `application/pdf` ; protocole 4, 32 Mio au plus au total) : pas d'audio, de vidéo ni d'autre type, pas les fichiers ; pas de glisser-déposer, pas de méthode de saisie (IME), pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
+- Une application démarre sans argument ni fichier.
+- Un invité Windows ou macOS ne l'a pas. L'installation de la VM App Store n'a pas été vérifiée.
+- Un redémarrage du service `caked` coupe le tunnel ; Caker.app se reconnecte toutes les 3 secondes.
+
+Voir aussi `SEAMLESS_WINDOWS_PLAN.md` dans le dépôt pour la conception, le protocole et les limites connues.
+
+</div>
+
+<div class="lang-en" style="display:block" markdown="1">
+
+# Seamless windows for Linux VMs
+
+A Linux VM can show its windows as real macOS windows, WSLg style: a Wayland compositor in the guest sends one pixel buffer per window (a main window or a popup menu) over **vsock**, and the host shows each in its own `NSWindow`, sending keyboard and mouse back. There is no RDP and no custom virtio device. The compositor and the guest-side agent are described in the [cakeagent wiki](https://github.com/Fred78290/cakeagent/wiki/seamless-windows).
+
+Windows are titled `[<vm>]` first (`[myvm] foot`), then `<user>: ` for an account other than the VM's own.
+
+## Requirements
+
+- A **Linux** VM (not macOS, not Windows) with a recent cakeagent in the guest (**v1.0.326 or later**; an older agent ignores the option and shows nothing).
+- The VM is running and its agent answers.
+
+## Turn it on
+
+```bash
+caked build --seamless ubuntu-vm            # at creation: the cloud-init seed installs the compositor
+cakectl launch --seamless ubuntu-vm
+cakectl configure ubuntu-vm --seamless true # later: applied at the next start, no rebuild
+```
+
+In Caker.app it is the "Seamless windows" switch of the creation wizard and of the VM settings. The agent is registered again at the next start when its service options changed (seamless windows, mounts): that goes through the agent itself, not SSH.
+
+## Showing the windows
+
+Only one process shows the windows of a VM at a time (a lock on the VM's `smls` socket):
+
+| VM run by | Who shows the windows |
+| --- | --- |
+| Caker.app (`app` mode) | Caker.app |
+| `caked start` / `caked vmrun` | the `vmrun` process, with no Dock icon |
+| a `caked` service (local or remote) | a client: Caker.app, or `cakectl seamless <vm>` (gRPC tunnel) |
+
+`cakectl sh`, `cakectl exec` and `cakectl app run` show the windows of a seamless VM themselves (`--seamless false` opts out for `sh`/`exec`). When another process already shows them, `sh`/`exec` keep running and take the windows over as soon as the other lets go; `app run` just starts the application.
+
+## Users
+
+`exec` and `sh` run as the VM's account (see [`exec` and `sh`](command-summary)), which is what lets a graphical program started from that shell open on the host. Another account (`--user`) gets its own compositor on demand.
+
+## Applications and launchers
+
+Start the applications installed in the guest without a terminal:
+
+```bash
+cakectl app list myvm                         # the guest's applications (.desktop)
+cakectl app run myvm firefox                  # starts Firefox, its windows show on the Mac
+cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (myvm).app
+```
+
+- In Caker.app, the **Applications** button in the toolbar of a seamless VM's window opens the list (search, each application's icon read from the guest); a click starts the application and the button at the right of the row creates a launcher. That button is only available for a VM of the local service or one the app runs itself, not for a VM of a remote service.
+- A **launcher** is a small macOS application (Dock, Spotlight, Launchpad) that starts the VM if needed and then the application; its icon is the application's icon in the guest (system, snap and Flatpak icon themes). It is not code-signed.
+- Terminal applications (`htop`, `vim`) are started in the guest's terminal emulator.
+- The options are detailed under [`app`](command-summary).
+
+## Copy and paste
+
+What is copied in the guest (text, HTML, images and PDF) goes to the Mac's clipboard, and what is copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, any other type (audio, video, archives, files... even when the Mac can represent it), more than 32 MiB in all (16 items at most), and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.332 or later in the guest (protocol 4); v1.0.326 to v1.0.329 share text only (1 MiB at most), an older agent has no clipboard.
+
+## X11 applications
+
+An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through XWayland: the guest's compositor serves an X display and runs `Xwayland` when the first X11 client connects. The guest needs the `Xwayland` program (the agent's install scripts install the package when seamless windows are on; when seamless is turned on for an existing VM, the next start installs it before re-registering the agent, and fails with an explicit message, leaving seamless off, if the guest can't install it: install `xwayland` by hand and start the VM again) and cakeagent v1.0.329 or later. The cursor an X11 client draws is not forwarded, and on a Retina display X11 windows look softer (they ignore the scale).
+
+## Limits
+
+- The clipboard only shares text, HTML, **images** and PDF (**MIME** types `text/*`, `image/*`, `application/pdf`; protocol 4, 32 MiB at most in all): no audio, video or other types, no files; no drag and drop, no input method (IME), no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
+- An application starts without arguments or files.
+- A Windows or macOS guest doesn't have it. The App Store build has not been checked.
+- Restarting the `caked` service drops the tunnel; Caker.app reconnects every 3 seconds.
+
+See also `SEAMLESS_WINDOWS_PLAN.md` in the repository for the design, the protocol and the known gaps.
+
+</div>
+
+{% include lang-toggle.html %}

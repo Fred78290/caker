@@ -800,11 +800,11 @@ final class WindowsGuestTests: XCTestCase {
 	}
 
 	func testAgentUpdateScriptInstallsOrReplacesTheServiceAndDeletesItself() {
-		let script = WindowsInstallResources.agentUpdatePowerShell(snapshot: "abc12345", port: 5000, caCert: "-----CA-----", serverCert: "-----SERVER-----", serverKey: "-----KEY-----")
+		let script = WindowsInstallResources.agentUpdatePowerShell(version: "abc12345", port: 5000, caCert: "-----CA-----", serverCert: "-----SERVER-----", serverKey: "-----KEY-----")
 
-		XCTAssertTrue(script.contains("$snapshot = 'abc12345'"))
+		XCTAssertTrue(script.contains("$agentVersion = 'abc12345'"))
 		XCTAssertTrue(script.contains("vsock://any:5000"))
-		XCTAssertTrue(script.contains("-match $snapshot"), "an agent that already has the snapshot is left alone")
+		XCTAssertTrue(script.contains("-match ('is: ' + [regex]::Escape($agentVersion) + ',')"), "an agent that already has exactly this version is left alone")
 		XCTAssertTrue(script.contains("Stop-Service cakeagent") && script.contains("Start-Service cakeagent"), "an existing service is stopped, replaced and started")
 		XCTAssertTrue(script.contains("service install"), "a missing one is installed")
 		XCTAssertTrue(script.contains("asyncpreemptoff=1"), "x64 guests run the agent without asynchronous preemption, as at install")

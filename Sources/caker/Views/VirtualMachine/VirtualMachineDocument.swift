@@ -279,6 +279,9 @@ extension UTType {
 	/// Identifies the start (or resume) in flight. `cancelPendingStart()` clears it, so a start that
 	/// completes afterwards sees it no longer matches and stops the VM instead of marking it running.
 	private var startToken: UUID?
+	/// True while an embedded VM is being restarted (stop then start). The stop removes the PID file, and without this the
+	/// file watcher would treat it as a real stop and drop `virtualMachine`, leaving the view on "Virtual machine not loaded".
+	private var isRestarting = false
 	private var inView: Bool = false
 	/// When this document last wrote its own configuration (see `saveConfiguration(_:)`). File
 	/// events are delivered asynchronously, after the save has returned, so a flag cleared at the
@@ -329,7 +332,11 @@ extension UTType {
 		return launchVMExternally
 	}
 
-	private(set) var virtualMachineConfig: VirtualMachineConfig = .init()
+	private(set) var virtualMachineConfig: VirtualMachineConfig = .init() {
+		didSet {
+			self.updateSeamlessTunnel()
+		}
+	}
 	var externalRunning: Bool = false
 	var canStart: Bool = false
 	var canStop: Bool = false
@@ -346,7 +353,11 @@ extension UTType {
 	var isVoiceOverActived: Bool = false
 	var hasRecordedActions: Bool = false
 	var vncURL: [URL]? = nil
-	var agentReady: Bool = false
+	var agentReady: Bool = false {
+		didSet {
+			self.logger.debug("Agent ready for \(self.name): \(self.agentReady)")
+		}
+	}
 	var connection: VNCConnection! = nil
 	var vncTunnel: VNCTunnel? = nil
 	var vncStatus: VncStatus = .disconnected
@@ -359,8 +370,13 @@ extension UTType {
 	var screenshot: Data!
 	var haveRequestStop: Bool = false
 
+	/// The windows of a Linux VM run by a caked service, relayed through its `SeamlessTunnel` (see `SeamlessTunnelSession`).
+	@ObservationIgnored private var seamlessSession: SeamlessTunnelSession?
+
 	var agent = AgentStatus.none {
 		didSet {
+			self.logger.debug("Agent state for \(self.name): \(self.agent)")
+
 			guard AppState.sharedLoaded else {
 				return
 			}
@@ -373,6 +389,14 @@ extension UTType {
 
 	var status: Status = .none {
 		didSet {
+			self.logger.debug("Set status for \(self.name): \(self.status)")
+
+			self.updateSeamlessTunnel()
+
+			// Before the `sharedLoaded` guard on purpose: documents are created while `AppState.init()` loads the
+			// VMs, i.e. before `AppState.shared` is assigned, and monitoring doesn't depend on AppState.
+			self.reconcileAgentMonitoring()
+
 			guard AppState.sharedLoaded else {
 				return
 			}
@@ -443,6 +467,10 @@ extension UTType {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
 
+		if let session = self.seamlessSession {
+			Task { @MainActor in session.stop() }
+		}
+
 		MainApp.app?.removeStateVirtualMachineDocument(with: self.url)
 
 		if let monitor = self.monitor {
@@ -482,17 +510,11 @@ extension UTType {
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.status = .init(location.status)
 
-		// If the PID file already existed by the time the monitor above started watching (the VM
-		// was fully up before this document was even created — plausible for the same reason the
-		// status race above is), no "file added" event will ever fire for it: a `FileMonitor` only
-		// delivers changes that happen *after* it starts, not a backlog of what's already on disk.
-		// `fileDidChanged`'s own `.caked`-mode handling (the only place that otherwise starts agent
-		// monitoring for this run mode) would then never run at all, leaving agent readiness
-		// unnoticed indefinitely. Starting it directly here too is safe — `startAgentMonitoring()`
-		// is a no-op once a monitoring task already exists.
-		if self.status == .running {
-			self.startAgentMonitoring()
-		}
+		// Property observers don't run for assignments made inside the type's own initializer, so the
+		// `status` didSet never saw this first value: a VM already running when the document is created
+		// (the PID file existed before the monitor started, so no "added" event will follow either)
+		// would never get its agent monitored.
+		self.reconcileAgentMonitoring()
 	}
 
 	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
@@ -663,6 +685,34 @@ extension VirtualMachineDocument {
 		self.vncURL = vncURL
 	}
 
+	/// Shows the windows of a Linux VM whose seamless windows are on while the caked service runs it (a local or a
+	/// remote one): the service relays the guest's stream, there is no process of ours that could listen for it.
+	/// In `.app` mode the VM runs in this process, which listens itself.
+	func updateSeamlessTunnel() {
+		let name = self.name
+		let connectionManager = self.connectionManager
+
+		Task { @MainActor in
+			// Decided when the task runs, not when it was queued: a start queued while the VM was running must not
+			// open a session for a document that has stopped since (and the stop must not be discarded because the
+			// session did not exist yet when it was asked).
+			let wanted = connectionManager.connectionMode != .app && self.virtualMachineConfig.os == .linux && self.virtualMachineConfig.seamless && self.status == .running
+
+			guard wanted || self.seamlessSession != nil else { return }
+
+			if wanted {
+				if self.seamlessSession == nil {
+					self.seamlessSession = SeamlessTunnelSession(vmName: name, connectionManager: connectionManager)
+				}
+
+				self.seamlessSession?.start()
+			} else if let session = self.seamlessSession {
+				session.stop()
+				self.seamlessSession = nil
+			}
+		}
+	}
+
 	@MainActor
 	func setStateAsStopped(_ status: Status = .stopped) {
 		#if DEBUG
@@ -691,6 +741,17 @@ extension VirtualMachineDocument {
 
 	@MainActor
 	func setStateAsRunning(_ status: Status, vncURL: [URL]?) {
+		guard self.status != .running else {
+			if self.agentReady {
+				if self.interactiveShell == nil && self.inView {
+					self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
+				}
+			}
+
+			self.vncURL = vncURL
+			return
+		}
+
 		#if DEBUG
 			self.logger.debug("setStateAsRunning: \(status) vncURL: \(vncURL?.map { $0.absoluteString } ?? [])")
 		#endif
@@ -700,8 +761,6 @@ extension VirtualMachineDocument {
 		self.agentReady = false
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
-		// Start agent monitoring when VM is running
-		self.startAgentMonitoring()
 		AppState.shared.openVirtualMachineDocument(self)
 	}
 
@@ -860,9 +919,6 @@ extension VirtualMachineDocument {
 			}
 
 			retrieveVNCURL()
-
-			// Start agent monitoring if VM is running
-			self.startAgentMonitoring()
 
 			return location.rootURL
 		} catch {
@@ -1089,7 +1145,22 @@ extension VirtualMachineDocument {
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
-			virtualMachine.restartFromUI()
+			self.isRestarting = true
+			// The restart never goes through `setStateAsStopped()` (the file watcher ignores the PID removal while
+			// restarting), so invalidate any agent installation of the run being replaced here, or it could
+			// overwrite the agent state of the next run.
+			self.agentInstallToken = nil
+
+			virtualMachine.restartFromUI { result in
+				DispatchQueue.main.async {
+					self.isRestarting = false
+
+					if case .failure(let error) = result {
+						self.setStateAsStopped()
+						alertError(error)
+					}
+				}
+			}
 		}
 	}
 
@@ -1534,19 +1605,6 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 							self.externalRunning = true
 							self.status = .running
 							self.retrieveVNCURL()
-							// Unlike the `.caker` case below (which goes through `setStateAsRunning`,
-							// always starting agent monitoring as part of it), this branch used to
-							// depend entirely on `retrieveVNCURL()` happening to call
-							// `setStateAsRunning` as a side effect of successfully fetching VNC info —
-							// itself an unrelated concern. If that VNC lookup failed or wasn't ready
-							// yet at this exact moment (the only time this event fires), agent
-							// monitoring silently never started at all: a `.caked`-mode VM — exactly
-							// what a background `caked vmrun` process reports, which is what `compose
-							// up` launches — could sit fully running with the agent long since ready,
-							// while this document stayed stuck never noticing. Called directly and
-							// unconditionally here instead; safe to also reach via `retrieveVNCURL()`
-							// afterward, since `startAgentMonitoring()` is a no-op once already running.
-							self.startAgentMonitoring()
 						case .caker:
 							self.externalRunning = false
 							self.setStateAsRunning(.running, vncURL: nil)
@@ -1558,6 +1616,11 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 							break
 						}
 					case .stopped:
+						// The PID file is removed by the stop half of a restart: the VM is coming back, keep it loaded.
+						guard self.isRestarting == false else {
+							break
+						}
+
 						self.externalRunning = false
 						self.setStateAsStopped()
 					default:
@@ -1591,14 +1654,17 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 // MARK: - VNC handling
 extension VirtualMachineDocument {
 	func setVncScreenSize(_ screenSize: ViewSize) {
-		if self.externalRunning && (self.status == .running || self.status == .provisioning) {
+		if self.externalRunning && self.status.isRunning {
 			#if DEBUG
 				self.logger.debug("setVncScreenSize: \(screenSize.description)")
 			#endif
 
-			if self.connectionManager.connectionMode == .remote {
-				self.vncView?.setDesktopSize()
-			} else {
+			// One channel at a time. The VNC view asks for its own size, the one the framebuffer has to fill; sending
+			// the window's size over gRPC as well gives the server two different sizes (they differ by the toolbar)
+			// and it switches from one to the other for ever. gRPC is only for a VM whose view is not connected yet.
+			if let vncView = self.vncView {
+				vncView.setDesktopSize()
+			} else if self.connectionManager.connectionMode != .remote {
 				Task {
 					await self.connectionManager.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
 				}
@@ -1809,14 +1875,12 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
 		#endif
 
-		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
-			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
+		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
-			DispatchQueue.main.async {
-				self.setDocumentSize(.init(framebuffer.cgSize))
+		DispatchQueue.main.async {
+			self.setDocumentSize(.init(framebuffer.cgSize))
 
-				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
-			}
+			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
 		}
 	}
 
@@ -1914,7 +1978,7 @@ extension VirtualMachineDocument {
 			self.logger.debug("VM \(self.name) is ready with IP: \(firstIP)")
 		}
 
-		if infos.agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
+		if infos.agentVersion != CAKEAGENT_VERSION {
 			#if DEBUG
 				self.logger.debug("Agent monitoring: VM \(self.name) agent need to be updated")
 			#endif
@@ -1970,6 +2034,16 @@ extension VirtualMachineDocument {
 		return false
 	}
 
+	/// Starts agent monitoring while the VM runs, stops it once it is stopped or deleted. Both calls are
+	/// idempotent (`startAgentMonitoring()` no-ops when a task already exists).
+	func reconcileAgentMonitoring() {
+		if self.status == .running {
+			self.startAgentMonitoring()
+		} else if self.status == .stopped || self.status == .deleted {
+			self.stopAgentMonitoring()
+		}
+	}
+
 	func startAgentMonitoring() {
 		guard self.location != nil else {
 			return
@@ -1987,6 +2061,8 @@ extension VirtualMachineDocument {
 					while Task.isCancelled == false && isWaitingForAgent {
 						isWaitingForAgent = await self.performAgentMonitoring()
 
+						// Readiness is written by agentMonitoringSuccess() only: the loop also ends on a failure
+						// that retrying won't change, and that must not read as "ready".
 						if isWaitingForAgent {
 							try? await Task.sleep(nanoseconds: 1_000_000_000)
 						}

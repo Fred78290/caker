@@ -314,6 +314,8 @@ public protocol VirtualMachineConfiguration {
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
 	var provisioned: Bool { set get }
 	var imdsMacAddress: String? { set get }
+	/// Linux guests: show the guest's windows on the host (see SeamlessWindowManager).
+	var seamless: Bool { set get }
 }
 
 extension Caked.Configuration.VirtualizedOS {
@@ -603,6 +605,7 @@ extension VirtualMachineConfiguration {
 			$0.nested = self.nested
 			$0.suspendable = self.suspendable
 			$0.ifname = self.ifname
+			$0.seamless = self.seamless
 
 			if let ecid {
 				$0.ecid = ecid

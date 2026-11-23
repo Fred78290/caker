@@ -8,7 +8,7 @@
 
 Caker is an open-source toolchain for running virtual machines on macOS, built on Apple's Virtualization framework. It includes a daemon (`caked`) and a command-line client (`cakectl`), but this article is about the third piece: **Caker.app**, the desktop application.
 
-The app does almost everything the command line does, through windows, sheets and menus. You can create a VM from a cloud image, an ISO (Linux or Windows 11) or a macOS restore image, watch it install itself, open its display or a terminal, forward ports, share folders, and run several VMs together from a single YAML file. You never need to open Terminal, and if you do, the same VMs are available from `cakectl`.
+The app does almost everything the command line does, through windows, sheets and menus. You can create a VM from a cloud image, an ISO (Linux or Windows 11) or a macOS restore image, watch it install itself, open its display or a terminal, run a Linux guest's applications as ordinary Mac windows, forward ports, share folders, and run several VMs together from a single YAML file. You never need to open Terminal, and if you do, the same VMs are available from `cakectl`.
 
 Caker.app requires macOS 15 or later, and follows macOS 26's Liquid Glass design when it runs there. macOS guests require an Apple Silicon Mac, and a Windows 11 guest needs an ISO that matches your Mac (ARM on Apple Silicon, x64 on an Intel Mac). On an Intel Mac, Windows Server 2025 and Windows Server 2022 install the same way.
 
@@ -144,6 +144,68 @@ A VM running in a separate process, or on another Mac, is displayed over VNC, an
 The **Settings** button opens a sheet with the same sections as the wizard: CPU count, memory, disk size, options, display size, forwarded ports, network attachments, directory sharing, extra disks and sockets.
 
 ![VM settings sheet](images/caker-app/10-vm-settings-sheet.png)
+
+---
+
+## Linux applications as Mac windows
+
+A Linux VM does not have to live inside a display window. With **Seamless windows**, each window of a Linux application opens as its own native Mac window, next to your Mac's apps, with a title prefixed by the VM's name (`[my-vm] Terminal`). You can resize it, move it between Spaces, and type and scroll in it (mouse wheel and trackpad both work).
+
+![Seamless windows](images/caker-app/23-seamless-windows.png)
+
+Under the hood, a small Wayland compositor runs in the guest and sends every window's pixels to the Mac over the VM's vsock channel, then forwards your keyboard and mouse back. There is nothing to install in the guest: the compositor is built into Caker's guest agent.
+
+### Turning it on
+
+- In the creation wizard, switch on **Seamless windows** in the **Options** step (Linux images only).
+- For an existing VM, first make sure it runs a recent Caker agent (use **Update agent** in the VM window): an older agent ignores the seamless flags. Then switch it on in the VM's **Settings** sheet. The agent service in the guest is updated the next time you start the VM.
+
+![Seamless settings toggle](images/caker-app/24-seamless-settings-toggle.png)
+
+Then start applications from the terminal tab of the VM window, or with `cakectl`:
+
+```bash
+cakectl exec my-vm foot
+cakectl sh my-vm          # then type: gnome-terminal
+```
+
+The command runs in the guest as the VM's own user, and its window shows up on your Mac. Keys travel by position, so the guest's keyboard layout is set to your Mac's.
+
+### Starting applications from a list, and Dock-ready launchers
+
+You do not have to remember program names. A running seamless Linux VM gets an **Applications** button in the VM window's toolbar. It opens a popover listing the guest's installed applications (the `.desktop` entries), with their own icons and a search field. Click a row and the application starts, its window opening on your Mac.
+
+![Applications popover](images/caker-app/25-applications-popover.png)
+
+Each row also has a **create launcher** button (it appears when you point at the row). It is available for VMs run by the local service or by the app itself, not for VMs on a remote Mac (the app does not pass a remote server's address on to a launcher). It writes `~/Applications/<name> (<vm>).app`, a small app you can double-click, put in the Dock or find with Spotlight. Opening it starts the VM if needed, waits for its agent, and runs the application. The launcher takes the application's icon from the guest, so Firefox looks like Firefox in your Dock. Terminal programs such as htop or vim, which have no window of their own, are run inside the guest's terminal emulator.
+
+The same thing from the command line:
+
+```bash
+cakectl app list my-vm                          # the guest's applications
+cakectl app run my-vm firefox --start --wait 120 # start the VM if needed, then the app
+cakectl app create-launcher my-vm firefox       # the .app in ~/Applications
+```
+
+An application can be named by its desktop id, its display name, or the last word of its id (`firefox`); an ambiguous name is an error rather than a guess.
+
+### Copy and paste, and X11 applications
+
+The clipboard works both ways. Text, images and PDF copied in the guest land on your Mac's pasteboard, and what you copy on the Mac is available to paste in the guest, so Cmd+C and Cmd+V behave as in any Mac app (Command is sent to the guest as Control). Images are the practical case: copy a screenshot on the Mac and paste it into GIMP running in the VM. Items such as password-manager entries that mark themselves as private are never sent to the guest. This needs a recent Caker agent in the guest (**Update agent**): text works from agent v1.0.326, and other types from v1.0.332.
+
+Applications that only speak X11 work too. GIMP 2.10, for instance, has no Wayland support, and its windows now show up like any other (an XWayland server is started in the guest on demand, and the agent installs the package when it is missing).
+
+### Several users, and a VM somewhere else
+
+Each user of the guest can have windows: run `cakectl exec --user bob my-vm foot` and Bob's compositor is started and his windows appear, titled `[my-vm] bob: foot`. The windows of a VM that runs under a `caked` service, even on another Mac, reach the app through the same connection as everything else, so seamless windows work in all of the app's connection modes.
+
+Only one process shows a VM's windows at a time. If Caker.app is showing them, a `cakectl exec` in a terminal waits and shows them as soon as the app lets go, instead of failing. It only waits while its command is running: if the command ends first, it exits without taking the windows over. To keep a listener that takes them over whenever they are free, run `cakectl seamless my-vm`.
+
+![GIMP with a pasted image](images/caker-app/26-gimp-with-a-pasted-image.png)
+
+### What it does not do yet
+
+No drag and drop and no file copy-paste between the guest and your Mac (only text, images and PDF go through the clipboard), no accelerated 3D (Virtualization.framework gives Linux guests no GPU), and no input methods for composing text. The pointer an X11 application draws itself is not forwarded, and X11 windows look softer on a Retina display. Seamless windows are for Linux guests only.
 
 ---
 

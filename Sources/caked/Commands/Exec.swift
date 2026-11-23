@@ -61,11 +61,10 @@ struct Exec: CakeAgentAsyncParsableCommand {
 			let command = arguments.remove(at: 0)
 
 			do {
-				let exitCode = try await helper.exec(command: command, arguments: arguments, callOptions: callOptions)
+				// A configuration that can't be read is an error: an empty user would run the command as the agent's own (root).
+				let user = try self.execute.shellUser ?? StorageLocation(runMode: self.common.runMode).find(self.execute.name).config().configuredUser
 
-				if exitCode != 0 {
-					throw CakedLib.ExitCode(exitCode)
-				}
+				Foundation.exit(try await helper.exec(command: command, arguments: arguments, user: user, callOptions: callOptions))
 			} catch {
 				Logger.appendNewLine(self.common.format.render(error.reason))
 			}

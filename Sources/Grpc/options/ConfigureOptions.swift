@@ -36,6 +36,9 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	public var displayRefit: Bool? = nil
 
+	@Option(help: ArgumentHelp(String(localized: "Show the guest's windows on the host, like WSLg (Linux guests)"), discussion: String(localized: "Needs the cakeagent with seamless windows support in the guest, installed with --seamless. Takes effect when the VM starts.")))
+	public var seamless: Bool? = nil
+
 	@Option(help: ArgumentHelp(String(localized: "Allow to use dynamic port forwarding, default is false"), discussion: String(localized: "This option is supported on linux platforms only")))
 	public var dynamicPortForwarding: Bool? = nil
 
@@ -78,6 +81,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		nested: Bool? = nil,
 		suspendable: Bool? = nil,
 		displayRefit: Bool? = nil,
+		seamless: Bool? = nil,
 		forwardedPorts: [TunnelAttachement]? = nil,
 		dynamicPortForwarding: Bool? = nil,
 		mounts: DirectorySharingAttachments? = nil,
@@ -96,6 +100,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		self.nested = nested
 		self.suspendable = suspendable
 		self.displayRefit = displayRefit
+		self.seamless = seamless
 		self.dynamicPortForwarding = dynamicPortForwarding
 		self.published = forwardedPorts?.map(\.description) ?? ["unset"]
 		self.mount = mounts?.map(\.description) ?? ["unset"]
@@ -167,6 +172,12 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 			self.displayRefit = request.displayRefit
 		} else {
 			self.displayRefit = nil
+		}
+
+		if request.hasSeamless {
+			self.seamless = request.seamless
+		} else {
+			self.seamless = nil
 		}
 
 		if request.hasDynamicPortForwarding {

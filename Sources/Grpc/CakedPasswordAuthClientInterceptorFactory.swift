@@ -25,6 +25,10 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 			case trying([GRPCClientRequestPart<Request>])
 			// We're retrying using this call.
 			case retrying(Call<Request, Response>)
+			// The server accepted the credentials (it answered with its metadata): a retry can't happen anymore, so the
+			// request parts are not kept. A long-lived stream (seamless windows, VNC) would otherwise keep every message
+			// it ever sent for as long as it lasts.
+			case authenticated
 		}
 		
 		private var state: State = .trying([])
@@ -37,7 +41,7 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 		
 		override public func cancel(promise: EventLoopPromise<Void>?, context: ClientInterceptorContext<Request, Response>) {
 			switch self.state {
-			case .trying:
+			case .trying, .authenticated:
 				context.cancel(promise: promise)
 				
 			case .retrying(let call):
@@ -63,6 +67,9 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 				// Forward the request part.
 				context.send(part, promise: promise)
 				
+			case .authenticated:
+				context.send(part, promise: promise)
+				
 			case .retrying(let call):
 				// We're retrying, send the part to the retry call.
 				call.send(part, promise: promise)
@@ -73,6 +80,11 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 			switch self.state {
 			case .trying(var parts):
 				switch part {
+				case .metadata:
+					// A rejected call only ever answers with its end: the server took the credentials.
+					self.state = .authenticated
+					context.receive(part)
+					
 					// If 'authentication' fails this is the only part we expect, we can forward everything else.
 				case .end(let status, let trailers) where status.code == .unauthenticated:
 					// We only know how to deal with magic.
@@ -111,6 +123,9 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 				default:
 					context.receive(part)
 				}
+				
+			case .authenticated:
+				context.receive(part)
 				
 			case .retrying:
 				// Ignore anything we receive on the original call.
@@ -273,6 +288,10 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 	
 	public func makeVncTunnelInterceptors() -> [ClientInterceptor<Caked_VncStream, Caked_VncStream>] {
 		self.interceptors(self.chainedInterceptors?.makeVncTunnelInterceptors())
+	}
+	
+	public func makeSeamlessTunnelInterceptors() -> [ClientInterceptor<Caked_SeamlessStream, Caked_SeamlessStream>] {
+		self.interceptors(self.chainedInterceptors?.makeSeamlessTunnelInterceptors())
 	}
 	
 	public func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
