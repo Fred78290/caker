@@ -50,7 +50,7 @@ required_variables:
 pre_boot_command:
   - title: Boot the GRUB menu's default "Install" entry
     commands:
-      - <locate text="GRUB" timeout=30>
+      - <locate text="GRUB|Install" timeout=30>
       - <enter>
 
   - title: Wait Anaconda to start

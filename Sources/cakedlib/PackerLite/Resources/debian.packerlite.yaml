@@ -160,13 +160,22 @@ boot_command:
       - <enter>
 
   - title: Configure the package manager
-    commands: 
+    commands:
       - <locate text="Configure the package manager" timeout=120>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <enter>
+      - <locate text="Debian archive mirror country" timeout=30>
+      - <enter>
+      - <locate text="Debian archive mirror" timeout=30>
+      - <enter>
+      - <locate text="proxy information" timeout=30>
       - <enter>
 
   - title: Configuring popularity-contest
-    commands: 
-      - <locate text="Configuring popularity-contest|Participate in the package usage survey" timeout=60>
+    commands:
+      - <locate text="Configuring popularity-contest|Participate in the package usage survey" timeout=180>
       - <enter>
 
   - title: Software selection
@@ -181,7 +190,7 @@ boot_command:
 
   - title: Boot the GRUB
     commands:
-      - <locate text="GRUB" timeout=30>
+      - <locate text="GRUB|Install" timeout=30>
       - <enter>
 
   - title: Wait login prompt
@@ -206,9 +215,6 @@ post_boot_command:
     - sudo apt upgrade -y
     - sudo apt autoremove --purge -y
     - sudo apt clean -y
-    - sudo apt install -y cloud-init
-    - sudo systemctl enable cloud-init-local.service
-    - sudo systemctl enable cloud-init.service
-    - sudo systemctl enable cloud-config.service
-    - sudo systemctl enable cloud-final.service
+    - sudo apt install -y cloud-init cloud-utils
+    - sudo systemctl enable cloud-init-local.service cloud-config.service cloud-final.service
     - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"

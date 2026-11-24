@@ -93,7 +93,7 @@ pre_boot_command:
       - <enter>
       - reboot
       - <enter>
-      - <locate text="GRUB">
+      - <locate text="GRUB|Install">
       - <enter>
 
 boot_command:
