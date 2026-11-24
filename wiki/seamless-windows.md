@@ -56,7 +56,7 @@ cakectl app create-launcher myvm firefox      # crée ~/Applications/Firefox (my
 
 ## Copier-coller
 
-Ce qui est copié dans l'invité (texte, HTML, images et PDF) passe dans le presse-papiers du Mac, et ce qui est copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, tout autre type (audio, vidéo, archives, fichiers…, même si le Mac sait le représenter), plus de 32 Mio au total (16 éléments au plus), et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.332 ou plus dans l'invité (protocole 4) ; un agent v1.0.326 à v1.0.329 ne partage que le texte (1 Mio au plus), un agent plus ancien n'a pas de presse-papiers.
+Ce qui est copié dans l'invité (texte, HTML, images, PDF, audio, vidéo et tout autre type de données) passe dans le presse-papiers du Mac, et ce qui est copié sur le Mac est proposé à l'invité quand on active une de ses fenêtres. Sur un Mac, on utilise **Cmd+C / Cmd+V** : la touche Cmd est envoyée comme Contrôle quand une autre touche l'accompagne (et comme la touche Super quand on l'appuie seule). Ne sont pas partagés : un contenu marqué privé par un gestionnaire de mots de passe, les fichiers (un fichier copié dans le Finder n'est qu'une référence, pas des données), plus de 32 Mio au total (16 éléments au plus : un son ou une vidéo plus gros est laissé de côté, et le texte et les images passent en premier), et le presse-papiers d'un autre utilisateur de l'invité que celui dont une fenêtre a le focus. Il faut un cakeagent v1.0.332 ou plus dans l'invité (protocole 4) ; un agent v1.0.326 à v1.0.329 ne partage que le texte (1 Mio au plus), un agent plus ancien n'a pas de presse-papiers.
 
 ## Applications X11
 
@@ -64,7 +64,7 @@ Une application qui ne parle qu'X11 (GIMP 2.10, GTK2, Wine) s'affiche aussi, par
 
 ## Limites
 
-- Le presse-papiers ne partage que le texte, le HTML, les **images** et le PDF (types **MIME** `text/*`, `image/*`, `application/pdf` ; protocole 4, 32 Mio au plus au total) : pas d'audio, de vidéo ni d'autre type, pas les fichiers ; pas de glisser-déposer, pas de méthode de saisie (IME), pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
+- Le presse-papiers partage tout type de données ayant un type **MIME** (texte, HTML, images, PDF, audio, vidéo, documents… ; protocole 4, 32 Mio au plus au total) : pas les fichiers eux-mêmes ; pas de glisser-déposer, pas de méthode de saisie (IME), pas d'accélération 3D ; le curseur dessiné par l'application n'est pas transmis (les formes standard le sont).
 - Une application démarre sans argument ni fichier.
 - Un invité Windows ou macOS ne l'a pas. L'installation de la VM App Store n'a pas été vérifiée.
 - Un redémarrage du service `caked` coupe le tunnel ; Caker.app se reconnecte toutes les 3 secondes.
@@ -129,7 +129,7 @@ cakectl app create-launcher myvm firefox      # creates ~/Applications/Firefox (
 
 ## Copy and paste
 
-What is copied in the guest (text, HTML, images and PDF) goes to the Mac's clipboard, and what is copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, any other type (audio, video, archives, files... even when the Mac can represent it), more than 32 MiB in all (16 items at most), and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.332 or later in the guest (protocol 4); v1.0.326 to v1.0.329 share text only (1 MiB at most), an older agent has no clipboard.
+What is copied in the guest (text, HTML, images, PDF, audio, video and any other data type) goes to the Mac's clipboard, and what is copied on the Mac is offered to the guest when one of its windows is activated. On a Mac use **Cmd+C / Cmd+V**: the Cmd key is sent as Control when another key goes with it (and as the Super key when pressed alone). Not shared: content a password manager marked private, files (a file copied in the Finder is only a reference, not data), more than 32 MiB in all (16 items at most: a sound or video that is bigger is left out, and text and images go first), and the clipboard of a guest user other than the one whose window has the focus. It needs cakeagent v1.0.332 or later in the guest (protocol 4); v1.0.326 to v1.0.329 share text only (1 MiB at most), an older agent has no clipboard.
 
 ## X11 applications
 
@@ -137,7 +137,7 @@ An application that only speaks X11 (GIMP 2.10, GTK2, Wine) shows too, through X
 
 ## Limits
 
-- The clipboard only shares text, HTML, **images** and PDF (**MIME** types `text/*`, `image/*`, `application/pdf`; protocol 4, 32 MiB at most in all): no audio, video or other types, no files; no drag and drop, no input method (IME), no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
+- The clipboard shares any data type that has a **MIME** type (text, HTML, images, PDF, audio, video, documents...; protocol 4, 32 MiB at most in all): not the files themselves; no drag and drop, no input method (IME), no 3D acceleration; a cursor image drawn by the application is not forwarded (the standard shapes are).
 - An application starts without arguments or files.
 - A Windows or macOS guest doesn't have it. The App Store build has not been checked.
 - Restarting the `caked` service drops the tunnel; Caker.app reconnects every 3 seconds.
