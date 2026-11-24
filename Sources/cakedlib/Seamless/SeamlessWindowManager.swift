@@ -869,14 +869,25 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			add("text/plain;charset=utf-8", Data(text.utf8))
 		}
 
-		var tiff = false
 		var candidates: [(rank: Int, mime: String, type: NSPasteboard.PasteboardType)] = []
+		var hasTIFF = false
 
 		for type in pasteboard.types ?? [] where type != .string {
 			if type == .tiff {
-				tiff = true
+				hasTIFF = true
 			} else if let mime = Self.mimeType(forPasteboardType: type) {
 				candidates.append((Self.clipboardRank(mime), mime, type))
+			}
+		}
+
+		// The converted TIFF competes as an image, ahead of audio and video, unless the pasteboard has a PNG of its own.
+		var convertedPNG: Data?
+
+		if hasTIFF, !candidates.contains(where: { $0.mime == "image/png" }), let data = pasteboard.data(forType: .tiff) {
+			convertedPNG = NSBitmapImageRep(data: data)?.representation(using: .png, properties: [:])
+
+			if convertedPNG != nil {
+				candidates.append((Self.clipboardRank("image/png"), "image/png", .tiff))
 			}
 		}
 
@@ -884,13 +895,11 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		let ordered = candidates.enumerated().sorted { ($0.element.rank, $0.offset) < ($1.element.rank, $1.offset) }.map(\.element)
 
 		for candidate in ordered where !seen.contains(candidate.mime) {
-			if let data = pasteboard.data(forType: candidate.type) {
+			if candidate.type == .tiff, let convertedPNG {
+				add(candidate.mime, convertedPNG)
+			} else if let data = pasteboard.data(forType: candidate.type) {
 				add(candidate.mime, data)
 			}
-		}
-
-		if tiff, !seen.contains("image/png"), let data = pasteboard.data(forType: .tiff), let png = NSBitmapImageRep(data: data)?.representation(using: .png, properties: [:]) {
-			add("image/png", png)
 		}
 
 		return items

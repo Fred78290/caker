@@ -702,6 +702,27 @@ final class SeamlessWindowTests: XCTestCase {
 		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard).map(\.mime), ["image/png", "video/mp4"])
 	}
 
+	/// A TIFF is sent as a PNG and competes as an image: a big video can't take its place.
+	@MainActor
+	func testConvertedTIFFKeepsImagePriorityOverVideo() throws {
+		let pasteboard = scratchPasteboard()
+		defer { pasteboard.releaseGlobally() }
+
+		let bitmap = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 8, pixelsHigh: 8, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+		let tiff = try XCTUnwrap(bitmap.representation(using: .tiff, properties: [:]))
+		let pngSize = try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).count
+		let video = NSPasteboard.PasteboardType("public.mpeg-4")
+
+		// The video leaves room for nothing else but the PNG's bytes minus one: the converted image must go first and the video be left out.
+		pasteboard.declareTypes([video, .tiff], owner: nil)
+		pasteboard.setData(Data(count: SeamlessProtocol.maxClipboardTotalBytes - pngSize + 1), forType: video)
+		pasteboard.setData(tiff, forType: .tiff)
+
+		let items = SeamlessWindowManager.clipboardItems(from: pasteboard)
+
+		XCTAssertEqual(items.map(\.mime), ["image/png"])
+	}
+
 	@MainActor
 	func testItemsBecomePasteboardEntries() throws {
 		let entries = SeamlessWindowManager.pasteboardEntries(for: [
