@@ -844,8 +844,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				}
 			} else {
 				// No lease table yet (a fresh host, or caked's DHCP server hasn't granted a lease): keep waiting.
-				if let parser = try? DHCPLeaseParser(runMode: runMode, networks: networkNames), let runningIP = parser[clientID] {
-					return runningIP
+				if let parser = try? DHCPLeaseParser(runMode: runMode, networks: networkNames) {
+					if let runningIP = parser[clientID] {
+						return runningIP
+					}
 				}
 
 				// Either no table yet or no lease for this client yet: don't rescan every table in a tight loop.

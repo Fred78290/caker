@@ -7,10 +7,15 @@ extension String {
 		let components = macAddress.split(separator: ":")
 
 		if components.count == 6 {
-			self = components.map { String(format: "%02X", UInt8($0, radix: 16)!) }.joined(separator: ":")
+			self = components.map { String(format: "%02x", UInt8($0, radix: 16)!) }.joined(separator: ":")
 		} else {
 			return nil
 		}
+	}
+
+	/// Returns true when the string ends with `suffix`, ignoring case.
+	func endWith(_ suffix: String) -> Bool {
+		self.lowercased().hasSuffix(suffix.lowercased())
 	}
 }
 
@@ -68,15 +73,17 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 	init(runMode: Utils.RunMode, network: String? = nil, networks: [String]? = nil) throws {
 		var files: [URL] = []
 
-		if let network {
-			files.append(try Self.leaseFile(network: network, runMode: runMode))
-		} else if let networks {
-			files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
-			files.append(contentsOf: try networks.map { try Self.leaseFile(network: $0, runMode: runMode) })
-		} else {
-			files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
-			files.append(contentsOf: Self.networkLeaseFiles(runMode: runMode))
-		}
+		#if USE_DHCP_SERVER
+			if let network {
+				files.append(try Self.leaseFile(network: network, runMode: runMode))
+			} else if let networks {
+				files.append(contentsOf: try networks.map { try Self.leaseFile(network: $0, runMode: runMode) })
+			} else {
+				files.append(contentsOf: Self.networkLeaseFiles(runMode: runMode))
+			}
+		#endif
+
+		files.append(URL(fileURLWithPath: "/var/db/dhcpd_leases"))
 
 		let contents = files.compactMap { try? String(contentsOf: $0, encoding: .ascii) }
 
@@ -153,7 +160,18 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 
 	subscript(macAddress: String) -> String? {
 		if let mac = String(macAddress: macAddress) {
-			return leases[mac]?.ipAddress
+			if let lease = leases[mac] {
+				return lease.ipAddress
+			} else {
+				// Suffix candidates must still be live: an expired one must not be returned.
+				// Several leases can match: take the one that expires last, not whichever the dictionary yields first.
+				let now = Date()
+
+				return leases.values
+					.filter { $0.expireAt > now && $0.hwAddressAddress.hasSuffix(mac) }
+					.max { $0.expireAt < $1.expireAt }?
+					.ipAddress
+			}
 		} else {
 			// A DUID client identifier (`DHCPLease` keeps it lowercased, as vmnet writes it).
 			// An expired lease must not end the lookup: the caller has other sources to try.
