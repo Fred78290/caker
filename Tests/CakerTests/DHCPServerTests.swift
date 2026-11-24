@@ -198,6 +198,106 @@ final class DHCPServerTests: XCTestCase {
 		XCTAssertEqual(responder.respond(to: request(.discover, mac: 2))?.yiaddr, offer.yiaddr)
 	}
 
+	func testSameMachineKeepsItsAddressWhenItsClientIdentifierChanges() throws {
+		let responder = makeResponder()
+
+		// The installer asks with its MAC, the installed system with a DUID: same chaddr.
+		let installer = try XCTUnwrap(responder.respond(to: request(.discover, mac: 1)))
+
+		_ = responder.respond(to: request(.request, mac: 1, requested: DHCPAddress.string(installer.yiaddr), server: gateway))
+
+		var other = try XCTUnwrap(responder.respond(to: request(.discover, mac: 2)))
+
+		_ = responder.respond(to: request(.request, mac: 2, requested: DHCPAddress.string(other.yiaddr), server: gateway))
+
+		var discover = request(.discover, mac: 1)
+
+		discover.clientIdentifier = [255, 0x00, 0x04, 0xab]
+		other = try XCTUnwrap(responder.respond(to: discover))
+
+		XCTAssertEqual(other.yiaddr, installer.yiaddr)
+
+		var renew = request(.request, mac: 1, requested: DHCPAddress.string(installer.yiaddr), server: gateway, hostname: "debian")
+
+		renew.clientIdentifier = [255, 0x00, 0x04, 0xab]
+
+		XCTAssertEqual(responder.respond(to: renew)?.messageType, .ack)
+		// One lease for the machine, under its new identifier, and it kept the address.
+		XCTAssertNil(responder.store.lease(for: "1,aa:bb:cc:dd:ee:01"))
+		XCTAssertEqual(responder.store.lease(for: "ff,00:04:ab")?.address, installer.yiaddr)
+		XCTAssertEqual(responder.store.lease(for: "ff,00:04:ab")?.macAddress, "aa:bb:cc:dd:ee:01")
+	}
+
+	func testAddressesAreHandedOutInTurnAndWrapAround() throws {
+		final class Clock: @unchecked Sendable {
+			var date = Date(timeIntervalSince1970: 1_000_000)
+		}
+
+		let clock = Clock()
+		let responder = makeResponder(end: "192.168.50.4", now: { clock.date })
+
+		func lease(_ mac: UInt8) throws -> UInt32 {
+			let offer = try XCTUnwrap(responder.respond(to: request(.discover, mac: mac)))
+
+			_ = responder.respond(to: request(.request, mac: mac, requested: DHCPAddress.string(offer.yiaddr), server: gateway))
+
+			return offer.yiaddr
+		}
+
+		// First client leaves for good: its address is free again, but others are handed out first.
+		XCTAssertEqual(try lease(1), ip("192.168.50.2"))
+		responder.store.release(hwAddress: "1,aa:bb:cc:dd:ee:01")
+		XCTAssertEqual(try lease(2), ip("192.168.50.3"))
+		XCTAssertEqual(try lease(3), ip("192.168.50.4"))
+		// End of the pool reached: start again from the base, which only holds an ended lease.
+		XCTAssertEqual(try lease(4), ip("192.168.50.2"))
+
+		// The first client comes back after its address was reused: it gets another one only when one is free.
+		clock.date.addTimeInterval(7200)
+		XCTAssertNotNil(responder.respond(to: request(.discover, mac: 1)))
+	}
+
+	func testAddressOfAnExpiredLeaseIsKeptForItsClientWhileOthersAreFree() throws {
+		final class Clock: @unchecked Sendable {
+			var date = Date(timeIntervalSince1970: 1_000_000)
+		}
+
+		let clock = Clock()
+		let responder = makeResponder(end: "192.168.50.5", now: { clock.date })
+
+		for mac in [UInt8(1), 2] {
+			let offer = try XCTUnwrap(responder.respond(to: request(.discover, mac: mac)))
+
+			_ = responder.respond(to: request(.request, mac: mac, requested: DHCPAddress.string(offer.yiaddr), server: gateway))
+		}
+
+		clock.date.addTimeInterval(7200)
+
+		// Both leases expired; a new client doesn't take their addresses while never-used ones remain.
+		let newcomer = try XCTUnwrap(responder.respond(to: request(.discover, mac: 9)))
+
+		XCTAssertGreaterThanOrEqual(newcomer.yiaddr, ip("192.168.50.4"))
+		XCTAssertEqual(responder.respond(to: request(.discover, mac: 1))?.yiaddr, ip("192.168.50.2"))
+	}
+
+	func testAllocationCursorSurvivesARestart() throws {
+		let file = FileManager.default.temporaryDirectory.appendingPathComponent("dhcp-cursor-\(UUID().uuidString)")
+
+		defer { try? FileManager.default.removeItem(at: file) }
+
+		let responder = makeResponder(file: file)
+
+		for mac in [UInt8(1), 2] {
+			let offer = try XCTUnwrap(responder.respond(to: request(.discover, mac: mac)))
+
+			_ = responder.respond(to: request(.request, mac: mac, requested: DHCPAddress.string(offer.yiaddr), server: gateway))
+		}
+
+		let restarted = makeResponder(file: file)
+
+		XCTAssertEqual(restarted.respond(to: request(.discover, mac: 3))?.yiaddr, ip("192.168.50.4"))
+	}
+
 	// MARK: - Per-network lease table
 
 	func testLeasesArePersistedInAFileTheLeaseParserReads() throws {

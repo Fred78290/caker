@@ -45,7 +45,7 @@ public final class DHCPResponder: Sendable {
 
 		switch type {
 		case .discover:
-			guard let address = self.store.offer(hwAddress: key, requested: request.requestedAddress) else {
+			guard let address = self.store.offer(hwAddress: key, macAddress: request.macAddress, requested: request.requestedAddress) else {
 				self.logger.warn("DHCP pool exhausted, no address for \(key)")
 				return nil
 			}
@@ -66,7 +66,7 @@ public final class DHCPResponder: Sendable {
 				return nil
 			}
 
-			guard self.store.commit(hwAddress: key, address: address, hostname: request.hostname) else {
+			guard self.store.commit(hwAddress: key, macAddress: request.macAddress, address: address, hostname: request.hostname) else {
 				self.logger.debug("DHCPNAK \(DHCPAddress.string(address)) to \(key)")
 				return self.reply(.nak, to: request, address: 0, message: "requested address not available")
 			}
