@@ -748,6 +748,12 @@ extension VirtualMachineDocument {
 				}
 			}
 
+			// A repeated running event must not discard a pending "Update agent" condition
+			// (set by agent monitoring or installAgent); only refresh the default one.
+			if self.agentCondition.needUpdate == false {
+				self.agentCondition = ("Install agent", false, self.agent != .none)
+			}
+
 			self.vncURL = vncURL
 			return
 		}
@@ -774,7 +780,11 @@ extension VirtualMachineDocument {
 		logger.debug("setState to \(status) -> \(newStatus)")
 
 		func agentIsReady() {
-			self.agent = .installed
+			// An installAgent run in flight owns `agent` until its completion.
+			if self.agentInstallToken == nil {
+				self.agent = .installed
+			}
+
 			self.agentReady = true
 
 			if self.interactiveShell == nil && self.inView {
@@ -2096,7 +2106,11 @@ extension VirtualMachineDocument {
 	/// Update the document's usage information with new VMUsage data asynchronously on the main actor
 	@MainActor
 	public func setUsage(_ usage: Caked_CurrentUsageReply) async {
-		self.agent = .installed
+		// An installAgent run in flight owns `agent` until its completion.
+		if self.agentInstallToken == nil {
+			self.agent = .installed
+		}
+
 		self.agentReady = true
 		if usage.hasCpuInfos {
 			self.cpuInfos.update(usage.cpuInfos)

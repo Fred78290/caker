@@ -408,7 +408,7 @@ struct HostVirtualMachineView: View {
 			}
 		}
 		.help(agentCondition.title)
-		.disabled(agentCondition.disabled)
+		.disabled(agentCondition.disabled || self.document.agent == .installing)
 	}
 
 	/// Only offer recording when there's an actual live local `VNCVirtualMachineView` to tap — the
