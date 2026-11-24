@@ -650,12 +650,56 @@ final class SeamlessWindowTests: XCTestCase {
 		pasteboard.setData(realPNG, forType: .png)
 		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard).first { $0.mime == "image/png" }?.data, realPNG)
 
-		// What is not text, an image or a PDF is not shared: a file reference, an arbitrary type.
+		// A type with no MIME type is not shared (a file reference is refused too, see `testItemsBecomePasteboardEntries`: setting
+		// a file URL on a pasteboard hangs AppKit in a test process, so it isn't set here).
 		pasteboard.clearContents()
-		pasteboard.declareTypes([.fileURL, NSPasteboard.PasteboardType("com.example.private-thing")], owner: nil)
-		pasteboard.setString("file:///etc/passwd", forType: .fileURL)
+		pasteboard.declareTypes([NSPasteboard.PasteboardType("com.example.private-thing")], owner: nil)
 		pasteboard.setData(Data([1, 2, 3]), forType: NSPasteboard.PasteboardType("com.example.private-thing"))
 		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard), [])
+	}
+
+	/// Sound, video and any other content type go through, bulk ones after the small kinds, in the limits of a message.
+	@MainActor
+	func testPasteboardSharesAudioAndVideo() throws {
+		let pasteboard = scratchPasteboard()
+		defer { pasteboard.releaseGlobally() }
+
+		let video = NSPasteboard.PasteboardType("public.mpeg-4")
+		let audio = NSPasteboard.PasteboardType("public.mp3")
+		let named = NSPasteboard.PasteboardType("application/x-caker-test")
+
+		pasteboard.declareTypes([video, audio, named, .string, .png], owner: nil)
+		pasteboard.setData(Data(repeating: 1, count: 1000), forType: video)
+		pasteboard.setData(Data(repeating: 2, count: 500), forType: audio)
+		pasteboard.setData(Data([9, 9]), forType: named)
+		pasteboard.setString("hi", forType: .string)
+		pasteboard.setData(Data([3, 3, 3]), forType: .png)
+
+		let items = SeamlessWindowManager.clipboardItems(from: pasteboard)
+
+		XCTAssertEqual(items.map(\.mime), ["text/plain;charset=utf-8", "application/x-caker-test", "image/png", "video/mp4", "audio/mpeg"])
+		XCTAssertEqual(items.first { $0.mime == "video/mp4" }?.data.count, 1000)
+
+		// A video that doesn't fit is left out and does not take the rest with it.
+		pasteboard.clearContents()
+		pasteboard.declareTypes([video, audio], owner: nil)
+		pasteboard.setData(Data(count: SeamlessProtocol.maxClipboardTotalBytes + 1), forType: video)
+		pasteboard.setData(Data(repeating: 2, count: 500), forType: audio)
+		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard).map(\.mime), ["audio/mpeg"])
+
+		// A big video doesn't push out an image that comes after it on the pasteboard: the image goes first, the video is what
+		// is left out when both don't fit, and it is kept when they do.
+		pasteboard.clearContents()
+		pasteboard.declareTypes([video, .png], owner: nil)
+		pasteboard.setData(Data(count: SeamlessProtocol.maxClipboardTotalBytes - 2), forType: video)
+		pasteboard.setData(Data([3, 3, 3]), forType: .png)
+		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard).map(\.mime), ["image/png"])
+
+		pasteboard.clearContents()
+		pasteboard.declareTypes([video, .png], owner: nil)
+		pasteboard.setData(Data(count: SeamlessProtocol.maxClipboardTotalBytes - 3), forType: video)
+		pasteboard.setData(Data([3, 3, 3]), forType: .png)
+		XCTAssertEqual(SeamlessWindowManager.clipboardItems(from: pasteboard).map(\.mime), ["image/png", "video/mp4"])
 	}
 
 	@MainActor
@@ -665,15 +709,21 @@ final class SeamlessWindowTests: XCTestCase {
 			item("text/plain", 4),  // the same pasteboard type: the first wins
 			item("image/png", 5),
 			item("text/html", 6),
-			item("application/x-sh-unknown-thing", 7),  // no pasteboard type
-			item("application/zip", 8),  // not shared
+			item("video/mp4", 7),
+			item("audio/mpeg", 8),
+			item("application/x-sh-unknown-thing", 9),  // no registered type: the MIME type names it
+			item("not a mime", 10),  // not a MIME type at all
 		])
 
-		XCTAssertEqual(entries.map(\.type), [.string, .png, .html])
-		XCTAssertEqual(entries.map(\.data.count), [3, 5, 6])
+		XCTAssertEqual(entries.map(\.type), [.string, .png, .html, NSPasteboard.PasteboardType("public.mpeg-4"), NSPasteboard.PasteboardType("public.mp3"), NSPasteboard.PasteboardType("application/x-sh-unknown-thing")])
+		XCTAssertEqual(entries.map(\.data.count), [3, 5, 6, 7, 8, 9])
 		XCTAssertEqual(SeamlessWindowManager.mimeType(forPasteboardType: .string), "text/plain;charset=utf-8")
 		XCTAssertEqual(SeamlessWindowManager.mimeType(forPasteboardType: .png), "image/png")
+		XCTAssertEqual(SeamlessWindowManager.mimeType(forPasteboardType: NSPasteboard.PasteboardType("public.mpeg-4")), "video/mp4")
+		XCTAssertEqual(SeamlessWindowManager.mimeType(forPasteboardType: NSPasteboard.PasteboardType("application/x-sh-unknown-thing")), "application/x-sh-unknown-thing")
 		XCTAssertNil(SeamlessWindowManager.mimeType(forPasteboardType: .fileURL))
+		XCTAssertNil(SeamlessWindowManager.mimeType(forPasteboardType: NSPasteboard.PasteboardType("NSFilenamesPboardType")))
+		XCTAssertNil(SeamlessWindowManager.mimeType(forPasteboardType: NSPasteboard.PasteboardType("com.example.no-mime-type")))
 		XCTAssertEqual(SeamlessWindowManager.pasteboardType(forMIME: "TEXT/Plain;Charset=UTF-8"), .string)
 	}
 
