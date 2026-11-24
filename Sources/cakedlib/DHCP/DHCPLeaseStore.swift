@@ -14,6 +14,17 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 		public var address: UInt32
 		public var hostname: String?
 		public var expiresAt: Date
+		/// The hardware address (`chaddr`) the client used, `aa:bb:..`. The lease key (`hwAddress`) is the client
+		/// identifier, which can change for the same machine: an installer asks with its MAC, the installed system
+		/// with a DUID. The MAC is what ties both to one address.
+		public var macAddress: String? = nil
+
+		/// The MAC of the client, from `macAddress` or, for an Ethernet key (`1,<mac>`), from the key itself.
+		var effectiveMAC: String? {
+			if let macAddress { return macAddress }
+
+			return hwAddress.hasPrefix("1,") ? String(hwAddress.dropFirst(2)) : nil
+		}
 	}
 
 	public static let leaseFilename = "dhcpd_leases"
@@ -34,6 +45,9 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 		var leases: [String: Lease] = [:]
 		var offers: [String: (address: UInt32, expiresAt: Date)] = [:]
 		var declined: [UInt32: Date] = [:]
+		/// Where the next scan for a free address starts, so addresses are handed out in turn and an address freed
+		/// a moment ago isn't the first one reused. `nil` = start of the pool.
+		var cursor: UInt32? = nil
 	}
 
 	private let state = Mutex(State())
@@ -70,8 +84,10 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 
 	// MARK: - Allocation
 
-	/// The address to offer `hwAddress`: its previous one if still free, then `requested`, then the first free address.
-	public func offer(hwAddress: String, requested: UInt32?) -> UInt32? {
+	/// The address to offer `hwAddress`: its previous one if still free (also the one of the same machine under another
+	/// client identifier, see `Lease.macAddress`), then `requested`, then the next free address after the last one
+	/// handed out, wrapping around the pool.
+	public func offer(hwAddress: String, macAddress: String? = nil, requested: UInt32?) -> UInt32? {
 		let current = self.now()
 
 		return self.state.withLock { state in
@@ -81,44 +97,89 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 				candidates.append(previous)
 			}
 
+			if let mac = macAddress ?? state.leases[hwAddress]?.effectiveMAC, let sibling = self.sameMachineLease(of: hwAddress, mac: mac, in: state) {
+				candidates.append(sibling.address)
+			}
+
 			if let requested {
 				candidates.append(requested)
 			}
 
-			for candidate in candidates where self.isFree(candidate, for: hwAddress, in: state, at: current) {
+			for candidate in candidates where self.isFree(candidate, for: hwAddress, mac: macAddress, in: state, at: current) {
 				state.offers[hwAddress] = (candidate, current.addingTimeInterval(Self.offerHold))
 				return candidate
 			}
 
-			var address = self.poolStart
+			// An address that belonged to a client (even an expired lease) is only reused once nothing else is left,
+			// so that a client coming back later still finds its own.
+			let remembered = Set(state.leases.values.map(\.address))
 
-			while address <= self.poolEnd {
-				if self.isFree(address, for: hwAddress, in: state, at: current) {
+			for avoidRemembered in [true, false] {
+				if let address = self.scan(for: hwAddress, mac: macAddress, in: state, at: current, skipping: avoidRemembered ? remembered : []) {
 					state.offers[hwAddress] = (address, current.addingTimeInterval(Self.offerHold))
+					state.cursor = address >= self.poolEnd ? nil : address + 1
 					return address
 				}
-
-				if address == UInt32.max { break }
-
-				address += 1
 			}
 
 			return nil
 		}
 	}
 
+	/// First free pool address from the cursor, wrapping around once.
+	private func scan(for hwAddress: String, mac: String?, in state: State, at current: Date, skipping: Set<UInt32>) -> UInt32? {
+		guard self.poolStart <= self.poolEnd else { return nil }
+
+		let first = min(max(state.cursor ?? self.poolStart, self.poolStart), self.poolEnd)
+		var address = first
+
+		repeat {
+			if skipping.contains(address) == false, self.isFree(address, for: hwAddress, mac: mac, in: state, at: current) {
+				return address
+			}
+
+			address = address >= self.poolEnd ? self.poolStart : address + 1
+		} while address != first
+
+		return nil
+	}
+
+	/// The newest lease of the same machine (same MAC) held under another client identifier.
+	private func sameMachineLease(of hwAddress: String, mac: String, in state: State) -> Lease? {
+		state.leases.values
+			.filter { $0.hwAddress != hwAddress && $0.effectiveMAC == mac }
+			.max { $0.expiresAt < $1.expiresAt }
+	}
+
 	/// Commits `address` to `hwAddress`. `false` when it is outside the pool or already held by another client.
 	@discardableResult
-	public func commit(hwAddress: String, address: UInt32, hostname: String?) -> Bool {
+	public func commit(hwAddress: String, macAddress: String? = nil, address: UInt32, hostname: String?) -> Bool {
 		let current = self.now()
 
 		let committed = self.state.withLock { state -> Bool in
-			guard self.isFree(address, for: hwAddress, in: state, at: current) else {
+			guard self.isFree(address, for: hwAddress, mac: macAddress, in: state, at: current) else {
 				return false
 			}
 
+			let mac = macAddress ?? state.leases[hwAddress]?.effectiveMAC
+			var inheritedHostname = state.leases[hwAddress]?.hostname
+
+			// The same machine under another identifier (installer MAC, then installed system DUID): it takes over.
+			if let mac {
+				for (key, lease) in state.leases where key != hwAddress && lease.effectiveMAC == mac {
+					inheritedHostname = inheritedHostname ?? lease.hostname
+					state.leases[key] = nil
+					state.offers[key] = nil
+				}
+			}
+
+			// Expired leases of other clients on this very address are of no use any more.
+			for (key, lease) in state.leases where key != hwAddress && lease.address == address && lease.expiresAt <= current {
+				state.leases[key] = nil
+			}
+
 			state.offers[hwAddress] = nil
-			state.leases[hwAddress] = Lease(hwAddress: hwAddress, address: address, hostname: hostname == nil ? state.leases[hwAddress]?.hostname : (Self.isValidHostname(hostname) ? hostname : nil), expiresAt: current.addingTimeInterval(self.leaseDuration))
+			state.leases[hwAddress] = Lease(hwAddress: hwAddress, address: address, hostname: hostname == nil ? inheritedHostname : (Self.isValidHostname(hostname) ? hostname : nil), expiresAt: current.addingTimeInterval(self.leaseDuration), macAddress: mac)
 
 			return true
 		}
@@ -167,7 +228,9 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 		address >= self.poolStart && address <= self.poolEnd && address != self.gateway
 	}
 
-	private func isFree(_ address: UInt32, for hwAddress: String, in state: State, at current: Date) -> Bool {
+	private func isFree(_ address: UInt32, for hwAddress: String, mac: String? = nil, in state: State, at current: Date) -> Bool {
+		let mac = mac ?? state.leases[hwAddress]?.effectiveMAC
+
 		guard self.isInPool(address) else {
 			return false
 		}
@@ -177,6 +240,9 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 		}
 
 		for (key, lease) in state.leases where key != hwAddress && lease.address == address && lease.expiresAt > current {
+			// The same machine under another client identifier doesn't compete with itself.
+			if let mac, lease.effectiveMAC == mac { continue }
+
 			return false
 		}
 
@@ -213,6 +279,12 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 					lines.append("\tip_address=\(DHCPAddress.string(lease.address))")
 					lines.append("\thw_address=\(lease.hwAddress)")
 					lines.append("\tidentifier=\(lease.hwAddress)")
+
+					// Not part of vmnet's format (readers ignore it): what ties a DUID lease to the machine's MAC.
+					if let mac = lease.macAddress {
+						lines.append("\tchaddr=\(mac)")
+					}
+
 					lines.append("\tlease=0x\(String(Int(lease.expiresAt.timeIntervalSince1970), radix: 16))")
 					lines.append("}")
 
@@ -248,13 +320,20 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 				entry = [:]
 			} else if line == "}" {
 				if let ip = entry["ip_address"].flatMap(DHCPAddress.parse), let hw = entry["hw_address"], let expiry = entry["lease"].flatMap({ Int($0.dropFirst(2), radix: 16) }) {
-					leases[hw] = Lease(hwAddress: hw, address: ip, hostname: entry["name"], expiresAt: Date(timeIntervalSince1970: TimeInterval(expiry)))
+					leases[hw] = Lease(hwAddress: hw, address: ip, hostname: entry["name"], expiresAt: Date(timeIntervalSince1970: TimeInterval(expiry)), macAddress: entry["chaddr"])
 				}
 			} else if let separator = line.firstIndex(of: "=") {
 				entry[String(line[..<separator])] = String(line[line.index(after: separator)...])
 			}
 		}
 
-		self.state.withLock { $0.leases = leases }
+		self.state.withLock { state in
+			state.leases = leases
+
+			// Carry on after the most recently granted lease (the lease time is constant, so the latest expiry is the latest grant).
+			if let latest = leases.values.filter({ self.isInPool($0.address) }).max(by: { $0.expiresAt < $1.expiresAt }) {
+				state.cursor = latest.address >= self.poolEnd ? nil : latest.address + 1
+			}
+		}
 	}
 }

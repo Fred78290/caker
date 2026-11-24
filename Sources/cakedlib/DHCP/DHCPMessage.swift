@@ -120,6 +120,11 @@ public struct DHCPMessage: Equatable, Sendable {
 		return "1," + Self.hex(clientHardwareAddress)
 	}
 
+	/// The client hardware address (`chaddr`) as `aa:bb:cc:dd:ee:ff`, whatever identifier the client uses.
+	public var macAddress: String {
+		Self.hex(clientHardwareAddress)
+	}
+
 	static func hex<S: Sequence>(_ bytes: S) -> String where S.Element == UInt8 {
 		bytes.map { String(format: "%02x", $0) }.joined(separator: ":")
 	}
