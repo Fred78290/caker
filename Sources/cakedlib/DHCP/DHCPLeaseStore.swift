@@ -166,7 +166,9 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 
 			// The same machine under another identifier (installer MAC, then installed system DUID): it takes over.
 			if let mac {
-				for (key, lease) in state.leases where key != hwAddress && lease.effectiveMAC == mac {
+				let siblings = state.leases.filter { $0.key != hwAddress && $0.value.effectiveMAC == mac }
+
+				for (key, lease) in siblings {
 					inheritedHostname = inheritedHostname ?? lease.hostname
 					state.leases[key] = nil
 					state.offers[key] = nil
@@ -174,7 +176,9 @@ public final class DHCPLeaseStore: @unchecked Sendable {
 			}
 
 			// Expired leases of other clients on this very address are of no use any more.
-			for (key, lease) in state.leases where key != hwAddress && lease.address == address && lease.expiresAt <= current {
+			let stale = state.leases.filter { $0.key != hwAddress && $0.value.address == address && $0.value.expiresAt <= current }.keys
+
+			for key in stale {
 				state.leases[key] = nil
 			}
 
