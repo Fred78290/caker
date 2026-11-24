@@ -108,13 +108,13 @@ then
 fi
 
 echo "Creating CA certificate file at ${CA}"
-echo ${CA_CERT} | base64 --decode > "${CA}"
+echo ${CA_CERT} | base64 -d > "${CA}"
 
 echo "Creating server certificate file at ${SERVER}"
-echo ${SERVER_CERT} | base64 --decode > "${SERVER}"
+echo ${SERVER_CERT} | base64 -d > "${SERVER}"
 
 echo "Creating server key file at ${KEY}"
-echo ${SERVER_KEY} | base64 --decode > "${KEY}"
+echo ${SERVER_KEY} | base64 -d > "${KEY}"
 
 chmod -R 600 "${CERTS}"
 
