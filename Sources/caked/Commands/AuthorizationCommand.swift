@@ -17,7 +17,8 @@
 			commandName: "authorization",
 			abstract: String(localized: "Enable or disable privileged operations for Caker"),
 			discussion: String(localized: "Allows enabling or disabling privileged operations for Caker."),
-			subcommands: [Enable.self, Disable.self, CheckConnectivity.self])
+			subcommands: [Enable.self, Disable.self, CheckConnectivity.self],
+			aliases: ["auth"])
 
 		private static func cakerPathExecutable() -> FilePath {
 			let executableURL = Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0])
@@ -38,7 +39,8 @@
 			static let configuration = CommandConfiguration(
 				commandName: "check-connectivity",
 				abstract: String(localized: "Check connectivity to the helper tool"),
-				discussion: String(localized: "Checks connectivity to the helper tool.")
+				discussion: String(localized: "Checks connectivity to the helper tool."),
+				aliases: ["connectivity", "check"]
 			)
 
 			@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
