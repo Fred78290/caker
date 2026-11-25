@@ -343,7 +343,13 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 			hasContent = true
 			window.setContentSize(size)
 			place()
-			window.orderFront(nil)
+
+			if SeamlessWindowManager.isAccessoryApplication {
+				// Not active, so a plain orderFront would leave the window behind whatever is in front.
+				window.orderFrontRegardless()
+			} else {
+				window.orderFront(nil)
+			}
 
 			if info.kind == .toplevel {
 				window.makeKeyAndOrderFront(nil)
@@ -535,10 +541,17 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	/// An accessory application is never active by itself, so a window the guest opens would stay behind whatever
 	/// else is in front: the user just started that application, bring it forward like any new window.
+	/// `cakectl app run` and `cakectl seamless` run with the `.ui` display mode but are accessory applications all the
+	/// same, so the policy decides, not the display mode.
 	private func activateForNewWindow() {
-		guard self.runsWithoutUI else { return }
+		guard self.runsWithoutUI || SeamlessWindowManager.isAccessoryApplication else { return }
 
 		NSApplication.shared.activate(ignoringOtherApps: true)
+	}
+
+	/// An accessory application (a command line tool showing windows) is never active unless it activates itself.
+	static var isAccessoryApplication: Bool {
+		NSApplication.shared.activationPolicy() == .accessory
 	}
 
 	private static func currentScale120() -> UInt32 {
