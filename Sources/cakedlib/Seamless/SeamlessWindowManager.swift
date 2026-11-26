@@ -505,6 +505,9 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	public var guestName: String?
 	public var onSessionChange: ((Bool) -> Void)?
+	/// Called when the guest destroys its last toplevel window (closed on the host or by the application itself).
+	/// `cakectl app run` ends then, as an application does when its last window closes.
+	public var onLastWindowClosed: (() -> Void)?
 
 	/// - Parameters:
 	///   - vmName: shown before every title, so a guest can't pass its windows off as a host application's.
@@ -714,6 +717,10 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		case .windowDestroy(let id):
 			if let controller = windows.removeValue(forKey: id) {
 				controller.destroy()
+
+				if controller.info.kind == .toplevel, windows.values.contains(where: { $0.info.kind == .toplevel }) == false {
+					self.onLastWindowClosed?()
+				}
 			}
 		case .cursor(let id, let shape):
 			windows[id]?.setCursor(shape)
