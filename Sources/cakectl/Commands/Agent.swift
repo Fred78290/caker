@@ -17,9 +17,100 @@ struct Agent: ParsableCommand {
 		subcommands: [Version.self, Install.self, Update.self]
 	)
 
+	/// Ctrl-C for the agent commands. Their unary calls block in `wait()`, which the default handler (cancelling the main
+	/// task) can't interrupt, so the first Ctrl-C did nothing and the second one killed the process. This cancels the call
+	/// in flight instead, and the command ends with "Cancelled" and exit status 130; a second Ctrl-C still exits at once.
+	/// Only the client stops: the connected caked finishes an install it has started.
+	final class Interrupt: @unchecked Sendable {
+		private let lock = NSLock()
+		private var cancelCall: (() -> Void)? = nil
+		private var interrupted = false
+		private var source: DispatchSourceSignal? = nil
+
+		init() {
+			Client.sigintSrc.cancel()
+			signal(SIGINT, SIG_IGN)
+
+			let source = DispatchSource.makeSignalSource(signal: SIGINT, queue: .global())
+
+			source.setEventHandler { [weak self] in
+				source.setEventHandler {
+					Foundation.exit(130)
+				}
+
+				self?.interrupt()
+			}
+
+			source.activate()
+			self.source = source
+		}
+
+		deinit {
+			self.source?.cancel()
+		}
+
+		private func interrupt() {
+			let cancel = self.lock.withLock {
+				self.interrupted = true
+
+				return self.cancelCall
+			}
+
+			cancel?()
+		}
+
+		private var isInterrupted: Bool {
+			self.lock.withLock { self.interrupted }
+		}
+
+		private func cancelled() -> Error {
+			FileHandle.standardError.write("\(String(localized: "Cancelled"))\n".data(using: .utf8)!)
+
+			return ArgumentParser.ExitCode(130)
+		}
+
+		/// Waits for a unary call's response, cancelling the call if Ctrl-C is pressed meanwhile.
+		///
+		/// The call is created under the lock, and only when Ctrl-C hasn't been pressed: a unary call sends its request
+		/// when it is created, so a call created after Ctrl-C would reach caked (which doesn't stop an install it started).
+		func wait<Request, Response>(_ makeCall: () -> UnaryCall<Request, Response>) throws -> Response {
+			let call: UnaryCall<Request, Response>? = self.lock.withLock {
+				guard self.interrupted == false else {
+					return nil
+				}
+
+				let call = makeCall()
+
+				self.cancelCall = { call.cancel(promise: nil) }
+
+				return call
+			}
+
+			guard let call else {
+				throw self.cancelled()
+			}
+
+			defer {
+				self.lock.withLock { self.cancelCall = nil }
+			}
+
+			do {
+				// A response that won the race against Ctrl-C is kept: it reports what really happened (an install
+				// that finished), and a following call of the same command is never created.
+				return try call.response.wait()
+			} catch {
+				if self.isInterrupted {
+					throw self.cancelled()
+				}
+
+				throw error
+			}
+		}
+	}
+
 	/// The agent version a running VM reports, through the connected caked's `Info` call.
-	static func version(client: CakedServiceClient, name: String, callOptions: CallOptions?) throws -> AgentVersionReply {
-		let reply = try client.info(.with { $0.name = name }, callOptions: callOptions).response.wait().vms.status
+	static func version(client: CakedServiceClient, name: String, interrupt: Interrupt, callOptions: CallOptions?) throws -> AgentVersionReply {
+		let reply = try interrupt.wait { client.info(.with { $0.name = name }, callOptions: callOptions) }.vms.status
 
 		guard reply.success else {
 			throw ServiceError(reply.reason)
@@ -35,11 +126,13 @@ struct Agent: ParsableCommand {
 	}
 
 	/// Asks the connected caked to install the agent, and fails the command when it could not.
-	static func install(client: CakedServiceClient, name: String, sshTimeout: UInt, callOptions: CallOptions?) throws -> AgentInstallReply {
-		let reply = AgentInstallReply(InstalledAgentReply(try client.installAgent(.with {
-			$0.name = name
-			$0.timeout = Int32(clamping: sshTimeout)
-		}, callOptions: callOptions).response.wait().vms.installedAgent))
+	static func install(client: CakedServiceClient, name: String, sshTimeout: UInt, interrupt: Interrupt, callOptions: CallOptions?) throws -> AgentInstallReply {
+		let reply = AgentInstallReply(InstalledAgentReply(try interrupt.wait {
+			client.installAgent(.with {
+				$0.name = name
+				$0.timeout = Int32(clamping: sshTimeout)
+			}, callOptions: callOptions)
+		}.vms.installedAgent))
 
 		guard reply.success else {
 			throw ServiceError(reply.reason)
@@ -59,7 +152,7 @@ struct Agent: ParsableCommand {
 		var name: String
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			self.options.format.render(try Agent.version(client: client, name: self.name, callOptions: callOptions))
+			self.options.format.render(try Agent.version(client: client, name: self.name, interrupt: Interrupt(), callOptions: callOptions))
 		}
 	}
 
@@ -77,7 +170,7 @@ struct Agent: ParsableCommand {
 		var sshTimeout: UInt = AgentHandler.defaultInstallTimeout
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			self.options.format.render(try Agent.install(client: client, name: self.name, sshTimeout: self.sshTimeout, callOptions: callOptions))
+			self.options.format.render(try Agent.install(client: client, name: self.name, sshTimeout: self.sshTimeout, interrupt: Interrupt(), callOptions: callOptions))
 		}
 	}
 
@@ -98,13 +191,14 @@ struct Agent: ParsableCommand {
 		var sshTimeout: UInt = AgentHandler.defaultInstallTimeout
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			let current = try Agent.version(client: client, name: self.name, callOptions: callOptions)
+			let interrupt = Interrupt()
+			let current = try Agent.version(client: client, name: self.name, interrupt: interrupt, callOptions: callOptions)
 
 			guard AgentHandler.updateIsNeeded(current, force: self.force) else {
 				return self.options.format.render(AgentHandler.upToDate(current))
 			}
 
-			return self.options.format.render(try Agent.install(client: client, name: self.name, sshTimeout: self.sshTimeout, callOptions: callOptions))
+			return self.options.format.render(try Agent.install(client: client, name: self.name, sshTimeout: self.sshTimeout, interrupt: interrupt, callOptions: callOptions))
 		}
 	}
 }
