@@ -588,6 +588,9 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	}
 
 	private func closeAllWindows() {
+		lastWindowClosedCheck?.cancel()
+		lastWindowClosedCheck = nil
+
 		for controller in windows.values { controller.destroy() }
 
 		windows.removeAll()
@@ -653,6 +656,36 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		}
 	}
 
+	/// How long the guest has to open another toplevel after its last one went away before the application counts as
+	/// closed: a splash screen is destroyed just before the main window is created.
+	private static let lastWindowGracePeriod: TimeInterval = 2
+	private var lastWindowClosedCheck: DispatchWorkItem?
+
+	private var hasToplevelWindow: Bool {
+		windows.values.contains(where: { $0.info.kind == .toplevel })
+	}
+
+	/// Reports the last toplevel closed only if none was created during the grace period, on the same guest connection.
+	private func scheduleLastWindowClosedCheck() {
+		lastWindowClosedCheck?.cancel()
+
+		let session = self.session
+		let check = DispatchWorkItem { [weak self] in
+			MainActor.assumeIsolated {
+				guard let self else { return }
+
+				self.lastWindowClosedCheck = nil
+
+				guard let session, self.session === session, self.hasToplevelWindow == false else { return }
+
+				self.onLastWindowClosed?()
+			}
+		}
+
+		lastWindowClosedCheck = check
+		DispatchQueue.main.asyncAfter(deadline: .now() + Self.lastWindowGracePeriod, execute: check)
+	}
+
 	private func handle(_ message: SeamlessGuestMessage) {
 		switch message {
 		case .windowFrame(let frame):
@@ -692,6 +725,12 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			}
 			windows[info.id] = controller
 
+			if info.kind == .toplevel {
+				// The application opened another window (a splash screen's main window): it hasn't closed.
+				lastWindowClosedCheck?.cancel()
+				lastWindowClosedCheck = nil
+			}
+
 			// Nothing is shown yet: the first valid frame sizes, places and shows the window (and activates the app
 			// when there is no UI), so a late or invalid first frame never leaves an empty window on screen.
 
@@ -718,8 +757,8 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			if let controller = windows.removeValue(forKey: id) {
 				controller.destroy()
 
-				if controller.info.kind == .toplevel, windows.values.contains(where: { $0.info.kind == .toplevel }) == false {
-					self.onLastWindowClosed?()
+				if controller.info.kind == .toplevel, self.hasToplevelWindow == false {
+					self.scheduleLastWindowClosedCheck()
 				}
 			}
 		case .cursor(let id, let shape):
