@@ -354,9 +354,13 @@ public enum GuestApplications {
 		return String(fields[1])
 	}
 
-	/// The identity of a guest process, `nil` when it is gone. Throws when the agent can't be asked: the caller can't tell.
+	/// The identity of a guest process, `nil` when it is gone. Throws when the agent can't be asked or the command fails.
 	public static func processIdentity(pid: Int, run: Runner) throws -> String? {
 		let reply = try run(self.processStatusCommandLine(pid: pid))
+
+		guard reply.exitCode == 0 else {
+			throw Failure.launching(self.reason(reply))
+		}
 
 		return self.processIdentity(from: String(decoding: reply.stdout, as: UTF8.self))
 	}
