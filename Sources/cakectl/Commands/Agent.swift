@@ -69,27 +69,34 @@ struct Agent: ParsableCommand {
 			return ArgumentParser.ExitCode(130)
 		}
 
-		/// Waits for a unary call's response, cancelling the call if Ctrl-C is pressed meanwhile (or was before).
-		func wait<Request, Response>(_ call: UnaryCall<Request, Response>) throws -> Response {
-			let alreadyInterrupted = self.lock.withLock {
+		/// Waits for a unary call's response, cancelling the call if Ctrl-C is pressed meanwhile.
+		///
+		/// The call is created under the lock, and only when Ctrl-C hasn't been pressed: a unary call sends its request
+		/// when it is created, so a call created after Ctrl-C would reach caked (which doesn't stop an install it started).
+		func wait<Request, Response>(_ makeCall: () -> UnaryCall<Request, Response>) throws -> Response {
+			let call: UnaryCall<Request, Response>? = self.lock.withLock {
+				guard self.interrupted == false else {
+					return nil
+				}
+
+				let call = makeCall()
+
 				self.cancelCall = { call.cancel(promise: nil) }
 
-				return self.interrupted
+				return call
+			}
+
+			guard let call else {
+				throw self.cancelled()
 			}
 
 			defer {
 				self.lock.withLock { self.cancelCall = nil }
 			}
 
-			if alreadyInterrupted {
-				call.cancel(promise: nil)
-
-				throw self.cancelled()
-			}
-
 			do {
 				// A response that won the race against Ctrl-C is kept: it reports what really happened (an install
-				// that finished), and a following call of the same command is refused above.
+				// that finished), and a following call of the same command is never created.
 				return try call.response.wait()
 			} catch {
 				if self.isInterrupted {
@@ -103,7 +110,7 @@ struct Agent: ParsableCommand {
 
 	/// The agent version a running VM reports, through the connected caked's `Info` call.
 	static func version(client: CakedServiceClient, name: String, interrupt: Interrupt, callOptions: CallOptions?) throws -> AgentVersionReply {
-		let reply = try interrupt.wait(client.info(.with { $0.name = name }, callOptions: callOptions)).vms.status
+		let reply = try interrupt.wait { client.info(.with { $0.name = name }, callOptions: callOptions) }.vms.status
 
 		guard reply.success else {
 			throw ServiceError(reply.reason)
@@ -120,10 +127,12 @@ struct Agent: ParsableCommand {
 
 	/// Asks the connected caked to install the agent, and fails the command when it could not.
 	static func install(client: CakedServiceClient, name: String, sshTimeout: UInt, interrupt: Interrupt, callOptions: CallOptions?) throws -> AgentInstallReply {
-		let reply = AgentInstallReply(InstalledAgentReply(try interrupt.wait(client.installAgent(.with {
-			$0.name = name
-			$0.timeout = Int32(clamping: sshTimeout)
-		}, callOptions: callOptions)).vms.installedAgent))
+		let reply = AgentInstallReply(InstalledAgentReply(try interrupt.wait {
+			client.installAgent(.with {
+				$0.name = name
+				$0.timeout = Int32(clamping: sshTimeout)
+			}, callOptions: callOptions)
+		}.vms.installedAgent))
 
 		guard reply.success else {
 			throw ServiceError(reply.reason)
