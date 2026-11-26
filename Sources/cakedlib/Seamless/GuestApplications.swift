@@ -338,8 +338,10 @@ public enum GuestApplications {
 
 	/// Prints the state and the start time of a guest process (fields 3 and 22 of `/proc/<pid>/stat`), nothing when it is
 	/// gone. The command name (field 2) can hold spaces and parentheses, so the fields are counted after its last `)`.
+	/// A gone process is a successful, empty answer (an `if`, not `&&`, which would exit 1): a non-zero exit means the
+	/// guest couldn't run the command, which `processIdentity(pid:run:)` reports as an error, not as a gone process.
 	public static func processStatusCommandLine(pid: Int) -> String {
-		"s=$(cat /proc/\(pid)/stat 2>/dev/null) && r=\"${s##*) }\" && echo \"$r\" | cut -d' ' -f1,20"
+		"if s=$(cat /proc/\(pid)/stat 2>/dev/null); then r=\"${s##*) }\"; echo \"$r\" | cut -d' ' -f1,20; fi"
 	}
 
 	/// What tells a running process apart (its start time), `nil` when it is gone or a zombie. The start time keeps a later

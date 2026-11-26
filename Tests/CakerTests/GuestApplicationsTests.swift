@@ -380,4 +380,29 @@ final class GuestApplicationsTests: XCTestCase {
 		XCTAssertEqual(lines.count, 1)
 		XCTAssertTrue(lines[0].contains("/proc/4321/stat"))
 	}
+
+	/// A gone process must be an empty answer with exit status 0, or the watch would take it for a failed poll and never
+	/// see the process end.
+	func testProcessStatusCommandSucceedsWithNoOutputForAGoneProcess() throws {
+		let shell = Process()
+		let output = Pipe()
+
+		shell.executableURL = URL(fileURLWithPath: "/bin/sh")
+		// No PID this high exists, and the host has no /proc at all: the file is missing either way.
+		shell.arguments = ["-c", GuestApplications.processStatusCommandLine(pid: 999_999_999)]
+		shell.standardOutput = output
+		try shell.run()
+		shell.waitUntilExit()
+
+		XCTAssertEqual(shell.terminationStatus, 0)
+		XCTAssertTrue(output.fileHandleForReading.readDataToEndOfFile().isEmpty)
+	}
+
+	func testProcessIdentityIsNilForAnEmptyAnswer() throws {
+		XCTAssertNil(try GuestApplications.processIdentity(pid: 4321) { _ in self.reply(stdout: "") })
+	}
+
+	func testProcessIdentityThrowsWhenTheGuestCannotRunTheCommand() {
+		XCTAssertThrowsError(try GuestApplications.processIdentity(pid: 4321) { _ in self.reply(exit: 127, stderr: "sh: not found") })
+	}
 }
