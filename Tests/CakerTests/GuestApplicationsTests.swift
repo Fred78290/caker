@@ -346,4 +346,38 @@ final class GuestApplicationsTests: XCTestCase {
 		XCTAssertEqual(icon, png)
 		XCTAssertEqual(lines.first, "echo '/snap/firefox/current/default256.png'")
 	}
+
+	// MARK: Watching a launched process
+
+	func testProcessIdentityIsTheStartTimeOfARunningProcess() {
+		XCTAssertEqual(GuestApplications.processIdentity(from: "S 214862\n"), "214862")
+		XCTAssertEqual(GuestApplications.processIdentity(from: "R 7"), "7")
+	}
+
+	func testProcessIdentityIsNilWhenTheProcessIsGoneOrAZombie() {
+		XCTAssertNil(GuestApplications.processIdentity(from: ""))
+		XCTAssertNil(GuestApplications.processIdentity(from: "\n"))
+		XCTAssertNil(GuestApplications.processIdentity(from: "Z 214862"))
+		XCTAssertNil(GuestApplications.processIdentity(from: "X 214862"))
+	}
+
+	func testProcessIdentityRejectsAnythingElse() {
+		XCTAssertNil(GuestApplications.processIdentity(from: "S"))
+		XCTAssertNil(GuestApplications.processIdentity(from: "S 12a"))
+		XCTAssertNil(GuestApplications.processIdentity(from: "S 12 34"))
+	}
+
+	func testProcessIdentityAsksTheGuestForThatProcess() throws {
+		var lines: [String] = []
+
+		let identity = try GuestApplications.processIdentity(pid: 4321) { line in
+			lines.append(line)
+
+			return self.reply(stdout: "S 99\n")
+		}
+
+		XCTAssertEqual(identity, "99")
+		XCTAssertEqual(lines.count, 1)
+		XCTAssertTrue(lines[0].contains("/proc/4321/stat"))
+	}
 }

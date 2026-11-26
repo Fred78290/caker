@@ -160,7 +160,7 @@ struct Apps: ParsableCommand {
 
 			fputs(message + "\n", stderr)
 
-			try self.showGuestWindows(client: client)
+			try self.showGuestWindows(client: client, launched: pid > 0 ? pid : nil, run: run)
 
 			return String.empty
 		}
@@ -182,9 +182,10 @@ struct Apps: ParsableCommand {
 			}
 		}
 
-		/// Owns the windows for as long as the VM and the connection last, and until the last of them is closed, unless someone
-		/// else does: then the application is started and this process has nothing left to do.
-		private func showGuestWindows(client: CakedServiceClient) throws {
+		/// Owns the windows for as long as the VM and the connection last, unless someone else does: then the application is
+		/// started and this process has nothing left to do. It ends when the launched process is gone and no guest window is
+		/// left; without a process to watch, when the last window closes.
+		private func showGuestWindows(client: CakedServiceClient, launched pid: Int?, run: @escaping GuestApplications.Runner) throws {
 			let name = self.name
 
 			Client.sigintSrc.cancel()
@@ -195,6 +196,15 @@ struct Apps: ParsableCommand {
 				app.setActivationPolicy(.accessory)
 
 				let connection = Sh.SeamlessConnection(name: name, client: client, displayMode: .ui, waitsForOwner: false, endsWithLastWindow: true)
+
+				let watch = pid.map { LaunchedProcessWatch(pid: $0, run: run) }
+
+				if let watch {
+					connection.mayEnd = { watch.isGone }
+					watch.start {
+						connection.endWhenNoWindowLeft(after: connection.closedLastWindow ? 0 : LaunchedProcessWatch.handoffGracePeriod)
+					}
+				}
 
 				try connection.connect()
 
@@ -210,8 +220,84 @@ struct Apps: ParsableCommand {
 				app.run()
 
 				source.cancel()
+				watch?.stop()
 				connection.stop()
 			}
+		}
+	}
+
+	/// Asks the guest every few seconds whether the process `app run` launched still runs. The agent starts it detached
+	/// and says nothing when it exits, so it is polled; a failed poll tells nothing and the next one asks again.
+	@MainActor
+	final class LaunchedProcessWatch {
+		static let pollInterval: TimeInterval = 3
+		/// After the process is gone, how long a window it handed to another process has to show up.
+		static let handoffGracePeriod: TimeInterval = 5
+
+		let pid: Int
+		let run: GuestApplications.Runner
+		private(set) var isGone = false
+		private var identity: String?
+		private var timer: Timer?
+		private var polling = false
+		private var onGone: (() -> Void)?
+
+		init(pid: Int, run: @escaping GuestApplications.Runner) {
+			self.pid = pid
+			self.run = run
+		}
+
+		func start(onGone: @escaping () -> Void) {
+			self.onGone = onGone
+			self.poll()
+			self.timer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+				MainActor.assumeIsolated {
+					self?.poll()
+				}
+			}
+		}
+
+		func stop() {
+			self.timer?.invalidate()
+			self.timer = nil
+			self.onGone = nil
+		}
+
+		private func poll() {
+			guard self.polling == false, self.isGone == false else { return }
+
+			self.polling = true
+
+			let pid = self.pid
+			let run = self.run
+
+			// The Run call blocks: off the main thread.
+			DispatchQueue.global(qos: .utility).async {
+				let outcome = Result { try GuestApplications.processIdentity(pid: pid, run: run) }
+
+				DispatchQueue.main.async {
+					MainActor.assumeIsolated {
+						self.polling = false
+						self.handle(outcome)
+					}
+				}
+			}
+		}
+
+		private func handle(_ outcome: Result<String?, Error>) {
+			guard self.isGone == false, case .success(let current) = outcome else { return }
+
+			// The first answer names the process; a later one that differs is another process that took its ID.
+			if let current, self.identity == nil || self.identity == current {
+				self.identity = current
+
+				return
+			}
+
+			self.isGone = true
+			self.timer?.invalidate()
+			self.timer = nil
+			self.onGone?()
 		}
 	}
 

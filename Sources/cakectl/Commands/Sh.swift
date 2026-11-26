@@ -86,6 +86,10 @@ struct Sh: GrpcParsableCommand {
 		let waitsForOwner: Bool
 		/// `true` ends the process, successfully, once the last guest window it shows is closed: `app run` has nothing left to show.
 		let endsWithLastWindow: Bool
+		/// With `endsWithLastWindow`, asked before ending: `app run` keeps going while the application it launched still runs.
+		var mayEnd: () -> Bool = { true }
+		/// The last guest window closed while `mayEnd` said no: once the process is gone there is no window to wait for.
+		private(set) var closedLastWindow = false
 		let terminal: termios?
 		var manager: SeamlessWindowManager?
 		var tunnel: SeamlessTunnelClient?
@@ -130,6 +134,29 @@ struct Sh: GrpcParsableCommand {
 		private func lastWindowClosed() {
 			guard self.stopped == false else { return }
 
+			guard self.mayEnd() else {
+				self.closedLastWindow = true
+
+				return
+			}
+
+			self.finish()
+		}
+
+		/// The application `app run` launched is gone: ends once no guest window is left. A single-instance application hands
+		/// its window to the copy already running and exits at once, and that window may still be on its way: the check waits.
+		func endWhenNoWindowLeft(after delay: TimeInterval) {
+			DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+				MainActor.assumeIsolated {
+					// No manager: the connection is being made again (compositor restart), the next window close decides.
+					guard let self, self.stopped == false, let manager = self.manager, manager.hasToplevelWindow == false else { return }
+
+					self.finish()
+				}
+			}
+		}
+
+		private func finish() {
 			self.stop()
 			// terminate() ends the process without returning to run(): give the terminal back first.
 			Sh.restoreTerminal(self.terminal)

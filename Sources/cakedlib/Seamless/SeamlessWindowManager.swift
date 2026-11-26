@@ -661,7 +661,7 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	private static let lastWindowGracePeriod: TimeInterval = 2
 	private var lastWindowClosedCheck: DispatchWorkItem?
 
-	private var hasToplevelWindow: Bool {
+	public var hasToplevelWindow: Bool {
 		windows.values.contains(where: { $0.info.kind == .toplevel })
 	}
 
