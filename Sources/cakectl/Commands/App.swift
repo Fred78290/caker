@@ -182,8 +182,8 @@ struct Apps: ParsableCommand {
 			}
 		}
 
-		/// Owns the windows for as long as the VM and the connection last, unless someone else does: then the application is
-		/// started and this process has nothing left to do.
+		/// Owns the windows for as long as the VM and the connection last, and until the last of them is closed, unless someone
+		/// else does: then the application is started and this process has nothing left to do.
 		private func showGuestWindows(client: CakedServiceClient) throws {
 			let name = self.name
 
@@ -194,7 +194,7 @@ struct Apps: ParsableCommand {
 
 				app.setActivationPolicy(.accessory)
 
-				let connection = Sh.SeamlessConnection(name: name, client: client, displayMode: .ui, waitsForOwner: false)
+				let connection = Sh.SeamlessConnection(name: name, client: client, displayMode: .ui, waitsForOwner: false, endsWithLastWindow: true)
 
 				try connection.connect()
 

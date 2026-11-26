@@ -84,18 +84,21 @@ struct Sh: GrpcParsableCommand {
 		let announceWaiting: Bool
 		/// `false` ends the process, successfully, when another process already shows the windows: `app run` only has to start the application.
 		let waitsForOwner: Bool
+		/// `true` ends the process, successfully, once the last guest window it shows is closed: `app run` has nothing left to show.
+		let endsWithLastWindow: Bool
 		let terminal: termios?
 		var manager: SeamlessWindowManager?
 		var tunnel: SeamlessTunnelClient?
 		var stopped = false
 		var waitingAnnounced = false
 
-		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false, waitsForOwner: Bool = true, terminal: termios? = nil) {
+		init(name: String, client: CakedServiceClient, displayMode: VMRunHandler.DisplayMode = .none, announceWaiting: Bool = false, waitsForOwner: Bool = true, endsWithLastWindow: Bool = false, terminal: termios? = nil) {
 			self.name = name
 			self.client = client
 			self.displayMode = displayMode
 			self.announceWaiting = announceWaiting
 			self.waitsForOwner = waitsForOwner
+			self.endsWithLastWindow = endsWithLastWindow
 			self.terminal = terminal
 		}
 
@@ -112,10 +115,25 @@ struct Sh: GrpcParsableCommand {
 				}
 			}
 
+			if self.endsWithLastWindow {
+				manager.onLastWindowClosed = { [weak self] in
+					self?.lastWindowClosed()
+				}
+			}
+
 			self.manager = manager
 			self.tunnel = tunnel
 
 			manager.attach(fd: descriptor)
+		}
+
+		private func lastWindowClosed() {
+			guard self.stopped == false else { return }
+
+			self.stop()
+			// terminate() ends the process without returning to run(): give the terminal back first.
+			Sh.restoreTerminal(self.terminal)
+			NSApplication.shared.terminate(nil)
 		}
 
 		private func ended(_ error: Error?) {

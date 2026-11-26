@@ -343,7 +343,13 @@ final class SeamlessWindowController: NSObject, NSWindowDelegate {
 			hasContent = true
 			window.setContentSize(size)
 			place()
-			window.orderFront(nil)
+
+			if SeamlessWindowManager.isAccessoryApplication {
+				// Not active, so a plain orderFront would leave the window behind whatever is in front.
+				window.orderFrontRegardless()
+			} else {
+				window.orderFront(nil)
+			}
 
 			if info.kind == .toplevel {
 				window.makeKeyAndOrderFront(nil)
@@ -499,6 +505,9 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	public var guestName: String?
 	public var onSessionChange: ((Bool) -> Void)?
+	/// Called when the guest destroys its last toplevel window (closed on the host or by the application itself).
+	/// `cakectl app run` ends then, as an application does when its last window closes.
+	public var onLastWindowClosed: (() -> Void)?
 
 	/// - Parameters:
 	///   - vmName: shown before every title, so a guest can't pass its windows off as a host application's.
@@ -535,10 +544,17 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 
 	/// An accessory application is never active by itself, so a window the guest opens would stay behind whatever
 	/// else is in front: the user just started that application, bring it forward like any new window.
+	/// `cakectl app run` and `cakectl seamless` run with the `.ui` display mode but are accessory applications all the
+	/// same, so the policy decides, not the display mode.
 	private func activateForNewWindow() {
-		guard self.runsWithoutUI else { return }
+		guard self.runsWithoutUI || SeamlessWindowManager.isAccessoryApplication else { return }
 
 		NSApplication.shared.activate(ignoringOtherApps: true)
+	}
+
+	/// An accessory application (a command line tool showing windows) is never active unless it activates itself.
+	static var isAccessoryApplication: Bool {
+		NSApplication.shared.activationPolicy() == .accessory
 	}
 
 	private static func currentScale120() -> UInt32 {
@@ -572,6 +588,9 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 	}
 
 	private func closeAllWindows() {
+		lastWindowClosedCheck?.cancel()
+		lastWindowClosedCheck = nil
+
 		for controller in windows.values { controller.destroy() }
 
 		windows.removeAll()
@@ -637,6 +656,36 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		}
 	}
 
+	/// How long the guest has to open another toplevel after its last one went away before the application counts as
+	/// closed: a splash screen is destroyed just before the main window is created.
+	private static let lastWindowGracePeriod: TimeInterval = 2
+	private var lastWindowClosedCheck: DispatchWorkItem?
+
+	private var hasToplevelWindow: Bool {
+		windows.values.contains(where: { $0.info.kind == .toplevel })
+	}
+
+	/// Reports the last toplevel closed only if none was created during the grace period, on the same guest connection.
+	private func scheduleLastWindowClosedCheck() {
+		lastWindowClosedCheck?.cancel()
+
+		let session = self.session
+		let check = DispatchWorkItem { [weak self] in
+			MainActor.assumeIsolated {
+				guard let self else { return }
+
+				self.lastWindowClosedCheck = nil
+
+				guard let session, self.session === session, self.hasToplevelWindow == false else { return }
+
+				self.onLastWindowClosed?()
+			}
+		}
+
+		lastWindowClosedCheck = check
+		DispatchQueue.main.asyncAfter(deadline: .now() + Self.lastWindowGracePeriod, execute: check)
+	}
+
 	private func handle(_ message: SeamlessGuestMessage) {
 		switch message {
 		case .windowFrame(let frame):
@@ -676,6 +725,12 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 			}
 			windows[info.id] = controller
 
+			if info.kind == .toplevel {
+				// The application opened another window (a splash screen's main window): it hasn't closed.
+				lastWindowClosedCheck?.cancel()
+				lastWindowClosedCheck = nil
+			}
+
 			// Nothing is shown yet: the first valid frame sizes, places and shows the window (and activates the app
 			// when there is no UI), so a late or invalid first frame never leaves an empty window on screen.
 
@@ -701,6 +756,10 @@ public final class SeamlessWindowManager: SeamlessServerDelegate {
 		case .windowDestroy(let id):
 			if let controller = windows.removeValue(forKey: id) {
 				controller.destroy()
+
+				if controller.info.kind == .toplevel, self.hasToplevelWindow == false {
+					self.scheduleLastWindowClosedCheck()
+				}
 			}
 		case .cursor(let id, let shape):
 			windows[id]?.setCursor(shape)
