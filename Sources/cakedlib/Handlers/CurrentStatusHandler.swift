@@ -116,10 +116,35 @@ public struct CurrentStatusHandler {
 			self.lock.withLock { self.monitoring && self.generation == generation }
 		}
 
-		private func setStream(_ stream: AsyncThrowingStreamCakeAgentCurrentUsageReply?, for generation: UInt64) {
+		/// Registers the stream of `generation`, only while that run is still current and not cancelled: `cancel()` may
+		/// have run while the helper was connecting, and found no stream to finish. Returns false when it was refused.
+		private func registerStream(_ stream: AsyncThrowingStreamCakeAgentCurrentUsageReply, for generation: UInt64) -> Bool {
+			self.lock.withLock {
+				guard self.monitoring && self.generation == generation else {
+					return false
+				}
+
+				self.stream = stream
+
+				return true
+			}
+		}
+
+		private func clearStream(for generation: UInt64) {
 			self.lock.withLock {
 				if self.generation == generation {
-					self.stream = stream
+					self.stream = nil
+				}
+			}
+		}
+
+		/// Publishes a usage sample of `generation` only while it is the current, active run. Checked and yielded under the
+		/// lock, so `cancel()`/`beginRun()` can't change ownership in between: a sample of a run cancelled by a restart
+		/// would otherwise reach the consumer and mark the agent ready.
+		private func publish(_ status: Caked_CurrentStatus, for generation: UInt64) {
+			self.lock.withLock {
+				if self.monitoring && self.generation == generation {
+					self.continuation.yield(status)
 				}
 			}
 		}
@@ -152,8 +177,8 @@ public struct CurrentStatusHandler {
 			stream?.continuation.finish(throwing: CancellationError())
 		}
 
-		private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
-			self.continuation.yield(.with {
+		private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply, for generation: UInt64) {
+			self.publish(.with {
 				$0.name = self.location.name
 				$0.usage = .with {
 					$0.cpuCount = usage.cpuCount
@@ -175,13 +200,13 @@ public struct CurrentStatusHandler {
 						}
 					}
 				}
-			})
+			}, for: generation)
 		}
 
-		private func handleAgentHealthCurrentUsage(usage: InfoReply) {
+		private func handleAgentHealthCurrentUsage(usage: InfoReply, for generation: UInt64) {
 			let usage = usage.caked
 
-			self.continuation.yield(.with {
+			self.publish(.with {
 				$0.name = self.location.name
 				$0.usage = .with {
 					$0.cpuCount = usage.cpuCount
@@ -194,7 +219,7 @@ public struct CurrentStatusHandler {
 						$0.memory = usage.memory
 					}
 				}
-			})
+			}, for: generation)
 		}
 
 		func monitorCurrentUsage() async {
@@ -219,7 +244,7 @@ public struct CurrentStatusHandler {
 
 							self.logger.debug("Monitoring agent is ready, VM: \(self.location.name)")
 
-							self.handleAgentHealthCurrentUsage(usage: infos)
+							self.handleAgentHealthCurrentUsage(usage: infos, for: generation)
 
 							helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
 						} catch {
@@ -238,10 +263,14 @@ public struct CurrentStatusHandler {
 
 						let stream = performAgentHealthCheck()
 
-						self.setStream(stream, for: generation)
+						// Refused: the run was cancelled or replaced meanwhile. Finishing the stream ends the loop below through
+						// the CancellationError path, and `endRun` leaves a replacement's state alone.
+						if self.registerStream(stream, for: generation) == false {
+							stream.continuation.finish(throwing: CancellationError())
+						}
 
 						for try await currentUsage in stream.stream {
-							handleAgentHealthCurrentUsage(usage: currentUsage)
+							handleAgentHealthCurrentUsage(usage: currentUsage, for: generation)
 						}
 
 						break
@@ -251,7 +280,7 @@ public struct CurrentStatusHandler {
 						if self.isActive(generation) {
 							try? await helper?.close().get()
 
-							self.setStream(nil, for: generation)
+							self.clearStream(for: generation)
 
 							// Not `return`: the cleanup below must run, or the run would stay marked as monitoring for ever
 							guard self.handleAgentHealthCheckFailure(error: error) else {

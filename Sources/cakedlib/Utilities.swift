@@ -1173,10 +1173,18 @@ extension DirectorySharingAttachments {
 }
 
 extension Socket {
-	static func create(host: String, port: Int) throws -> Socket {
-		let signature = try Socket.Signature(protocolFamily: .inet, socketType: .stream, proto: .tcp, hostname: "localhost", port: Int32(port))!
+	/// Connects to `host` (localhost when empty) on `port`. `timeout`, in milliseconds, bounds the connect (0: the system's).
+	static func create(host: String, port: Int, timeout: UInt = 0) throws -> Socket {
+		let socket = try Socket.create(family: .inet, type: .stream, proto: .tcp)
 
-		return try Socket.create(connectedUsing: signature)
+		do {
+			try socket.connect(to: host.isEmpty ? "localhost" : host, port: Int32(port), timeout: timeout)
+		} catch {
+			socket.close()
+			throw error
+		}
+
+		return socket
 	}
 }
 
@@ -1291,8 +1299,11 @@ public struct Utilities {
 		let start = Date()
 
 		while Date().timeIntervalSince(start) < timeout {
+			// A host that drops connection attempts must not hold one probe past the overall timeout
+			let remaining = timeout - Date().timeIntervalSince(start)
+
 			do {
-				let socket = try Socket.create(host: host, port: port)
+				let socket = try Socket.create(host: host, port: port, timeout: UInt(max(1, min(remaining, 5) * 1000)))
 				socket.close()
 				return true
 			} catch {

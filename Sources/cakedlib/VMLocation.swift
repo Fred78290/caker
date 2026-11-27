@@ -738,7 +738,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			var wentDown = false
 
 			while wentDown == false && Date() < downDeadline {
-				if let socket = try? Socket.create(host: host, port: 22) {
+				// Each connect is bounded by what is left of the window: a guest that drops attempts can't stretch it
+				let remaining = downDeadline.timeIntervalSinceNow
+
+				guard remaining > 0 else {
+					break
+				}
+
+				if let socket = try? Socket.create(host: host, port: 22, timeout: UInt(max(1, min(remaining, 5) * 1000))) {
 					socket.close()
 					Thread.sleep(forTimeInterval: 0.5)
 				} else {
