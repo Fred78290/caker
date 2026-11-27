@@ -54,6 +54,7 @@ public nonisolated struct Caked_Caked: Sendable {
     case agentReady // = 5
     case new // = 6
     case provisioning // = 7
+    case restarting // = 8
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -70,6 +71,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case 5: self = .agentReady
       case 6: self = .new
       case 7: self = .provisioning
+      case 8: self = .restarting
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -84,6 +86,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case .agentReady: return 5
       case .new: return 6
       case .provisioning: return 7
+      case .restarting: return 8
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -98,6 +101,7 @@ public nonisolated struct Caked_Caked: Sendable {
       .agentReady,
       .new,
       .provisioning,
+      .restarting,
     ]
 
   }
@@ -7020,7 +7024,7 @@ nonisolated extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._Message
 }
 
 nonisolated extension Caked_Caked.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0\u{1}agentReady\0\u{1}new\0\u{1}provisioning\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0\u{1}agentReady\0\u{1}new\0\u{1}provisioning\0\u{1}restarting\0")
 }
 
 nonisolated extension Caked_Caked.ComposeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

@@ -139,160 +139,6 @@
         }
       }
     },
-    "Agent %@ installed on %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Agent %@ installé sur %@"
-          }
-        }
-      }
-    },
-    "Agent %@ is already up to date on %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'agent %@ est déjà à jour sur %@"
-          }
-        }
-      }
-    },
-    "Install even if the agent already runs this version" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installer même si l'agent exécute déjà cette version"
-          }
-        }
-      }
-    },
-    "Install the agent in a running VM" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installer l'agent dans une VM démarrée"
-          }
-        }
-      }
-    },
-    "Install the agent in a running VM unless it is already up to date" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installer l'agent dans une VM démarrée sauf s'il est déjà à jour"
-          }
-        }
-      }
-    },
-    "Seconds to wait for the guest's SSH server" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Secondes d'attente du serveur SSH de l'invité"
-          }
-        }
-      }
-    },
-    "Show the version of the agent running in a VM" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher la version de l'agent exécuté dans une VM"
-          }
-        }
-      }
-    },
-    "Show, install or update the cakeagent of a virtual machine" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher, installer ou mettre à jour le cakeagent d'une machine virtuelle"
-          }
-        }
-      }
-    },
-    "The VM must be running. 'version' asks the agent which version it runs, 'install' always installs the agent over SSH, 'update' installs it only when the guest runs another version than the connected caked installs." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La VM doit être démarrée. 'version' demande à l'agent quelle version il exécute, 'install' installe toujours l'agent via SSH, 'update' ne l'installe que si l'invité exécute une autre version que celle installée par le caked connecté."
-          }
-        }
-      }
-    },
-    "The VM must be running. 'version' asks the agent which version it runs, 'install' always installs this build's agent over SSH, 'update' installs it only when the guest runs another version." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La VM doit être démarrée. 'version' demande à l'agent quelle version il exécute, 'install' installe toujours l'agent de cette version via SSH, 'update' ne l'installe que si l'invité exécute une autre version."
-          }
-        }
-      }
-    },
-    "VM %@ is not running, its agent cannot be queried (this build installs %@)" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La VM %@ n'est pas démarrée, son agent ne peut pas être interrogé (cette version installe %@)"
-          }
-        }
-      }
-    },
-    "VM %@: agent %@ is installed, this build installs %@: run 'agent update'" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VM %@ : l'agent %@ est installé, cette version installe %@ : exécutez 'agent update'"
-          }
-        }
-      }
-    },
-    "VM %@: agent %@ is up to date" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VM %@ : l'agent %@ est à jour"
-          }
-        }
-      }
-    },
-    "VM %@: the agent is not installed or not answering (this build installs %@)" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VM %@ : l'agent n'est pas installé ou ne répond pas (cette version installe %@)"
-          }
-        }
-      }
-    },
     "—" : {
       "comment" : "A separator between a component name and its description.",
       "isCommentAutoGenerated" : true,
@@ -1375,6 +1221,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Avancé"
+          }
+        }
+      }
+    },
+    "Agent %@ installed on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agent %@ installé sur %@"
+          }
+        }
+      }
+    },
+    "Agent %@ is already up to date on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'agent %@ est déjà à jour sur %@"
           }
         }
       }
@@ -8231,6 +8099,17 @@
         }
       }
     },
+    "Install even if the agent already runs this version" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installer même si l'agent exécute déjà cette version"
+          }
+        }
+      }
+    },
     "Install macOS from IPSW done..." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8248,6 +8127,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installer le service"
+          }
+        }
+      }
+    },
+    "Install the agent in a running VM" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installer l'agent dans une VM démarrée"
+          }
+        }
+      }
+    },
+    "Install the agent in a running VM unless it is already up to date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installer l'agent dans une VM démarrée sauf s'il est déjà à jour"
           }
         }
       }
@@ -15680,6 +15581,16 @@
         }
       }
     },
+    "Restarting" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redémarrage"
+          }
+        }
+      }
+    },
     "Restarts virtual machine" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16364,6 +16275,17 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "Seconds to wait for the guest's SSH server" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secondes d'attente du serveur SSH de l'invité"
+          }
+        }
+      }
     },
     "secure" : {
       "extractionState" : "manual",
@@ -17122,6 +17044,17 @@
         }
       }
     },
+    "Show the version of the agent running in a VM" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la version de l'agent exécuté dans une VM"
+          }
+        }
+      }
+    },
     "Show the version." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17170,6 +17103,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher des informations utiles sur les images"
+          }
+        }
+      }
+    },
+    "Show, install or update the cakeagent of a virtual machine" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher, installer ou mettre à jour le cakeagent d'une machine virtuelle"
           }
         }
       }
@@ -19918,6 +19862,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM est déjà en cours d'exécution"
+          }
+        }
+      }
+    },
+    "The VM must be running. 'version' asks the agent which version it runs, 'install' always installs the agent over SSH, 'update' installs it only when the guest runs another version than the connected caked installs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM doit être démarrée. 'version' demande à l'agent quelle version il exécute, 'install' installe toujours l'agent via SSH, 'update' ne l'installe que si l'invité exécute une autre version que celle installée par le caked connecté."
+          }
+        }
+      }
+    },
+    "The VM must be running. 'version' asks the agent which version it runs, 'install' always installs this build's agent over SSH, 'update' installs it only when the guest runs another version." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM doit être démarrée. 'version' demande à l'agent quelle version il exécute, 'install' installe toujours l'agent de cette version via SSH, 'update' ne l'installe que si l'invité exécute une autre version."
           }
         }
       }
@@ -22710,6 +22676,17 @@
         }
       }
     },
+    "VM %@ is not running, its agent cannot be queried (this build installs %@)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ n'est pas démarrée, son agent ne peut pas être interrogé (cette version installe %@)"
+          }
+        }
+      }
+    },
     "VM %@ is provisioning, please wait until it is finished" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22772,6 +22749,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM %1$@ ne correspond pas au projet compose %2$@"
+          }
+        }
+      }
+    },
+    "VM %@: agent %@ is installed, this build installs %@: run 'agent update'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VM %@ : l'agent %@ est installé, cette version installe %@ : exécutez 'agent update'"
+          }
+        }
+      }
+    },
+    "VM %@: agent %@ is up to date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VM %@ : l'agent %@ est à jour"
+          }
+        }
+      }
+    },
+    "VM %@: the agent is not installed or not answering (this build installs %@)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VM %@ : l'agent n'est pas installé ou ne répond pas (cette version installe %@)"
           }
         }
       }
@@ -22981,6 +22991,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VM est en configuration"
+          }
+        }
+      }
+    },
+    "VM is restarting" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM redémarre"
           }
         }
       }

@@ -33,6 +33,10 @@ public extension VMLocation.Status {
 			self = .running(.caked)
 		case .paused:
 			self = .paused
+		case .provisioning:
+			self = .running(.provision)
+		case .restarting:
+			self = .running(.restart)
 		default:
 			self = .stopped
 		}
@@ -43,10 +47,17 @@ public extension Caked_VirtualMachineStatus {
 	init(_ from: VMLocation.Status) {
 		switch from {
 		case .running(let mode):
-			if mode == .provision {
-				self = .provisioning
-			} else {
+			switch mode {
+			case .none:
+				self = .error
+			case .caked:
 				self = .running
+			case .caker:
+				self = .running
+			case .provision:
+				self = .provisioning
+			case .restart:
+				self = .restarting
 			}
 		case .paused:
 			self = .paused
@@ -61,6 +72,9 @@ public struct CurrentStatusHandler {
 	
 	private class CurrentUsageWatcher {
 		internal var isMonitoring: Bool = false
+		/// Identifies the latest `monitorCurrentUsage()` run. A run cancelled by a restart can still be unwinding when
+		/// the next one starts: only the current run may touch `isMonitoring`/`stream`, so a stale one can't clear them.
+		private var generation: UInt64 = 0
 		private let location: VMLocation
 		private let runMode: Utils.RunMode
 		private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
@@ -142,6 +156,14 @@ public struct CurrentStatusHandler {
 
 			self.logger.debug("Start monitoring current CPU usage, VM: \(self.location.name)")
 
+			self.generation &+= 1
+
+			let generation = self.generation
+
+			func isCurrent() -> Bool {
+				self.generation == generation
+			}
+
 			await withTaskCancellationHandler(operation: {
 				let taskQueue = TaskQueue(label: "CakeAgent.CurrentUsageWatcher.\(self.location.name)")
 				var helper: CakeAgentHelper! = nil
@@ -172,7 +194,7 @@ public struct CurrentStatusHandler {
 					
 				}
 
-				while Task.isCancelled == false && self.isMonitoring {
+				while Task.isCancelled == false && self.isMonitoring && isCurrent() {
 					do {
 						helper = try self.createCakeAgentHelper()
 						
@@ -184,9 +206,11 @@ public struct CurrentStatusHandler {
 						
 						break
 					} catch is CancellationError {
-						self.isMonitoring = false
+						if isCurrent() {
+							self.isMonitoring = false
+						}
 					} catch {
-						if self.isMonitoring {
+						if self.isMonitoring && isCurrent() {
 							try? await helper?.close().get()
 
 							self.stream = nil
@@ -203,8 +227,10 @@ public struct CurrentStatusHandler {
 				taskQueue.close()
 				try? await helper?.close().get()
 
-				self.isMonitoring = false
-				self.stream = nil
+				if isCurrent() {
+					self.isMonitoring = false
+					self.stream = nil
+				}
 
 				self.logger.debug("Monitoring ended, VM: \(self.location.name)")
 			}, onCancel: {
@@ -301,20 +327,36 @@ public struct CurrentStatusHandler {
 					}
 					
 					func check(_ file: URL) -> Void {
-						if file.lastPathComponent == self.location.pidFile.lastPathComponent {
+						let statusFiles = [self.location.pidFile.lastPathComponent, self.location.restartURL.lastPathComponent]
+
+						if statusFiles.contains(file.lastPathComponent) {
 							let status = self.location.status
 
 							self.logger.debug("Status changed for VM \(self.location.name) to \(status)")
 
 							switch status {
-							case .running:
+							case .running(let mode):
 								self.stream.continuation.yield(.with {
-									$0.status = .running
+									switch mode {
+									case .none:
+										$0.status = .error
+									case .caked:
+										$0.status = .running
+									case .caker:
+										$0.status = .running
+									case .provision:
+										$0.status = .provisioning
+									case .restart:
+										$0.status = .restarting
+									}
 								})
 							case .stopped:
-								self.stream.continuation.yield(.with {
-									$0.status = .stopped
-								})
+								// The stop half of a restart: the restart marker's removal reports the outcome.
+								if self.location.restartURL.fileExists == false {
+									self.stream.continuation.yield(.with {
+										$0.status = .stopped
+									})
+								}
 							default:
 								self.stream.continuation.yield(.with {
 									$0.status = .paused

@@ -221,6 +221,7 @@ message Caked {
     agentReady   = 5;
     new          = 6;
     provisioning = 7;
+    restarting   = 8;
   }
 
   message VncStream {

@@ -57,6 +57,7 @@ public struct VMInformations: Sendable, Codable {
 		case running
 		case stopped
 		case provisioning
+		case restarting
 		case unknown
 
 		public init(_ from: Caked_VirtualMachineStatus) {
@@ -67,6 +68,8 @@ public struct VMInformations: Sendable, Codable {
 				self = .running
 			case .provisioning:
 				self = .provisioning
+			case .restarting:
+				self = .restarting
 			default:
 				self = .unknown
 			}

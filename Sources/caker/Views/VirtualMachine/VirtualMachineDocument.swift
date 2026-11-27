@@ -118,7 +118,7 @@ extension UTType {
 	enum Status: Int, CustomStringConvertible {
 		var isStopped: Bool {
 			switch self {
-			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring, .provisioning:
+			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring, .provisioning, .restarting:
 				return false
 			default:
 				return true
@@ -127,7 +127,7 @@ extension UTType {
 
 		var isRunning: Bool {
 			switch self {
-			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring, .provisioning:
+			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring, .provisioning, .restarting:
 				return true
 			default:
 				return false
@@ -162,6 +162,8 @@ extension UTType {
 				return "Provisioning"
 			case .deleted:
 				return "Deleted"
+			case .restarting:
+				return "Restarting"
 			}
 		}
 
@@ -193,6 +195,8 @@ extension UTType {
 				return "provisioning"
 			case .deleted:
 				return "deleted"
+			case .restarting:
+				return "restarting"
 			}
 		}
 
@@ -209,6 +213,7 @@ extension UTType {
 		case restoring = 9
 		case provisioning = 10
 		case deleted = 11
+		case restarting = 12
 
 		init(_ from: VMInformations.Status) {
 			switch from {
@@ -220,6 +225,8 @@ extension UTType {
 				self = .provisioning
 			case .unknown:
 				self = .none
+			case .restarting:
+				self = .restarting
 			}
 		}
 
@@ -249,6 +256,8 @@ extension UTType {
 				self = .error
 			case .provisioning:
 				self = .provisioning
+			case .restarting:
+				self = .restarting
 			case .UNRECOGNIZED(_):
 				self = .none
 			}
@@ -305,13 +314,13 @@ extension UTType {
 		url.absoluteString
 	}
 
-	var connectionManager = ConnectionManager.appConnectionManager
-	var interactiveShell: InteractiveShell? = nil
+	private(set) var connectionManager = ConnectionManager.appConnectionManager
+	private(set) var interactiveShell: InteractiveShell? = nil
 	weak var vncView: NSVNCView? = nil
-	var virtualMachine: VirtualMachine!
-	var location: VMLocation!
-	var url: URL
-	var name: String = String.empty
+	private(set) var virtualMachine: VirtualMachine!
+	private(set) var location: VMLocation!
+	private(set) var url: URL
+	private(set) var name: String = String.empty
 	var description: String {
 		self.name
 	}
@@ -337,30 +346,26 @@ extension UTType {
 			self.updateSeamlessTunnel()
 		}
 	}
-	var externalRunning: Bool = false
-	var canStart: Bool = false
-	var canStop: Bool = false
-	var canPause: Bool = false
-	var canResume: Bool = false
-	var canRequestStop: Bool = false
-	var suspendable: Bool = false
-	var isRecording: Bool = false
+	private(set) var externalRunning: Bool = false
+	private(set) var canStart: Bool = false
+	private(set) var canStop: Bool = false
+	private(set) var canPause: Bool = false
+	private(set) var canResume: Bool = false
+	private(set) var canRequestStop: Bool = false
+	private(set) var suspendable: Bool = false
+	private(set) var isRecording: Bool = false
 
 	/// Mirrors `RecordHandler.Session`'s equivalent published state (`Sources/cakedlib/Handlers/RecordHandler.swift`)
 	/// so `HostVirtualMachineView`'s recording toolbar can offer the same locate-mode/reset/VoiceOver
 	/// controls `caked record`'s own `RecordingControls` does — see the "Recording" extension below.
-	var isLocateModeActive: Bool = false
-	var isVoiceOverActived: Bool = false
-	var hasRecordedActions: Bool = false
-	var vncURL: [URL]? = nil
-	var agentReady: Bool = false {
-		didSet {
-			self.logger.debug("Agent ready for \(self.name): \(self.agentReady)")
-		}
-	}
-	var connection: VNCConnection! = nil
-	var vncTunnel: VNCTunnel? = nil
-	var vncStatus: VncStatus = .disconnected
+	private(set) var isLocateModeActive: Bool = false
+	private(set) var isVoiceOverActived: Bool = false
+	private(set) var hasRecordedActions: Bool = false
+	private(set) var vncURL: [URL]? = nil
+	private(set) var agentReady: Bool = false
+	private(set) var connection: VNCConnection! = nil
+	private(set) var vncTunnel: VNCTunnel? = nil
+	private(set) var vncStatus: VncStatus = .disconnected
 	var documentSize: ViewSize = .zero
 	var launchVMExternally: Bool? = nil
 	var cpuInfos: CpuInfos
@@ -368,14 +373,16 @@ extension UTType {
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	var ipaddresses: [String] = []
 	var screenshot: Data!
-	var haveRequestStop: Bool = false
+	private(set) var haveRequestStop: Bool = false
 
 	/// The windows of a Linux VM run by a caked service, relayed through its `SeamlessTunnel` (see `SeamlessTunnelSession`).
 	@ObservationIgnored private var seamlessSession: SeamlessTunnelSession?
 
-	var agent = AgentStatus.none {
+	private(set) var agent = AgentStatus.none {
 		didSet {
-			self.logger.debug("Agent state for \(self.name): \(self.agent)")
+			#if DEBUG
+				self.logger.trace("Agent state for \(self.name): \(self.agent)")
+			#endif
 
 			guard AppState.sharedLoaded else {
 				return
@@ -387,7 +394,7 @@ extension UTType {
 		}
 	}
 
-	var status: Status = .none {
+	private(set) var status: Status = .none {
 		didSet {
 			self.logger.debug("Set status for \(self.name): \(self.status)")
 
@@ -608,6 +615,31 @@ extension UTType {
 
 // MARK: - Core
 extension VirtualMachineDocument {
+	func setAgentReady(_ ready: Bool) {
+		if self.agentReady != ready {
+			self.logger.debug("Agent ready for \(self.name): \(ready)")
+			self.agentReady = ready
+		}
+
+		// Every path that learns the agent answers (status stream, usage stream, agent monitoring) goes through
+		// here, so the shell is recreated after a restart whichever of them sees the agent first.
+		if ready && self.interactiveShell == nil && self.inView {
+			self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
+		}
+	}
+
+	func setAgentState(_ state: AgentStatus) {
+		if self.agent != state {
+			self.agent = state
+		}
+	}
+
+	func setStatus(_ state: Status) {
+		if self.status != state {
+			self.status = state
+		}
+	}
+
 	@MainActor func setScreenshot(_ data: Data) {
 		self.screenshot = data
 
@@ -637,7 +669,7 @@ extension VirtualMachineDocument {
 		self.inView = false
 		self.stopAgentMonitoring()
 		if let location = self.location {
-			self.status = .init(location.status)
+			self.setStatus(.init(location.status))
 		}
 
 		disconnectVNC()
@@ -672,7 +704,7 @@ extension VirtualMachineDocument {
 		self.vncView = nil
 
 		if let location = self.location {
-			self.status = .init(location.status)
+			self.setStatus(.init(location.status))
 		}
 
 		disconnectVNC()
@@ -681,7 +713,7 @@ extension VirtualMachineDocument {
 	}
 
 	func updateCurrentStatus(_ newStatus: Status, vncURL: [URL]? = nil) {
-		self.status = newStatus
+		self.setStatus(newStatus)
 		self.vncURL = vncURL
 	}
 
@@ -713,6 +745,39 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	func setStateAsRestarting() {
+		#if DEBUG
+			self.logger.debug("setStateAsRestarting")
+		#endif
+		self.interactiveShell?.cancelShell()
+		self.interactiveShell = nil
+		self.setState(.restarting)
+	}
+
+	/// A restart failed: the request may or may not have reached the VM, so take the status from where it is
+	/// authoritative instead of leaving the document on "restarting".
+	@MainActor
+	private func reconcileAfterFailedRestart() {
+		let current: Status
+
+		if let location = self.location {
+			current = Status(location.status)
+		} else if let infos = try? self.connectionManager.virtualMachineInfos(vmURL: self.url) {
+			current = Status(infos.infos.status)
+		} else {
+			current = .running
+		}
+
+		switch current {
+		case .running, .restarting, .none:
+			self.setState(.running)
+		case .stopped, .error, .deleted:
+			self.setStateAsStopped(current)
+		default:
+			self.setOtherState(status: current)
+		}
+	}
+
 	@MainActor
 	func setStateAsStopped(_ status: Status = .stopped) {
 		#if DEBUG
@@ -729,8 +794,9 @@ extension VirtualMachineDocument {
 		self.interactiveShell = nil
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
-		self.agentReady = false
 		self.virtualMachine = nil
+
+		self.setAgentReady(false)
 
 		disconnectVNC()
 
@@ -764,7 +830,7 @@ extension VirtualMachineDocument {
 
 		self.updateCurrentStatus(status, vncURL: vncURL)
 
-		self.agentReady = false
+		self.setAgentReady(false)
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
 		AppState.shared.openVirtualMachineDocument(self)
@@ -782,14 +848,10 @@ extension VirtualMachineDocument {
 		func agentIsReady() {
 			// An installAgent run in flight owns `agent` until its completion.
 			if self.agentInstallToken == nil {
-				self.agent = .installed
+				self.setAgentState(.installed)
 			}
 
-			self.agentReady = true
-
-			if self.interactiveShell == nil && self.inView {
-				self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
-			}
+			self.setAgentReady(true)
 
 			if let infos = try? self.connectionManager.virtualMachineInfos(vmURL: self.url) {
 				self.ipaddresses = infos.infos.ipaddresses
@@ -811,11 +873,9 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		if newStatus != .running {
-			self.interactiveShell?.cancelShell()
-		}
-
-		if status == .running {
+		// `agentReady` is a running VM whose agent answers: it can arrive straight from "starting" or "restarting"
+		// (the VM process sends it on its first usage report), and must not be taken for a stop.
+		if newStatus == .running {
 			self.updateCurrentStatus(newStatus, vncURL: self.vncURL)
 
 			AppState.shared.openVirtualMachineDocument(self)
@@ -833,14 +893,17 @@ extension VirtualMachineDocument {
 			if self.inView {
 				self.tryVNCConnect()
 			}
+
+			if status == .agentReady {
+				agentIsReady()
+			}
 		} else {
 			self.updateCurrentStatus(newStatus, vncURL: nil)
 
 			self.interactiveShell?.cancelShell()
-
 			self.interactiveShell = nil
 			self.agentCondition = ("Install agent", false, true)
-			self.agentReady = false
+			self.setAgentReady(false)
 
 			disconnectVNC()
 		}
@@ -906,8 +969,8 @@ extension VirtualMachineDocument {
 		do {
 			self.virtualMachineConfig = try VirtualMachineConfig(name: location.name, config: location.config())
 			self.location = location
-			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
 			self.name = location.name
+			self.setAgentState(self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none)
 
 			if monitor == nil {
 				let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
@@ -920,7 +983,7 @@ extension VirtualMachineDocument {
 			// `init(location:)` for why: a PID-file write racing ahead of a one-time disk read is
 			// otherwise permanently missed by a monitor that only starts watching afterward.
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-			self.status = .init(location.status)
+			self.setStatus(.init(location.status))
 
 			if self.isLaunchVMExternally && self.externalRunning {
 				self.setDocumentSize(self.getVncScreenSize())
@@ -1146,11 +1209,19 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		// Nothing can dispatch the restart: leave the running state alone.
+		guard self.externalRunning || self.virtualMachine != nil else {
+			return
+		}
+
+		self.setStateAsRestarting()
+
 		if self.externalRunning {
 			Task {
 				do {
 					try self.connectionManager.restartVirtualMachine(vmURL: self.url)
 				} catch {
+					await self.reconcileAfterFailedRestart()
 					await alertError(error)
 				}
 			}
@@ -1166,7 +1237,7 @@ extension VirtualMachineDocument {
 					self.isRestarting = false
 
 					if case .failure(let error) = result {
-						self.setStateAsStopped()
+						self.reconcileAfterFailedRestart()
 						alertError(error)
 					}
 				}
@@ -1577,18 +1648,18 @@ extension VirtualMachineDocument {
 extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
 		#if DEBUG
-		self.logger.debug("didChangedState: \(vm.virtualMachine.state.description)")
+			self.logger.debug("didChangedState: \(vm.virtualMachine.state.description)")
 		#endif
 
 		guard let status = Status(rawValue: vm.virtualMachine.state.rawValue) else {
-			self.status = .none
+			self.setStatus(.none)
 			return
 		}
 
-		self.status = status
+		self.setStatus(status)
 		self.virtualMachineConfig.agent = vm.config.agent
 		self.virtualMachineConfig.firstLaunch = vm.config.firstLaunch
-		self.agent = vm.config.agent ? vm.config.firstLaunch ? .installing : .installed : .none
+		self.setAgentState(vm.config.agent ? vm.config.firstLaunch ? .installing : .installed : .none)
 	}
 
 	func didScreenshot(_ vm: CakedLib.VirtualMachine, screenshot: NSImage) {
@@ -1604,7 +1675,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 		}
 
 		let check: (URL) -> Void = { file in
-			if file.lastPathComponent == location.pidFile.lastPathComponent {
+			if file.lastPathComponent == location.pidFile.lastPathComponent || file.lastPathComponent == location.restartURL.lastPathComponent {
 				DispatchQueue.main.async {
 					let status = location.status
 
@@ -1613,21 +1684,24 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 						switch mode {
 						case .caked:
 							self.externalRunning = true
-							self.status = .running
+							self.setStatus(.running)
 							self.retrieveVNCURL()
 						case .caker:
 							self.externalRunning = false
 							self.setStateAsRunning(.running, vncURL: nil)
 						case .provision:
 							self.externalRunning = true
-							self.status = .provisioning
+							self.setStatus(.provisioning)
 							self.retrieveVNCURL()
-						default:
+						case .restart:
+							self.setStateAsRestarting()
+						case .none:
 							break
 						}
 					case .stopped:
 						// The PID file is removed by the stop half of a restart: the VM is coming back, keep it loaded.
-						guard self.isRestarting == false else {
+						// `isRestarting` covers a restart of the embedded VM, the marker one run by caked.
+						guard self.isRestarting == false && location.restartURL.fileExists == false else {
 							break
 						}
 
@@ -1930,7 +2004,7 @@ extension VirtualMachineDocument {
 			}
 
 			self.agentInstallToken = nil
-			self.agent = status
+			self.setAgentState(status)
 
 			if updateAgent {
 				self.agentCondition = (status != .installed ? "Update agent" : "Install agent", status != .installed, status != .none)
@@ -1946,7 +2020,7 @@ extension VirtualMachineDocument {
 		}
 
 		self.agentInstallToken = token
-		self.agent = .installing
+		self.setAgentState(.installing)
 
 		Task {
 			var agent: AgentStatus = .installing
@@ -1969,19 +2043,26 @@ extension VirtualMachineDocument {
 				agent = .none
 			}
 
+			// Only `finish` updates the document, once it has checked the run this installation belongs to.
 			await finish(agent)
 		}
 	}
 
 	@MainActor
-	private func agentMonitoringSuccess(infos: InfoReply) {
+	private func agentMonitoringSuccess(infos: VMInformations) {
 		#if DEBUG
 			self.logger.debug("Agent monitoring: VM \(self.name) agent is responding")
 		#endif
 
-		self.agentReady = true
+		// The probe answered after its monitoring was cancelled (the VM is restarting or stopped): it describes the run
+		// that is going away and must not mark the agent ready nor create a shell.
+		guard Task.isCancelled == false && self.status == .running else {
+			return
+		}
+
+		self.setAgentReady(true)
 		self.ipaddresses = infos.ipaddresses
-		self.cpuInfos.update(infos.cpuInfo)
+		self.cpuInfos.update(infos.cpuInfos)
 		self.memoryInfos.update(infos.memory)
 
 		if let firstIP = infos.ipaddresses.first {
@@ -1993,10 +2074,6 @@ extension VirtualMachineDocument {
 				self.logger.debug("Agent monitoring: VM \(self.name) agent need to be updated")
 			#endif
 			self.agentCondition = ("Update agent", true, false)
-		}
-
-		if self.interactiveShell == nil && self.inView {
-			self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
 		}
 	}
 
@@ -2030,13 +2107,15 @@ extension VirtualMachineDocument {
 
 	private func performAgentMonitoring() async -> Bool {
 		do {
-			let helper = try self.createCakeAgentHelper()
+			let infos = try self.connectionManager.virtualMachineInfos(vmURL: self.url, callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
-			defer {
-				try? helper.closeSync()
+			// The infos fall back to the VM's offline description when the agent doesn't answer, so a reply
+			// alone doesn't prove the agent is up: only one that carries the agent's version does.
+			guard let agentVersion = infos.infos.agentVersion, agentVersion.isEmpty == false else {
+				return true
 			}
 
-			await agentMonitoringSuccess(infos: try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10)))))
+			await agentMonitoringSuccess(infos: infos.infos)
 		} catch {
 			return agentMonitoringFailure(error: error)
 		}
@@ -2044,21 +2123,18 @@ extension VirtualMachineDocument {
 		return false
 	}
 
-	/// Starts agent monitoring while the VM runs, stops it once it is stopped or deleted. Both calls are
-	/// idempotent (`startAgentMonitoring()` no-ops when a task already exists).
+	/// Starts agent monitoring while the VM runs and stops it as soon as it isn't running (stopped, deleted, but
+	/// also restarting, paused...). Stopping drops the task, which stays assigned once it has seen the agent, so
+	/// monitoring starts again when the VM is back to running. Both calls are idempotent.
 	func reconcileAgentMonitoring() {
 		if self.status == .running {
 			self.startAgentMonitoring()
-		} else if self.status == .stopped || self.status == .deleted {
+		} else {
 			self.stopAgentMonitoring()
 		}
 	}
 
 	func startAgentMonitoring() {
-		guard self.location != nil else {
-			return
-		}
-
 		guard agentMonitoring == nil && self.status == .running && self.agent != .none else {
 			return
 		}
@@ -2108,10 +2184,10 @@ extension VirtualMachineDocument {
 	public func setUsage(_ usage: Caked_CurrentUsageReply) async {
 		// An installAgent run in flight owns `agent` until its completion.
 		if self.agentInstallToken == nil {
-			self.agent = .installed
+			self.setAgentState(.installed)
 		}
 
-		self.agentReady = true
+		self.setAgentReady(true)
 		if usage.hasCpuInfos {
 			self.cpuInfos.update(usage.cpuInfos)
 		}

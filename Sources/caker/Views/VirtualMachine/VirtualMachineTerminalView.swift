@@ -145,7 +145,7 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		self.interactiveShell.startShell(rows: terminal.rows, cols: terminal.cols) { response in
 			if case .established(let established, let reason) = response {
 				if established == false {
-					if reason != "Connection refused" {
+					if reason != "Connection refused" && reason != "Transport became inactive" {
 						DispatchQueue.main.async {
 							alertError(ServiceError(reason))
 						}

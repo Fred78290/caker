@@ -203,7 +203,7 @@ struct HostVirtualMachineView: View {
 							document.restartFromUI()
 						}
 						.help("Restart virtual machine")
-						.disabled(document.status.isStopped || document.status == .provisioning || document.agent == .installing)
+						.disabled(document.status != .running || document.agent == .installing)
 
 						Button("Create template", systemImage: "archivebox") {
 							createTemplate = true
@@ -303,7 +303,7 @@ struct HostVirtualMachineView: View {
 
 	static func vmStatusColor(_ status: VirtualMachineDocument.Status) -> Color {
 		switch status {
-		case .starting, .resuming, .restoring: return .orange
+		case .starting, .resuming, .restoring, .restarting: return .orange
 		case .running: return .green
 		case .stopping: return .yellow
 		case .stopped: return .red
@@ -338,6 +338,8 @@ struct HostVirtualMachineView: View {
 			return "square.and.arrow.down"
 		case .provisioning:
 			return "wrench.and.screwdriver"
+		case .restarting:
+			return "arrow.trianglehead.clockwise"
 		default:
 			return "questionmark.circle.fill"
 		}
@@ -367,7 +369,7 @@ struct HostVirtualMachineView: View {
 				document.startFromUI()
 			}
 			.help("Start virtual machine")
-			.disabled([VirtualMachineDocument.Status.starting, VirtualMachineDocument.Status.stopping, VirtualMachineDocument.Status.provisioning].contains(document.status))
+			.disabled([VirtualMachineDocument.Status.starting, VirtualMachineDocument.Status.stopping, VirtualMachineDocument.Status.provisioning, VirtualMachineDocument.Status.restarting].contains(document.status))
 		}
 	}
 
@@ -828,7 +830,7 @@ struct HostVirtualMachineView: View {
 				vncView(size)
 					.frame(size: size)
 			} else {
-				LabelView(self.vmStatus(), progress: self.document.status == .starting)
+				LabelView(self.vmStatus(), progress: self.document.status == .starting || self.document.status == .restarting)
 			}
 		} else if self.document.externalRunning {
 			if self.document.vncURL != nil {
@@ -899,6 +901,8 @@ struct HostVirtualMachineView: View {
 			return "VM is provisioning"
 		case .deleted:
 			return "VM is deleted"
+		case .restarting:
+			return "VM is restarting"
 		}
 	}
 
