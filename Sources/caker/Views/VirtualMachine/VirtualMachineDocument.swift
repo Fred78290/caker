@@ -898,14 +898,20 @@ extension VirtualMachineDocument {
 				agentIsReady()
 			}
 		} else {
-			self.updateCurrentStatus(newStatus, vncURL: nil)
+			// A restarting VM keeps its VNC viewer, so the guest's reboot is seen on screen. A forced restart replaces the VM
+			// process and drops the connection: the delegate then waits for "running", which reconnects to the new address.
+			let keepVNC = newStatus == .restarting
+
+			self.updateCurrentStatus(newStatus, vncURL: keepVNC ? self.vncURL : nil)
 
 			self.interactiveShell?.cancelShell()
 			self.interactiveShell = nil
 			self.agentCondition = ("Install agent", false, true)
 			self.setAgentReady(false)
 
-			disconnectVNC()
+			if keepVNC == false {
+				disconnectVNC()
+			}
 		}
 	}
 
@@ -1887,14 +1893,18 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 					newStatus = .ready
 				}
 			} else if connectionState.status == .disconnecting {
-				if self.status == .starting || self.status == .running || self.status == .provisioning {
+				if self.status == .starting || self.status == .running || self.status == .provisioning || self.status == .restarting {
 					newStatus = .connecting
 				}
 			} else if connectionState.status == .disconnected {
 				if self.connection != nil {
 					self.connection = nil
 
-					if self.status == .starting || self.status == .running || self.status == .provisioning {
+					if self.status == .restarting {
+						// The VM process was replaced (forced restart) and its VNC address may have changed: no retry on the old
+						// one, the switch back to "running" fetches the new address and reconnects.
+						newStatus = .connecting
+					} else if self.status == .starting || self.status == .running || self.status == .provisioning {
 						DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
 							self.tryVNCConnect()
 						}

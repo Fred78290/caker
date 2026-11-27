@@ -826,8 +826,12 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.status != .running {
-			if (self.document.status == .starting || self.document.status == .provisioning) && self.document.externalRunning && self.document.vncURL != nil {
+			if (self.document.status == .starting || self.document.status == .provisioning || self.document.status == .restarting) && self.document.externalRunning && self.document.vncURL != nil {
 				vncView(size)
+					.frame(size: size)
+			} else if self.document.status == .restarting && self.document.externalRunning == false && self.document.virtualMachine != nil {
+				// An embedded VM keeps its own view while it restarts
+				InternalVirtualMachineView(document: document, showsHostCursor: self.showsHostCursor)
 					.frame(size: size)
 			} else {
 				LabelView(self.vmStatus(), progress: self.document.status == .starting || self.document.status == .restarting)
