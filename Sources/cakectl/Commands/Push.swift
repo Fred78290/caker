@@ -20,7 +20,7 @@ struct Push: AsyncGrpcParsableCommand {
 
 		// Ctrl-C asks caked to cancel: it kills and deletes the temporary VM, or stops the upload.
 		return try await Client.cancellingTaskOnInterrupt(
-			client: client, callOptions: callOptions, taskID: taskID,
+			client: client, callOptions: callOptions, taskID: taskID, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit,
 			succeeded: { $0.oci.push.success },
 			render: { self.options.format.render($0.oci.push) }
 		) {

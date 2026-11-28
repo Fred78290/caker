@@ -815,7 +815,7 @@ extension CakedServiceClient {
 	public static let cancelTaskTimeLimit: Int64 = 5
 
 	/// The time limit, in seconds, of one CancelTask attempt for a long task whose cancellation can hold caked's
-	/// reply (duplicate, template create, build, launch, provision): caked answers once the task's cancellation
+	/// reply (duplicate, template create, push, build, launch, provision): caked answers once the task's cancellation
 	/// handler has run, which can wait, for example for a copy already being moved into place.
 	public static let longCancelTaskTimeLimit: Int64 = 30
 
