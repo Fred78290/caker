@@ -254,32 +254,52 @@ struct Root: ParsableCommand {
 }
 
 extension Root {
-	/// Runs `operation` in a task that the first Ctrl-C cancels (replacing the default handler, which
-	/// exits at once); a second Ctrl-C exits. Used by commands whose cancellation cleans up after
-	/// itself, such as `duplicate`, `template create` and `push`, which kill and delete their temporary VM.
-	static func runCancellingOnInterrupt<T: Sendable>(_ operation: @escaping @Sendable () async -> T) async -> T {
+	/// Replaces the default Ctrl-C handler (which exits at once): the first Ctrl-C calls `cancel` and says
+	/// so on stderr, as the cleanup that follows can take a while; a second Ctrl-C exits without waiting.
+	/// For commands whose cancellation cleans up after itself, such as `duplicate`, `template create`,
+	/// `push`, `build` and `provision`.
+	@discardableResult
+	static func cancelOnInterrupt(_ cancel: @escaping () -> Void) -> DispatchSourceSignal {
 		Root.sigintSrc.cancel()
 		signal(SIGINT, SIG_IGN)
 
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-		let task = Task {
-			await operation()
-		}
 
 		sigintSrc.setEventHandler {
-			task.cancel()
+			Self.notice(String(localized: "Cancelling… Press Ctrl-C again to quit without waiting."))
+
+			cancel()
 
 			sigintSrc.setEventHandler {
+				Self.notice(String(localized: "Quit without waiting: the cleanup was not finished."))
 				Foundation.exit(128)
 			}
 		}
 
 		sigintSrc.activate()
 
+		return sigintSrc
+	}
+
+	/// Runs `operation` in a task that the first Ctrl-C cancels, see `cancelOnInterrupt`.
+	static func runCancellingOnInterrupt<T: Sendable>(_ operation: @escaping @Sendable () async -> T) async -> T {
+		let task = Task {
+			await operation()
+		}
+		let sigintSrc = Self.cancelOnInterrupt {
+			task.cancel()
+		}
+
 		defer {
 			sigintSrc.cancel()
 		}
 
 		return await task.value
+	}
+
+	/// A line on stderr, on its own line even when a progress bar was being drawn, and out of the
+	/// command's own output (which a script may parse).
+	private static func notice(_ message: String) {
+		FileHandle.standardError.write(Data("\n\(message)\n".utf8))
 	}
 }

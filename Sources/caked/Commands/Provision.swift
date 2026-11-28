@@ -134,22 +134,10 @@ struct Provision: AsyncParsableCommand {
 			// fine for most commands, but here Ctrl-C is the documented way to stop-and-save, so it
 			// needs to run our own teardown first. Same cancel-then-install-our-own pattern Exec/Sh
 			// already use for their own interactive needs (see Sources/caked/Commands/Exec.swift).
-			Root.sigintSrc.cancel()
-			signal(SIGINT, SIG_IGN)
-
-			let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-
-			sigintSrc.setEventHandler {
+			// Ctrl-C cancels the provisioning, which then stops the VM
+			Root.cancelOnInterrupt {
 				cancellation.cancel()
-
-				sigintSrc.setEventHandler {
-					Foundation.exit(128)
-				}
-
-				sigintSrc.activate()
 			}
-
-			sigintSrc.activate()
 
 			promise.futureResult.whenComplete { result in
 				if case .failure(let error) = result, error as? CancellationError == nil {

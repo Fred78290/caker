@@ -14538,6 +14538,16 @@
         }
       }
     },
+    "Quit without waiting: the cleanup was not finished." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortie sans attendre : le nettoyage n'est pas terminé."
+          }
+        }
+      }
+    },
     "Quit without waiting: the task may still be running in caked." : {
       "localizations" : {
         "fr" : {
