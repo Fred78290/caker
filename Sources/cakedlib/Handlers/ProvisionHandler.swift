@@ -110,7 +110,7 @@ public struct ProvisionHandler {
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProvisionProgressHandler
-	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+	) async throws -> (handler: VMRunHandler, vm: VirtualMachine, cancellable: Cancellable) {
 		// Load earlier to avoid starting the VM if the template is invalid
 		let template = try Self.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables, runMode: runMode)
 
@@ -136,7 +136,7 @@ public struct ProvisionHandler {
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProvisionProgressHandler
-	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+	) async throws -> (handler: VMRunHandler, vm: VirtualMachine, cancellable: Cancellable) {
 		var template = template
 		let config = try location.config()
 		let displaySize = config.display.cgSize
@@ -318,7 +318,7 @@ public struct ProvisionHandler {
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProvisionProgressHandler
-	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+	) async throws -> (handler: VMRunHandler, vm: VirtualMachine, cancellable: Cancellable) {
 		var templatePath: URL? = nil
 
 		defer {
@@ -360,7 +360,7 @@ public struct ProvisionHandler {
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProvisionProgressHandler
-	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+	) async throws -> (handler: VMRunHandler, vm: VirtualMachine, cancellable: Cancellable) {
 
 		let storageLocation = StorageLocation(runMode: runMode)
 		let location = try storageLocation.find(name)

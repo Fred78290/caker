@@ -15,18 +15,30 @@ extension TemplateHandler {
 		}
 	}
 
+	/// Creates a template locally (`.app` mode) or through caked. Cancelling the calling task cancels
+	/// the creation: locally directly, through caked with a CancelTask call on the task id sent with
+	/// the request. Either way the temporary VM and a template being written are deleted, and the
+	/// reply says it was cancelled.
 	public static func createTemplate(client: CakedServiceClient?, vmURL: URL, templateName: String, runMode: Utils.RunMode) async throws -> CreateTemplateReply {
 		guard let client, vmURL.isFileURL == false else {
-			return self.createTemplate(vmURL: vmURL, templateName: templateName, runMode: runMode)
+			return await self.createTemplate(vmURL: vmURL, templateName: templateName, runMode: runMode)
 		}
 
-		return try await CreateTemplateReply(client.template(.with {
+		let taskID = UUID()
+		let call = client.template(.with {
 			$0.command = .add
 			$0.createRequest = .with {
+				$0.taskID = taskID.uuidString
 				$0.templateName = templateName
 				$0.sourceName = vmURL.vmName
 			}
-		}).response.get().templates.create)
+		})
+
+		// Cancelling asks caked to cancel the task, retried until caked has registered it; the call
+		// still waits for caked's own answer, which comes once the temporary VM is gone.
+		return try await client.withCancellableTask(taskID, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit) {
+			try await CreateTemplateReply(call.response.get().templates.create)
+		}
 	}
 
 	public static func deleteTemplate(client: CakedServiceClient?, templateName: String, runMode: Utils.RunMode) async throws -> DeleteTemplateReply {

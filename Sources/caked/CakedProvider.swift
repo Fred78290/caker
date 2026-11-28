@@ -571,7 +571,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 						$0.status = .new
 					})
 			},
-			title: "build \(request.options.name)",
+			title: String(format: String(localized: "build %@"), request.options.name),
 			id: taskID
 		) {
 			self.logger.info("Build cancelled")
@@ -599,7 +599,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 						$0.status = .new
 					})
 			},
-			title: "launch \(request.options.name)",
+			title: String(format: String(localized: "launch %@"), request.options.name),
 			id: taskID
 		) {
 			self.logger.info("Launch cancelled")
@@ -622,8 +622,25 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
+	/// The task id a client sent for a cancellable command. An older client sends none: the command
+	/// then gets a new id, so it is still listed by ListTasks and cancellable with CancelTask.
+	private func taskID(_ value: String) throws -> UUID {
+		if value.isEmpty {
+			return UUID()
+		}
+
+		guard let id = UUID(uuidString: value) else {
+			throw ServiceError(String(format: String(localized: "'%@' is not a valid task id"), value))
+		}
+
+		return id
+	}
+
 	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		let reply = try self.execute(command: request)
+		// Cancelling the task kills and destroys the temporary VM, and the handler then answers "Cancelled".
+		let reply = try await self.executeCancellable(command: DuplicateHandler(request: request), title: String(format: String(localized: "duplicate %@ to %@"), request.from, request.to), id: self.taskID(request.taskID)) {
+			self.logger.info("Duplicate of \(request.from) to \(request.to) cancelled")
+		}
 
 		if reply.vms.duplicated.duplicated {
 			try self.gcd.updateStatus(
@@ -673,7 +690,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+		// Cancelling the task kills and destroys the temporary VM used to reset cloud-init, or stops the
+		// upload; the handler then answers "Cancelled". References already pushed stay in the registry.
+		try await self.executeCancellable(command: PushHandler(request: request), title: String(format: String(localized: "push %@"), request.localName), id: self.taskID(request.taskID)) {
+			self.logger.info("Push of \(request.localName) cancelled")
+		}
 	}
 
 	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
@@ -695,7 +716,19 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		let reply = try self.execute(command: request)
+		let reply: Caked_Reply
+
+		if request.command == .add {
+			// Cancelling the task kills and destroys the temporary VM and removes a template being
+			// written; the handler then answers "Cancelled".
+			let create = request.createRequest
+
+			reply = try await self.executeCancellable(command: TemplateHandler(request: request), title: String(format: String(localized: "template %@ from %@"), create.templateName, create.sourceName), id: self.taskID(create.taskID)) {
+				self.logger.info("Creating template \(create.templateName) cancelled")
+			}
+		} else {
+			reply = try self.execute(command: request)
+		}
 
 		if request.command == .add || request.command == .delete || request.command == .duplicate {
 			self.gcd.updateStatusTemplates()
@@ -842,7 +875,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		_ = try await self.executeCancellable(
 			command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode),
-			title: "provision \(request.name)",
+			title: String(format: String(localized: "provision %@"), request.name),
 			id: taskID,
 		) {
 			self.logger.info("Provision cancelled")

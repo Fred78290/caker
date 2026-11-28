@@ -56,8 +56,9 @@ extension Caked_RenameRequest {
 }
 
 extension Caked_DuplicateRequest {
-	init(command: Duplicate) {
+	init(command: Duplicate, taskID: UUID) {
 		self.init()
+		self.taskID = taskID.uuidString
 		self.from = command.duplicate.from
 		self.to = command.duplicate.to
 		self.resetMacAddress = command.duplicate.resetMacAddress
@@ -97,8 +98,9 @@ extension Caked_CloneRequest {
 }
 
 extension Caked_PushRequest {
-	init(command: Push) {
+	init(command: Push, taskID: UUID) {
 		self.init()
+		self.taskID = taskID.uuidString
 		self.localName = command.push.localName
 		self.remoteNames = command.push.remoteNames
 		self.insecure = command.push.insecure
@@ -233,11 +235,12 @@ extension Caked_ImageRequest {
 }
 
 extension Caked_TemplateRequest {
-	init(command: Template.CreateTemplate) {
+	init(command: Template.CreateTemplate, taskID: UUID) {
 		self.init()
 
 		self.command = .add
 		self.createRequest = Caked_TemplateRequest.TemplateRequestAdd.with {
+			$0.taskID = taskID.uuidString
 			$0.sourceName = command.template.name
 			$0.templateName = command.template.template
 			$0.foreground = command.template.foreground

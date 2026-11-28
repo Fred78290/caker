@@ -377,7 +377,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "%@\nVotre modification a été conservée dans %@"
           }
         }
@@ -1437,7 +1437,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Permet d'activer ou de désactiver les opérations privilégiées pour Caker."
           }
         }
@@ -2117,7 +2117,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Démarrer le support d’installation de Windows"
           }
         }
@@ -2138,7 +2138,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Démarrage du support d’installation de Windows"
           }
         }
@@ -2280,6 +2280,18 @@
           }
         }
       }
+    },
+    "build %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "construction de %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Build failed" : {
       "localizations" : {
@@ -2460,6 +2472,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'exécutable est manquant"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "caked is cancelling the task and cleaning up…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "caked annule la tâche et fait le nettoyage…"
           }
         }
       },
@@ -2798,6 +2822,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Annulé"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Cancelling…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulation…"
+          }
+        }
+      }
+    },
+    "Cancelling… Press Ctrl-C again to quit without waiting." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulation en cours… Appuyez à nouveau sur Ctrl-C pour quitter sans attendre."
           }
         }
       },
@@ -4497,6 +4543,26 @@
         }
       }
     },
+    "Creating template" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Création du modèle"
+          }
+        }
+      }
+    },
+    "Creating template “%@” from “%@”…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Création du modèle « %@ » à partir de « %@ »…"
+          }
+        }
+      }
+    },
     "Creating the installation disk" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5178,7 +5244,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Désactiver les opérations privilégiées pour Caker"
           }
         }
@@ -5201,7 +5267,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Désactive les opérations privilégiées pour Caker."
           }
         }
@@ -5593,6 +5659,18 @@
         }
       }
     },
+    "duplicate %@ to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "duplication de %@ vers %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Duplicate a VM to a new name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5669,6 +5747,26 @@
         }
       }
     },
+    "Duplicating “%@” to “%@”…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplication de « %@ » vers « %@ »…"
+          }
+        }
+      }
+    },
+    "Duplicating virtual machine" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplication de la machine virtuelle"
+          }
+        }
+      }
+    },
     "Dynamic forward ports" : {
       "localizations" : {
         "fr" : {
@@ -5716,7 +5814,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Modifier un projet compose enregistré"
           }
         }
@@ -5878,7 +5976,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Activer ou désactiver les opérations privilégiées pour Caker"
           }
         }
@@ -5890,7 +5988,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Activer les opérations privilégiées pour Caker"
           }
         }
@@ -5914,7 +6012,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Active les opérations privilégiées pour Caker."
           }
         }
@@ -6927,7 +7025,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Finalisation de la configuration de Windows"
           }
         }
@@ -8827,7 +8925,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Clé de produit invalide : format attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
           }
         }
@@ -9112,7 +9210,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Clé"
           }
         }
@@ -9208,6 +9306,18 @@
           }
         }
       }
+    },
+    "launch %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lancement de %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Launch inside app" : {
       "comment" : "A toggle that allows the user to launch the virtual machine inside the app.",
@@ -10577,7 +10687,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Multipass : échec de la récupération du pilote : %@"
           }
         }
@@ -10652,7 +10762,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Nom du projet compose enregistré"
           }
         }
@@ -11747,7 +11857,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Aucune modification"
           }
         }
@@ -13877,7 +13987,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Opérations privilégiées désactivées."
           }
         }
@@ -13889,7 +13999,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Opérations privilégiées activées avec succès."
           }
         }
@@ -13909,7 +14019,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Clé de produit"
           }
         }
@@ -13945,6 +14055,18 @@
           }
         }
       }
+    },
+    "provision %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "provisionnement de %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "provisioning" : {
       "extractionState" : "manual",
@@ -14351,6 +14473,18 @@
         }
       }
     },
+    "push %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "envoi de %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Push a VM to a registry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14367,6 +14501,42 @@
           }
         }
       }
+    },
+    "Push cancelled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi annulé"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Push complete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi terminé"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Push failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’envoi"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Push image to %@" : {
       "extractionState" : "manual",
@@ -14467,6 +14637,30 @@
           }
         }
       }
+    },
+    "Quit without waiting: the cleanup was not finished." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortie sans attendre : le nettoyage n'est pas terminé."
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Quit without waiting: the task may still be running in caked." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortie sans attendre : la tâche peut encore s'exécuter dans caked."
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "randomly generated if not specified" : {
       "extractionState" : "manual",
@@ -14629,7 +14823,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Reconstruit la définition du projet à partir du registre (compose.json), l’ouvre dans $VISUAL/$EDITOR et l’applique avec `compose up` si elle a changé. Avec --output, la définition est seulement écrite dans un fichier. Le compose.yml d’origine et ses commentaires ne sont pas conservés par le registre."
           }
         }
@@ -18950,6 +19144,18 @@
         }
       }
     },
+    "template %@ from %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modèle %@ à partir de %@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Template %@ is running" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19028,6 +19234,18 @@
           }
         }
       }
+    },
+    "Temporary VM %@ could not be stopped" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM temporaire %@ n'a pas pu être arrêtée"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "Terminate & Quit" : {
       "extractionState" : "manual",
@@ -19268,8 +19486,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "La taille du segment de trame de WINDOWS_FRAME_SEGMENT_MIB n’est pas valide : valeur attendue entre %d et %d Mio"
+            "state" : "translated",
+            "value" : "La taille du tampon d’affichage de WINDOWS_FRAME_SEGMENT_MIB n’est pas valide : valeur attendue entre %d et %d Mio"
           }
         }
       },
@@ -19551,7 +19769,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "L’archive OpenSSH ne correspond pas à la somme de contrôle attendue (%@)"
           }
         }
@@ -19774,7 +19992,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "La valeur de WINDOWS_AUDIO n’est pas valide : 1 ou 0 attendu"
           }
         }
@@ -19786,7 +20004,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "La valeur de WINDOWS_AUTOLOGON n’est pas valide : 1 ou 0 attendu"
           }
         }
@@ -19798,7 +20016,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "La valeur de WINDOWS_WHQL_ONLY n’est pas valide : 1 ou 0 attendu"
           }
         }
@@ -19941,7 +20159,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "La clé de produit Windows de WINDOWS_KEY n’est pas valide : format attendu XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
           }
         }
@@ -19997,7 +20215,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Ce caked ne renvoie pas la définition enregistrée : mettez-le à jour pour utiliser `compose edit`."
           }
         }
@@ -23670,8 +23888,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Premier démarrage de Windows, tentative %lld sur %lld"
+            "state" : "translated",
+            "value" : "Premier démarrage de Windows, passage %lld sur %lld"
           }
         }
       }
@@ -23681,7 +23899,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Échec de l’installation de Windows"
           }
         }
@@ -23704,7 +23922,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Installation de Windows terminée"
           }
         }
@@ -23738,8 +23956,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Installation de Windows terminée avec succès"
+            "state" : "translated",
+            "value" : "Configuration de Windows terminée avec succès"
           }
         }
       }
@@ -23749,8 +23967,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Installation de Windows terminée, mais le partage de répertoires risque de ne pas fonctionner"
+            "state" : "translated",
+            "value" : "Configuration de Windows terminée, mais le partage de répertoires risque de ne pas fonctionner"
           }
         }
       }
@@ -23771,8 +23989,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Installation de Windows terminée, mais le service cakeagent risque de ne pas être en cours d'exécution"
+            "state" : "translated",
+            "value" : "Configuration de Windows terminée, mais le service cakeagent risque de ne pas être en cours d’exécution"
           }
         }
       }
@@ -23782,8 +24000,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Installation de Windows terminée, mais la taille du tampon d’affichage risque de ne pas être appliquée"
+            "state" : "translated",
+            "value" : "Configuration de Windows terminée, mais la taille du tampon d’affichage risque de ne pas être appliquée"
           }
         }
       },
@@ -23805,8 +24023,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Installation de Windows terminée, mais le serveur OpenSSH risque de ne pas être en cours d’exécution"
+            "state" : "translated",
+            "value" : "Configuration de Windows terminée, mais le serveur OpenSSH risque de ne pas être en cours d’exécution"
           }
         }
       },
@@ -23817,8 +24035,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
-            "value" : "Installation de Windows terminée, mais le pilote audio risque de ne pas se charger"
+            "state" : "translated",
+            "value" : "Configuration de Windows terminée, mais le pilote audio risque de ne pas se charger"
           }
         }
       },
@@ -23875,7 +24093,7 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "machine_translated",
+            "state" : "translated",
             "value" : "Écrire la définition dans ce fichier au lieu de la modifier"
           }
         }

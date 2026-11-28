@@ -28,15 +28,27 @@ struct Push: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(
-			self.common.format.render(
-				await CakedLib.PushHandler.push(localName: self.options.localName,
-												remoteNames: self.options.remoteNames,
-												insecure: self.options.insecure,
-												chunkSizeInMB: self.options.chunkSize,
-												concurrency: self.options.concurrency,
-												startMode: self.options.foreground ? .foreground : .attach,
-												runMode: self.common.runMode,
-												progressHandler: ProgressObserver.progressHandler)))
+		let options = self.options
+		let runMode = self.common.runMode
+
+		// Ctrl-C cancels: the temporary VM is killed and deleted, or the upload stops. References
+		// already pushed stay in the registry.
+		let reply = await Root.runCancellingOnInterrupt {
+			await CakedLib.PushHandler.push(localName: options.localName,
+											remoteNames: options.remoteNames,
+											insecure: options.insecure,
+											chunkSizeInMB: options.chunkSize,
+											concurrency: options.concurrency,
+											startMode: options.foreground ? .foreground : .attach,
+											runMode: runMode,
+											progressHandler: ProgressObserver.progressHandler)
+		}
+
+		Logger.appendNewLine(self.common.format.render(reply))
+
+		// A cancelled push is not a success: the usual status of a command stopped by Ctrl-C
+		if reply.success == false && TemporaryVMCancellation.isCancelled(reason: reply.message) {
+			throw ArgumentParser.ExitCode(130)
+		}
 	}
 }

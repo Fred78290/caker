@@ -416,17 +416,54 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return fd != -1
 	}
 
+	/// Copies this VM's root disk into `target`: to the same relative path when the config names one inside the
+	/// VM's folder, else to `disk.img`. Returns true when the copy's config must then stop naming a custom disk:
+	/// an absolute path (or one leaving the folder) would still point at this VM's disk, not the copy.
+	private func copyRootDisk(to target: VMLocation) throws -> Bool {
+		let source = self.diskURL
+		let defaultDestination = target.rootURL.appendingPathComponent("disk.img")
+
+		guard let rootDisk = try? CakeConfig(location: self.rootURL).rootDisk, rootDisk.isEmpty == false else {
+			try FileManager.default.copyItem(at: source, to: defaultDestination)
+			return false
+		}
+
+		let expanded = rootDisk.expandingTildeInPath
+
+		if expanded.hasPrefix("/") == false {
+			let destination = target.rootURL.appendingPathComponent(expanded).standardizedFileURL
+			let root = target.rootURL.standardizedFileURL.path(percentEncoded: false)
+			let folder = root.hasSuffix("/") ? root : root + "/"
+
+			if destination.path(percentEncoded: false).hasPrefix(folder) {
+				try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+				try FileManager.default.copyItem(at: source, to: destination)
+
+				return false
+			}
+		}
+
+		try FileManager.default.copyItem(at: source, to: defaultDestination)
+
+		return true
+	}
+
 	@discardableResult
 	public func templateTo(_ target: VMLocation) throws -> VMLocation {
 		guard DiskAttachement.isBlockingDevice(diskURL.path(percentEncoded: false)) == false else {
 			throw ServiceError(String(localized: "Cannot create a template from a VM that uses a physical block device as its root disk"))
 		}
-		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
+		let forgetRootDisk = try self.copyRootDisk(to: target)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
 		try FileManager.default.copyItem(at: self.cakeURL, to: target.cakeURL)
 
 		let templateConfig = try target.config()
+
+		// The template's disk is its own `disk.img`, not the VM's
+		if forgetRootDisk {
+			templateConfig.rootDisk = nil
+		}
 
 		// Clear existing config
 		templateConfig.attachedDisks = []
@@ -447,12 +484,20 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		guard DiskAttachement.isBlockingDevice(diskURL.path(percentEncoded: false)) == false else {
 			throw ServiceError(String(localized: "Cannot copy a VM that uses a physical block device as its root disk"))
 		}
-		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
+		let forgetRootDisk = try self.copyRootDisk(to: target)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
 		try FileManager.default.copyItem(at: self.cakeURL, to: target.cakeURL)
 		if FileManager.default.fileExists(atPath: self.cdromISO.path(percentEncoded: false)) {
 			try FileManager.default.copyItem(at: self.cdromISO, to: target.cdromISO)
+		}
+
+		// The copy's disk is its own `disk.img`: its config must not keep naming this VM's disk
+		if forgetRootDisk {
+			let config = try CakeConfig(location: target.rootURL)
+
+			config.rootDisk = nil
+			try config.save()
 		}
 
 		return target
@@ -945,6 +990,12 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let networkNames = config.qualifiedNetworks.map(\.network)
 
 		repeat {
+			// A VM just launched (`startedProcess`) only writes its PID file once it runs: the process check below covers
+			// it. Otherwise the VM already runs, and a PID file that no longer names a live process means it stopped.
+			if startedProcess == nil, self.pidFile.isPIDRunning().running == false {
+				throw ServiceError(String(localized: "VM \(self.name) is not running"))
+			}
+
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
 			}
@@ -969,7 +1020,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 
 			count += 1
-		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
+		} while Date.now.timeIntervalSince(start) < TimeInterval(wait) && Task.isCancelled == false
+
+		if Task.isCancelled {
+			throw CancellationError()
+		}
 
 		throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get IP for VM \(self.name)"), message: String(localized: "Timeout"))
 	}
@@ -1462,4 +1517,203 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		}
 	}
 
+}
+
+// MARK: - Temporary copies (duplicate, create template, push)
+
+/// Lets an operation built on a temporary VM copy (duplicate, create template, push) be cancelled from
+/// another thread: `cancel()` kills the temporary VM it may have booted (to reset cloud-init) so a step
+/// blocked on it returns at once, and the operation then destroys that copy instead of using it.
+public final class TemporaryVMCancellation: @unchecked Sendable {
+	private let lock = NSLock()
+	private var cancelled = false
+	private var committed = false
+	private var temporary: VMLocation?
+	private let runMode: Utils.RunMode
+
+	public init(runMode: Utils.RunMode) {
+		self.runMode = runMode
+	}
+
+	/// The reason a cancelled duplicate, template creation or push reports.
+	public static var cancelledReason: String {
+		String(localized: "Cancelled")
+	}
+
+	/// Whether a failed reply's reason says it was cancelled (same process, so the same localization).
+	public static func isCancelled(reason: String?) -> Bool {
+		reason == Self.cancelledReason
+	}
+
+	public var isCancelled: Bool {
+		self.lock.withLock { self.cancelled }
+	}
+
+	/// Asks the operation to stop. Does nothing once it has committed: it is finished and reports success.
+	public func cancel() {
+		let temporary: VMLocation? = self.lock.withLock {
+			guard self.committed == false, self.cancelled == false else {
+				return nil
+			}
+
+			self.cancelled = true
+
+			return self.temporary
+		}
+
+		if let temporary {
+			let runMode = self.runMode
+
+			// Not on the caller's thread: a task cancellation handler must return quickly. The VM may not have
+			// published its PID yet (still being launched), and killing nothing would let it boot: keep watching
+			// until the operation has destroyed the copy, killing the VM whenever it shows up.
+			DispatchQueue.global(qos: .userInitiated).async {
+				let deadline = Date().addingTimeInterval(Self.killWatchTimeout)
+
+				while FileManager.default.fileExists(atPath: temporary.rootURL.path(percentEncoded: false)) && Date() < deadline {
+					temporary.killTemporaryVirtualMachine(runMode: runMode)
+					Thread.sleep(forTimeInterval: 0.2)
+				}
+			}
+		}
+	}
+
+	/// How long `cancel()` keeps killing the temporary VM while the operation hasn't destroyed its copy yet.
+	static let killWatchTimeout: TimeInterval = 300
+
+	func register(_ temporary: VMLocation) throws {
+		try self.lock.withLock {
+			self.temporary = temporary
+
+			if self.cancelled {
+				throw CancellationError()
+			}
+		}
+	}
+
+	func checkCancellation() throws {
+		if self.isCancelled {
+			throw CancellationError()
+		}
+	}
+
+	/// Runs `body` (the step that makes the result visible, such as moving the copy to its final name)
+	/// unless the operation was cancelled, with `cancel()` held off until it has finished, so a
+	/// cancellation never lands halfway. Keep `body` short: a cancellation waits for it.
+	func commit(_ body: () throws -> Void) throws {
+		try self.lock.withLock {
+			if self.cancelled {
+				throw CancellationError()
+			}
+
+			try body()
+
+			self.committed = true
+		}
+	}
+}
+
+extension TemporaryVMCancellation {
+	/// Runs blocking `work` (file copies, booting a temporary VM) off the cooperative pool, with a new
+	/// token: cancelling the calling task cancels that token.
+	public static func run<T: Sendable>(runMode: Utils.RunMode, _ work: @escaping @Sendable (TemporaryVMCancellation) -> T) async -> T {
+		let cancellation = TemporaryVMCancellation(runMode: runMode)
+
+		return await withTaskCancellationHandler {
+			await withCheckedContinuation { continuation in
+				DispatchQueue.global(qos: .userInitiated).async {
+					continuation.resume(returning: work(cancellation))
+				}
+			}
+		} onCancel: {
+			cancellation.cancel()
+		}
+	}
+
+	/// Throwing form of `run(runMode:_:)`.
+	public static func run<T: Sendable>(runMode: Utils.RunMode, _ work: @escaping @Sendable (TemporaryVMCancellation) throws -> T) async throws -> T {
+		let result: Result<T, Error> = await run(runMode: runMode) { cancellation in
+			Result { try work(cancellation) }
+		}
+
+		return try result.get()
+	}
+}
+
+extension VMLocation {
+	/// Stops a temporary VM started by `caked vmrun` and waits for its process to exit, killing it if
+	/// it doesn't within `timeout` seconds. Best effort: it is about to be deleted anyway. The stop is only
+	/// asked (not `stopVirtualMachine`, which waits for the VM without a deadline): the wait is this one.
+	/// Returns false, keeping the PID file, when the process is still there even after SIGKILL.
+	@discardableResult
+	func killTemporaryVirtualMachine(runMode: Utils.RunMode, timeout: TimeInterval = 15) -> Bool {
+		let pid = self.pidFile.isPIDRunning()
+
+		guard pid.running, let processID = pid.pid else {
+			return true
+		}
+
+		func waitExit(_ seconds: TimeInterval) -> Bool {
+			let deadline = Date().addingTimeInterval(seconds)
+
+			while kill(processID, 0) == 0 && Date() < deadline {
+				Thread.sleep(forTimeInterval: 0.2)
+			}
+
+			return kill(processID, 0) != 0
+		}
+
+		if Bundle.isApplicationSandboxed {
+			// The service call has no deadline of its own: don't wait for it, the bounded wait below is the one
+			DispatchQueue.global(qos: .userInitiated).async {
+				if let client = try? VMRunHandler.serviceMode.client(location: self, runMode: runMode) {
+					_ = try? client.signal(signal: .shutdown)
+				}
+			}
+		} else {
+			kill(processID, SIGINT)
+		}
+
+		if waitExit(timeout) == false {
+			Logger(self).warn("Temporary VM \(self.name) did not stop, killing it")
+			kill(processID, SIGKILL)
+
+			guard waitExit(5) else {
+				Logger(self).error("Temporary VM \(self.name) (pid \(processID)) is still running after SIGKILL")
+
+				return false
+			}
+		}
+
+		self.removePID()
+
+		return true
+	}
+
+	/// Waits for a temporary VM that was asked to shut down to actually exit before its files are moved.
+	func waitTemporaryVirtualMachineExit(runMode: Utils.RunMode, cancellation: TemporaryVMCancellation?, timeout: TimeInterval = 60) throws {
+		let deadline = Date().addingTimeInterval(timeout)
+
+		while self.pidFile.isPIDRunning().running && Date() < deadline {
+			try cancellation?.checkCancellation()
+			Thread.sleep(forTimeInterval: 0.2)
+		}
+
+		if self.pidFile.isPIDRunning().running, self.killTemporaryVirtualMachine(runMode: runMode, timeout: 5) == false {
+			throw ServiceError(String(format: String(localized: "Temporary VM %@ could not be stopped"), self.name))
+		}
+	}
+
+	/// Kills and deletes a temporary VM. Its files are left in place when its process could not be stopped.
+	func destroyTemporaryVirtualMachine(runMode: Utils.RunMode) {
+		guard self.killTemporaryVirtualMachine(runMode: runMode) else {
+			Logger(self).error("Temporary VM \(self.name) left in \(self.rootURL.path(percentEncoded: false)): its process could not be stopped")
+
+			return
+		}
+
+		if FileManager.default.fileExists(atPath: self.rootURL.path(percentEncoded: false)) {
+			try? self.delete()
+		}
+	}
 }

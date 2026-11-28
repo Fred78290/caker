@@ -36,27 +36,16 @@ struct Build: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Root.sigintSrc.cancel()
-		signal(SIGINT, SIG_IGN)
-
-		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-
 		let task = Task {
 			await VMImageCatalog.refreshLatestImages()
 
 			try await Logger.appendNewLine(self.common.format.render(CakedLib.BuildHandler.build(options: self.options.resolveImageId(), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
 		}
 
-		sigintSrc.setEventHandler {
+		// Ctrl-C cancels the build, which then removes what it created
+		Root.cancelOnInterrupt {
 			task.cancel()
-			
-			sigintSrc.setEventHandler {
-				Foundation.exit(128)
-			}
-
-			sigintSrc.activate()
 		}
-		sigintSrc.activate()
 
 		try await task.value
 	}

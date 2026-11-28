@@ -2199,6 +2199,11 @@ public nonisolated struct Caked_Caked: Sendable {
 
       public var foreground: Bool = false
 
+      /// UUID chosen by the client so it can cancel the duplicate with CancelTask. Empty from an
+      /// older client: the server then picks one, and the duplicate can still be cancelled from
+      /// ListTasks/CancelTask.
+      public var taskID: String = String()
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -2747,6 +2752,10 @@ public nonisolated struct Caked_Caked: Sendable {
         public var templateName: String = String()
 
         public var foreground: Bool = false
+
+        /// UUID chosen by the client so it can cancel the creation with CancelTask. Empty from an
+        /// older client: the server then picks one.
+        public var taskID: String = String()
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -6687,6 +6696,10 @@ public nonisolated struct Caked_Caked: Sendable {
 
     public var foreground: Bool = false
 
+    /// UUID chosen by the client so it can cancel the push with CancelTask. Empty from an older
+    /// client: the server then picks one.
+    public var taskID: String = String()
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     public init() {}
@@ -9831,7 +9844,7 @@ nonisolated extension Caked_Caked.VMRequest.CloneRequest: SwiftProtobuf.Message,
 
 nonisolated extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".DuplicateRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}from\0\u{1}to\0\u{1}resetMacAddress\0\u{1}foreground\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}from\0\u{1}to\0\u{1}resetMacAddress\0\u{1}foreground\0\u{1}taskId\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9843,6 +9856,7 @@ nonisolated extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Mess
       case 2: try { try decoder.decodeSingularStringField(value: &self.to) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.resetMacAddress) }()
       case 4: try { try decoder.decodeSingularBoolField(value: &self.foreground) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.taskID) }()
       default: break
       }
     }
@@ -9861,6 +9875,9 @@ nonisolated extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Mess
     if self.foreground != false {
       try visitor.visitSingularBoolField(value: self.foreground, fieldNumber: 4)
     }
+    if !self.taskID.isEmpty {
+      try visitor.visitSingularStringField(value: self.taskID, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9869,6 +9886,7 @@ nonisolated extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Mess
     if lhs.to != rhs.to {return false}
     if lhs.resetMacAddress != rhs.resetMacAddress {return false}
     if lhs.foreground != rhs.foreground {return false}
+    if lhs.taskID != rhs.taskID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -10606,7 +10624,7 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateCommand: Swi
 
 nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.TemplateRequest.protoMessageName + ".TemplateRequestAdd"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}templateName\0\u{1}foreground\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}templateName\0\u{1}foreground\0\u{1}taskId\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -10617,6 +10635,7 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: 
       case 1: try { try decoder.decodeSingularStringField(value: &self.sourceName) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.templateName) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.foreground) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.taskID) }()
       default: break
       }
     }
@@ -10632,6 +10651,9 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: 
     if self.foreground != false {
       try visitor.visitSingularBoolField(value: self.foreground, fieldNumber: 3)
     }
+    if !self.taskID.isEmpty {
+      try visitor.visitSingularStringField(value: self.taskID, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -10639,6 +10661,7 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: 
     if lhs.sourceName != rhs.sourceName {return false}
     if lhs.templateName != rhs.templateName {return false}
     if lhs.foreground != rhs.foreground {return false}
+    if lhs.taskID != rhs.taskID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -17260,7 +17283,7 @@ nonisolated extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProt
 
 nonisolated extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PushRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}localName\0\u{1}remoteNames\0\u{1}insecure\0\u{1}chunkSize\0\u{1}concurrency\0\u{1}foreground\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}localName\0\u{1}remoteNames\0\u{1}insecure\0\u{1}chunkSize\0\u{1}concurrency\0\u{1}foreground\0\u{1}taskId\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -17274,6 +17297,7 @@ nonisolated extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProto
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.chunkSize) }()
       case 5: try { try decoder.decodeSingularInt32Field(value: &self.concurrency) }()
       case 6: try { try decoder.decodeSingularBoolField(value: &self.foreground) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.taskID) }()
       default: break
       }
     }
@@ -17298,6 +17322,9 @@ nonisolated extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProto
     if self.foreground != false {
       try visitor.visitSingularBoolField(value: self.foreground, fieldNumber: 6)
     }
+    if !self.taskID.isEmpty {
+      try visitor.visitSingularStringField(value: self.taskID, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -17308,6 +17335,7 @@ nonisolated extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProto
     if lhs.chunkSize != rhs.chunkSize {return false}
     if lhs.concurrency != rhs.concurrency {return false}
     if lhs.foreground != rhs.foreground {return false}
+    if lhs.taskID != rhs.taskID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

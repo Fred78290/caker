@@ -46,11 +46,14 @@ struct Provision: GrpcParsableCommand {
 		try self.provision.mergeProvisionVars(provisionVars: ProvisionVariablesStore.load())
 	}
 
-	final class Provisionner {
+	final class Provisionner: @unchecked Sendable {
 		let command: Provision
 		let client: CakedServiceClient
 		var tunnel: VNCTunnel? = nil
 		var terminated = false
+		/// The Ctrl-C state of this provisioning, and whether caked reported it done: a cancelled one exits with 130.
+		let completion = CancellableTaskCompletion()
+		var succeeded = false
 
 		init(command: Provision, client: CakedServiceClient) {
 			self.command = command
@@ -104,30 +107,20 @@ struct Provision: GrpcParsableCommand {
 			}
 		}
 
+		/// Ctrl-C asks caked to cancel the provisioning, retried until caked has registered the task and
+		/// until `finished` is set once the stream has ended; a second Ctrl-C exits.
 		func catchSigInt() {
-			Client.sigintSrc.cancel()
-			signal(SIGINT, SIG_IGN)
+			Client.cancelTaskOnInterrupt(
+				client: self.client, callOptions: nil, taskID: self.command.identifier, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit, finished: self.completion)
+		}
 
-			let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-
-			sigintSrc.setEventHandler {
-				Task { @MainActor in
-					Logger(self).debug("SIGINT received, cancelling provisioning task")
-
-					_ = try? await self.client.cancelTask(.with {
-						$0.id = self.command.identifier.uuidString
-					}).response.get()
-
-					//continuation.finish(throwing: ServiceError(String(localized: "Provisioning cancelled by user")))
-
-					sigintSrc.activate()
-					sigintSrc.setEventHandler {
-						Foundation.exit(128)
-					}
-				}
+		/// Ends the VNC app that `--foreground` runs, with the status of a cancelled provisioning when it was one.
+		func terminateApplication() {
+			if self.completion.isCancelRequested && self.succeeded == false {
+				Foundation.exit(Client.cancelledExitCode)
 			}
 
-			sigintSrc.activate()
+			NSApplication.shared.terminate(nil)
 		}
 
 		func provisionWithoutView() async throws -> String {
@@ -138,6 +131,10 @@ struct Provision: GrpcParsableCommand {
 				var result = ""
 
 				group.addTask {
+					defer {
+						self.completion.finish()
+					}
+
 					do {
 						self.catchSigInt()
 
@@ -170,6 +167,7 @@ struct Provision: GrpcParsableCommand {
 						ProgressObserver.progressHandler(.provision(.init(infos)))
 					} else if case .provisioned(let provisioned) = current {
 						result = command.options.format.renderSingle(ProvisionedReply(provisioned))
+						self.succeeded = provisioned.provisioned
 
 						if provisioned.provisioned {
 							ProgressObserver.progressHandler(.terminated(.success(command.provision.name), provisioned.reason))
@@ -223,6 +221,7 @@ struct Provision: GrpcParsableCommand {
 								group.addTask {
 									do {
 										defer {
+											self.completion.finish()
 											continuation.finish()
 										}
 
@@ -257,6 +256,7 @@ struct Provision: GrpcParsableCommand {
 											finish(.success(infos))
 										} else if case .provisioned(let provisioned) = current {
 											result = self.command.options.format.renderSingle(ProvisionedReply(provisioned))
+											self.succeeded = provisioned.provisioned
 
 											if provisioned.provisioned {
 												ProgressObserver.progressHandler(.terminated(.success(self.command.provision.name), provisioned.reason))
@@ -283,13 +283,13 @@ struct Provision: GrpcParsableCommand {
 									tunnel.close().whenComplete { _ in
 										DispatchQueue.main.async {
 											logger.debug("Terminating application after provisioning")
-											NSApplication.shared.terminate(nil)
+											self.terminateApplication()
 										}
 									}
 								} else {
 									DispatchQueue.main.async {
 										logger.debug("Terminating application after provisioning")
-										NSApplication.shared.terminate(nil)
+										self.terminateApplication()
 									}
 								}
 							}
@@ -309,13 +309,18 @@ struct Provision: GrpcParsableCommand {
 		}
 
 		func run() throws -> String {
+			let output: String
+
 			if command.provision.foreground {
-				return try self.provisionWithView()
+				output = try self.provisionWithView()
+			} else {
+				output = try withAsyncResult {
+					return try await self.provisionWithoutView()
+				}
 			}
 
-			return try withAsyncResult {
-				return try await self.provisionWithoutView()
-			}
+			// Exit status 130 when cancelled with Ctrl-C and not finished meanwhile
+			return try Client.output(output, for: self.completion, succeeded: self.succeeded)
 		}
 	}
 

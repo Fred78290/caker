@@ -30,6 +30,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 - `spawn-start` — identique à `spawn`, puis démarre immédiatement la VM.
 - `start` / `stop` / `restart` / `suspend` — contrôlent l'état d'exécution de la VM.
 - `delete` / `duplicate` / `rename` / `configure` — gèrent le cycle de vie et la configuration de la VM.
+  `duplicate`, `template create` et `push` peuvent être annulés : Ctrl-C dans `caked`/`cakectl` (ou `cakectl tasks cancel <id>`), le bouton Annuler de la fenêtre d'attente dans Caker.app (duplication et création de modèle). La VM temporaire (démarrée pour réinitialiser cloud-init d'une VM Linux) est arrêtée et supprimée, ainsi qu'un modèle en cours d'écriture ; la VM source n'est pas modifiée. Pour `push`, les références déjà envoyées restent dans le registre.
 - `list` / `infos` / `waitip` — inspectent l'inventaire des VM, leurs détails et la disponibilité de l'IP.
 - `exec` / `sh` — exécutent des commandes dans le contexte de la VM invitée.
 - `mount` / `umount` — gèrent les montages de la VM.
@@ -508,6 +509,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `spawn-start` — same as `spawn`, then immediately start the VM.
 - `start` / `stop` / `restart` / `suspend` — control VM runtime state.
 - `delete` / `duplicate` / `rename` / `configure` — manage VM lifecycle and configuration.
+  `duplicate`, `template create` and `push` can be cancelled: Ctrl-C in `caked`/`cakectl` (or `cakectl tasks cancel <id>`), the Cancel button of the wait window in Caker.app (duplicate and template creation). The temporary VM (booted to reset a Linux VM's cloud-init) is killed and deleted, and so is a template being written; the source VM is left untouched. For `push`, references already uploaded stay in the registry.
 - `list` / `infos` / `waitip` — inspect VM inventory, details, and IP readiness.
 - `exec` / `sh` — execute commands in guest VM context.
 - `mount` / `umount` — manage VM mounts.

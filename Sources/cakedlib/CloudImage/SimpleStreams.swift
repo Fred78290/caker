@@ -20,7 +20,7 @@ class Streamable {
 	static func loadSimpleStreamObject<T: JsonDecodable>(remoteURL: URL, remoteName: String, cachedFile: String, kind: CacheEntryKind, runMode: Utils.RunMode) async throws -> T {
 		let simpleStreamCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let indexLocation: URL = simpleStreamCache.locationFor(fileName: cachedFile)
-		let (_, headResponse) = try await Curl(fromURL: remoteURL).head()
+		let (_, _, headResponse) = try await Curl(fromURL: remoteURL).head()
 
 		if let etag: String = headResponse.ETag() {
 			if FileManager.default.fileExists(atPath: indexLocation.path(percentEncoded: false)) {

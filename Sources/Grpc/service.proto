@@ -607,6 +607,10 @@ message Caked {
       string to              = 2;
       bool   resetMacAddress = 3;
       bool   foreground      = 4;
+      // UUID chosen by the client so it can cancel the duplicate with CancelTask. Empty from an
+      // older client: the server then picks one, and the duplicate can still be cancelled from
+      // ListTasks/CancelTask.
+      string taskId          = 5;
     }
 
     message LaunchRequest {
@@ -703,6 +707,9 @@ message Caked {
         string sourceName   = 1;
         string templateName = 2;
         bool   foreground   = 3;
+        // UUID chosen by the client so it can cancel the creation with CancelTask. Empty from an
+        // older client: the server then picks one.
+        string taskId       = 4;
       }
 
       message TemplateRequestDuplicate {
@@ -1573,6 +1580,9 @@ message Caked {
     int32           chunkSize   = 4;
     int32           concurrency = 5;
     bool            foreground  = 6;
+    // UUID chosen by the client so it can cancel the push with CancelTask. Empty from an older
+    // client: the server then picks one.
+    string          taskId      = 7;
   }
 
   message CloneRequest {

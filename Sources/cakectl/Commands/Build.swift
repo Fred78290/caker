@@ -25,33 +25,22 @@ struct Build: AsyncGrpcParsableCommand {
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+		// Ctrl-C asks caked to cancel the task, retried until caked has registered it
+		let finished = CancellableTaskCompletion()
+
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: String = String.empty
+			var succeeded = false
 
 			group.addTask {
-				Client.sigintSrc.cancel()
-				signal(SIGINT, SIG_IGN)
-
-				let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-
-				sigintSrc.setEventHandler {
-					Task { @MainActor in
-						Logger(self).debug("SIGINT received, cancelling provisioning task")
-
-						_ = try? await client.cancelTask(.with {
-							$0.id = self.buildOptions.identifier.uuidString
-						}).response.get()
-					}
-					
-					sigintSrc.activate()
-					sigintSrc.setEventHandler {
-						Foundation.exit(128)
-					}
+				defer {
+					finished.finish()
 				}
 
-				sigintSrc.activate()
+				Client.cancelTaskOnInterrupt(
+					client: client, callOptions: callOptions, taskID: self.buildOptions.identifier, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit, finished: finished)
 
 				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
 					continuation.yield(stream.current)
@@ -83,10 +72,12 @@ struct Build: AsyncGrpcParsableCommand {
 					}
 				} else if case .builded(let builded) = current {
 					result = self.options.format.render(BuildedReply(builded))
+					succeeded = builded.builded
 				}
 			}
 
-			return result
+			// Exit status 130 when cancelled with Ctrl-C and not finished meanwhile
+			return try Client.output(result, for: finished, succeeded: succeeded)
 		}
 	}
 }

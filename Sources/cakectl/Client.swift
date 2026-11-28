@@ -67,6 +67,12 @@ extension GrpcCommand {
 	}
 }
 
+/// Thrown by a command whose output must still be printed, but that must exit with `code` (130 after a cancel).
+struct ExitWithOutput: Error {
+	let output: String
+	let code: Int32
+}
+
 protocol GrpcParsableCommand: ParsableCommand, GrpcCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String
 }
@@ -81,7 +87,12 @@ extension GrpcParsableCommand {
 			try? group.syncShutdownGracefully()
 		}
 
-		try print(self.run(client: grpcClient, arguments: self.options.arguments, callOptions: self.callOptions))
+		do {
+			try print(self.run(client: grpcClient, arguments: self.options.arguments, callOptions: self.callOptions))
+		} catch let exit as ExitWithOutput {
+			print(exit.output)
+			throw ArgumentParser.ExitCode(exit.code)
+		}
 	}
 }
 
@@ -102,6 +113,10 @@ extension AsyncGrpcParsableCommand {
 		do {
 			try await print(self.run(client: grpcClient, arguments: self.options.arguments, callOptions: self.callOptions))
 			await finish()
+		} catch let exit as ExitWithOutput {
+			print(exit.output)
+			await finish()
+			throw ArgumentParser.ExitCode(exit.code)
 		} catch {
 			await finish()
 			throw error
@@ -332,5 +347,88 @@ struct Client: ParsableCommand {
 		} catch {
 			Self.handleError(error)
 		}
+	}
+}
+
+extension Client {
+	/// Replaces the default Ctrl-C handler: the first Ctrl-C asks caked to cancel task `taskID`, retried
+	/// while caked hasn't registered it yet and until `finished` is set (by the caller, once the call that
+	/// started the task has returned); the call then gets caked's "Cancelled" reply. A second Ctrl-C exits.
+	/// `attemptTimeLimit` is the time limit, in seconds, of each CancelTask attempt.
+	@discardableResult
+	static func cancelTaskOnInterrupt(
+		client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, attemptTimeLimit: Int64 = CakedServiceClient.cancelTaskTimeLimit, finished: CancellableTaskCompletion
+	) -> DispatchSourceSignal {
+		Client.sigintSrc.cancel()
+		signal(SIGINT, SIG_IGN)
+
+		// Not the main queue: a synchronous command (provision) blocks it while waiting for its async work
+		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .global(qos: .userInitiated))
+
+		sigintSrc.setEventHandler {
+			Logger("Client").debug("SIGINT received, cancelling task \(taskID)")
+
+			finished.requestCancel()
+
+			// Said at once: the reply only comes once caked has cleaned up, which can take a while
+			Self.notice(String(localized: "Cancelling… Press Ctrl-C again to quit without waiting."))
+
+			Task {
+				if await client.cancelTaskWhenRegistered(taskID, callOptions: callOptions, attemptTimeLimit: attemptTimeLimit, until: finished) {
+					Self.notice(String(localized: "caked is cancelling the task and cleaning up…"))
+				}
+			}
+
+			sigintSrc.setEventHandler {
+				Self.notice(String(localized: "Quit without waiting: the task may still be running in caked."))
+				Foundation.exit(128)
+			}
+		}
+
+		sigintSrc.activate()
+
+		return sigintSrc
+	}
+
+	/// A line on stderr, on its own line even when a progress bar was being drawn, and out of the
+	/// command's own output (which a script may parse).
+	private static func notice(_ message: String) {
+		FileHandle.standardError.write(Data("\n\(message)\n".utf8))
+	}
+
+	/// The exit status of a command stopped by Ctrl-C.
+	static let cancelledExitCode: Int32 = 130
+
+	/// `output`, or, when the user cancelled the task with Ctrl-C and it didn't succeed, an `ExitWithOutput`
+	/// that prints it and exits with `cancelledExitCode`. A task that finished before the cancel took is a success.
+	static func output(_ output: String, for completion: CancellableTaskCompletion, succeeded: Bool) throws -> String {
+		if completion.isCancelRequested && succeeded == false {
+			throw ExitWithOutput(output: output, code: Self.cancelledExitCode)
+		}
+
+		return output
+	}
+
+	/// Runs `operation`, the call of the cancellable caked task `taskID`, with Ctrl-C cancelling that task
+	/// (see `cancelTaskOnInterrupt`), and returns its reply rendered by `render`; see `output(_:for:succeeded:)`
+	/// for the exit status of a cancelled one.
+	static func cancellingTaskOnInterrupt<T>(
+		client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, attemptTimeLimit: Int64 = CakedServiceClient.cancelTaskTimeLimit,
+		succeeded: (T) -> Bool, render: (T) -> String, _ operation: () async throws -> T
+	) async throws -> String {
+		let finished = CancellableTaskCompletion()
+		let sigintSrc = Self.cancelTaskOnInterrupt(client: client, callOptions: callOptions, taskID: taskID, attemptTimeLimit: attemptTimeLimit, finished: finished)
+		let reply: T
+
+		do {
+			defer {
+				finished.finish()
+				sigintSrc.cancel()
+			}
+
+			reply = try await operation()
+		}
+
+		return try Self.output(render(reply), for: finished, succeeded: succeeded(reply))
 	}
 }

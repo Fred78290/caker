@@ -123,6 +123,9 @@ extension ContentWriter {
 			let chunks = mappedDisk.chunks(ofCount: RawDisk.layerLimitBytes)
 
 			for (index, data) in chunks.enumerated() {
+				// A cancelled push stops queueing chunks; those in flight stop below
+				try Task.checkCancellation()
+
 				// Respect the concurrency limit
 				if index >= concurrency {
 					if let layer = try await group.next() {
@@ -132,6 +135,8 @@ extension ContentWriter {
 
 				// Launch a disk layer pushing task
 				group.addTask {
+					try Task.checkCancellation()
+
 					let compressedData = try (data as NSData).compressed(using: .lz4) as Data
 					let result = try self.write(compressedData)
 
