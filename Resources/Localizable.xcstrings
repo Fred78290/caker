@@ -14490,6 +14490,36 @@
         }
       }
     },
+    "Push cancelled" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi annulé"
+          }
+        }
+      }
+    },
+    "Push complete" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi terminé"
+          }
+        }
+      }
+    },
+    "Push failed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’envoi"
+          }
+        }
+      }
+    },
     "Push image to %@" : {
       "extractionState" : "manual",
       "localizations" : {
