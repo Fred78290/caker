@@ -976,6 +976,7 @@
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
 		9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */; };
 		9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */; };
+		9BC0A1D22FD8A00100CA4E01 /* WaitWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC0A1D12FD8A00100CA4E01 /* WaitWindow.swift */; };
 		9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */; };
 		9BFA7E4F2FA6256300E981F6 /* AboutCakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */; };
 		9BFA908E2FD091C4007619A5 /* TeeStandardIOWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA908D2FD091C2007619A5 /* TeeStandardIOWrapper.swift */; };
@@ -2150,6 +2151,7 @@
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
 		9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDealloc.swift; sourceTree = "<group>"; };
+		9BC0A1D12FD8A00100CA4E01 /* WaitWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitWindow.swift; sourceTree = "<group>"; };
 		9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDocumentState.swift; sourceTree = "<group>"; };
 		9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCakerView.swift; sourceTree = "<group>"; };
 		9BFA908D2FD091C2007619A5 /* TeeStandardIOWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeStandardIOWrapper.swift; sourceTree = "<group>"; };
@@ -2729,6 +2731,7 @@
 				9B3601A02E21169200889BFD /* Settings.swift */,
 				9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */,
 				9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */,
+				9BC0A1D12FD8A00100CA4E01 /* WaitWindow.swift */,
 				9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */,
 				9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */,
 			);
@@ -4783,6 +4786,7 @@
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */,
+				9BC0A1D22FD8A00100CA4E01 /* WaitWindow.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,
 				9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */,
 				9B48B665302BD16600B18C35 /* RenameHandler.swift in Sources */,

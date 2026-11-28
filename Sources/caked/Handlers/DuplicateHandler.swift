@@ -3,7 +3,7 @@ import Foundation
 import GRPCLib
 import NIOCore
 
-struct DuplicateHandler: CakedCommand {
+struct DuplicateHandler: CakedCommandAsync {
 	var request: Caked_DuplicateRequest
 
 	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
@@ -17,10 +17,12 @@ struct DuplicateHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		let reply = await CakedLib.DuplicateHandler.duplicate(from: self.request.from, to: self.request.to, resetMacAddress: self.request.resetMacAddress, runMode: runMode)
+
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
-				$0.duplicated = CakedLib.DuplicateHandler.duplicate(from: self.request.from, to: self.request.to, resetMacAddress: self.request.resetMacAddress, runMode: runMode).caked
+				$0.duplicated = reply.caked
 			}
 		}
 	}

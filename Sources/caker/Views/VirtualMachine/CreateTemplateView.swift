@@ -11,52 +11,22 @@ import SwiftUI
 
 struct CreateTemplateView: View {
 	@State private var templateName: String = String.empty
-	@State private var templateResult: CreateTemplateReply?
 
 	var body: some View {
 		TextField("Name", text: $templateName)
 
-		AsyncButton(
-			"Create",
-			action: { done in
-				await createTemplate { result in
-					switch result {
-					case .success(let value):
-						self.templateResult = value
-						AppState.shared.reloadTemplates()
-					case .failure(let error):
-						alertError(error)
-					}
-				}
+		// The alert closes on the tap; the creation then runs behind a cancellable wait window.
+		Button("Create") {
+			let templateName = self.templateName
+
+			Task { @MainActor in
+				await AppState.shared.createTemplate(templateName: templateName)
 			}
-		)
+		}
 		.disabled(templateName.isEmpty || AppState.shared.templateExists(name: templateName))
 		.withButtonStyle(.bordered)
-		.onChange(of: templateResult) { _, newValue in
-			isCreateTemplatFailed(templateResult: newValue)
-		}
 
 		Button("Cancel", role: .cancel, action: {})
 			.withButtonStyle(.borderedProminent)
-	}
-
-	private func isCreateTemplatFailed(templateResult: CreateTemplateReply?) {
-		if let templateResult = templateResult, templateResult.created == false {
-			let alert = NSGlassEffectAlert()
-
-			alert.messageText = String(localized: "Failed to create template")
-			alert.informativeText = templateResult.reason ?? String(localized: "Internal error")
-			alert.runModal()
-		} else {
-			AppState.shared.reloadRemotes()
-		}
-	}
-
-	private func createTemplate(_ done: @escaping (Result<CreateTemplateReply, Error>) -> Void) async {
-		do {
-			await done(.success(try AppState.shared.createTemplate(templateName: self.templateName)))
-		} catch {
-			done(.failure(error))
-		}
 	}
 }

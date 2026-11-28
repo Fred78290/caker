@@ -1463,3 +1463,160 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 }
+
+// MARK: - Temporary copies (duplicate, create template, push)
+
+/// Lets an operation built on a temporary VM copy (duplicate, create template, push) be cancelled from
+/// another thread: `cancel()` kills the temporary VM it may have booted (to reset cloud-init) so a step
+/// blocked on it returns at once, and the operation then destroys that copy instead of using it.
+public final class TemporaryVMCancellation: @unchecked Sendable {
+	private let lock = NSLock()
+	private var cancelled = false
+	private var committed = false
+	private var temporary: VMLocation?
+	private let runMode: Utils.RunMode
+
+	public init(runMode: Utils.RunMode) {
+		self.runMode = runMode
+	}
+
+	/// The reason a cancelled duplicate, template creation or push reports.
+	public static var cancelledReason: String {
+		String(localized: "Cancelled")
+	}
+
+	public var isCancelled: Bool {
+		self.lock.withLock { self.cancelled }
+	}
+
+	/// Asks the operation to stop. Does nothing once it has committed: it is finished and reports success.
+	public func cancel() {
+		let temporary: VMLocation? = self.lock.withLock {
+			guard self.committed == false, self.cancelled == false else {
+				return nil
+			}
+
+			self.cancelled = true
+
+			return self.temporary
+		}
+
+		if let temporary {
+			let runMode = self.runMode
+
+			// Not on the caller's thread: a task cancellation handler must return quickly.
+			DispatchQueue.global(qos: .userInitiated).async {
+				temporary.killTemporaryVirtualMachine(runMode: runMode)
+			}
+		}
+	}
+
+	func register(_ temporary: VMLocation) throws {
+		try self.lock.withLock {
+			self.temporary = temporary
+
+			if self.cancelled {
+				throw CancellationError()
+			}
+		}
+	}
+
+	func checkCancellation() throws {
+		if self.isCancelled {
+			throw CancellationError()
+		}
+	}
+
+	/// Runs `body` (the step that makes the result visible, such as moving the copy to its final name)
+	/// unless the operation was cancelled, with `cancel()` held off until it has finished, so a
+	/// cancellation never lands halfway. Keep `body` short: a cancellation waits for it.
+	func commit(_ body: () throws -> Void) throws {
+		try self.lock.withLock {
+			if self.cancelled {
+				throw CancellationError()
+			}
+
+			try body()
+
+			self.committed = true
+		}
+	}
+}
+
+extension TemporaryVMCancellation {
+	/// Runs blocking `work` (file copies, booting a temporary VM) off the cooperative pool, with a new
+	/// token: cancelling the calling task cancels that token.
+	public static func run<T: Sendable>(runMode: Utils.RunMode, _ work: @escaping @Sendable (TemporaryVMCancellation) -> T) async -> T {
+		let cancellation = TemporaryVMCancellation(runMode: runMode)
+
+		return await withTaskCancellationHandler {
+			await withCheckedContinuation { continuation in
+				DispatchQueue.global(qos: .userInitiated).async {
+					continuation.resume(returning: work(cancellation))
+				}
+			}
+		} onCancel: {
+			cancellation.cancel()
+		}
+	}
+
+	/// Throwing form of `run(runMode:_:)`.
+	public static func run<T: Sendable>(runMode: Utils.RunMode, _ work: @escaping @Sendable (TemporaryVMCancellation) throws -> T) async throws -> T {
+		let result: Result<T, Error> = await run(runMode: runMode) { cancellation in
+			Result { try work(cancellation) }
+		}
+
+		return try result.get()
+	}
+}
+
+extension VMLocation {
+	/// Stops a temporary VM started by `caked vmrun` and waits for its process to exit, killing it if
+	/// it doesn't within `timeout` seconds. Best effort: it is about to be deleted anyway.
+	func killTemporaryVirtualMachine(runMode: Utils.RunMode, timeout: TimeInterval = 15) {
+		let pid = self.pidFile.isPIDRunning()
+
+		guard pid.running else {
+			return
+		}
+
+		try? self.stopVirtualMachine(force: true, runMode: runMode)
+
+		guard let processID = pid.pid else {
+			return
+		}
+
+		let deadline = Date().addingTimeInterval(timeout)
+
+		while kill(processID, 0) == 0 && Date() < deadline {
+			Thread.sleep(forTimeInterval: 0.2)
+		}
+
+		if kill(processID, 0) == 0 {
+			Logger(self).warn("Temporary VM \(self.name) did not stop, killing it")
+			kill(processID, SIGKILL)
+		}
+	}
+
+	/// Waits for a temporary VM that was asked to shut down to actually exit before its files are moved.
+	func waitTemporaryVirtualMachineExit(runMode: Utils.RunMode, cancellation: TemporaryVMCancellation?, timeout: TimeInterval = 60) throws {
+		let deadline = Date().addingTimeInterval(timeout)
+
+		while self.pidFile.isPIDRunning().running && Date() < deadline {
+			try cancellation?.checkCancellation()
+			Thread.sleep(forTimeInterval: 0.2)
+		}
+
+		if self.pidFile.isPIDRunning().running {
+			self.killTemporaryVirtualMachine(runMode: runMode, timeout: 5)
+		}
+	}
+
+	func destroyTemporaryVirtualMachine(runMode: Utils.RunMode) {
+		self.killTemporaryVirtualMachine(runMode: runMode)
+
+		if FileManager.default.fileExists(atPath: self.rootURL.path(percentEncoded: false)) {
+			try? self.delete()
+		}
+	}
+}

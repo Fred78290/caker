@@ -27,8 +27,34 @@ private let cloudInitCleanup = [
 ]
 
 public struct TemplateHandler {
-	static func cleanCloudInit(source: VMLocation, config: CakeConfig, startMode: StartHandler.StartMode, runMode: Utils.RunMode) throws -> VMLocation {
-		let location = try source.duplicateTemporary(runMode: runMode)
+	/// Copies `source` to a temporary VM, resets its cloud-init state and waits for it to shut down.
+	/// If anything fails the temporary VM is killed and deleted before the error is thrown; on success
+	/// the caller owns it and must call `destroyTemporaryVirtualMachine(runMode:)` when done.
+	/// With `cancellation`, cancelling kills the temporary VM, and this throws `CancellationError`.
+	static func cleanCloudInit(source: VMLocation, startMode: StartHandler.StartMode, runMode: Utils.RunMode, cancellation: TemporaryVMCancellation? = nil) throws -> VMLocation {
+		let temporary = try VMLocation.tempDirectory(runMode: runMode)
+
+		do {
+			try cancellation?.register(temporary)
+			_ = try source.copyTo(temporary)
+			try cancellation?.checkCancellation()
+			try cleanCloudInit(temporary: temporary, startMode: startMode, runMode: runMode)
+			try cancellation?.checkCancellation()
+			// The agent only asked the guest to shut down: don't read its disk while it still runs.
+			try temporary.waitTemporaryVirtualMachineExit(runMode: runMode, cancellation: cancellation)
+			try cancellation?.checkCancellation()
+
+			return temporary
+		} catch {
+			temporary.destroyTemporaryVirtualMachine(runMode: runMode)
+
+			throw error
+		}
+	}
+
+	/// Boots `location` (a temporary copy the caller owns and destroys), resets its cloud-init state through the agent, then stops it.
+	@discardableResult
+	static func cleanCloudInit(temporary location: VMLocation, startMode: StartHandler.StartMode, runMode: Utils.RunMode) throws -> VMLocation {
 		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 120, startMode: startMode, gcd: false, recoveryMode: false, runMode: runMode)
 		let conn = try CakeAgentConnection(eventLoop: Utilities.group.next(), listeningAddress: location.agentURL, runMode: runMode)
 
@@ -40,27 +66,42 @@ public struct TemplateHandler {
 		return location
 	}
 
-	public static func createTemplate(sourceName: String, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+	public static func createTemplate(sourceName: String, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode, cancellation: TemporaryVMCancellation? = nil) -> CreateTemplateReply {
 		do {
-			return try createTemplate(location: StorageLocation(runMode: runMode).find(sourceName), templateName: templateName, startMode: startMode, runMode: runMode)
+			return try createTemplate(location: StorageLocation(runMode: runMode).find(sourceName), templateName: templateName, startMode: startMode, runMode: runMode, cancellation: cancellation)
 		} catch {
 			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 		}
 	}
 
-	public static func createTemplate(vmURL: URL, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+	public static func createTemplate(vmURL: URL, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode, cancellation: TemporaryVMCancellation? = nil) -> CreateTemplateReply {
 		do {
-			return try createTemplate(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), templateName: templateName, startMode: startMode, runMode: runMode)
+			return try createTemplate(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), templateName: templateName, startMode: startMode, runMode: runMode, cancellation: cancellation)
 		} catch {
 			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 		}
 	}
 
-	public static func createTemplate(location: VMLocation, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
-		return createTemplate(on: Utilities.group.next(), location: location, templateName: templateName, startMode: startMode, runMode: runMode)
+	public static func createTemplate(location: VMLocation, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode, cancellation: TemporaryVMCancellation? = nil) -> CreateTemplateReply {
+		return createTemplate(on: Utilities.group.next(), location: location, templateName: templateName, startMode: startMode, runMode: runMode, cancellation: cancellation)
 	}
 
-	public static func createTemplate(on: EventLoop, location: VMLocation, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+	/// Cancellable form: cancelling the calling task kills and deletes the temporary VM, removes a
+	/// template being written, and returns a reply with `created == false` and `cancelledReason`.
+	public static func createTemplate(sourceName: String, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) async -> CreateTemplateReply {
+		await TemporaryVMCancellation.run(runMode: runMode) { cancellation in
+			createTemplate(sourceName: sourceName, templateName: templateName, startMode: startMode, runMode: runMode, cancellation: cancellation)
+		}
+	}
+
+	/// Cancellable form of `createTemplate(vmURL:...)`, see `createTemplate(sourceName:...) async`.
+	public static func createTemplate(vmURL: URL, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) async -> CreateTemplateReply {
+		await TemporaryVMCancellation.run(runMode: runMode) { cancellation in
+			createTemplate(vmURL: vmURL, templateName: templateName, startMode: startMode, runMode: runMode, cancellation: cancellation)
+		}
+	}
+
+	public static func createTemplate(on: EventLoop, location: VMLocation, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode, cancellation: TemporaryVMCancellation? = nil) -> CreateTemplateReply {
 		do {
 			let storage = StorageLocation(runMode: runMode, template: true)
 			var source = location
@@ -83,30 +124,41 @@ public struct TemplateHandler {
 					try? lock.unlock()
 
 					if delete {
-						try? source.delete()
+						source.destroyTemporaryVirtualMachine(runMode: runMode)
 					}
 				}
 
 				Logger(self).info("Creating template \(templateName) from \(location.name)")
 
 				do {
+					try cancellation?.checkCancellation()
+
 					if config.os == .linux && config.useCloudInit {
-						source = try cleanCloudInit(source: source, config: config, startMode: startMode, runMode: runMode)
+						source = try cleanCloudInit(source: source, startMode: startMode, runMode: runMode, cancellation: cancellation)
 						delete = true
 					}
 
 					try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 					try source.templateTo(templateLocation)
 
+					// A cancellation that arrived while the template was written removes it (below).
+					try cancellation?.commit {}
+
 					return CreateTemplateReply(name: templateName, created: true, reason: String(localized: "template created"))
 				} catch {
-					Logger(self).error(error)
+					let cancelled = error is CancellationError || cancellation?.isCancelled == true
+
+					if cancelled {
+						Logger(self).info("Creating template \(templateName) from \(location.name) cancelled")
+					} else {
+						Logger(self).error(error)
+					}
 
 					if let exists = try? templateLocation.rootURL.exists(), exists {
 						try? FileManager.default.removeItem(at: templateLocation.rootURL)
 					}
 
-					return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
+					return CreateTemplateReply(name: templateName, created: false, reason: cancelled ? TemporaryVMCancellation.cancelledReason : error.reason)
 				}
 			}
 		} catch {

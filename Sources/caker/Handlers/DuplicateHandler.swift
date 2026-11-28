@@ -3,15 +3,29 @@ import CakedLib
 import GRPCLib
 
 extension DuplicateHandler {
-	public static func duplicate(client: CakedServiceClient?, vmURL: URL, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) throws -> DuplicatedReply {
+	/// Duplicates locally (`.app` mode) or through caked. Cancelling the calling task cancels the
+	/// duplicate: locally directly, through caked with a CancelTask call on the task id sent with the
+	/// request. Either way the temporary VM is killed and deleted, and the reply says it was cancelled.
+	public static func duplicate(client: CakedServiceClient?, vmURL: URL, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) async throws -> DuplicatedReply {
 		guard let client, vmURL.isFileURL == false else {
-			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
+			return await self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
 		}
 
-		return try DuplicatedReply(client.duplicate(.with {
+		let taskID = UUID()
+		let call = client.duplicate(.with {
+			$0.taskID = taskID.uuidString
 			$0.from = vmURL.vmName
 			$0.to = to
 			$0.resetMacAddress = resetMacAddress
-		}).response.wait().vms.duplicated)
+		})
+
+		return try await withTaskCancellationHandler {
+			// Wait for caked's own answer even when cancelled: it comes once the temporary VM is gone.
+			try await DuplicatedReply(call.response.get().vms.duplicated)
+		} onCancel: {
+			_ = client.cancelTask(.with {
+				$0.id = taskID.uuidString
+			})
+		}
 	}
 }

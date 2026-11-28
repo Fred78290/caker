@@ -731,7 +731,7 @@ public struct ConfiguredReply: Codable {
 	}
 }
 
-public struct DuplicatedReply: Codable {
+public struct DuplicatedReply: Codable, Sendable {
 	public let from: String
 	public let to: String
 	public let duplicated: Bool

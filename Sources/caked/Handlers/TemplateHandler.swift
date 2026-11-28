@@ -68,8 +68,11 @@ struct TemplateHandler: CakedCommandAsync {
 
 		switch request.command {
 		case .add:
+			// Cancellable: cancelling the calling task kills and deletes the temporary VM.
+			let result = await CakedLib.TemplateHandler.createTemplate(sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode)
+
 			reply = Caked_TemplateReply.with {
-				$0.create = CakedLib.TemplateHandler.createTemplate(sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode).caked
+				$0.create = result.caked
 			}
 
 		case .delete:

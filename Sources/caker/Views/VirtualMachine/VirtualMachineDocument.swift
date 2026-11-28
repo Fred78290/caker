@@ -1400,10 +1400,6 @@ extension VirtualMachineDocument {
 		try self.connectionManager.deleteVirtualMachine(vmURL: self.url)
 	}
 
-	func duplicateVirtualMachine(to: String) throws -> DuplicatedReply {
-		try self.connectionManager.duplicateVirtualMachine(vmURL: self.url, to: to, resetMacAddress: true)
-	}
-
 	func renameVirtualMachine(to: String) throws -> RenameReply {
 		try self.connectionManager.renameVirtualMachine(vmURL: self.url, to: to)
 	}

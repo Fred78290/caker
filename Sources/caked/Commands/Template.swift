@@ -39,7 +39,7 @@ struct Template: ParsableCommand {
 		}
 	}
 
-	struct CreateTemplate: ParsableCommand {
+	struct CreateTemplate: AsyncParsableCommand {
 		static let configuration = TemplateCreateOptions.configuration
 
 		@OptionGroup(title: String(localized: "Global options"))
@@ -52,11 +52,16 @@ struct Template: ParsableCommand {
 			Logger.setLevel(self.common.logLevel)
 		}
 
-		func run() throws {
-			Logger.appendNewLine(self.common.format.render(CakedLib.TemplateHandler.createTemplate(sourceName: self.template.name,
-																								   templateName: self.template.template,
-																								   startMode: self.template.foreground ? .foreground : .attach,
-																								   runMode: self.common.runMode)))
+		func run() async throws {
+			let (sourceName, templateName, runMode) = (self.template.name, self.template.template, self.common.runMode)
+			let startMode: CakedLib.StartHandler.StartMode = self.template.foreground ? .foreground : .attach
+
+			// Ctrl-C cancels: the temporary VM is killed and deleted, and so is a template being written.
+			let reply = await Root.runCancellingOnInterrupt {
+				await CakedLib.TemplateHandler.createTemplate(sourceName: sourceName, templateName: templateName, startMode: startMode, runMode: runMode)
+			}
+
+			Logger.appendNewLine(self.common.format.render(reply))
 		}
 	}
 

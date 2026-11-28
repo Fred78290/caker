@@ -42,15 +42,22 @@ public struct PushHandler {
 			if config.os == .linux && config.useCloudInit {
 				progressHandler(.step(String(localized: "Clean cloud-init")))
 
-				location = try TemplateHandler.cleanCloudInit(source: location, config: config, startMode: startMode, runMode: runMode)
+				let source = location
+
+				// Cancelling the push kills and deletes the temporary VM this boots.
+				location = try await TemporaryVMCancellation.run(runMode: runMode) { cancellation in
+					try TemplateHandler.cleanCloudInit(source: source, startMode: startMode, runMode: runMode, cancellation: cancellation)
+				}
 				delete = true
 			}
 
 			defer {
 				if delete {
-					try? location.delete()
+					location.destroyTemporaryVirtualMachine(runMode: runMode)
 				}
 			}
+
+			try Task.checkCancellation()
 
 			progressHandler(.step(String(localized: "Build image")))
 
@@ -78,6 +85,8 @@ public struct PushHandler {
 			}
 
 			for normalizedReference in references {
+				try Task.checkCancellation()
+
 				progressHandler(.step(String(localized: "Push image to \(normalizedReference)")))
 
 				let totalSize: Atomic<Int64> = Atomic(0)
@@ -114,6 +123,13 @@ public struct PushHandler {
 
 			return PushReply(success: true, message: String(localized: "Success"))
 		} catch {
+			// A reference already pushed stays in the registry: cancelling only stops what is left.
+			if error is CancellationError || Task.isCancelled {
+				progressHandler(.terminated(.failure(CancellationError()), "Push cancelled"))
+
+				return PushReply(success: false, message: TemporaryVMCancellation.cancelledReason)
+			}
+
 			progressHandler(.terminated(.failure(error), "Push failed"))
 
 			return PushReply(success: false, message: error.reason)

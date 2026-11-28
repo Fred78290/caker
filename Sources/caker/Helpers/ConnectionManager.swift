@@ -302,8 +302,8 @@ final class ConnectionManager: Equatable {
 		return try DeleteHandler.delete(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
 	}
 
-	func duplicateVirtualMachine(vmURL: URL, to: String, resetMacAddress: Bool) throws -> DuplicatedReply {
-		return try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: self.connectionMode.runMode)
+	func duplicateVirtualMachine(vmURL: URL, to: String, resetMacAddress: Bool) async throws -> DuplicatedReply {
+		return try await DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: self.connectionMode.runMode)
 	}
 
 	func renameVirtualMachine(vmURL: URL, to: String) throws -> RenameReply {

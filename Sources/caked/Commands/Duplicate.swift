@@ -12,7 +12,7 @@ import GRPCLib
 import CakeAgentLib
 import TextTable
 
-struct Duplicate: ParsableCommand {
+struct Duplicate: AsyncParsableCommand {
 	static let configuration = DuplicateOptions.configuration
 
 	@OptionGroup(title: String(localized: "Global options"))
@@ -37,13 +37,14 @@ struct Duplicate: ParsableCommand {
 		}
 	}
 
-	func run() throws {
-		Logger.appendNewLine(
-			self.common.format.render(
-				CakedLib.DuplicateHandler.duplicate(
-					from: self.duplicate.from,
-					to: self.duplicate.to,
-					resetMacAddress: self.duplicate.resetMacAddress,
-					runMode: self.common.runMode)))
+	func run() async throws {
+		let (from, to, resetMacAddress, runMode) = (self.duplicate.from, self.duplicate.to, self.duplicate.resetMacAddress, self.common.runMode)
+
+		// Ctrl-C cancels: the temporary VM is killed and deleted, and the reply says "Cancelled".
+		let reply = await Root.runCancellingOnInterrupt {
+			await CakedLib.DuplicateHandler.duplicate(from: from, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
+		}
+
+		Logger.appendNewLine(self.common.format.render(reply))
 	}
 }

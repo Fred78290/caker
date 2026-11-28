@@ -2803,6 +2803,16 @@
       },
       "shouldTranslate" : false
     },
+    "Cancelling…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulation…"
+          }
+        }
+      }
+    },
     "Cannot copy a VM that uses a physical block device as its root disk" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4497,6 +4507,26 @@
         }
       }
     },
+    "Creating template" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Création du modèle"
+          }
+        }
+      }
+    },
+    "Creating template “%@” from “%@”…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Création du modèle « %@ » à partir de « %@ »…"
+          }
+        }
+      }
+    },
     "Creating the installation disk" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5675,6 +5705,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transfert automatique des ports"
+          }
+        }
+      }
+    },
+    "Duplicating virtual machine" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplication de la machine virtuelle"
+          }
+        }
+      }
+    },
+    "Duplicating “%@” to “%@”…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplication de « %@ » vers « %@ »…"
           }
         }
       }

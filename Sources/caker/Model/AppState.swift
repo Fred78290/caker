@@ -495,16 +495,48 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		} != nil
 	}
 
-	func createTemplate(templateName: String) async throws -> CreateTemplateReply {
+	/// Creates a template from the current VM, see `createTemplate(from:templateName:)`.
+	@MainActor
+	func createTemplate(templateName: String) async {
 		guard let currentDocument = self.currentDocument else {
-			throw ServiceError(String(localized: "No VM found"))
+			alertError(ServiceError(String(localized: "No VM found")))
+			return
 		}
 
 		guard currentDocument.status.isStopped else {
-			throw ServiceError(String(localized: "VM is running"))
+			alertError(ServiceError(String(localized: "VM is running")))
+			return
 		}
 
-		return try await self.connectionManager.createTemplate(vmURL: currentDocument.url, templateName: templateName)
+		await self.createTemplate(from: currentDocument, templateName: templateName)
+	}
+
+	/// Creates a template from `vm` behind a cancellable wait window, then reloads the templates or
+	/// reports the failure. Cancel kills and deletes the temporary VM and a template being written.
+	@MainActor
+	func createTemplate(from vm: VirtualMachineDocument, templateName: String) async {
+		let vmURL = vm.url
+		let connectionManager = self.connectionManager
+
+		do {
+			let (result, cancelled) = try await WaitWindow.run(
+				title: String(localized: "Creating template"),
+				message: String(format: String(localized: "Creating template “%@” from “%@”…"), templateName, vm.name),
+				cancellable: true
+			) {
+				try await connectionManager.createTemplate(vmURL: vmURL, templateName: templateName)
+			}
+
+			if result.created {
+				self.reloadTemplates()
+			} else if cancelled == false {
+				alertError(String(localized: "Failed to create template"), result.reason ?? String(localized: "Internal error"))
+			}
+		} catch is CancellationError {
+			// Cancelled by the user: nothing to report.
+		} catch {
+			alertError(error)
+		}
 	}
 
 	func templateExists(name: String) -> Bool {
@@ -683,18 +715,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		alert.accessoryView = txt
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			Task {
-				do {
-					let templateResult = try await self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
+			let templateName = txt.stringValue
 
-					if templateResult.created {
-						await self.reloadTemplates()
-					} else {
-						await alertError(String(localized: "Failed to create template"), templateResult.reason ?? String(localized: "Internal error"))
-					}
-				} catch {
-					await alertError(error)
-				}
+			Task { @MainActor in
+				await self.createTemplate(from: vm, templateName: templateName)
 			}
 		}
 	}
@@ -711,30 +735,43 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 		alert.accessoryView = txt
 
-		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+		guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
+			return
+		}
+
+		let newName = txt.stringValue
+		let vmURL = vm.url
+		let connectionManager = self.connectionManager
+		let runMode = self.connectionMode.runMode
+		let isAppMode = self.connectionMode == .app
+
+		Task { @MainActor in
 			do {
-				let result = try vm.duplicateVirtualMachine(to: txt.stringValue)
+				let (result, cancelled) = try await WaitWindow.run(
+					title: String(localized: "Duplicating virtual machine"),
+					message: String(format: String(localized: "Duplicating “%@” to “%@”…"), vm.name, newName),
+					cancellable: true
+				) {
+					// Cancel kills and deletes the temporary VM; a duplicate already moved into place still succeeds.
+					try await connectionManager.duplicateVirtualMachine(vmURL: vmURL, to: newName, resetMacAddress: true)
+				}
 
 				if result.duplicated {
-					if self.connectionMode == .app {
-						let location = try StorageLocation(runMode: self.connectionMode.runMode).find(txt.stringValue)
+					if isAppMode {
+						let location = try StorageLocation(runMode: runMode).find(newName)
 						self.addVirtualMachineDocument(location.rootURL)
-					} else if let vmURL = URL(spaced: "\(VMLocation.scheme)://\(txt.stringValue)") {
-						self.addVirtualMachineDocument(vmURL)
+					} else if let newURL = URL(spaced: "\(VMLocation.scheme)://\(newName)") {
+						self.addVirtualMachineDocument(newURL)
 					} else {
-						DispatchQueue.main.async {
-							alertError(String(localized: "Failed to duplicate virtual machine"), String(localized: "Internal error: invalid VM location URL"))
-						}
+						alertError(String(localized: "Failed to duplicate virtual machine"), String(localized: "Internal error: invalid VM location URL"))
 					}
-				} else {
-					DispatchQueue.main.async {
-						alertError(String(localized: "Failed to duplicate virtual machine"), result.reason)
-					}
+				} else if cancelled == false {
+					alertError(String(localized: "Failed to duplicate virtual machine"), result.reason)
 				}
+			} catch is CancellationError {
+				// Cancelled by the user: nothing to report.
 			} catch {
-				DispatchQueue.main.async {
-					alertError(error)
-				}
+				alertError(error)
 			}
 		}
 	}

@@ -252,3 +252,34 @@ struct Root: ParsableCommand {
 		}
 	}
 }
+
+extension Root {
+	/// Runs `operation` in a task that the first Ctrl-C cancels (replacing the default handler, which
+	/// exits at once); a second Ctrl-C exits. Used by commands whose cancellation cleans up after
+	/// itself, such as `duplicate`, `template create` and `push`, which kill and delete their temporary VM.
+	static func runCancellingOnInterrupt<T: Sendable>(_ operation: @escaping @Sendable () async -> T) async -> T {
+		Root.sigintSrc.cancel()
+		signal(SIGINT, SIG_IGN)
+
+		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+		let task = Task {
+			await operation()
+		}
+
+		sigintSrc.setEventHandler {
+			task.cancel()
+
+			sigintSrc.setEventHandler {
+				Foundation.exit(128)
+			}
+		}
+
+		sigintSrc.activate()
+
+		defer {
+			sigintSrc.cancel()
+		}
+
+		return await task.value
+	}
+}
