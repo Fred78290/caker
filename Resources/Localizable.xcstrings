@@ -2465,6 +2465,16 @@
       },
       "shouldTranslate" : false
     },
+    "caked is cancelling the task and cleaning up…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "caked annule la tâche et fait le nettoyage…"
+          }
+        }
+      }
+    },
     "caked not found" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2809,6 +2819,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Annulation…"
+          }
+        }
+      }
+    },
+    "Cancelling… Press Ctrl-C again to quit without waiting." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulation en cours… Appuyez à nouveau sur Ctrl-C pour quitter sans attendre."
           }
         }
       }
@@ -14514,6 +14534,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitter"
+          }
+        }
+      }
+    },
+    "Quit without waiting: the task may still be running in caked." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortie sans attendre : la tâche peut encore s'exécuter dans caked."
           }
         }
       }

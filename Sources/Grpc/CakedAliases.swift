@@ -834,17 +834,20 @@ extension CakedServiceClient {
 
 	/// Asks caked to cancel task `taskID`, retrying every 250 ms while caked answers that it doesn't know
 	/// it (the call that starts it may not have registered it yet), until caked accepts or `finished` is
-	/// set by the caller once that call has returned.
-	public func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions? = nil, until finished: CancellableTaskCompletion) async {
+	/// set by the caller once that call has returned. Returns whether caked accepted the cancellation.
+	@discardableResult
+	public func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions? = nil, until finished: CancellableTaskCompletion) async -> Bool {
 		while finished.isFinished == false {
 			let reply = try? await self.cancelTask(.with { $0.id = taskID.uuidString }, callOptions: callOptions).response.get()
 
 			if reply?.tasks.cancelled.success == true {
-				return
+				return true
 			}
 
 			try? await Task.sleep(for: .milliseconds(250))
 		}
+
+		return false
 	}
 }
 

@@ -349,11 +349,17 @@ extension Client {
 		sigintSrc.setEventHandler {
 			Logger("Client").debug("SIGINT received, cancelling task \(taskID)")
 
+			// Said at once: the reply only comes once caked has cleaned up, which can take a while
+			Self.notice(String(localized: "Cancelling… Press Ctrl-C again to quit without waiting."))
+
 			Task {
-				await client.cancelTaskWhenRegistered(taskID, callOptions: callOptions, until: finished)
+				if await client.cancelTaskWhenRegistered(taskID, callOptions: callOptions, until: finished) {
+					Self.notice(String(localized: "caked is cancelling the task and cleaning up…"))
+				}
 			}
 
 			sigintSrc.setEventHandler {
+				Self.notice(String(localized: "Quit without waiting: the task may still be running in caked."))
 				Foundation.exit(128)
 			}
 		}
@@ -361,6 +367,12 @@ extension Client {
 		sigintSrc.activate()
 
 		return sigintSrc
+	}
+
+	/// A line on stderr, on its own line even when a progress bar was being drawn, and out of the
+	/// command's own output (which a script may parse).
+	private static func notice(_ message: String) {
+		FileHandle.standardError.write(Data("\n\(message)\n".utf8))
 	}
 
 	/// Runs `operation`, the call of the cancellable caked task `taskID`, with Ctrl-C cancelling that task
