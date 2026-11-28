@@ -119,18 +119,18 @@ public struct PushHandler {
 				}
 			}
 
-			progressHandler(.terminated(.success(location.rootURL), "Push complete"))
+			progressHandler(.terminated(.success(location.rootURL), String(localized: "Push complete")))
 
 			return PushReply(success: true, message: String(localized: "Success"))
 		} catch {
 			// A reference already pushed stays in the registry: cancelling only stops what is left.
 			if error is CancellationError || Task.isCancelled {
-				progressHandler(.terminated(.failure(CancellationError()), "Push cancelled"))
+				progressHandler(.terminated(.failure(CancellationError()), String(localized: "Push cancelled")))
 
 				return PushReply(success: false, message: TemporaryVMCancellation.cancelledReason)
 			}
 
-			progressHandler(.terminated(.failure(error), "Push failed"))
+			progressHandler(.terminated(.failure(error), String(localized: "Push failed")))
 
 			return PushReply(success: false, message: error.reason)
 		}

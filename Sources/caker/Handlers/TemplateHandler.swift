@@ -34,13 +34,10 @@ extension TemplateHandler {
 			}
 		})
 
-		return try await withTaskCancellationHandler {
-			// Wait for caked's own answer even when cancelled: it comes once the temporary VM is gone.
+		// Cancelling asks caked to cancel the task, retried until caked has registered it; the call
+		// still waits for caked's own answer, which comes once the temporary VM is gone.
+		return try await client.withCancellableTask(taskID) {
 			try await CreateTemplateReply(call.response.get().templates.create)
-		} onCancel: {
-			_ = client.cancelTask(.with {
-				$0.id = taskID.uuidString
-			})
 		}
 	}
 

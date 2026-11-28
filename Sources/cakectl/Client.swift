@@ -337,22 +337,22 @@ struct Client: ParsableCommand {
 
 extension Client {
 	/// Runs `operation`, the call of a cancellable caked task identified by `taskID`: the first Ctrl-C
-	/// asks caked to cancel that task (CancelTask), and the call then returns caked's "Cancelled"
-	/// reply; a second Ctrl-C exits at once.
-	static func cancellingTaskOnInterrupt<T>(client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, _ operation: () async throws -> T) async rethrows -> T {
+	/// asks caked to cancel that task (retried until caked has registered it, see
+	/// `CakedServiceClient.withCancellableTask`), and the call then returns caked's "Cancelled" reply;
+	/// a second Ctrl-C exits at once.
+	static func cancellingTaskOnInterrupt<T: Sendable>(client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, _ operation: @escaping @Sendable () async throws -> T) async throws -> T {
 		Client.sigintSrc.cancel()
 		signal(SIGINT, SIG_IGN)
 
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+		let task = Task {
+			try await client.withCancellableTask(taskID, callOptions: callOptions, operation)
+		}
 
 		sigintSrc.setEventHandler {
-			Task {
-				Logger("Client").debug("SIGINT received, cancelling task \(taskID)")
+			Logger("Client").debug("SIGINT received, cancelling task \(taskID)")
 
-				_ = try? await client.cancelTask(.with {
-					$0.id = taskID.uuidString
-				}, callOptions: callOptions).response.get()
-			}
+			task.cancel()
 
 			sigintSrc.setEventHandler {
 				Foundation.exit(128)
@@ -365,6 +365,6 @@ extension Client {
 			sigintSrc.cancel()
 		}
 
-		return try await operation()
+		return try await task.value
 	}
 }

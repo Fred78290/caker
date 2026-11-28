@@ -809,3 +809,52 @@ extension Caked_MacOSVersion {
 		}
 	}
 }
+
+extension CakedServiceClient {
+	/// Runs `operation`, the call that starts the cancellable caked task `taskID` (duplicate, template
+	/// create, push). When the calling task is cancelled, asks caked to cancel `taskID`, and keeps asking
+	/// while caked answers that it doesn't know it: the request may not have registered it yet, and a
+	/// single CancelTask sent then would be lost. It stops once caked accepts or `operation` returns, so a
+	/// task already registered gets one request. `operation` keeps waiting for caked's own reply.
+	public func withCancellableTask<T>(_ taskID: UUID, callOptions: CallOptions? = nil, _ operation: () async throws -> T) async rethrows -> T {
+		let finished = CancellableTaskCompletion()
+
+		defer {
+			finished.finish()
+		}
+
+		return try await withTaskCancellationHandler {
+			try await operation()
+		} onCancel: {
+			Task {
+				await self.cancelTaskWhenRegistered(taskID, callOptions: callOptions, finished: finished)
+			}
+		}
+	}
+
+	private func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions?, finished: CancellableTaskCompletion) async {
+		while finished.isFinished == false {
+			let reply = try? await self.cancelTask(.with { $0.id = taskID.uuidString }, callOptions: callOptions).response.get()
+
+			if reply?.tasks.cancelled.success == true {
+				return
+			}
+
+			try? await Task.sleep(for: .milliseconds(250))
+		}
+	}
+}
+
+/// Whether the call behind `withCancellableTask` has returned.
+private final class CancellableTaskCompletion: @unchecked Sendable {
+	private let lock = NSLock()
+	private var finished = false
+
+	var isFinished: Bool {
+		self.lock.withLock { self.finished }
+	}
+
+	func finish() {
+		self.lock.withLock { self.finished = true }
+	}
+}

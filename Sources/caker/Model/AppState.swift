@@ -516,7 +516,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	@MainActor
 	func createTemplate(from vm: VirtualMachineDocument, templateName: String) async {
 		let vmURL = vm.url
-		let connectionManager = self.connectionManager
+		// The VM's own connection: a document opened through another one stays open after the app switches.
+		let connectionManager = vm.connectionManager
 
 		do {
 			let (result, cancelled) = try await WaitWindow.run(
@@ -528,7 +529,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 
 			if result.created {
-				self.reloadTemplates()
+				// The template list is the current connection's: only reload it when the template landed there.
+				if connectionManager == self.connectionManager {
+					self.reloadTemplates()
+				}
 			} else if cancelled == false {
 				alertError(String(localized: "Failed to create template"), result.reason ?? String(localized: "Internal error"))
 			}
@@ -741,9 +745,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 		let newName = txt.stringValue
 		let vmURL = vm.url
-		let connectionManager = self.connectionManager
-		let runMode = self.connectionMode.runMode
-		let isAppMode = self.connectionMode == .app
+		// The VM's own connection: a document opened through another one stays open after the app switches.
+		let connectionManager = vm.connectionManager
+		let runMode = connectionManager.connectionMode.runMode
+		let isAppMode = connectionManager.connectionMode == .app
 
 		Task { @MainActor in
 			do {
@@ -757,6 +762,12 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				}
 
 				if result.duplicated {
+					// The window doesn't block switching connections: the VM list is the current connection's, so
+					// the copy is only added there when it was made through it (a new connection loads its own list).
+					guard connectionManager == self.connectionManager else {
+						return
+					}
+
 					if isAppMode {
 						let location = try StorageLocation(runMode: runMode).find(newName)
 						self.addVirtualMachineDocument(location.rootURL)

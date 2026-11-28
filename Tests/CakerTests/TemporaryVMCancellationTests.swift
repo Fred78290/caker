@@ -150,6 +150,71 @@ final class TemporaryVMCancellationTests: XCTestCase {
 		XCTAssertFalse(StorageLocation(runMode: .user, template: true).exists(templateName))
 	}
 
+	/// A stand-in for a temporary VM's `caked vmrun`: a process that ignores SIGINT, so only SIGKILL stops it,
+	/// with its PID published in `location`'s PID file.
+	private func startStubbornProcess(publishingIn location: VMLocation) throws -> Process {
+		let process = Process()
+
+		process.executableURL = URL(fileURLWithPath: "/bin/sh")
+		// An ignored signal stays ignored across exec, so `sleep` ignores SIGINT too
+		process.arguments = ["-c", "trap '' INT; exec /bin/sleep 60"]
+		try process.run()
+		// Let the shell install the trap before anything signals it
+		Thread.sleep(forTimeInterval: 0.3)
+		try "\(process.processIdentifier)".write(to: location.pidFile, atomically: true, encoding: .ascii)
+
+		return process
+	}
+
+	func testKillingATemporaryVMIsBoundedAndFallsBackToSIGKILL() throws {
+		let location = VMLocation(rootURL: self.sourceDirectory)
+		let process = try startStubbornProcess(publishingIn: location)
+		let start = Date()
+
+		location.killTemporaryVirtualMachine(runMode: .user, timeout: 1)
+
+		process.waitUntilExit()
+
+		XCTAssertLessThan(Date().timeIntervalSince(start), 5, "the wait must be bounded")
+		XCTAssertEqual(process.terminationReason, .uncaughtSignal)
+		XCTAssertEqual(process.terminationStatus, SIGKILL)
+		XCTAssertFalse(FileManager.default.fileExists(atPath: location.pidFile.path(percentEncoded: false)))
+	}
+
+	/// The temporary VM can publish its PID after the cancellation: it must still be killed then, not left to boot.
+	func testCancelKillsATemporaryVMThatStartsAfterward() throws {
+		let temporary = try VMLocation.tempDirectory(runMode: .user)
+		let cancellation = TemporaryVMCancellation(runMode: .user)
+
+		defer {
+			try? temporary.delete()
+		}
+
+		try cancellation.register(temporary)
+		cancellation.cancel()
+
+		Thread.sleep(forTimeInterval: 0.5)
+
+		let process = try startStubbornProcess(publishingIn: temporary)
+		let exited = expectation(description: "the late temporary VM is killed")
+
+		process.terminationHandler = { _ in
+			exited.fulfill()
+		}
+
+		if process.isRunning == false {
+			exited.fulfill()
+		}
+
+		// SIGINT is ignored: the kill's own 15 s wait, then SIGKILL
+		wait(for: [exited], timeout: 25)
+
+		XCTAssertEqual(process.terminationStatus, SIGKILL)
+
+		// Deleting the copy (what the operation does once it has cleaned up) ends the watch
+		try temporary.delete()
+	}
+
 	func testRegisteringAfterCancelThrows() throws {
 		let cancellation = TemporaryVMCancellation(runMode: .user)
 		let temporary = VMLocation(rootURL: self.sourceDirectory)

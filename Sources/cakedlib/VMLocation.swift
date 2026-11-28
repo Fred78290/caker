@@ -1504,12 +1504,22 @@ public final class TemporaryVMCancellation: @unchecked Sendable {
 		if let temporary {
 			let runMode = self.runMode
 
-			// Not on the caller's thread: a task cancellation handler must return quickly.
+			// Not on the caller's thread: a task cancellation handler must return quickly. The VM may not have
+			// published its PID yet (still being launched), and killing nothing would let it boot: keep watching
+			// until the operation has destroyed the copy, killing the VM whenever it shows up.
 			DispatchQueue.global(qos: .userInitiated).async {
-				temporary.killTemporaryVirtualMachine(runMode: runMode)
+				let deadline = Date().addingTimeInterval(Self.killWatchTimeout)
+
+				while FileManager.default.fileExists(atPath: temporary.rootURL.path(percentEncoded: false)) && Date() < deadline {
+					temporary.killTemporaryVirtualMachine(runMode: runMode)
+					Thread.sleep(forTimeInterval: 0.2)
+				}
 			}
 		}
 	}
+
+	/// How long `cancel()` keeps killing the temporary VM while the operation hasn't destroyed its copy yet.
+	static let killWatchTimeout: TimeInterval = 300
 
 	func register(_ temporary: VMLocation) throws {
 		try self.lock.withLock {
@@ -1572,18 +1582,21 @@ extension TemporaryVMCancellation {
 
 extension VMLocation {
 	/// Stops a temporary VM started by `caked vmrun` and waits for its process to exit, killing it if
-	/// it doesn't within `timeout` seconds. Best effort: it is about to be deleted anyway.
+	/// it doesn't within `timeout` seconds. Best effort: it is about to be deleted anyway. The stop is only
+	/// asked (not `stopVirtualMachine`, which waits for the VM without a deadline): the wait is this one.
 	func killTemporaryVirtualMachine(runMode: Utils.RunMode, timeout: TimeInterval = 15) {
 		let pid = self.pidFile.isPIDRunning()
 
-		guard pid.running else {
+		guard pid.running, let processID = pid.pid else {
 			return
 		}
 
-		try? self.stopVirtualMachine(force: true, runMode: runMode)
-
-		guard let processID = pid.pid else {
-			return
+		if Bundle.isApplicationSandboxed {
+			if let client = try? VMRunHandler.serviceMode.client(location: self, runMode: runMode) {
+				_ = try? client.signal(signal: .shutdown)
+			}
+		} else {
+			kill(processID, SIGINT)
 		}
 
 		let deadline = Date().addingTimeInterval(timeout)
@@ -1596,6 +1609,8 @@ extension VMLocation {
 			Logger(self).warn("Temporary VM \(self.name) did not stop, killing it")
 			kill(processID, SIGKILL)
 		}
+
+		self.removePID()
 	}
 
 	/// Waits for a temporary VM that was asked to shut down to actually exit before its files are moved.
