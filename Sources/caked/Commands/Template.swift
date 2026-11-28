@@ -62,6 +62,11 @@ struct Template: ParsableCommand {
 			}
 
 			Logger.appendNewLine(self.common.format.render(reply))
+
+			// A cancelled creation is not a success: the usual status of a command stopped by Ctrl-C
+			if reply.created == false && TemporaryVMCancellation.isCancelled(reason: reply.reason) {
+				throw ArgumentParser.ExitCode(130)
+			}
 		}
 	}
 

@@ -571,7 +571,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 						$0.status = .new
 					})
 			},
-			title: "build \(request.options.name)",
+			title: String(format: String(localized: "build %@"), request.options.name),
 			id: taskID
 		) {
 			self.logger.info("Build cancelled")
@@ -599,7 +599,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 						$0.status = .new
 					})
 			},
-			title: "launch \(request.options.name)",
+			title: String(format: String(localized: "launch %@"), request.options.name),
 			id: taskID
 		) {
 			self.logger.info("Launch cancelled")
@@ -638,7 +638,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		// Cancelling the task kills and destroys the temporary VM, and the handler then answers "Cancelled".
-		let reply = try await self.executeCancellable(command: DuplicateHandler(request: request), title: "duplicate \(request.from) to \(request.to)", id: self.taskID(request.taskID)) {
+		let reply = try await self.executeCancellable(command: DuplicateHandler(request: request), title: String(format: String(localized: "duplicate %@ to %@"), request.from, request.to), id: self.taskID(request.taskID)) {
 			self.logger.info("Duplicate of \(request.from) to \(request.to) cancelled")
 		}
 
@@ -692,7 +692,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		// Cancelling the task kills and destroys the temporary VM used to reset cloud-init, or stops the
 		// upload; the handler then answers "Cancelled". References already pushed stay in the registry.
-		try await self.executeCancellable(command: PushHandler(request: request), title: "push \(request.localName)", id: self.taskID(request.taskID)) {
+		try await self.executeCancellable(command: PushHandler(request: request), title: String(format: String(localized: "push %@"), request.localName), id: self.taskID(request.taskID)) {
 			self.logger.info("Push of \(request.localName) cancelled")
 		}
 	}
@@ -723,7 +723,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			// written; the handler then answers "Cancelled".
 			let create = request.createRequest
 
-			reply = try await self.executeCancellable(command: TemplateHandler(request: request), title: "template \(create.templateName) from \(create.sourceName)", id: self.taskID(create.taskID)) {
+			reply = try await self.executeCancellable(command: TemplateHandler(request: request), title: String(format: String(localized: "template %@ from %@"), create.templateName, create.sourceName), id: self.taskID(create.taskID)) {
 				self.logger.info("Creating template \(create.templateName) cancelled")
 			}
 		} else {
@@ -875,7 +875,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		_ = try await self.executeCancellable(
 			command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode),
-			title: "provision \(request.name)",
+			title: String(format: String(localized: "provision %@"), request.name),
 			id: taskID,
 		) {
 			self.logger.info("Provision cancelled")

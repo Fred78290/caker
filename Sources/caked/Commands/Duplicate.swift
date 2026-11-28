@@ -46,5 +46,10 @@ struct Duplicate: AsyncParsableCommand {
 		}
 
 		Logger.appendNewLine(self.common.format.render(reply))
+
+		// A cancelled duplicate is not a success: the usual status of a command stopped by Ctrl-C
+		if reply.duplicated == false && TemporaryVMCancellation.isCancelled(reason: reply.reason) {
+			throw ArgumentParser.ExitCode(130)
+		}
 	}
 }

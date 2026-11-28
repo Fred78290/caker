@@ -344,7 +344,8 @@ extension Client {
 		Client.sigintSrc.cancel()
 		signal(SIGINT, SIG_IGN)
 
-		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+		// Not the main queue: a synchronous command (provision) blocks it while waiting for its async work
+		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .global(qos: .userInitiated))
 
 		sigintSrc.setEventHandler {
 			Logger("Client").debug("SIGINT received, cancelling task \(taskID)")

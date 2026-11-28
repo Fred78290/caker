@@ -45,5 +45,10 @@ struct Push: AsyncParsableCommand {
 		}
 
 		Logger.appendNewLine(self.common.format.render(reply))
+
+		// A cancelled push is not a success: the usual status of a command stopped by Ctrl-C
+		if reply.success == false && TemporaryVMCancellation.isCancelled(reason: reply.message) {
+			throw ArgumentParser.ExitCode(130)
+		}
 	}
 }

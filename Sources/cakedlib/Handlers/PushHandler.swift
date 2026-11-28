@@ -119,6 +119,9 @@ public struct PushHandler {
 				}
 			}
 
+			// An upload that finished although the push was cancelled meanwhile: report the cancellation
+			try Task.checkCancellation()
+
 			progressHandler(.terminated(.success(location.rootURL), String(localized: "Push complete")))
 
 			return PushReply(success: true, message: String(localized: "Success"))

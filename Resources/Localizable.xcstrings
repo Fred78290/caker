@@ -2281,6 +2281,16 @@
         }
       }
     },
+    "build %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "construction de %@"
+          }
+        }
+      }
+    },
     "Build failed" : {
       "localizations" : {
         "fr" : {
@@ -2466,6 +2476,7 @@
       "shouldTranslate" : false
     },
     "caked is cancelling the task and cleaning up…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2824,6 +2835,7 @@
       }
     },
     "Cancelling… Press Ctrl-C again to quit without waiting." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -5643,6 +5655,16 @@
         }
       }
     },
+    "duplicate %@ to %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "duplication de %@ vers %@"
+          }
+        }
+      }
+    },
     "Duplicate a VM to a new name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5719,12 +5741,12 @@
         }
       }
     },
-    "Dynamic forward ports" : {
+    "Duplicating “%@” to “%@”…" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transfert automatique des ports"
+            "value" : "Duplication de « %@ » vers « %@ »…"
           }
         }
       }
@@ -5739,12 +5761,12 @@
         }
       }
     },
-    "Duplicating “%@” to “%@”…" : {
+    "Dynamic forward ports" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duplication de « %@ » vers « %@ »…"
+            "value" : "Transfert automatique des ports"
           }
         }
       }
@@ -9275,6 +9297,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plus tard"
+          }
+        }
+      }
+    },
+    "launch %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lancement de %@"
           }
         }
       }
@@ -14016,6 +14048,16 @@
         }
       }
     },
+    "provision %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "provisionnement de %@"
+          }
+        }
+      }
+    },
     "provisioning" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14421,6 +14463,16 @@
         }
       }
     },
+    "push %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "envoi de %@"
+          }
+        }
+      }
+    },
     "Push a VM to a registry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14539,6 +14591,7 @@
       }
     },
     "Quit without waiting: the cleanup was not finished." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14549,6 +14602,7 @@
       }
     },
     "Quit without waiting: the task may still be running in caked." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -19040,6 +19094,16 @@
         }
       }
     },
+    "template %@ from %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modèle %@ à partir de %@"
+          }
+        }
+      }
+    },
     "Template %@ is running" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19115,6 +19179,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nom du modèle"
+          }
+        }
+      }
+    },
+    "Temporary VM %@ could not be stopped" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM temporaire %@ n'a pas pu être arrêtée"
           }
         }
       }

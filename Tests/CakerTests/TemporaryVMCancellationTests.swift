@@ -215,6 +215,87 @@ final class TemporaryVMCancellationTests: XCTestCase {
 		try temporary.delete()
 	}
 
+	/// A source whose config names `rootDisk` and whose disk is at `diskPath` (created with `contents`).
+	private func makeSource(rootDisk: String, diskPath: URL, contents: String) throws -> VMLocation {
+		let config = CakeConfig(
+			location: self.sourceDirectory, rootDisk: rootDisk, diskFormat: .raw, os: .darwin, autostart: false, configuredUser: "admin", configuredPassword: "x",
+			configuredGroup: "adm", configuredGroups: nil, configuredPlatform: .unknown, clearPassword: false, displayRefit: false,
+			ifname: false, cpuCountMin: 2, memorySize: 4096 * MoB, memorySizeMin: 512 * MoB, screenSize: .init(width: 1024, height: 768))
+
+		try config.save()
+		try FileManager.default.createDirectory(at: diskPath.deletingLastPathComponent(), withIntermediateDirectories: true)
+		try contents.write(to: diskPath, atomically: true, encoding: .utf8)
+
+		let location = VMLocation(rootURL: self.sourceDirectory)
+
+		FileManager.default.createFile(atPath: location.nvramURL.path(percentEncoded: false), contents: Data())
+
+		return location
+	}
+
+	private func makeTarget() throws -> VMLocation {
+		let target = FileManager.default.temporaryDirectory.appendingPathComponent("duplicate-target-\(UUID().uuidString)")
+
+		try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: target)
+		}
+
+		return VMLocation(rootURL: target)
+	}
+
+	/// The copy of a VM whose disk is elsewhere (absolute `rootDisk`) must use its own disk, never the source's.
+	func testCopyOfAVMWithAnAbsoluteDiskUsesItsOwnDisk() throws {
+		let outside = FileManager.default.temporaryDirectory.appendingPathComponent("outside-\(UUID().uuidString)/root.img")
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: outside.deletingLastPathComponent())
+		}
+
+		let source = try makeSource(rootDisk: outside.path(percentEncoded: false), diskPath: outside, contents: "source disk")
+		let target = try makeTarget()
+
+		try source.copyTo(target)
+
+		let copied = target.rootURL.appendingPathComponent("disk.img")
+
+		XCTAssertEqual(try String(contentsOf: copied, encoding: .utf8), "source disk")
+		XCTAssertNil(try CakeConfig(location: target.rootURL).rootDisk)
+		XCTAssertEqual(target.diskURL.resolvingSymlinksInPath(), copied.resolvingSymlinksInPath())
+	}
+
+	/// A relative custom disk keeps its path, inside the copy.
+	func testCopyOfAVMWithARelativeDiskKeepsItsPath() throws {
+		let source = try makeSource(rootDisk: "disks/root.img", diskPath: self.sourceDirectory.appendingPathComponent("disks/root.img"), contents: "source disk")
+		let target = try makeTarget()
+
+		try source.copyTo(target)
+
+		let copied = target.rootURL.appendingPathComponent("disks/root.img")
+
+		XCTAssertEqual(try String(contentsOf: copied, encoding: .utf8), "source disk")
+		XCTAssertEqual(try CakeConfig(location: target.rootURL).rootDisk, "disks/root.img")
+		XCTAssertEqual(target.diskURL.resolvingSymlinksInPath(), copied.resolvingSymlinksInPath())
+	}
+
+	/// A relative path leaving the VM's folder is treated like an absolute one.
+	func testCopyOfAVMWithADiskOutsideItsFolderUsesItsOwnDisk() throws {
+		let name = "outside-\(UUID().uuidString).img"
+		let outside = self.sourceDirectory.deletingLastPathComponent().appendingPathComponent(name)
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: outside)
+		}
+
+		let source = try makeSource(rootDisk: "../\(name)", diskPath: outside, contents: "source disk")
+		let target = try makeTarget()
+
+		try source.copyTo(target)
+
+		XCTAssertNil(try CakeConfig(location: target.rootURL).rootDisk)
+		XCTAssertEqual(target.diskURL.resolvingSymlinksInPath(), target.rootURL.appendingPathComponent("disk.img").resolvingSymlinksInPath())
+	}
+
 	func testRegisteringAfterCancelThrows() throws {
 		let cancellation = TemporaryVMCancellation(runMode: .user)
 		let temporary = VMLocation(rootURL: self.sourceDirectory)

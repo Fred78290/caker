@@ -837,8 +837,14 @@ extension CakedServiceClient {
 	/// set by the caller once that call has returned. Returns whether caked accepted the cancellation.
 	@discardableResult
 	public func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions? = nil, until finished: CancellableTaskCompletion) async -> Bool {
+		// Each attempt gets its own deadline (the caller's options may have none): an attempt caked doesn't answer
+		// mustn't stop the loop from seeing that the call has returned.
+		var options = callOptions ?? CallOptions()
+
+		options.timeLimit = .timeout(.seconds(5))
+
 		while finished.isFinished == false {
-			let reply = try? await self.cancelTask(.with { $0.id = taskID.uuidString }, callOptions: callOptions).response.get()
+			let reply = try? await self.cancelTask(.with { $0.id = taskID.uuidString }, callOptions: options).response.get()
 
 			if reply?.tasks.cancelled.success == true {
 				return true

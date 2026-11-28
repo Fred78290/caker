@@ -1,6 +1,7 @@
 import ArgumentParser
 import Cocoa
 import Foundation
+import GRPC
 import GRPCLib
 import NIO
 import Shout
@@ -53,14 +54,16 @@ public struct TemplateHandler {
 	}
 
 	/// Boots `location` (a temporary copy the caller owns and destroys), resets its cloud-init state through the agent, then stops it.
+	/// The agent connection and the command are bounded: when a cancellation kills the VM, they fail instead of waiting for it,
+	/// so the caller gets to its cancellation check and destroys the copy.
 	@discardableResult
 	static func cleanCloudInit(temporary location: VMLocation, startMode: StartHandler.StartMode, runMode: Utils.RunMode) throws -> VMLocation {
 		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 120, startMode: startMode, gcd: false, recoveryMode: false, runMode: runMode)
-		let conn = try CakeAgentConnection(eventLoop: Utilities.group.next(), listeningAddress: location.agentURL, runMode: runMode)
+		let conn = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: location.agentURL, timeout: 30, runMode: runMode, retries: .upTo(10))
 
 		Logger(self).info("Clean cloud-init on \(runningIP)")
 
-		try conn.run(command: cloudInitCleanup.joined(separator: " ; ")).log()
+		try conn.run(command: cloudInitCleanup.joined(separator: " ; "), callOptions: CallOptions(timeLimit: .timeout(.seconds(300)))).log()
 		try location.stopVirtualMachine(force: false, runMode: runMode)
 
 		return location
