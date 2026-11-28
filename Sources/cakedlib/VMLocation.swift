@@ -4,6 +4,7 @@ import GRPC
 import GRPCLib
 import NIO
 import Shout
+import Socket
 import Virtualization
 
 extension URL {
@@ -28,6 +29,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		case caked
 		case caker
 		case provision
+		case restart
 
 		init(_ from: String) {
 			switch from {
@@ -46,7 +48,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				return true
 			case .caker:
 				return ProcessInfo.processInfo.processName == Home.cakerCommandName
-			case .none, .provision:
+			case .none, .provision, .restart:
 				return false
 			}
 		}
@@ -58,6 +60,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			case .running(let mode):
 				if mode == .provision {
 					return "provisioning"
+				} else if mode == .restart {
+					return "restarting"
 				}
 				return "running"
 			case .paused:
@@ -88,6 +92,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		public var isProvisioning: Bool {
 			if case .running(.provision) = self {
+				return true
+			} else {
+				return false
+			}
+		}
+
+		public var isRestarting: Bool {
+			if case .running(.restart) = self {
 				return true
 			} else {
 				return false
@@ -166,6 +178,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return buildURL(expanded)
 	}
 
+	public var restartURL: URL {
+		buildURL("run.restart")
+	}
+
 	public var nvramURL: URL {
 		buildURL("nvram.bin")
 	}
@@ -227,7 +243,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			return nil
 		}
 
-		return rootURL.appendingPathComponent(fileName, isDirectory: false).absoluteURL
+		return buildURL(fileName)
 	}
 
 	public var agentURL: URL {
@@ -309,14 +325,26 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			if FileManager.default.fileExists(atPath: self.provisionningURL.path(percentEncoded: false)) {
 				return .running(.provision)
 			}
+
+			if FileManager.default.fileExists(atPath: self.restartURL.path(percentEncoded: false)) {
+				return .running(.restart)
+			}
+
 			return .running(.caked)
 		case .caker:
 			if FileManager.default.fileExists(atPath: self.provisionningURL.path(percentEncoded: false)) {
 				return .running(.provision)
 			}
+
+			if FileManager.default.fileExists(atPath: self.restartURL.path(percentEncoded: false)) {
+				return .running(.restart)
+			}
+
 			return .running(.caker)
 		case .provision:
 			return .running(.provision)
+		case .restart:
+			return .running(.restart)
 		case .none:
 			if FileManager.default.fileExists(atPath: stateURL.path(percentEncoded: false)) {
 				return .paused
@@ -335,7 +363,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public var pidFile: URL {
-		rootURL.appendingPathComponent("run.pid")
+		buildURL("run.pid")
 	}
 
 	public func creationDate() throws -> Date {
@@ -611,6 +639,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			return .provision
 		}
 
+		if self.restartURL.fileExists {
+			return .restart
+		}
+
 		return .init(result.processName)
 	}
 
@@ -665,27 +697,109 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 		}
 
+		// `reboot` returns as soon as the guest has been asked to restart, while the guest being replaced (and its agent) may
+		// still answer: the restart marker must stay until the replacement guest is back, so the old agent is never taken
+		// for the new one. Wait for the old one to go away (a failed call, or an uptime that starts over), then for the new
+		// one. Best effort: a slow boot is not a failed restart, the marker is removed and agent monitoring takes over.
+		func waitForRebootedAgent(previousUptime: UInt64?) {
+			guard let conn = try? CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 5, runMode: runMode, retries: .none) else {
+				return
+			}
+
+			let downDeadline = Date().addingTimeInterval(60)
+			var wentDown = false
+
+			while wentDown == false && Date() < downDeadline {
+				if case .success(let infos)? = try? conn.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(2)))).wait() {
+					if let previousUptime, infos.hasUptime, infos.uptime < previousUptime {
+						wentDown = true
+					} else {
+						Thread.sleep(forTimeInterval: 0.5)
+					}
+				} else {
+					wentDown = true
+				}
+			}
+
+			if wentDown == false {
+				Logger(self).warn("VM \(self.name): the guest agent kept answering after reboot")
+			}
+
+			do {
+				_ = try self.waitIPWithAgent(wait: waitIPTimeout, runMode: runMode)
+			} catch {
+				Logger(self).warn("VM \(self.name): the guest agent is not back after reboot: \(error)")
+			}
+		}
+
+		// Same for a guest restarted over SSH, which has no agent to ask: its SSH server goes away, then comes back.
+		func waitForRebootedSSH(host: String) {
+			let downDeadline = Date().addingTimeInterval(60)
+			var wentDown = false
+
+			while wentDown == false && Date() < downDeadline {
+				// Each connect is bounded by what is left of the window: a guest that drops attempts can't stretch it
+				let remaining = downDeadline.timeIntervalSinceNow
+
+				guard remaining > 0 else {
+					break
+				}
+
+				if let socket = try? Socket.create(host: host, port: 22, timeout: UInt(max(1, min(remaining, 5) * 1000))) {
+					socket.close()
+					Thread.sleep(forTimeInterval: 0.5)
+				} else {
+					wentDown = true
+				}
+			}
+
+			if wentDown == false {
+				Logger(self).warn("VM \(self.name): the guest SSH server kept answering after reboot")
+			}
+
+			if Utilities.waitPortReady(host: host, port: 22, timeout: TimeInterval(waitIPTimeout)) == false {
+				Logger(self).warn("VM \(self.name): the guest SSH server is not back after reboot")
+			}
+		}
+
 		guard case .running = self.status else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
+
+		defer {
+			try? self.restartURL.delete()
+		}
+
+		try self.restartURL.writePID()
 
 		if force || config.agent == false {
 			try killVMRun()
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
+			var previousUptime: UInt64? = nil
+
+			if case .success(let infos)? = try? client.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(5)))).wait(), infos.hasUptime {
+				previousUptime = infos.uptime
+			}
 
 			_ = try client.run(
 				request: Caked_RunCommand.with {
 					$0.command = "reboot"
 					$0.vmname = self.name
 				})
+
+			waitForRebootedAgent(previousUptime: previousUptime)
 		} else {
 			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
 
 			if reply.success {
 				let ssh = try SSH(host: reply.ip)
+
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false), passphrase: String.empty)
+				try self.restartURL.writePID()
 				try ssh.execute("sudo reboot")
+
+				waitForRebootedSSH(host: reply.ip)
 			} else {
 				try killVMRun()
 			}

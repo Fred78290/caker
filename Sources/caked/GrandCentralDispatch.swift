@@ -431,7 +431,15 @@ extension GrandCentralDispatch {
 				}
 
 				if event.fileRemoved {
-					if fileURL.lastPathComponent == location.pidFile.lastPathComponent {
+					if fileURL.lastPathComponent == location.restartURL.lastPathComponent {
+						try self.updateStatus(
+							.with {
+								$0.name = name
+								$0.status = location.pidFile.isPIDRunning().running ? .running : .stopped
+							})
+					} else if fileURL.lastPathComponent == location.pidFile.lastPathComponent && location.restartURL.fileExists == false {
+						// While the restart marker exists the PID file is removed by the stop half of the restart:
+						// the marker's own removal reports the outcome.
 						try self.updateStatus(
 							.with {
 								$0.name = name
@@ -445,7 +453,13 @@ extension GrandCentralDispatch {
 								$0.name = name
 								$0.status = .provisioning
 							})
-					} else if fileURL.lastPathComponent == location.pidFile.lastPathComponent && location.provisionningURL.fileExists == false {
+					} else if fileURL.lastPathComponent == location.restartURL.lastPathComponent {
+						try self.updateStatus(
+							.with {
+								$0.name = name
+								$0.status = .restarting
+							})
+					} else if fileURL.lastPathComponent == location.pidFile.lastPathComponent && location.provisionningURL.fileExists == false && location.restartURL.fileExists == false {
 						try self.updateStatus(
 							.with {
 								$0.name = location.name

@@ -554,6 +554,8 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 			String(localized: "new")
 		case .provisioning:
 			String(localized: "provisioning")
+		case .restarting:
+			String(localized: "restarting")
 		case .UNRECOGNIZED(let value):
 			String(localized: "unrecognized: \(value)")
 		}
@@ -569,6 +571,8 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 			self = .provisioning
 		case .unknown:
 			self = .error
+		case .restarting:
+			self = .restarting
 		}
 	}
 

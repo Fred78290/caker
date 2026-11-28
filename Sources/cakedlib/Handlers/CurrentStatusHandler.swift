@@ -33,6 +33,10 @@ public extension VMLocation.Status {
 			self = .running(.caked)
 		case .paused:
 			self = .paused
+		case .provisioning:
+			self = .running(.provision)
+		case .restarting:
+			self = .running(.restart)
 		default:
 			self = .stopped
 		}
@@ -43,10 +47,17 @@ public extension Caked_VirtualMachineStatus {
 	init(_ from: VMLocation.Status) {
 		switch from {
 		case .running(let mode):
-			if mode == .provision {
-				self = .provisioning
-			} else {
+			switch mode {
+			case .none:
+				self = .error
+			case .caked:
 				self = .running
+			case .caker:
+				self = .running
+			case .provision:
+				self = .provisioning
+			case .restart:
+				self = .restarting
 			}
 		case .paused:
 			self = .paused
@@ -60,10 +71,15 @@ public struct CurrentStatusHandler {
 	public typealias AsyncThrowingStreamCurrentStatusReplyYield = AsyncThrowingStream<CurrentStatusReply, Error>.Continuation
 	
 	private class CurrentUsageWatcher {
-		internal var isMonitoring: Bool = false
+		/// The status stream task, the monitor task and cancellation all reach this state: every access goes through `lock`.
+		private let lock = NSLock()
+		private var monitoring: Bool = false
+		/// Identifies the latest `monitorCurrentUsage()` run. A run cancelled by a restart can still be unwinding when
+		/// the next one starts: only the current run may touch `monitoring`/`stream`, so a stale one can't clear them.
+		private var generation: UInt64 = 0
+		private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 		private let location: VMLocation
 		private let runMode: Utils.RunMode
-		private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 		private let continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation
 		private let logger = Logger("CurrentUsageWatcher")
 
@@ -77,21 +93,92 @@ public struct CurrentStatusHandler {
 			await monitorCurrentUsage()
 		}
 
-		func cancel() {
-			guard self.isMonitoring else {
-				return
-			}
+		internal var isMonitoring: Bool {
+			self.lock.withLock { self.monitoring }
+		}
 
-			self.isMonitoring = false
-			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.location.name)")
+		/// Marks a new run as started, unless one already is: returns its generation, or nil.
+		private func beginRun() -> UInt64? {
+			self.lock.withLock {
+				guard self.monitoring == false else {
+					return nil
+				}
 
-			if let stream {
-				stream.continuation.finish(throwing: CancellationError())
+				self.monitoring = true
+				self.generation &+= 1
+
+				return self.generation
 			}
 		}
 
-		private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
-			self.continuation.yield(.with {
+		/// True while `generation` is the current run and it hasn't been cancelled.
+		private func isActive(_ generation: UInt64) -> Bool {
+			self.lock.withLock { self.monitoring && self.generation == generation }
+		}
+
+		/// Registers the stream of `generation`, only while that run is still current and not cancelled: `cancel()` may
+		/// have run while the helper was connecting, and found no stream to finish. Returns false when it was refused.
+		private func registerStream(_ stream: AsyncThrowingStreamCakeAgentCurrentUsageReply, for generation: UInt64) -> Bool {
+			self.lock.withLock {
+				guard self.monitoring && self.generation == generation else {
+					return false
+				}
+
+				self.stream = stream
+
+				return true
+			}
+		}
+
+		private func clearStream(for generation: UInt64) {
+			self.lock.withLock {
+				if self.generation == generation {
+					self.stream = nil
+				}
+			}
+		}
+
+		/// Publishes a usage sample of `generation` only while it is the current, active run. Checked and yielded under the
+		/// lock, so `cancel()`/`beginRun()` can't change ownership in between: a sample of a run cancelled by a restart
+		/// would otherwise reach the consumer and mark the agent ready.
+		private func publish(_ status: Caked_CurrentStatus, for generation: UInt64) {
+			self.lock.withLock {
+				if self.monitoring && self.generation == generation {
+					self.continuation.yield(status)
+				}
+			}
+		}
+
+		/// Ends `generation` if it is still the current run; a stale run leaves the state of its replacement alone.
+		private func endRun(_ generation: UInt64) {
+			self.lock.withLock {
+				if self.generation == generation {
+					self.monitoring = false
+					self.stream = nil
+				}
+			}
+		}
+
+		func cancel() {
+			let (wasMonitoring, stream) = self.lock.withLock {
+				let wasMonitoring = self.monitoring
+
+				self.monitoring = false
+
+				return (wasMonitoring, self.stream)
+			}
+
+			guard wasMonitoring else {
+				return
+			}
+
+			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.location.name)")
+
+			stream?.continuation.finish(throwing: CancellationError())
+		}
+
+		private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply, for generation: UInt64) {
+			self.publish(.with {
 				$0.name = self.location.name
 				$0.usage = .with {
 					$0.cpuCount = usage.cpuCount
@@ -113,13 +200,13 @@ public struct CurrentStatusHandler {
 						}
 					}
 				}
-			})
+			}, for: generation)
 		}
 
-		private func handleAgentHealthCurrentUsage(usage: InfoReply) {
+		private func handleAgentHealthCurrentUsage(usage: InfoReply, for generation: UInt64) {
 			let usage = usage.caked
 
-			self.continuation.yield(.with {
+			self.publish(.with {
 				$0.name = self.location.name
 				$0.usage = .with {
 					$0.cpuCount = usage.cpuCount
@@ -132,11 +219,11 @@ public struct CurrentStatusHandler {
 						$0.memory = usage.memory
 					}
 				}
-			})
+			}, for: generation)
 		}
 
 		func monitorCurrentUsage() async {
-			guard self.isMonitoring == false else {
+			guard let generation = self.beginRun() else {
 				return
 			}
 
@@ -145,8 +232,6 @@ public struct CurrentStatusHandler {
 			await withTaskCancellationHandler(operation: {
 				let taskQueue = TaskQueue(label: "CakeAgent.CurrentUsageWatcher.\(self.location.name)")
 				var helper: CakeAgentHelper! = nil
-
-				self.isMonitoring = true
 
 				func performAgentHealthCheck() -> AsyncThrowingStreamCakeAgentCurrentUsageReply {
 					return taskQueue.dispatchStream { [weak self] (continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation) in
@@ -159,7 +244,7 @@ public struct CurrentStatusHandler {
 
 							self.logger.debug("Monitoring agent is ready, VM: \(self.location.name)")
 
-							self.handleAgentHealthCurrentUsage(usage: infos)
+							self.handleAgentHealthCurrentUsage(usage: infos, for: generation)
 
 							helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
 						} catch {
@@ -172,27 +257,34 @@ public struct CurrentStatusHandler {
 					
 				}
 
-				while Task.isCancelled == false && self.isMonitoring {
+				while Task.isCancelled == false && self.isActive(generation) {
 					do {
 						helper = try self.createCakeAgentHelper()
-						
-						self.stream = performAgentHealthCheck()
-						
-						for try await currentUsage in stream!.stream {
-							handleAgentHealthCurrentUsage(usage: currentUsage)
+
+						let stream = performAgentHealthCheck()
+
+						// Refused: the run was cancelled or replaced meanwhile. Finishing the stream ends the loop below through
+						// the CancellationError path, and `endRun` leaves a replacement's state alone.
+						if self.registerStream(stream, for: generation) == false {
+							stream.continuation.finish(throwing: CancellationError())
 						}
-						
+
+						for try await currentUsage in stream.stream {
+							handleAgentHealthCurrentUsage(usage: currentUsage, for: generation)
+						}
+
 						break
 					} catch is CancellationError {
-						self.isMonitoring = false
+						self.endRun(generation)
 					} catch {
-						if self.isMonitoring {
+						if self.isActive(generation) {
 							try? await helper?.close().get()
 
-							self.stream = nil
+							self.clearStream(for: generation)
 
+							// Not `return`: the cleanup below must run, or the run would stay marked as monitoring for ever
 							guard self.handleAgentHealthCheckFailure(error: error) else {
-								return
+								break
 							}
 							self.logger.debug("Monitoring agent not ready, VM: \(self.location.name), waiting...")
 							try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -203,13 +295,16 @@ public struct CurrentStatusHandler {
 				taskQueue.close()
 				try? await helper?.close().get()
 
-				self.isMonitoring = false
-				self.stream = nil
+				self.endRun(generation)
 
 				self.logger.debug("Monitoring ended, VM: \(self.location.name)")
 			}, onCancel: {
 				self.logger.debug("Monitoring canceled, VM: \(self.location.name)")
-				self.stream?.continuation.finish(throwing: CancellationError())
+
+				// Only this run's own stream: a newer run's must not be finished by a stale cancellation
+				let stream = self.lock.withLock { self.generation == generation ? self.stream : nil }
+
+				stream?.continuation.finish(throwing: CancellationError())
 			})
 		}
 
@@ -301,20 +396,36 @@ public struct CurrentStatusHandler {
 					}
 					
 					func check(_ file: URL) -> Void {
-						if file.lastPathComponent == self.location.pidFile.lastPathComponent {
+						let statusFiles = [self.location.pidFile.lastPathComponent, self.location.restartURL.lastPathComponent]
+
+						if statusFiles.contains(file.lastPathComponent) {
 							let status = self.location.status
 
 							self.logger.debug("Status changed for VM \(self.location.name) to \(status)")
 
 							switch status {
-							case .running:
+							case .running(let mode):
 								self.stream.continuation.yield(.with {
-									$0.status = .running
+									switch mode {
+									case .none:
+										$0.status = .error
+									case .caked:
+										$0.status = .running
+									case .caker:
+										$0.status = .running
+									case .provision:
+										$0.status = .provisioning
+									case .restart:
+										$0.status = .restarting
+									}
 								})
 							case .stopped:
-								self.stream.continuation.yield(.with {
-									$0.status = .stopped
-								})
+								// The stop half of a restart: the restart marker's removal reports the outcome.
+								if self.location.restartURL.fileExists == false {
+									self.stream.continuation.yield(.with {
+										$0.status = .stopped
+									})
+								}
 							default:
 								self.stream.continuation.yield(.with {
 									$0.status = .paused

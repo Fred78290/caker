@@ -268,7 +268,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		if let currentDocument {
 			self.isAgentInstalling = currentDocument.agent == .installing && currentDocument.status == .running
 			self.isStopped = currentDocument.status == .stopped || currentDocument.status == .stopping
-			self.isRunning = currentDocument.status == .running || currentDocument.status == .starting
+			self.isRunning = currentDocument.status == .running || currentDocument.status == .starting || currentDocument.status == .restarting
 			self.isPaused = currentDocument.status == .paused || currentDocument.status == .pausing
 			self.isSuspendable = currentDocument.status == .running && currentDocument.suspendable
 			self.isProvisioning = currentDocument.status == .provisioning

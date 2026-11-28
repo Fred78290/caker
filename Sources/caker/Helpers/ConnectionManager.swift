@@ -346,8 +346,8 @@ final class ConnectionManager: Equatable {
 		try VNCInfosHandler.vncInfos(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
 	}
 
-	func virtualMachineInfos(vmURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
-		try InfosHandler.infos(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
+	func virtualMachineInfos(vmURL: URL, callOptions: CallOptions? = nil) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
+		try InfosHandler.infos(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode, callOptions: callOptions)
 	}
 
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
@@ -365,6 +365,7 @@ final class ConnectionManager: Equatable {
 	}
 }
 
+// MARK: - Grand central
 extension ConnectionManager {
 	public static let GrandCentralDidTerminateNotification = NSNotification.Name(rawValue: "GrandCentralDidTerminateNotification")
 	public static let GrandCentralDidStartNotification = NSNotification.Name(rawValue: "GrandCentralDidStartNotification")
