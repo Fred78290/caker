@@ -46,7 +46,7 @@ struct Provision: GrpcParsableCommand {
 		try self.provision.mergeProvisionVars(provisionVars: ProvisionVariablesStore.load())
 	}
 
-	final class Provisionner {
+	final class Provisionner: @unchecked Sendable {
 		let command: Provision
 		let client: CakedServiceClient
 		var tunnel: VNCTunnel? = nil
