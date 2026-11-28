@@ -811,12 +811,23 @@ extension Caked_MacOSVersion {
 }
 
 extension CakedServiceClient {
+	/// The time limit, in seconds, of one CancelTask attempt.
+	public static let cancelTaskTimeLimit: Int64 = 5
+
+	/// The time limit, in seconds, of one CancelTask attempt for a long task whose cancellation can hold caked's
+	/// reply (duplicate, template create, build, launch, provision): caked answers once the task's cancellation
+	/// handler has run, which can wait, for example for a copy already being moved into place.
+	public static let longCancelTaskTimeLimit: Int64 = 30
+
 	/// Runs `operation`, the call that starts the cancellable caked task `taskID` (duplicate, template
 	/// create, push). When the calling task is cancelled, asks caked to cancel `taskID`, and keeps asking
 	/// while caked answers that it doesn't know it: the request may not have registered it yet, and a
 	/// single CancelTask sent then would be lost. It stops once caked accepts or `operation` returns, so a
 	/// task already registered gets one request. `operation` keeps waiting for caked's own reply.
-	public func withCancellableTask<T>(_ taskID: UUID, callOptions: CallOptions? = nil, _ operation: () async throws -> T) async rethrows -> T {
+	/// `attemptTimeLimit` is the time limit, in seconds, of each CancelTask attempt.
+	public func withCancellableTask<T>(
+		_ taskID: UUID, callOptions: CallOptions? = nil, attemptTimeLimit: Int64 = cancelTaskTimeLimit, _ operation: () async throws -> T
+	) async rethrows -> T {
 		let finished = CancellableTaskCompletion()
 
 		defer {
@@ -827,7 +838,7 @@ extension CakedServiceClient {
 			try await operation()
 		} onCancel: {
 			Task {
-				await self.cancelTaskWhenRegistered(taskID, callOptions: callOptions, until: finished)
+				await self.cancelTaskWhenRegistered(taskID, callOptions: callOptions, attemptTimeLimit: attemptTimeLimit, until: finished)
 			}
 		}
 	}
@@ -835,13 +846,16 @@ extension CakedServiceClient {
 	/// Asks caked to cancel task `taskID`, retrying every 250 ms while caked answers that it doesn't know
 	/// it (the call that starts it may not have registered it yet), until caked accepts or `finished` is
 	/// set by the caller once that call has returned. Returns whether caked accepted the cancellation.
+	/// `attemptTimeLimit` is the time limit, in seconds, of each attempt.
 	@discardableResult
-	public func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions? = nil, until finished: CancellableTaskCompletion) async -> Bool {
+	public func cancelTaskWhenRegistered(
+		_ taskID: UUID, callOptions: CallOptions? = nil, attemptTimeLimit: Int64 = cancelTaskTimeLimit, until finished: CancellableTaskCompletion
+	) async -> Bool {
 		// Each attempt gets its own deadline (the caller's options may have none): an attempt caked doesn't answer
 		// mustn't stop the loop from seeing that the call has returned.
 		var options = callOptions ?? CallOptions()
 
-		options.timeLimit = .timeout(.seconds(5))
+		options.timeLimit = .timeout(.seconds(attemptTimeLimit))
 
 		while finished.isFinished == false {
 			let reply = try? await self.cancelTask(.with { $0.id = taskID.uuidString }, callOptions: options).response.get()

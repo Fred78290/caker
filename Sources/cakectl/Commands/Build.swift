@@ -39,7 +39,8 @@ struct Build: AsyncGrpcParsableCommand {
 					finished.finish()
 				}
 
-				Client.cancelTaskOnInterrupt(client: client, callOptions: callOptions, taskID: self.buildOptions.identifier, finished: finished)
+				Client.cancelTaskOnInterrupt(
+					client: client, callOptions: callOptions, taskID: self.buildOptions.identifier, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit, finished: finished)
 
 				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
 					continuation.yield(stream.current)

@@ -354,8 +354,11 @@ extension Client {
 	/// Replaces the default Ctrl-C handler: the first Ctrl-C asks caked to cancel task `taskID`, retried
 	/// while caked hasn't registered it yet and until `finished` is set (by the caller, once the call that
 	/// started the task has returned); the call then gets caked's "Cancelled" reply. A second Ctrl-C exits.
+	/// `attemptTimeLimit` is the time limit, in seconds, of each CancelTask attempt.
 	@discardableResult
-	static func cancelTaskOnInterrupt(client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, finished: CancellableTaskCompletion) -> DispatchSourceSignal {
+	static func cancelTaskOnInterrupt(
+		client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, attemptTimeLimit: Int64 = CakedServiceClient.cancelTaskTimeLimit, finished: CancellableTaskCompletion
+	) -> DispatchSourceSignal {
 		Client.sigintSrc.cancel()
 		signal(SIGINT, SIG_IGN)
 
@@ -371,7 +374,7 @@ extension Client {
 			Self.notice(String(localized: "Cancelling… Press Ctrl-C again to quit without waiting."))
 
 			Task {
-				if await client.cancelTaskWhenRegistered(taskID, callOptions: callOptions, until: finished) {
+				if await client.cancelTaskWhenRegistered(taskID, callOptions: callOptions, attemptTimeLimit: attemptTimeLimit, until: finished) {
 					Self.notice(String(localized: "caked is cancelling the task and cleaning up…"))
 				}
 			}
@@ -410,10 +413,11 @@ extension Client {
 	/// (see `cancelTaskOnInterrupt`), and returns its reply rendered by `render`; see `output(_:for:succeeded:)`
 	/// for the exit status of a cancelled one.
 	static func cancellingTaskOnInterrupt<T>(
-		client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, succeeded: (T) -> Bool, render: (T) -> String, _ operation: () async throws -> T
+		client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, attemptTimeLimit: Int64 = CakedServiceClient.cancelTaskTimeLimit,
+		succeeded: (T) -> Bool, render: (T) -> String, _ operation: () async throws -> T
 	) async throws -> String {
 		let finished = CancellableTaskCompletion()
-		let sigintSrc = Self.cancelTaskOnInterrupt(client: client, callOptions: callOptions, taskID: taskID, finished: finished)
+		let sigintSrc = Self.cancelTaskOnInterrupt(client: client, callOptions: callOptions, taskID: taskID, attemptTimeLimit: attemptTimeLimit, finished: finished)
 		let reply: T
 
 		do {

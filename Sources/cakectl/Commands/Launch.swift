@@ -42,7 +42,8 @@ struct Launch: AsyncGrpcParsableCommand {
 					finished.finish()
 				}
 
-				Client.cancelTaskOnInterrupt(client: client, callOptions: callOptions, taskID: self.buildOptions.identifier, finished: finished)
+				Client.cancelTaskOnInterrupt(
+					client: client, callOptions: callOptions, taskID: self.buildOptions.identifier, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit, finished: finished)
 
 				let stream = try client.launch(Caked_LaunchRequest(command: self)) { stream in
 					continuation.yield(stream.current)

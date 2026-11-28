@@ -20,7 +20,7 @@ struct Duplicate: AsyncGrpcParsableCommand {
 
 		// Ctrl-C asks caked to cancel: it kills and deletes the temporary VM, then answers "Cancelled".
 		return try await Client.cancellingTaskOnInterrupt(
-			client: client, callOptions: callOptions, taskID: taskID,
+			client: client, callOptions: callOptions, taskID: taskID, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit,
 			succeeded: { $0.vms.duplicated.duplicated },
 			render: { self.options.format.render($0.vms.duplicated) }
 		) {

@@ -23,7 +23,7 @@ struct Template: ParsableCommand {
 
 			// Ctrl-C asks caked to cancel: it kills and deletes the temporary VM and a template being written.
 			return try await Client.cancellingTaskOnInterrupt(
-				client: client, callOptions: callOptions, taskID: taskID,
+				client: client, callOptions: callOptions, taskID: taskID, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit,
 				succeeded: { $0.templates.create.created },
 				render: { self.options.format.render($0.templates.create) }
 			) {

@@ -110,7 +110,8 @@ struct Provision: GrpcParsableCommand {
 		/// Ctrl-C asks caked to cancel the provisioning, retried until caked has registered the task and
 		/// until `finished` is set once the stream has ended; a second Ctrl-C exits.
 		func catchSigInt() {
-			Client.cancelTaskOnInterrupt(client: self.client, callOptions: nil, taskID: self.command.identifier, finished: self.completion)
+			Client.cancelTaskOnInterrupt(
+				client: self.client, callOptions: nil, taskID: self.command.identifier, attemptTimeLimit: CakedServiceClient.longCancelTaskTimeLimit, finished: self.completion)
 		}
 
 		/// Ends the VNC app that `--foreground` runs, with the status of a cancelled provisioning when it was one.
