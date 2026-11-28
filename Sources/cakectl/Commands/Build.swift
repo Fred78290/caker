@@ -25,15 +25,16 @@ struct Build: AsyncGrpcParsableCommand {
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+		// Ctrl-C asks caked to cancel the task, retried until caked has registered it
+		let finished = CancellableTaskCompletion()
+
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: String = String.empty
+			var succeeded = false
 
 			group.addTask {
-				// Ctrl-C asks caked to cancel the task, retried until caked has registered it
-				let finished = CancellableTaskCompletion()
-
 				defer {
 					finished.finish()
 				}
@@ -70,10 +71,12 @@ struct Build: AsyncGrpcParsableCommand {
 					}
 				} else if case .builded(let builded) = current {
 					result = self.options.format.render(BuildedReply(builded))
+					succeeded = builded.builded
 				}
 			}
 
-			return result
+			// Exit status 130 when cancelled with Ctrl-C and not finished meanwhile
+			return try Client.output(result, for: finished, succeeded: succeeded)
 		}
 	}
 }

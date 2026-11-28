@@ -857,10 +857,12 @@ extension CakedServiceClient {
 	}
 }
 
-/// Whether the call that started a cancellable caked task has returned: `cancelTaskWhenRegistered` stops then.
+/// Whether the call that started a cancellable caked task has returned (`cancelTaskWhenRegistered` stops
+/// then), and whether the user asked to cancel it.
 public final class CancellableTaskCompletion: @unchecked Sendable {
 	private let lock = NSLock()
 	private var finished = false
+	private var cancelRequested = false
 
 	public init() {}
 
@@ -868,7 +870,15 @@ public final class CancellableTaskCompletion: @unchecked Sendable {
 		self.lock.withLock { self.finished }
 	}
 
+	public var isCancelRequested: Bool {
+		self.lock.withLock { self.cancelRequested }
+	}
+
 	public func finish() {
 		self.lock.withLock { self.finished = true }
+	}
+
+	public func requestCancel() {
+		self.lock.withLock { self.cancelRequested = true }
 	}
 }

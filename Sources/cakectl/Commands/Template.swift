@@ -22,11 +22,13 @@ struct Template: ParsableCommand {
 			let taskID = UUID()
 
 			// Ctrl-C asks caked to cancel: it kills and deletes the temporary VM and a template being written.
-			let reply = try await Client.cancellingTaskOnInterrupt(client: client, callOptions: callOptions, taskID: taskID) {
+			return try await Client.cancellingTaskOnInterrupt(
+				client: client, callOptions: callOptions, taskID: taskID,
+				succeeded: { $0.templates.create.created },
+				render: { self.options.format.render($0.templates.create) }
+			) {
 				try await client.template(Caked_TemplateRequest(command: self, taskID: taskID), callOptions: callOptions).response.get()
 			}
-
-			return self.options.format.render(reply.templates.create)
 		}
 	}
 
