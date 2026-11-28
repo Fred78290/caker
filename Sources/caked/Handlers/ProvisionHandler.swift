@@ -60,7 +60,7 @@ struct ProvisionHandler: CakedCommandAsync {
 				templateContent = String(data: request.provisionTemplate, encoding: .utf8)
 			}
 
-			_ = try await CakedLib.ProvisionHandler.provision(
+			let provision = try await CakedLib.ProvisionHandler.provision(
 				location: location,
 				storageLocation: storageLocation,
 				display: request.foreground ? .vnc : .none,
@@ -77,62 +77,86 @@ struct ProvisionHandler: CakedCommandAsync {
 				continuation.yield(progress)
 			}
 
-			for await progress in stream {
-				if case .progress(let context, let fractionCompleted) = progress {
-					logger.debug("Provision progress: \(fractionCompleted * 100)%")
+			try await withTaskCancellationHandler {
+				for await progress in stream {
+					if case .progress(let context, let fractionCompleted) = progress {
+						logger.debug("Provision progress: \(fractionCompleted * 100)%")
 
-					let completed = Int(100 * fractionCompleted)
+						let completed = Int(100 * fractionCompleted)
 
-					guard completed != lastSentCompleted else { continue }
-					lastSentCompleted = completed
+						guard completed != lastSentCompleted else { continue }
+						lastSentCompleted = completed
 
-					if completed % 10 == 0 {
-						if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
-							context.lastCompleted10 = completed
+						if completed % 10 == 0 {
+							if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
+								context.lastCompleted10 = completed
+							}
+						} else if completed % 2 == 0 {
+							if completed - context.lastCompleted2 >= 2 {
+								context.lastCompleted2 = completed
+							}
 						}
-					} else if completed % 2 == 0 {
-						if completed - context.lastCompleted2 >= 2 {
-							context.lastCompleted2 = completed
+
+						try await responseStream.send(
+							.with {
+								$0.progress = .with {
+									$0.fractionCompleted = Double(fractionCompleted)
+									$0.oldFractionCompleted = context.oldFractionCompleted
+									$0.lastCompleted10 = Int32(context.lastCompleted10)
+									$0.lastCompleted2 = Int32(context.lastCompleted2)
+								}
+							})
+					} else if case .provisioned(let result) = progress {
+						logger.debug("Provisioning result: \(result)")
+
+						try await responseStream.send(
+							.with {
+								$0.provisioned = result.caked
+							})
+					} else if case .step(let message) = progress {
+						logger.debug("Provisioning step: \(message)")
+
+						try await responseStream.send(
+							.with {
+								$0.step = message
+							})
+					} else if case .substep(let message) = progress {
+						logger.debug("Provisioning substep: \(message)")
+
+						try await responseStream.send(
+							.with {
+								$0.substep = message
+							})
+					} else if case .infos(let message) = progress, let message {
+						logger.debug("Provisioning infos: \(message)")
+
+						try await responseStream.send(
+							.with {
+								$0.infos = message.caked
+							})
+					}
+				}
+				
+				if Task.isCancelled {
+					throw CancellationError()
+				}
+			} onCancel: {
+				provision.cancellable.cancel()
+			}
+		} catch is CancellationError {
+			// The task's cancel handler (`CakedProvider.provision`) has already sent the "Cancelled" reply: a second one
+			// would replace it on the client with this error's text.
+			promise.fail(CancellationError())
+
+			return Caked_Reply.with { reply in
+				reply.vms = Caked_VirtualMachineReply.with {
+					$0.provisioned = .with {
+						$0.provisioned = .with {
+							$0.name = request.name
+							$0.provisioned = false
+							$0.reason = TemporaryVMCancellation.cancelledReason
 						}
 					}
-
-					try await responseStream.send(
-						.with {
-							$0.progress = .with {
-								$0.fractionCompleted = Double(fractionCompleted)
-								$0.oldFractionCompleted = context.oldFractionCompleted
-								$0.lastCompleted10 = Int32(context.lastCompleted10)
-								$0.lastCompleted2 = Int32(context.lastCompleted2)
-							}
-						})
-				} else if case .provisioned(let result) = progress {
-					logger.debug("Provisioning result: \(result)")
-
-					try await responseStream.send(
-						.with {
-							$0.provisioned = result.caked
-						})
-				} else if case .step(let message) = progress {
-					logger.debug("Provisioning step: \(message)")
-
-					try await responseStream.send(
-						.with {
-							$0.step = message
-						})
-				} else if case .substep(let message) = progress {
-					logger.debug("Provisioning substep: \(message)")
-
-					try await responseStream.send(
-						.with {
-							$0.substep = message
-						})
-				} else if case .infos(let message) = progress, let message {
-					logger.debug("Provisioning infos: \(message)")
-
-					try await responseStream.send(
-						.with {
-							$0.infos = message.caked
-						})
 				}
 			}
 		} catch {

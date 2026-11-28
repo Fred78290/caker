@@ -40,6 +40,8 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate {
 
 	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		if let error = error {
+			let error = Curl.cancellationError(for: error)
+
 			self.response?.resume(throwing: error)
 			self.response = nil
 
@@ -69,7 +71,7 @@ class Curl {
 		self.fromURL = fromURL
 	}
 
-	func fetch(request: URLRequest, progressObserver: ProgressObserver? = nil) async throws -> (channel: AsyncThrowingStream<Data, Error>, response: HTTPURLResponse) {
+	func fetch(request: URLRequest, progressObserver: ProgressObserver? = nil) async throws -> (session: URLSessionDataTask, channel: AsyncThrowingStream<Data, Error>, response: HTTPURLResponse) {
 		let delegate = DownloadDelegate()
 		let task = self.urlSession.dataTask(with: request)
 
@@ -79,29 +81,43 @@ class Curl {
 			progressObserver.progress.addChild(task.progress, withPendingUnitCount: progressObserver.progress.totalUnitCount)
 		}
 
-		return try await withTaskCancellationHandler(operation: {
-			let channel = AsyncThrowingStream<Data, Error> { continuation in
-				delegate.stream = continuation
-			}
+		do {
+			return try await withTaskCancellationHandler(operation: {
+				let channel = AsyncThrowingStream<Data, Error> { continuation in
+					delegate.stream = continuation
+				}
 
-			let response =
-				try await withCheckedThrowingContinuation { continuation in
-					delegate.response = continuation
+				let response =
+					try await withCheckedThrowingContinuation { continuation in
+						delegate.response = continuation
 
-					task.resume()
-				} as! HTTPURLResponse
+						task.resume()
+					} as! HTTPURLResponse
 
-			if response.statusCode != 200 {
-				throw URLError(.init(rawValue: response.statusCode))
-			}
+				if response.statusCode != 200 {
+					throw URLError(.init(rawValue: response.statusCode))
+				}
 
-			return (channel, response)
-		}, onCancel: {
-			task.cancel()
-		})
+				return (task, channel, response)
+			}, onCancel: {
+				task.cancel()
+			})
+		} catch {
+			throw Self.cancellationError(for: error)
+		}
 	}
 
-	func head(observer: ProgressObserver? = nil) async throws -> (AsyncThrowingStream<Data, Error>, HTTPURLResponse) {
+	/// URLSession reports a cancelled task as `URLError(.cancelled)`: surface it as a `CancellationError`
+	/// so callers can tell a cancellation from a genuine network failure.
+	static func cancellationError(for error: Error) -> Error {
+		if error is CancellationError || Task.isCancelled || (error as? URLError)?.code == .cancelled {
+			return CancellationError()
+		}
+
+		return error
+	}
+
+	func head(observer: ProgressObserver? = nil) async throws -> (session: URLSessionDataTask, channel: AsyncThrowingStream<Data, Error>, response: HTTPURLResponse) {
 		return try await self.fetch(request: URLRequest(url: self.fromURL, method: "HEAD"), progressObserver: observer)
 	}
 
@@ -116,17 +132,32 @@ class Curl {
 
 		let fileHandle = try FileHandle(forWritingTo: store)
 
-		defer {
-			try? fileHandle.close()
-		}
+		do {
+			// Cancelling only stops the transfer: the loop then ends with an error, and the file is closed and removed
+			// below, never while the loop may still be writing to it (a write to a closed FileHandle raises).
+			try await withTaskCancellationHandler(operation: {
+				for try await chunk in result.channel {
+					fileHandle.write(chunk)
+				}
 
-		try await withTaskCancellationHandler(operation: {
-			for try await chunk in result.channel {
-				fileHandle.write(chunk)
-			}
-		}, onCancel: {
+				if Task.isCancelled {
+					throw CancellationError()
+				}
+			}, onCancel: {
+				result.session.cancel()
+			})
+
 			try? fileHandle.close()
-			try? FileManager.default.removeItem(at: store)
-		})
+		} catch {
+			let error = Self.cancellationError(for: error)
+
+			try? fileHandle.close()
+
+			if error is CancellationError {
+				try? FileManager.default.removeItem(at: store)
+			}
+
+			throw error
+		}
 	}
 }

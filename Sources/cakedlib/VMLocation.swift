@@ -990,6 +990,12 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let networkNames = config.qualifiedNetworks.map(\.network)
 
 		repeat {
+			// A VM just launched (`startedProcess`) only writes its PID file once it runs: the process check below covers
+			// it. Otherwise the VM already runs, and a PID file that no longer names a live process means it stopped.
+			if startedProcess == nil, self.pidFile.isPIDRunning().running == false {
+				throw ServiceError(String(localized: "VM \(self.name) is not running"))
+			}
+
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
 			}
@@ -1014,7 +1020,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 
 			count += 1
-		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
+		} while Date.now.timeIntervalSince(start) < TimeInterval(wait) && Task.isCancelled == false
+
+		if Task.isCancelled {
+			throw CancellationError()
+		}
 
 		throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get IP for VM \(self.name)"), message: String(localized: "Timeout"))
 	}

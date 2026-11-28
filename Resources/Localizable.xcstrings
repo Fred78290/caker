@@ -2282,6 +2282,7 @@
       }
     },
     "build %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2289,7 +2290,8 @@
             "value" : "construction de %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Build failed" : {
       "localizations" : {
@@ -2476,7 +2478,7 @@
       "shouldTranslate" : false
     },
     "caked is cancelling the task and cleaning up…" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2484,7 +2486,8 @@
             "value" : "caked annule la tâche et fait le nettoyage…"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "caked not found" : {
       "extractionState" : "manual",
@@ -2835,7 +2838,7 @@
       }
     },
     "Cancelling… Press Ctrl-C again to quit without waiting." : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2843,7 +2846,8 @@
             "value" : "Annulation en cours… Appuyez à nouveau sur Ctrl-C pour quitter sans attendre."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Cannot copy a VM that uses a physical block device as its root disk" : {
       "extractionState" : "manual",
@@ -5656,6 +5660,7 @@
       }
     },
     "duplicate %@ to %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -5663,7 +5668,8 @@
             "value" : "duplication de %@ vers %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Duplicate a VM to a new name" : {
       "extractionState" : "manual",
@@ -9302,6 +9308,7 @@
       }
     },
     "launch %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -9309,7 +9316,8 @@
             "value" : "lancement de %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Launch inside app" : {
       "comment" : "A toggle that allows the user to launch the virtual machine inside the app.",
@@ -14049,6 +14057,7 @@
       }
     },
     "provision %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14056,7 +14065,8 @@
             "value" : "provisionnement de %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "provisioning" : {
       "extractionState" : "manual",
@@ -14464,6 +14474,7 @@
       }
     },
     "push %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14471,7 +14482,8 @@
             "value" : "envoi de %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Push a VM to a registry" : {
       "extractionState" : "manual",
@@ -14491,6 +14503,7 @@
       }
     },
     "Push cancelled" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14498,9 +14511,11 @@
             "value" : "Envoi annulé"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Push complete" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14508,9 +14523,11 @@
             "value" : "Envoi terminé"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Push failed" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14518,7 +14535,8 @@
             "value" : "Échec de l’envoi"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Push image to %@" : {
       "extractionState" : "manual",
@@ -14621,7 +14639,7 @@
       }
     },
     "Quit without waiting: the cleanup was not finished." : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14629,10 +14647,11 @@
             "value" : "Sortie sans attendre : le nettoyage n'est pas terminé."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Quit without waiting: the task may still be running in caked." : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -14640,7 +14659,8 @@
             "value" : "Sortie sans attendre : la tâche peut encore s'exécuter dans caked."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "randomly generated if not specified" : {
       "extractionState" : "manual",
@@ -19125,6 +19145,7 @@
       }
     },
     "template %@ from %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -19132,7 +19153,8 @@
             "value" : "modèle %@ à partir de %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Template %@ is running" : {
       "extractionState" : "manual",
@@ -19214,6 +19236,7 @@
       }
     },
     "Temporary VM %@ could not be stopped" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -19221,7 +19244,8 @@
             "value" : "La VM temporaire %@ n'a pas pu être arrêtée"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Terminate & Quit" : {
       "extractionState" : "manual",
