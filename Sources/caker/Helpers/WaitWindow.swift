@@ -147,11 +147,16 @@ private struct WaitWindowView: View {
 			}
 
 			if self.model.onCancel != nil {
-				Button(String(localized: "Cancel")) {
-					self.model.cancel()
+				HStack {
+					Spacer()
+					Button(String(localized: "Cancel")) {
+						self.model.cancel()
+					}
+					.keyboardShortcut(.cancelAction)
+					.disabled(self.model.cancelling)
+					.withButtonStyle(.bordered)
+					Spacer()
 				}
-				.keyboardShortcut(.cancelAction)
-				.disabled(self.model.cancelling)
 			}
 		}
 		.padding(24)
