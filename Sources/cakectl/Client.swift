@@ -336,23 +336,22 @@ struct Client: ParsableCommand {
 }
 
 extension Client {
-	/// Runs `operation`, the call of a cancellable caked task identified by `taskID`: the first Ctrl-C
-	/// asks caked to cancel that task (retried until caked has registered it, see
-	/// `CakedServiceClient.withCancellableTask`), and the call then returns caked's "Cancelled" reply;
-	/// a second Ctrl-C exits at once.
-	static func cancellingTaskOnInterrupt<T: Sendable>(client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, _ operation: @escaping @Sendable () async throws -> T) async throws -> T {
+	/// Replaces the default Ctrl-C handler: the first Ctrl-C asks caked to cancel task `taskID`, retried
+	/// while caked hasn't registered it yet and until `finished` is set (by the caller, once the call that
+	/// started the task has returned); the call then gets caked's "Cancelled" reply. A second Ctrl-C exits.
+	@discardableResult
+	static func cancelTaskOnInterrupt(client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, finished: CancellableTaskCompletion) -> DispatchSourceSignal {
 		Client.sigintSrc.cancel()
 		signal(SIGINT, SIG_IGN)
 
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-		let task = Task {
-			try await client.withCancellableTask(taskID, callOptions: callOptions, operation)
-		}
 
 		sigintSrc.setEventHandler {
 			Logger("Client").debug("SIGINT received, cancelling task \(taskID)")
 
-			task.cancel()
+			Task {
+				await client.cancelTaskWhenRegistered(taskID, callOptions: callOptions, until: finished)
+			}
 
 			sigintSrc.setEventHandler {
 				Foundation.exit(128)
@@ -361,10 +360,20 @@ extension Client {
 
 		sigintSrc.activate()
 
+		return sigintSrc
+	}
+
+	/// Runs `operation`, the call of the cancellable caked task `taskID`, with Ctrl-C cancelling that task
+	/// (see `cancelTaskOnInterrupt`).
+	static func cancellingTaskOnInterrupt<T>(client: CakedServiceClient, callOptions: CallOptions?, taskID: UUID, _ operation: () async throws -> T) async rethrows -> T {
+		let finished = CancellableTaskCompletion()
+		let sigintSrc = Self.cancelTaskOnInterrupt(client: client, callOptions: callOptions, taskID: taskID, finished: finished)
+
 		defer {
+			finished.finish()
 			sigintSrc.cancel()
 		}
 
-		return try await task.value
+		return try await operation()
 	}
 }

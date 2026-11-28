@@ -827,12 +827,15 @@ extension CakedServiceClient {
 			try await operation()
 		} onCancel: {
 			Task {
-				await self.cancelTaskWhenRegistered(taskID, callOptions: callOptions, finished: finished)
+				await self.cancelTaskWhenRegistered(taskID, callOptions: callOptions, until: finished)
 			}
 		}
 	}
 
-	private func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions?, finished: CancellableTaskCompletion) async {
+	/// Asks caked to cancel task `taskID`, retrying every 250 ms while caked answers that it doesn't know
+	/// it (the call that starts it may not have registered it yet), until caked accepts or `finished` is
+	/// set by the caller once that call has returned.
+	public func cancelTaskWhenRegistered(_ taskID: UUID, callOptions: CallOptions? = nil, until finished: CancellableTaskCompletion) async {
 		while finished.isFinished == false {
 			let reply = try? await self.cancelTask(.with { $0.id = taskID.uuidString }, callOptions: callOptions).response.get()
 
@@ -845,16 +848,18 @@ extension CakedServiceClient {
 	}
 }
 
-/// Whether the call behind `withCancellableTask` has returned.
-private final class CancellableTaskCompletion: @unchecked Sendable {
+/// Whether the call that started a cancellable caked task has returned: `cancelTaskWhenRegistered` stops then.
+public final class CancellableTaskCompletion: @unchecked Sendable {
 	private let lock = NSLock()
 	private var finished = false
 
-	var isFinished: Bool {
+	public init() {}
+
+	public var isFinished: Bool {
 		self.lock.withLock { self.finished }
 	}
 
-	func finish() {
+	public func finish() {
 		self.lock.withLock { self.finished = true }
 	}
 }

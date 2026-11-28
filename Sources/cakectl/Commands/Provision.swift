@@ -104,30 +104,10 @@ struct Provision: GrpcParsableCommand {
 			}
 		}
 
-		func catchSigInt() {
-			Client.sigintSrc.cancel()
-			signal(SIGINT, SIG_IGN)
-
-			let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-
-			sigintSrc.setEventHandler {
-				Task { @MainActor in
-					Logger(self).debug("SIGINT received, cancelling provisioning task")
-
-					_ = try? await self.client.cancelTask(.with {
-						$0.id = self.command.identifier.uuidString
-					}).response.get()
-
-					//continuation.finish(throwing: ServiceError(String(localized: "Provisioning cancelled by user")))
-
-					sigintSrc.activate()
-					sigintSrc.setEventHandler {
-						Foundation.exit(128)
-					}
-				}
-			}
-
-			sigintSrc.activate()
+		/// Ctrl-C asks caked to cancel the provisioning, retried until caked has registered the task and
+		/// until `finished` is set once the stream has ended; a second Ctrl-C exits.
+		func catchSigInt(_ finished: CancellableTaskCompletion) {
+			Client.cancelTaskOnInterrupt(client: self.client, callOptions: nil, taskID: self.command.identifier, finished: finished)
 		}
 
 		func provisionWithoutView() async throws -> String {
@@ -138,8 +118,14 @@ struct Provision: GrpcParsableCommand {
 				var result = ""
 
 				group.addTask {
+					let finished = CancellableTaskCompletion()
+
+					defer {
+						finished.finish()
+					}
+
 					do {
-						self.catchSigInt()
+						self.catchSigInt(finished)
 
 						let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
 							continuation.yield(stream.current)
@@ -221,12 +207,15 @@ struct Provision: GrpcParsableCommand {
 								let logger = Logger(self)
 
 								group.addTask {
+									let finished = CancellableTaskCompletion()
+
 									do {
 										defer {
+											finished.finish()
 											continuation.finish()
 										}
 
-										self.catchSigInt()
+										self.catchSigInt(finished)
 
 										let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
 											continuation.yield(stream.current)
